@@ -53,7 +53,10 @@ export default function FormsServices({ initialData, onSubmit, isSubmitting = fa
     const [isLoadingCategories, setIsLoadingCategories] = useState(false);
     const [images, setImages] = useState<File[]>([]);
     const [imagePreviews, setImagePreviews] = useState<string[]>([]);
-    const [existingImageUrls, setExistingImageUrls] = useState<{ url: string; isMain?: boolean }[]>(initialData?.imageUrls?.map(url => ({ url, isMain: false })) || initialData?.files?.map(file => ({ url: file.url, isMain: false })) || []);
+    const [existingImageUrls, setExistingImageUrls] = useState<{ url: string; isMain?: boolean }[]>(
+        initialData?.imageUrls?.map(url => ({ url, isMain: false })) ||
+        initialData?.files?.map(file => ({ url: file.fileUrl, isMain: false })) || []
+    );
     const [tagInput, setTagInput] = useState("");
     const [locationLoading, setLocationLoading] = useState(false);
     const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(initialData?.categoryId || null);
@@ -215,10 +218,8 @@ export default function FormsServices({ initialData, onSubmit, isSubmitting = fa
 
         // Ajouter les champs texte
         Object.entries(formData).forEach(([key, value]) => {
-            if (value !== undefined && value !== null) {
-                if (key === 'tags' && Array.isArray(value)) {
-                    submitData.append(key, JSON.stringify(value));
-                } else if (typeof value === 'boolean') {
+            if (value !== undefined && value !== null && key !== 'images' && key !== 'tags') {
+                if (typeof value === 'boolean') {
                     submitData.append(key, String(value));
                 } else if (typeof value === 'number') {
                     submitData.append(key, value.toString());
@@ -228,10 +229,13 @@ export default function FormsServices({ initialData, onSubmit, isSubmitting = fa
             }
         });
 
+        // Append tags individually
+        if (formData.tags && Array.isArray(formData.tags)) {
+            formData.tags.forEach(tag => submitData.append('tags', tag));
+        }
+
         // Ajouter les nouvelles images
-        images.forEach((image) => {
-            submitData.append('images', image);
-        });
+        images.forEach((image) => { submitData.append('files', image); });
 
         // Ajouter les URLs des images existantes à conserver
         // if (existingImageUrls.length > 0) {
@@ -249,7 +253,6 @@ export default function FormsServices({ initialData, onSubmit, isSubmitting = fa
     return (
         <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-8">
             <div className="px-4 space-y-8">
-
 
                 {/* Images Section - Selon votre modèle */}
                 <div className="bg-card rounded-xl border border-border p-2">

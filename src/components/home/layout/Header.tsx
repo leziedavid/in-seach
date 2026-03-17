@@ -4,17 +4,20 @@ import { useEffect, useState } from "react";
 import { Icon } from "@iconify/react";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import QrCodeLogo from "./QrCodeLogo";
-import { getUserId, getUserName } from "@/lib/auth";
+import { getUserId, getUserName, isAuthenticated } from "@/lib/auth";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { getConversationsCount } from "@/api/api";
 import { useSocket } from "@/components/providers/SocketProvider";
+import { useCart } from "@/components/providers/CartProvider";
+import CartDetailModal from "@/components/products/CartDetailModal";
+import { useNotification } from "@/components/toast/NotificationProvider";
 
 // Définition des onglets avec leurs URLs <Icon icon="ic:twotone-home-max" width="24" height="24" />
 const NAVIGATION_TABS = [
     { key: "accueil", label: "Accueil", icon: "ic:twotone-home-max", path: "/" },
-    { key: "Tarifs", label: "Tarifs", icon: "solar:chat-round-money-bold-duotone", path: "/pricing" },
+    // { key: "Tarifs", label: "Tarifs", icon: "solar:chat-round-money-bold-duotone", path: "/pricing" },
     { key: "calendar", label: "Calendrier", icon: "solar:calendar-date-bold-duotone", path: "/akwaba" },
 ];
 
@@ -27,6 +30,22 @@ export default function Header() {
     const [userName, setUserName] = useState<string | null>(null);
     const [userId, setUserId] = useState<string | null>(null);
     const { socket } = useSocket();
+    const { totalItems } = useCart();
+    const [isCartModalOpen, setIsCartModalOpen] = useState(false);
+    const { addNotification } = useNotification();
+    const router = useRouter();
+
+    const protectedPaths = ["/akwaba", "/chat-ia", "/dashboard"];
+
+    const handleProtectedNavigation = (path: string) => {
+        if (!isAuthenticated()) {
+            addNotification("Vous devez être connecté pour accéder à cette section.", "warning");
+            router.push("/login?callbackUrl=" + path);
+            return false;
+        }
+        router.push(path);
+        return true;
+    };
 
     const images = [
         "/avatars/user1.png",
@@ -126,12 +145,27 @@ export default function Header() {
             <nav className="contents md:flex md:items-center md:gap-2">
                 {NAVIGATION_TABS.map((tab) => {
                     const active = isTabActive(tab.path);
+                    const isProtected = protectedPaths.includes(tab.path);
+
+                    if (isProtected) {
+                        return (
+                            <button
+                                key={tab.key}
+                                onClick={() => handleProtectedNavigation(tab.path)}
+                                className={`flex items-center gap-2 text-xs font-medium transition-all px-2 md:px-2.5 py-1.5 rounded-full ${active ? "text-primary-foreground bg-primary shadow-md shadow-primary/10" : "text-muted-foreground hover:text-foreground hover:bg-muted/50"}`}
+                                title={tab.label}
+                            >
+                                <Icon icon={tab.icon} className="w-7 h-7 md:w-5 md:h-5" />
+                                <span className="hidden md:inline">{tab.label}</span>
+                            </button>
+                        );
+                    }
+
                     return (
                         <Link key={tab.key} href={tab.path} className={`flex items-center gap-2 text-xs font-medium transition-all px-2 md:px-2.5 py-1.5 rounded-full ${active ? "text-primary-foreground bg-primary shadow-md shadow-primary/10" : "text-muted-foreground hover:text-foreground hover:bg-muted/50"}`} title={tab.label} >
                             <Icon icon={tab.icon} className="w-7 h-7 md:w-5 md:h-5" />
                             <span className="hidden md:inline">{tab.label}</span>
                         </Link>
-
                     );
                 })}
             </nav>
@@ -140,25 +174,39 @@ export default function Header() {
             <div className="contents md:flex md:items-center md:gap-2">
                 <ThemeToggle />
 
+                <button onClick={() => setIsCartModalOpen(true)} className="relative bg-primary p-1.5 md:p-2 rounded-full transition hover:scale-105 active:scale-95 flex items-center justify-center" >
+                    <Icon icon="solar:cart-bold" className="text-white w-4 h-4 md:w-5 md:h-5" />
+                    {totalItems > 0 && (
+                        <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-1 py-0.5 text-[8px] font-bold text-white bg-red-500 rounded-full border border-background">
+                            {totalItems}
+                        </span>
+                    )}
+                </button>
+
+                {/* <pre> {userId}</pre> */}
                 <QrCodeLogo user={userId} />
 
-                <Link href="/chat-ia">
-                    <button className="relative bg-primary p-1.5 md:p-2 rounded-full transition hover:scale-105 active:scale-95 flex items-center justify-center">
-                        <Icon icon="solar:bell-bing-bold-duotone" className="text-white w-4 h-4 md:w-5 md:h-5" />
-                        {unreadMessages > 0 && (
-                            <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-1 py-0.5 text-[8px] font-bold text-white bg-red-500 rounded-full border border-background">
-                                {unreadMessages}
-                            </span>
-                        )}
-                    </button>
-                </Link>
+                <button
+                    onClick={() => handleProtectedNavigation("/chat-ia")}
+                    className="relative bg-primary p-1.5 md:p-2 rounded-full transition hover:scale-105 active:scale-95 flex items-center justify-center"
+                >
+                    <Icon icon="solar:bell-bing-bold-duotone" className="text-white w-4 h-4 md:w-5 md:h-5" />
+                    {unreadMessages > 0 && (
+                        <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-1 py-0.5 text-[8px] font-bold text-white bg-red-500 rounded-full border border-background">
+                            {unreadMessages}
+                        </span>
+                    )}
+                </button>
 
-                <Link href="/akwaba">
-                    <button className="relative bg-background p-0.5 rounded-full border border-border transition hover:border-primary shrink-0">
-                        <Image src="/profile.webp" alt="Service" width={24} height={24} className="rounded-full" />
-                    </button>
-                </Link>
+                <button onClick={() => handleProtectedNavigation("/akwaba")} className="relative bg-background p-0.5 rounded-full border border-border transition hover:border-primary shrink-0" >
+                    <Image src="/profile.webp" alt="Service" width={24} height={24} className="rounded-full" />
+                </button>
             </div>
+
+            <CartDetailModal
+                isOpen={isCartModalOpen}
+                onClose={() => setIsCartModalOpen(false)}
+            />
 
         </header>
 

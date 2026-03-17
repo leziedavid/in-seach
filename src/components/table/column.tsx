@@ -21,7 +21,7 @@ export const columns: ColumnDef<Service>[] = [
                     <Image
                         src={
                             row.original.imageUrls?.[0] ||
-                            row.original.files?.[0] ||
+                            row.original.files?.[0]?.fileUrl ||
                             "/placeholder.png"
                         }
                         alt={row.original.title}

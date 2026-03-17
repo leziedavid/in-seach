@@ -1,0 +1,23 @@
+{
+    "name": "ServiceMarket",
+    "short_name": "ServiceMarket",
+    "description": "Trouvez un expert près de chez vous en quelques clics.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#b07b5e",
+    "icons": [
+        {
+            "src": "/next.svg",
+            "sizes": "192x192",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/next.svg",
+            "sizes": "512x512",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        }
+    ]
+}

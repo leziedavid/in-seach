@@ -1,18 +1,18 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Icon } from "@iconify/react";
 import Image from 'next/image';
-import { useInfiniteQuery } from "@tanstack/react-query";
 import { getServices, searchServiceIA } from "@/api/api";
 import { UserLocation, Service } from "@/types/interface";
 import { getUserLocation } from "@/utils/location";
 import BookingModal from "../home/BookingModal";
 import ImageSearchModal from "./ImageSearchModal";
 import InfiniteScroll from "../ui/InfiniteScroll";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 
 export default function SearchServies() {
-
+    const { withAuth } = useRequireAuth();
     const [query, setQuery] = useState("");
     const [isSearching, setIsSearching] = useState(false);
     const [selectedService, setSelectedService] = useState<any>(null);
@@ -26,25 +26,64 @@ export default function SearchServies() {
     const [aiSearchEmpty, setAiSearchEmpty] = useState(false);
     const [aiMessage, setAiMessage] = useState("");
 
-    const { data: servicesRes, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
-        queryKey: ['home-services', query], queryFn: ({ pageParam = 1 }) => getServices({ page: pageParam as number, limit: 3, search: query }), initialPageParam: 1, getNextPageParam: (lastPage) => {
-            if (!lastPage.data) return undefined;
-            const { page, totalPages } = lastPage.data;
-            return page < totalPages ? page + 1 : undefined;
-        },
-        enabled: isSearching
-    });
+    // State-based pagination
+    const [services, setServices] = useState<Service[]>([]);
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
+    const [loading, setLoading] = useState(false);
+    const [total, setTotal] = useState(0);
 
-    const services = aiResults.length > 0 ? aiResults : (servicesRes?.pages.flatMap(page => page.data?.data || []) || []);
+    const ITEMS_PER_PAGE = 6;
 
-    const totalResults = aiResults.length > 0 ? aiResults.length : (servicesRes?.pages[0]?.data?.total || 0);
+    const fetchServices = useCallback(async (pageNum: number, isNewSearch: boolean) => {
+        if (loading) return;
+        setLoading(true);
 
+        try {
+            const res = await getServices({
+                page: pageNum,
+                limit: ITEMS_PER_PAGE,
+                search: query || undefined,
+                lat: lat || undefined,
+                lng: lng || undefined
+            });
+
+            if (res.statusCode === 200 && res.data) {
+                const newServices = res.data.data;
+                setServices(prev => isNewSearch ? newServices : [...prev, ...newServices]);
+                setHasMore(pageNum < res.data.totalPages);
+                setTotal(res.data.total);
+            } else {
+                setHasMore(false);
+            }
+        } catch (error) {
+            console.error("Error fetching services:", error);
+            setHasMore(false);
+        } finally {
+            setLoading(false);
+        }
+    }, [query, lat, lng]);
+
+    // Reset and fetch when filters change
+    useEffect(() => {
+        if (isSearching && aiResults.length === 0) {
+            setPage(1);
+            fetchServices(1, true);
+        }
+    }, [isSearching, query, lat, lng, fetchServices, aiResults.length]);
+
+    // Load more when page changes
+    useEffect(() => {
+        if (page > 1 && aiResults.length === 0) {
+            fetchServices(page, false);
+        }
+    }, [page, fetchServices, aiResults.length]);
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
-        if (query.trim()) {
-            setAiResults([]); // Clear AI results on manual search
-            setAiSearchEmpty(false); // Reset empty state
+        if (query.trim() || lat || lng) {
+            setAiResults([]);
+            setAiSearchEmpty(false);
             setIsSearching(true);
         }
     };
@@ -56,6 +95,9 @@ export default function SearchServies() {
             setLat(location.lat);
             setLng(location.lng);
             setAddress(`${location.city}, ${location.country}`);
+            // Automatically trigger search if location is updated
+            setAiResults([]);
+            setIsSearching(true);
         }
     };
 
@@ -63,6 +105,7 @@ export default function SearchServies() {
         setIsAiLoading(true);
         setAiSearchEmpty(false);
         setAiResults([]);
+        setServices([]); // Clear manual search results when using AI
         try {
             const res = await searchServiceIA(file);
             if (res.data?.data && res.data.data.length > 0) {
@@ -76,12 +119,14 @@ export default function SearchServies() {
             setIsSearching(true);
         } catch (err) {
             console.error("AI search error:", err);
-            alert("Erreur lors de la recherche IA.");
         } finally {
             setIsAiLoading(false);
             setIsImageModalOpen(false);
         }
     };
+
+    const displayedServices = aiResults.length > 0 ? aiResults : services;
+    const totalResults = aiResults.length > 0 ? aiResults.length : total;
 
     return (
         <div className="flex flex-col items-center w-full max-w-7xl mx-auto px-4 py-2">
@@ -92,7 +137,7 @@ export default function SearchServies() {
                     <input suppressHydrationWarning value={query} type="text"
                         placeholder="Quel service recherchez-vous ?"
                         className="flex-1 bg-transparent outline-none text-foreground text-sm min-w-0 md:text-sm placeholder:text-muted-foreground"
-                        onChange={(e) => { setQuery(e.target.value); if (e.target.value === "") setIsSearching(false); }}
+                        onChange={(e) => { setQuery(e.target.value); if (e.target.value === "" && !lat && !lng) setIsSearching(false); }}
                         inputMode="text"
                         style={{ fontSize: '16px' }}
                     />
@@ -125,14 +170,14 @@ export default function SearchServies() {
                 <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-2">
                     <div className="flex items-center justify-start md:justify-center w-full px-2 md:px-0 mb-6">
                         <h3 className="text-xl md:text-2xl font-black text-foreground italic text-left md:text-center">
-                            {isLoading ? 'Analyses en cours...' : aiSearchEmpty ? 'Aucun résultat' : `${totalResults} résultats`}
+                            {isAiLoading ? 'Analyses en cours...' : aiSearchEmpty ? 'Aucun résultat' : `${totalResults} résultat${totalResults > 1 ? 's' : ''}`}
                         </h3>
                     </div>
 
-
-                    <InfiniteScroll loadMore={fetchNextPage} hasMore={!!hasNextPage} isLoading={isFetchingNextPage} className="w-full px-2 md:px-0" >
+                    <InfiniteScroll loadMore={() => setPage(prev => prev + 1)} hasMore={hasMore && aiResults.length === 0} isLoading={loading}
+                        className="w-full px-2 md:px-0"  >
                         <div className="grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-6">
-                            {services.map((service: any) => (
+                            {displayedServices.map((service: any) => (
                                 <div key={service.id} className="group rounded-lg p-0 md:p-4 flex flex-col md:items-center text-left md:text-center bg-card w-full transition-all duration-300">
                                     {/* Image - Pleine largeur sans padding */}
                                     <div className="relative w-full aspect-square mb-1.5 overflow-hidden rounded-lg md:rounded-2xl">
@@ -148,7 +193,6 @@ export default function SearchServies() {
                                             {service.title}
                                         </h3>
 
-
                                         <div className="flex items-center justify-start gap-1 text-primary mb-2 md:mb-4 md:justify-center">
                                             <Icon icon="solar:star-bold-duotone" className="w-2.5 h-2.5 fill-current md:w-3 md:h-3" />
                                             <span className="text-[9px] md:text-xs font-black tracking-tight">4.9 • <span className="text-muted-foreground">Pro</span></span>
@@ -159,7 +203,7 @@ export default function SearchServies() {
                                                     {service.price} <span className="text-[9px] font-bold text-muted-foreground">CFA</span>
                                                 </p>
                                             </div>
-                                            <button onClick={() => setSelectedService(service)} className="bg-secondary text-white px-2 py-1 md:px-3 md:py-2 rounded-full md:rounded-full text-[10px] md:text-xs font-black hover:bg-primary transition-all active:scale-90 shadow-sm"  >
+                                            <button onClick={() => withAuth(() => setSelectedService(service))} className="bg-secondary text-white px-2 py-1 md:px-3 md:py-2 rounded-full md:rounded-full text-[10px] md:text-xs font-black hover:bg-primary transition-all active:scale-90 shadow-sm"  >
                                                 <Icon icon="solar:check-circle-bold-duotone" className="w-4 h-4" />
                                             </button>
                                         </div>
@@ -169,15 +213,14 @@ export default function SearchServies() {
                         </div>
                     </InfiniteScroll>
                 </div>
-
             )}
-
 
             {/* Booking Modal */}
             <BookingModal
                 isOpen={!!selectedService}
                 onClose={() => setSelectedService(null)}
-                service={selectedService} />
+                item={selectedService}
+                type="SERVICE" />
 
             <ImageSearchModal
                 isOpen={isImageModalOpen}

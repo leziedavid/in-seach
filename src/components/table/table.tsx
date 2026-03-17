@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Search } from "lucide-react"
+import { TablePagination } from "./Pagination"
 
 export type TableAction<T> = {
     icon: any
@@ -37,6 +38,10 @@ export interface TableProps<T, S extends string> {
     loading?: boolean
     searchKey?: string
     emptyMessage?: string
+    totalItems?: number
+    currentPage?: number
+    itemsPerPage?: number
+    onPageChange?: (page: number) => void
 }
 
 export function GenericTable<T, S extends string>({
@@ -57,6 +62,10 @@ export function GenericTable<T, S extends string>({
     loading = false,
     searchKey,
     emptyMessage = "Aucun résultat trouvé.",
+    totalItems,
+    currentPage,
+    itemsPerPage,
+    onPageChange,
 }: TableProps<T, S>) {
     const [searchValue, setSearchValue] = React.useState("")
     const extraColumns: ColumnDef<T>[] = React.useMemo(() => {
@@ -238,6 +247,17 @@ export function GenericTable<T, S extends string>({
                     </TableBody>
                 </Table>
             </div>
+            {onPageChange && totalItems !== undefined && currentPage !== undefined && itemsPerPage !== undefined && (
+                <div className="border-t border-border/50">
+                    <TablePagination
+                        page={currentPage}
+                        limit={itemsPerPage}
+                        total={totalItems}
+                        totalPages={Math.ceil(totalItems / itemsPerPage)}
+                        onPageChange={onPageChange}
+                    />
+                </div>
+            )}
         </div>
     )
 }

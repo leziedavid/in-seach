@@ -11,6 +11,7 @@ import { Modal } from "../modal/MotionModal"
 import { Switch } from "../ui/switch"
 import { useNotification } from "../toast/NotificationProvider"
 import { Button } from "../ui/button"
+import { useSubscriptionCheck } from "@/hooks/useSubscriptionCheck"
 
 interface AnnoncesCardProps {
     data?: Annonce[];
@@ -84,8 +85,8 @@ export default function AnnoncesCard({
         longitude: annonce.longitude,
         typeId: annonce.typeId,
         categorieId: annonce.categorieId,
-        imageUrls: annonce.imageUrls || [],
-        files: annonce.files || [],
+        imageUrls: annonce.images || [],
+        files: annonce.images || [],
     })
 
     const handleAction = (action: string, row: Annonce) => {
@@ -158,6 +159,7 @@ export default function AnnoncesCard({
         (page - 1) * limit,
         page * limit
     )
+    const { checkEligibility, loading: checkLoading } = useSubscriptionCheck();
 
     return (
         <>
@@ -187,9 +189,20 @@ export default function AnnoncesCard({
                 </div>
 
                 <div className="flex justify-end mb-2">
-                    <Button onClick={() => { setIsOpen(true); setIsEditing(false); setSelectedAnnonce(null) }} className="bg-primary text-primary-foreground hover:bg-secondary"  >
-                        <Icon icon="mdi-light:file-plus" className="w-10 h-10" />
-                        Ajouter un service
+                    <Button
+                        disabled={checkLoading}
+                        onClick={async () => {
+                            const canCreate = await checkEligibility('Annonce');
+                            if (canCreate) {
+                                setIsOpen(true);
+                                setIsEditing(false);
+                                setSelectedAnnonce(null)
+                            }
+                        }}
+                        className="bg-primary text-primary-foreground hover:bg-secondary"
+                    >
+                        {checkLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-6 h-6 mr-2" /> : <Icon icon="mdi-light:file-plus" className="w-10 h-10" />}
+                        Ajouter une annonce
                     </Button>
                 </div>
 

@@ -229,6 +229,23 @@ export default function RegisterPage() {
                 <p className="text-center text-[11px] sm:text-xs text-gray-500 mt-6">
                     Déjà inscrit ? <Link href="/login" className="text-primary font-bold">Connectez-vous</Link>
                 </p>
+
+
+
+                {/* Footer petit */}
+                <div className="text-center text-[9px] sm:text-[10px] text-gray-500 space-y-1 pt-2">
+                    <div className="flex flex-wrap justify-center gap-x-2 gap-y-1">
+                        <span className="text-gray-300">|</span>
+                        <Link href="/terms-of-use" className="hover:text-primary transition-colors underline-offset-2 hover:underline">
+                            Conditions Générales d'Utilisation
+                        </Link>
+                        <span className="text-gray-300">|</span>
+                        <Link href="/privacy-policy" className="hover:text-primary transition-colors underline-offset-2 hover:underline">
+                            Politique de confidentialité
+                        </Link>
+                    </div>
+                </div>
+
             </div>
         </div>
     );

@@ -2,6 +2,8 @@
 
 import Image from "next/image"
 
+import Link from "next/link"
+
 const socialLinks = [
     { href: "https://www.facebook.com", alt: "Facebook", src: "/icons/facebook.svg" },
     { href: "https://www.linkedin.com", alt: "LinkedIn", src: "/icons/linkedin.svg" },
@@ -10,7 +12,7 @@ const socialLinks = [
 
 export default function SocialFollow() {
     return (
-        <footer className="w-full  bootom-0">
+        <footer className="w-full bootom-0">
             <div className="container mx-auto">
                 <div className="flex flex-col items-center gap-2 w-full max-w-3xl mx-auto px-4 py-3">
                     <h3 className="text-sm xl:text-lg font-medium text-center">
@@ -26,8 +28,18 @@ export default function SocialFollow() {
                     </div>
 
                     {/* Footer petit */}
-                    <div className="text-center text-[9px] sm:text-[10px] text-gray-500 space-y-0.5 pt-2">
-                        <div>Developpé par inSeach | Confidentialité</div>
+                    <div className="text-center text-[9px] sm:text-[10px] text-gray-500 space-y-1 pt-2">
+                        <div className="flex flex-wrap justify-center gap-x-2 gap-y-1">
+                            <span>Developpé par inSeach</span>
+                            <span className="text-gray-300">|</span>
+                            <Link href="/terms-of-use" className="hover:text-primary transition-colors underline-offset-2 hover:underline">
+                                Conditions Générales d'Utilisation
+                            </Link>
+                            <span className="text-gray-300">|</span>
+                            <Link href="/privacy-policy" className="hover:text-primary transition-colors underline-offset-2 hover:underline">
+                                Politique de confidentialité
+                            </Link>
+                        </div>
                         <div className="text-gray-400">
                             &copy; 2025 inSeach. Tous droits réservés.
                         </div>

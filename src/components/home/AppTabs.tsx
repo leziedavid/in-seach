@@ -5,22 +5,52 @@ import { HistoryIcon, AccountIcon, SearchIcon } from "./TabIcons"
 import SearchServies from "../service/SearchServies"
 import BookingsPage from "../bookings/BookingsPage"
 import SearchAnnonces from "../service/SearchAnnonces"
+import Boutique from "../products/Boutique"
+import Info from "./Info"
 
 const tabs = [
-    { id: "search", label: "", Icon: SearchIcon },
-    { id: "annonces", label: "Annonces", Icon: HistoryIcon },
-
-    // { id: "annonces", label: "Mes services", Icon: SearchIcon },
-    // { id: "commandes", label: "Mes commandes", Icon: OrdersIcon },
-    // { id: "historique", label: "Historique", Icon: HistoryIcon },
-    { id: "compte", label: "Mon compte", Icon: AccountIcon },
+    {
+        id: "search",
+        label: "",
+        Icon: SearchIcon,
+        info: {
+            title: "Recherche Intelligente",
+            description: "Trouvez rapidement des produits, services ou annonces grâce à notre moteur de recherche optimisé."
+        }
+    },
+    {
+        id: "annonces",
+        label: "Annonces",
+        Icon: HistoryIcon,
+        info: {
+            title: "Annonces & Opportunités",
+            description: "Publiez vos propres annonces ou consultez les opportunités disponibles autour de vous."
+        }
+    },
+    {
+        id: "boutique",
+        label: "Boutique",
+        Icon: AccountIcon,
+        info: {
+            title: "Espace Boutique",
+            description: "Découvrez notre sélection de produits exclusifs et achetez en toute simplicité."
+        }
+    },
 ]
 
 export default function AppTabs() {
 
     const [active, setActive] = useState("search")
+    const [showInfo, setShowInfo] = useState(true)
     const scrollContainerRef = useRef<HTMLDivElement>(null)
     const activeTabRef = useRef<HTMLButtonElement>(null)
+
+    const handleTabClick = (id: string) => {
+        if (active !== id) {
+            setActive(id)
+            setShowInfo(true)
+        }
+    }
 
     // Scroll vers l'onglet actif au chargement et quand il change
     useEffect(() => {
@@ -46,12 +76,11 @@ export default function AppTabs() {
                         const Icon = tab.Icon
 
                         return (
-                            <button key={tab.id} ref={isActive ? activeTabRef : null} onClick={() => setActive(tab.id)} className="flex flex-col items-center shrink-0 transition-all"  >
+                            <button key={tab.id} ref={isActive ? activeTabRef : null} onClick={() => handleTabClick(tab.id)} className="flex flex-col items-center shrink-0 transition-all"  >
                                 {/* Cercle */}
                                 <div className={`w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 flex items-center justify-center rounded-full border-2 transition-all duration-300 hover:scale-105  ${isActive ? "bg-primary border-primary shadow-lg shadow-primary/20" : "bg-card border-border"} `}  >
                                     <Icon active={isActive} />
                                 </div>
-
 
                                 {/* Label */}
                                 <span className={` text-[10px] sm:text-xs mt-1 sm:mt-2 whitespace-nowrap ${tab.label === "" ? "hidden sm:block" : ""} ${isActive ? "text-primary font-medium" : "text-muted-foreground"} `}  >
@@ -72,42 +101,33 @@ export default function AppTabs() {
             </div>
 
 
+            {/* INFO COMPONENT */}
+            <Info
+                isOpen={showInfo}
+                onClose={() => setShowInfo(false)}
+                title={tabs.find(t => t.id === active)?.info.title || ""}
+                description={tabs.find(t => t.id === active)?.info.description || ""}
+            />
+
+
             {/* CONTENT */}
-            <div className="mt-4 sm:mt-6 w-full flex flex-col items-center">
+            <div className="mt-4 sm:mt-6 w-full flex flex-col items-center stagger-parent">
                 {active === "search" && (
-                    <div className="w-full flex flex-col items-center px-2 sm:px-0">
+                    <div className="w-full flex flex-col items-center px-2 sm:px-0 stagger-item">
                         {/* <TitlePage part1="Trouvez" highlight="le service idéal" part2="pour vos besoins !" /> */}
                         <SearchServies />
                     </div>
                 )}
 
                 {active === "annonces" && (
-                    <div className="w-full flex flex-col items-center px-2 sm:px-0">
+                    <div className="w-full flex flex-col items-center px-2 sm:px-0 stagger-item">
                         <SearchAnnonces />
                     </div>
                 )}
 
-                {active === "commandes" && (
-                    <div className="w-full flex flex-col items-center px-2 sm:px-0">
-                        <BookingsPage />
-                    </div>
-                )}
-
-                {active === "historique" && (
-                    <div className="text-center px-4 py-8">
-                        <h3 className="text-lg font-semibold">Historique</h3>
-                        <p className="text-sm text-muted-foreground mt-2">
-                            Votre historique s'affichera ici
-                        </p>
-                    </div>
-                )}
-
-                {active === "compte" && (
-                    <div className="text-center px-4 py-8">
-                        <h3 className="text-lg font-semibold">Mon compte</h3>
-                        <p className="text-sm text-muted-foreground mt-2">
-                            Gérez vos informations personnelles
-                        </p>
+                {active === "boutique" && (
+                    <div className="w-full flex flex-col items-center px-2 sm:px-0 stagger-item">
+                        <Boutique />
                     </div>
                 )}
 

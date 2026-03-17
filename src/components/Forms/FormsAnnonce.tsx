@@ -23,11 +23,7 @@ const annonceSchema = z.object({
     longitude: z.number().optional(),
     typeId: z.string().uuid("Veuillez sélectionner un type d'annonce"),
     categorieId: z.string().uuid("Veuillez sélectionner une catégorie"),
-    images: z.array(z.instanceof(File)).refine((files) => files.every(file => ['image/png', 'image/jpeg', 'image/jpg'].includes(file.type)), { message: 'Les fichiers doivent être des images PNG ou JPEG.' })
-        .refine((files) =>
-            files.every(file => file.size <= 5 * 1024 * 1024),
-            { message: 'Chaque fichier ne doit pas dépasser 5 Mo.' }
-        )
+    images: z.array(z.instanceof(File)).refine((files) => files.every(file => ['image/png', 'image/jpeg', 'image/jpg'].includes(file.type)), { message: 'Les fichiers doivent être des images PNG ou JPEG.' }).refine((files) => files.every(file => file.size <= 5 * 1024 * 1024), { message: 'Chaque fichier ne doit pas dépasser 5 Mo.' })
 });
 
 export type AnnonceFormData = z.infer<typeof annonceSchema>;
@@ -51,7 +47,7 @@ export default function FormsAnnonce({ initialData, onSubmit, isSubmitting = fal
     const [imagePreviews, setImagePreviews] = useState<string[]>([]);
     const [existingImageUrls, setExistingImageUrls] = useState<{ url: string; isMain?: boolean }[]>(
         initialData?.imageUrls?.map(url => ({ url, isMain: false })) ||
-        initialData?.files?.map(file => ({ url: file.url, isMain: false })) || []
+        initialData?.files?.map(file => ({ url: file.fileUrl, isMain: false })) || []
     );
     const [optionInput, setOptionInput] = useState("");
     const [locationLoading, setLocationLoading] = useState(false);
@@ -140,6 +136,16 @@ export default function FormsAnnonce({ initialData, onSubmit, isSubmitting = fal
         }
     };
 
+    // Définir comme image principale
+    const setAsMainImage = (index: number, isExisting: boolean) => {
+        if (isExisting) {
+            setExistingImageUrls(prev => prev.map((img, i) => ({
+                ...img,
+                isMain: i === index
+            })));
+        }
+    };
+
     // Options (Tags) management
     const addOption = () => {
         if (optionInput.trim()) {
@@ -177,10 +183,8 @@ export default function FormsAnnonce({ initialData, onSubmit, isSubmitting = fal
     const onFormSubmit = async (formData: AnnonceFormData) => {
         const submitData = new FormData();
         Object.entries(formData).forEach(([key, value]) => {
-            if (value !== undefined && value !== null) {
-                if (key === 'options' && Array.isArray(value)) {
-                    submitData.append(key, JSON.stringify(value));
-                } else if (typeof value === 'boolean') {
+            if (value !== undefined && value !== null && key !== 'images' && key !== 'options') {
+                if (typeof value === 'boolean') {
                     submitData.append(key, String(value));
                 } else if (typeof value === 'number') {
                     submitData.append(key, value.toString());
@@ -190,7 +194,12 @@ export default function FormsAnnonce({ initialData, onSubmit, isSubmitting = fal
             }
         });
 
-        images.forEach(image => submitData.append('images', image));
+        // Append options individually
+        if (formData.options && Array.isArray(formData.options)) {
+            formData.options.forEach(option => submitData.append('options', option));
+        }
+
+        images.forEach(image => submitData.append('files', image));
         if (existingImageUrls.length > 0) {
             submitData.append('existingImageUrls', JSON.stringify(existingImageUrls.map(img => img.url)));
         }
@@ -205,6 +214,7 @@ export default function FormsAnnonce({ initialData, onSubmit, isSubmitting = fal
         <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-8">
 
             <div className="px-4 space-y-8">
+                {/* <pre>{JSON.stringify(initialData, null, 2)}</pre> */}
 
                 {/* Images Section */}
                 <div className="bg-card rounded-xl border border-border p-2">
@@ -237,12 +247,47 @@ export default function FormsAnnonce({ initialData, onSubmit, isSubmitting = fal
 
                         {existingImageUrls.map((image, index) => (
                             <div key={`existing-${index}`} className="relative h-32 rounded-lg overflow-hidden group">
-                                <Image src={(image.url && image.url !== "") ? image.url : 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop'} alt={`Existante ${index}`} fill className="object-cover" unoptimized />
-                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                    <button type="button" onClick={() => removeImage(index, true)} className="bg-red-500 text-white p-1.5 rounded-full hover:bg-red-600 transition-colors">
+                                <Image
+                                    src={(image.url && image.url !== "")
+                                        ? image.url
+                                        : 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop'}
+                                    alt={`Image existante ${index + 1}`}
+                                    fill
+                                    className="object-cover"
+                                    sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
+                                    unoptimized
+                                />
+
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setAsMainImage(index, true)}
+                                        className="bg-blue-500 text-white p-1.5 rounded-full hover:bg-blue-600 transition-colors"
+                                        title="Définir comme image principale"
+                                    >
+                                        <Icon icon="solar:star-bold-duotone" className="w-4 h-4" />
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => removeImage(index, true)}
+                                        className="bg-red-500 text-white p-1.5 rounded-full hover:bg-red-600 transition-colors"
+                                        title="Supprimer"
+                                    >
                                         <Icon icon="solar:close-circle-bold-duotone" className="w-4 h-4" />
                                     </button>
                                 </div>
+
+                                {image.isMain ? (
+                                    <div className="absolute top-2 left-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                                        <Icon icon="solar:star-bold-duotone" className="w-3 h-3 fill-white" />
+                                        Principale
+                                    </div>
+                                ) : index === 0 && existingImageUrls.length > 0 && !existingImageUrls.some(img => img.isMain) ? (
+                                    <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs p-2 truncate">
+                                        Image {index + 1}
+                                    </div>
+                                ) : null}
                             </div>
                         ))}
 

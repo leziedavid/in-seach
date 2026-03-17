@@ -11,7 +11,6 @@ import jsQR from "jsqr";
 import { scanBookingQr } from "@/lib/api";
 import { toast } from "sonner";
 import { createPortal } from "react-dom";
-import { Link } from "lucide-react";
 
 interface BookingDetailProps {
     isOpen: boolean;
@@ -129,9 +128,74 @@ export default function BookingDetailModal({ isOpen, onClose, booking, onEditRdv
                             </div>
 
                             <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                                <div className="relative aspect-video rounded-2xl overflow-hidden border-2 border-white shadow-lg">
-                                    <Image src={imageGallery[activeImageIndex].url} fill unoptimized className="object-cover" alt="Service" />
-                                    <div className="absolute top-4 left-4"><div className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${status.bg} ${status.color} text-xs font-black backdrop-blur-sm`}>{status.icon}<span>{status.label}</span></div></div>
+                                <div className="relative aspect-video rounded-2xl overflow-hidden border-2 border-card shadow-xl group">
+                                    <AnimatePresence mode="wait">
+                                        <motion.div
+                                            key={activeImageIndex}
+                                            initial={{ opacity: 0, x: 20 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            exit={{ opacity: 0, x: -20 }}
+                                            transition={{ duration: 0.3 }}
+                                            className="absolute inset-0"
+                                        >
+                                            <Image src={imageGallery[activeImageIndex].url} fill unoptimized className="object-cover" alt="Service" />
+                                        </motion.div>
+                                    </AnimatePresence>
+
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+
+                                    <div className="absolute top-4 left-4 z-20">
+                                        <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${status.bg} ${status.color} text-xs font-black backdrop-blur-sm border border-white/10`}>
+                                            {status.icon}
+                                            <span>{status.label}</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Slider Controls */}
+                                    {imageGallery.length > 1 && (
+                                        <>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setActiveImageIndex((prev) => (prev - 1 + imageGallery.length) % imageGallery.length);
+                                                }}
+                                                className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/30 backdrop-blur-md text-white border border-white/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-black/50 active:scale-90 z-30"
+                                            >
+                                                <Icon icon="solar:alt-arrow-left-bold" className="w-5 h-5" />
+                                            </button>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setActiveImageIndex((prev) => (prev + 1) % imageGallery.length);
+                                                }}
+                                                className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/30 backdrop-blur-md text-white border border-white/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-black/50 active:scale-90 z-30"
+                                            >
+                                                <Icon icon="solar:alt-arrow-right-bold" className="w-5 h-5" />
+                                            </button>
+                                        </>
+                                    )}
+
+                                    {/* Miniatures at bottom right */}
+                                    {imageGallery.length > 1 && (
+                                        <div className="absolute bottom-4 right-4 flex gap-1.5 p-1.5 bg-black/40 backdrop-blur-xl rounded-2xl border border-white/10 z-20">
+                                            {imageGallery.map((image, index) => (
+                                                <button
+                                                    key={index}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setActiveImageIndex(index);
+                                                    }}
+                                                    className={`relative w-10 h-10 rounded-xl overflow-hidden border-2 transition-all ${activeImageIndex === index ? 'border-primary ring-2 ring-primary/20 scale-105' : 'border-white/10 opacity-50 hover:opacity-100'} `}
+                                                >
+                                                    <Image src={image.url} alt={`Gallery - ${index + 1}`} fill unoptimized className="object-cover" />
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    <div className="absolute top-4 right-4 bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 z-20">
+                                        <span className="text-[10px] font-black text-white tabular-nums tracking-widest">{activeImageIndex + 1} / {imageGallery.length}</span>
+                                    </div>
                                 </div>
 
                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -141,7 +205,7 @@ export default function BookingDetailModal({ isOpen, onClose, booking, onEditRdv
                                 </div>
 
                                 <div className="bg-muted/50 p-6 rounded-2xl flex flex-col items-center text-center space-y-4">
-                                    <div className="p-4 bg-white rounded-2xl shadow-xl relative">
+                                    <div className="p-4  rounded-2xl relative">
                                         <QRCodeSVG value={role === "CLIENT" ? booking.userQrCode || "" : booking.prestaQrCode || ""} size={160} level="H" includeMargin />
                                         <button onClick={() => setIsCameraOpen(true)} className="absolute -right-3 -bottom-3 w-12 h-12 bg-primary text-white rounded-full flex items-center justify-center shadow-lg active:scale-95"><Icon icon="solar:camera-bold-duotone" width={24} /></button>
                                     </div>

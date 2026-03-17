@@ -3,12 +3,14 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import QueryProvider from "@/components/providers/QueryProvider";
 import { SocketProvider } from "@/components/providers/SocketProvider";
-import ComingSoon from "@/components/home/ComingSoon";
+import { CartProvider } from "@/components/providers/CartProvider";
+import ClientLayout from "@/components/layout/ClientLayout";
 import { Jost } from "next/font/google"
 
 import { ThemeProvider } from "@/components/theme-provider";
 import { NotificationProvider } from "@/components/toast/NotificationProvider";
 import { Plus_Jakarta_Sans } from "next/font/google";
+import InstallPWA from "@/components/pwa/InstallPWA";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -32,6 +34,13 @@ export const metadata: Metadata = {
 export default function RootLayout({ children, }: Readonly<{ children: React.ReactNode; }>) {
   return (
     <html lang="fr" suppressHydrationWarning>
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#b07b5e" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="ServiceMarket" />
+      </head>
       {/* <body className={inter.className}> */}
       <body className={`${jost.variable} font-sans antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange >
@@ -39,16 +48,33 @@ export default function RootLayout({ children, }: Readonly<{ children: React.Rea
 
             <QueryProvider>
               <SocketProvider>
-                <ComingSoon>
-                  <div className="min-h-screen premium-bg overflow-x-hidden">
+                <CartProvider>
+                  <ClientLayout>
                     {children}
-                  </div>
-                </ComingSoon>
+                  </ClientLayout>
+                </CartProvider>
               </SocketProvider>
             </QueryProvider>
 
           </NotificationProvider>
         </ThemeProvider>
+
+        {/* PWA Service Worker Registration */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                  navigator.serviceWorker.register('/sw.js').then(function(registration) {
+                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                  }, function(err) {
+                    console.log('ServiceWorker registration failed: ', err);
+                  });
+                });
+              }
+            `,
+          }}
+        />
       </body>
     </html>
   );

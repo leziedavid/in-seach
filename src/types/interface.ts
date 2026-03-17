@@ -81,6 +81,11 @@ export interface SubscriptionPlan {
     serviceLimit: number;
     durationDays: number;
     isActive: boolean;
+    features?: string[];
+    entities?: PlanEntity[];
+    _count?: {
+        subscriptions: number;
+    };
 }
 
 export interface Subscription {
@@ -105,15 +110,17 @@ export interface Service {
     reduction: number;
     tags: string[];
     location: string;
-    latitude: number;
-    longitude: number;
+    latitude?: number;
+    longitude?: number;
     imageUrls: string[];
     images?: string[];
-    files: string[];
+    files: FileManager[];
     userId: string;
     categoryId: string;
     user?: User;
     category?: Category;
+    ville?: string;
+    duration?: number;
     createdAt: string;
     updatedAt: string;
 }
@@ -123,7 +130,9 @@ export interface Booking {
     clientId: string;
     code: string;
     providerId: string;
-    serviceId: string;
+    serviceId?: string;
+    annonceId?: string;
+    bookingType: 'SERVICE' | 'ANNONCE';
     status: BookingStatus;
     price?: number;
     rating?: number;
@@ -137,6 +146,7 @@ export interface Booking {
     userQrScanned?: boolean;
     prestaQrScanned?: boolean;
     service?: Service;
+    annonce?: Annonce;
     client?: User;
     provider?: User;
     createdAt?: string;
@@ -278,7 +288,7 @@ export interface Annonce {
     options?: string[];
     imageUrls: string[];
     images?: string[];
-    files: string[];
+    files: FileManager[];
     latitude?: number;
     longitude?: number;
     status: AnnonceStatus;
@@ -288,6 +298,7 @@ export interface Annonce {
     categorieId: string;
     type?: TypeAnnonce;
     categorie?: CategorieAnnonce;
+    ville?: string;
     createdAt: string;
     updatedAt: string;
 }
@@ -324,6 +335,7 @@ export interface MySpaceResponse {
     services: Service[];
     annonces: Annonce[];
     bookings: Booking[];
+    annoncesBookings: Booking[];
     history: Booking[];
     totalGain: number;
     page: number;
@@ -379,5 +391,145 @@ export interface LogsResponse {
     page: number;
     limit: number;
     totalPages: number;
+}
+
+
+export interface CategoryProd {
+    id: string
+    name: string
+}
+
+export interface Product {
+    id: string
+    name: string
+    description?: string | null
+    price: number
+    stock: number
+    sku: string
+    imageUrl?: string | null
+    imageUrls?: string[]
+    images?: string[]
+    files?: FileManager[]
+    isActive: boolean
+    categoryId: string
+    userId: string
+    category: CategoryProd
+    user?: Partial<User>
+    createdAt: string
+    updatedAt: string
+}
+
+export interface OrderItem {
+    id: string
+    productId: string
+    quantity: number
+    price: number
+    product?: Product
+}
+
+export enum OrderStatus {
+    PENDING = 'PENDING',
+    PROCESSING = 'PROCESSING',
+    VALIDATED = 'VALIDATED',
+    PAID = 'PAID',
+    SHIPPED = 'SHIPPED',
+    DELIVERED = 'DELIVERED',
+    CANCELLED = 'CANCELLED'
+}
+
+export interface Order {
+    id: string
+    code: string
+    userId: string
+    status: OrderStatus
+    paymentMethod?: string
+    totalAmount: number
+    items: OrderItem[]
+    user?: User
+    createdAt: string
+    updatedAt: string
+}
+
+// ===============================
+// ADMIN DTOs & PARAMS
+// ===============================
+
+export interface AdminQueryParams {
+    [key: string]: string | number | boolean | undefined | null;
+    page?: number;
+    limit?: number;
+    query?: string;
+    level?: string;
+    startDate?: string;
+    endDate?: string;
+    status?: string;
+    role?: Role;
+}
+
+export interface AdminUserUpdateDto {
+    fullName?: string;
+    phone?: string;
+    role?: Role;
+    isPremium?: boolean;
+    credits?: number;
+}
+
+export interface AdminProductUpdateDto {
+    name?: string;
+    description?: string;
+    price?: number;
+    stock?: number;
+    categoryId?: string;
+    isActive?: boolean;
+}
+
+export interface AdminServiceUpdateDto {
+    title?: string;
+    description?: string;
+    price?: number;
+    duration?: number;
+    status?: ServiceStatus;
+    categoryId?: string;
+}
+
+export interface AdminAnnonceUpdateDto {
+    title?: string;
+    description?: string;
+    price?: number;
+    status?: AnnonceStatus;
+    typeId?: string;
+    categorieId?: string;
+}
+
+export interface AdminSubscriptionPlanDto {
+    name: string;
+    price: number;
+    serviceLimit: number;
+    durationDays: number;
+    isActive: boolean;
+    features?: string[];
+    entityIds?: string[];
+}
+
+export interface PlanEntity {
+    id: string;
+    entityName: string;
+    createdAt: string;
+    _count?: {
+        plans: number;
+    };
+}
+
+export interface AdminUserSubscription extends Subscription {
+    user: User;
+}
+
+export interface AdminLog {
+    id: string;
+    level: string;
+    message: string;
+    context?: string;
+    timestamp: string;
+    metadata?: any;
 }
 

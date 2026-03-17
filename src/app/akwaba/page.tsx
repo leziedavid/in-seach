@@ -1,24 +1,60 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Icon } from '@iconify/react';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
+import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { getAllSearch, getMySpace } from '@/api/api';
 import AccountServicesList from '@/components/account/AccountServicesList';
 import AccountAnnonces from '@/components/account/AccountAnnonces';
 import AccountBookings from '@/components/account/AccountBookings';
+import AnnoncesBookings from '@/components/account/AnnoncesBookings';
 import AccountSettings from '@/components/account/AccountSettings';
-import { Service, Annonce, Booking, GlobalStats } from '@/types/interface';
+import { Service, Annonce, Booking, GlobalStats, Role } from '@/types/interface';
+import { getUserRole, logout } from '@/lib/auth';
 import BookingCalendar from '@/components/bookings/BookingCalendar';
 import Image from "next/image";
+import Commandes from '@/components/products/Commandes';
+import Store from '@/components/products/Store';
+import HistoriqueCommandes from '@/components/products/Historique-commandes';
 
-type TabType = 'Calendrier' | 'Services' | 'Rendez-vous' | 'Annonces' | 'Historique' | 'Paramètres';
+type TabType =
+    'Calendrier' |
+    'Services' |
+    'Rendez-vous' |
+    'Rendez-vous-annonces' |
+    'Annonces' |
+    'Boutique' |
+    'Commandes' |
+    'Historique-commandes' |
+    'Paramètres'
+    ;
 
 export default function Page() {
+    const router = useRouter();
 
-    const [activeTab, setActiveTab] = useState<TabType>('Calendrier');
+    const [isMounted, setIsMounted] = useState(false);
+    const [userRole, setUserRole] = useState<Role | null>(null);
+
+    useEffect(() => {
+        setIsMounted(true);
+        setUserRole(getUserRole() as Role);
+    }, []);
+
+    const isClient = userRole === Role.CLIENT;
+    const isPrestataire = userRole === Role.PRESTATAIRE;
+    const isAdmin = userRole === Role.ADMIN;
+
+    // Initial tab logic based on role
+    const [activeTab, setActiveTab] = useState<TabType>('Paramètres'); // Neutral default
+
+    // Effect to set initial tab once role is known
+    useEffect(() => {
+        if (userRole) { setActiveTab(userRole === Role.CLIENT ? 'Rendez-vous' : 'Calendrier'); }
+    }, [userRole]);
+
     const [open, setOpen] = useState(false);
     const [stats, setStats] = useState<GlobalStats>({} as GlobalStats)
     // Pagination state
@@ -28,8 +64,8 @@ export default function Page() {
     // React Query for global data
     const { data: response, isLoading, refetch } = useQuery({
         queryKey: ['my-space', activeTab, page, limit],
-        // queryFn: () => getMySpace({ activeTab, page, limit }),
-        queryFn: () => getAllSearch({ activeTab, page, limit }),
+        queryFn: () => getMySpace({ activeTab, page, limit }),
+        // queryFn: () => getAllSearch({ activeTab, page, limit }),
     });
 
     const data = response?.data;
@@ -67,29 +103,48 @@ export default function Page() {
                     total: data.annonces?.length || 0,
                     totalPages: Math.ceil((data.annonces?.length || 0) / limit)
                 };
-            case 'Historique':
+
+            case "Rendez-vous-annonces":
                 return {
-                    items: data.history || [],
-                    total: data.history?.length || 0,
-                    totalPages: Math.ceil((data.history?.length || 0) / limit)
+                    items: data.annoncesBookings || [],
+                    total: data.annoncesBookings?.length || 0,
+                    totalPages: Math.ceil((data.annoncesBookings?.length || 0) / limit)
                 };
+
             default:
                 return { items: [], total: 0, totalPages: 0 };
         }
     }, [data, activeTab, limit]);
 
-    const menu = [
-        { label: 'Calendrier', icon: <Icon icon="solar:calendar-date-bold-duotone" width={18} />, key: 'Calendrier' },
-        { label: 'Mes Services', icon: <Icon icon="solar:box-bold-duotone" width={18} />, key: 'Services' },
-        { label: 'Mes Annonces', icon: <Icon icon="solar:eye-bold-duotone" width={18} />, key: 'Annonces' },
-        { label: 'Mes Rendez-vous', icon: <Icon icon="solar:clipboard-list-bold-duotone" width={18} />, key: 'Rendez-vous' },
-        { label: 'Mon Historique', icon: <Icon icon="solar:history-bold-duotone" width={18} />, key: 'Historique' },
-        { label: 'Paramètres', icon: <Icon icon="solar:settings-bold-duotone" width={18} />, key: 'Paramètres' }
-    ] as const;
+    const allMenus: { label: string; icon: React.ReactNode; key: TabType; roles: Role[] }[] = [
+        { label: 'Calendrier', icon: <Icon icon="solar:calendar-date-bold-duotone" width={18} />, key: 'Calendrier', roles: [Role.PRESTATAIRE, Role.ADMIN, Role.CLIENT] },
+        { label: 'Mes Services', icon: <Icon icon="solar:box-bold-duotone" width={18} />, key: 'Services', roles: [Role.PRESTATAIRE, Role.ADMIN] },
+        { label: 'Mes Annonces', icon: <Icon icon="solar:eye-bold-duotone" width={18} />, key: 'Annonces', roles: [Role.PRESTATAIRE, Role.ADMIN] },
+        { label: 'RDV Services', icon: <Icon icon="solar:clipboard-list-bold-duotone" width={18} />, key: 'Rendez-vous', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ADMIN] },
+        { label: 'RDV Annonces', icon: <Icon icon="solar:clipboard-check-bold-duotone" width={18} />, key: 'Rendez-vous-annonces', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ADMIN] },
+        { label: 'Boutique', icon: <Icon icon="solar:history-bold-duotone" width={18} />, key: 'Boutique', roles: [Role.CLIENT, Role.ADMIN, Role.PRESTATAIRE] },
+        { label: 'Commandes', icon: <Icon icon="solar:history-bold-duotone" width={18} />, key: 'Commandes', roles: [Role.CLIENT, Role.ADMIN, Role.PRESTATAIRE] },
+        { label: 'Historique-commandes', icon: <Icon icon="solar:history-bold-duotone" width={18} />, key: 'Historique-commandes', roles: [Role.CLIENT, Role.ADMIN, Role.PRESTATAIRE] },
+        { label: 'Paramètres', icon: <Icon icon="solar:settings-bold-duotone" width={18} />, key: 'Paramètres', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ADMIN] }
+    ];
+
+    const menu = useMemo(() => {
+        if (!userRole) return [];
+        return allMenus.filter(item => item.roles.includes(userRole));
+    }, [userRole]);
+
+    if (!isMounted) {
+        return <div className="min-h-screen bg-background" />; // Simple placeholder to avoid mismatch
+    }
 
     const handleTabChange = (tab: TabType) => {
         setActiveTab(tab);
         setPage(1); // Reset page on tab change
+    };
+
+    const handleLogout = () => {
+        logout();
+        router.push('/login');
     };
 
     return (
@@ -134,6 +189,17 @@ export default function Page() {
                                 );
                             })}
                         </div>
+
+                        {/* Logout Desktop */}
+                        <div className="mt-8 pt-6 border-t border-border">
+                            <button
+                                onClick={handleLogout}
+                                className="w-full flex items-center gap-3 p-3 rounded-xl text-sm text-red-500 hover:bg-red-50 transition-all duration-300"
+                            >
+                                <Icon icon="solar:logout-bold-duotone" width={18} />
+                                Déconnexion
+                            </button>
+                        </div>
                     </div>
                 </aside>
 
@@ -143,10 +209,7 @@ export default function Page() {
 
 
                     {activeTab === 'Calendrier' && (
-                        <BookingCalendar
-                        // bookings={tabData.items as Booking[]}
-                        // onBookingSelect={(booking) => console.log('Booking selected:', booking)}
-                        />
+                        <BookingCalendar />
                     )}
 
                     {activeTab === 'Services' && (
@@ -185,9 +248,10 @@ export default function Page() {
                             onPageChange={setPage}
                         />
                     )}
-                    {activeTab === 'Historique' && (
-                        <AccountBookings
-                            type="history"
+
+                    {activeTab === 'Rendez-vous-annonces' && (
+                        <AnnoncesBookings
+                            type="active"
                             data={tabData.items as Booking[]}
                             page={page}
                             limit={limit}
@@ -197,7 +261,20 @@ export default function Page() {
                             onPageChange={setPage}
                         />
                     )}
+
+                    {activeTab === 'Historique-commandes' && (
+                        <HistoriqueCommandes />
+                    )}
+
+                    {activeTab === 'Boutique' && (
+                        <Store />
+                    )}
+                    {activeTab === 'Commandes' && (
+                        <Commandes />
+                    )}
+
                     {activeTab === 'Paramètres' && <AccountSettings />}
+
                 </main>
             </div>
 
@@ -212,7 +289,7 @@ export default function Page() {
                     </SheetTrigger>
 
                     {/* Drawer mobile */}
-                    <SheetContent side="bottom" className="rounded-t-3xl p-6">
+                    <SheetContent side="bottom" className="rounded-t-3xl p-6 max-h-[90vh] overflow-y-auto">
                         <SheetHeader className="sr-only">
                             <SheetTitle>Mon Espace</SheetTitle>
                             <SheetDescription>Menu de navigation de votre compte</SheetDescription>
@@ -226,12 +303,24 @@ export default function Page() {
                         </div>
 
                         <div className="space-y-3">
-                            {menu.map((item) => (
-                                <button key={item.key} onClick={() => { handleTabChange(item.key as TabType); setOpen(false); }} className={`w-full flex items-center gap-3 p-4 rounded-xl text-sm transition-all ${activeTab === item.key ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`} >
-                                    {item.icon}
-                                    {item.label}
+                            <div className="grid grid-cols-1 gap-3">
+                                {menu.map((item) => (
+                                    <button key={item.key} onClick={() => { handleTabChange(item.key as TabType); setOpen(false); }} className={`w-full flex items-center gap-3 p-4 rounded-xl text-sm transition-all ${activeTab === item.key ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`} >
+                                        {item.icon}
+                                        {item.label}
+                                    </button>
+                                ))}
+                            </div>
+
+                            <div className="pt-2 border-t border-border mt-2">
+                                <button
+                                    onClick={handleLogout}
+                                    className="w-full flex items-center gap-3 p-4 rounded-xl text-sm text-red-500 bg-red-50/50 hover:bg-red-50 transition-all font-bold"
+                                >
+                                    <Icon icon="solar:logout-bold-duotone" width={18} />
+                                    Déconnexion
                                 </button>
-                            ))}
+                            </div>
                         </div>
 
                     </SheetContent>

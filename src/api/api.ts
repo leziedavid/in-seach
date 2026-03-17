@@ -1,5 +1,5 @@
 import { getCookie } from '@/lib/cookies';
-import { BaseResponse, Booking, Category, GlobalSearchResponse, Pagination, ReverseGeocodeData, Service, UserLocation, MySpaceResponse, Annonce, BookingsCalendar } from '@/types/interface';
+import { BaseResponse, Booking, Category, GlobalSearchResponse, Pagination, ReverseGeocodeData, Service, UserLocation, MySpaceResponse, Annonce, BookingsCalendar, Product, CategoryProd, Order, AdminQueryParams, AdminUserUpdateDto, AdminProductUpdateDto, AdminServiceUpdateDto, AdminAnnonceUpdateDto, AdminSubscriptionPlanDto, User, AdminLog, SubscriptionPlan, PlanEntity, AdminUserSubscription, Subscription } from '@/types/interface';
 
 export const getBaseUrl = (): string => {
     return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
@@ -111,7 +111,7 @@ export const getAllSearch = async (params: any): Promise<BaseResponse<MySpaceRes
 // SERVICES
 // =====================
 
-export const getServices = async (params: { page: number; limit: number; category?: string; search?: string }): Promise<BaseResponse<Pagination<Service>>> => {
+export const getServices = async (params: { page?: number; limit?: number; categoryId?: string; search?: string; lat?: number; lng?: number; radiusKm?: number }): Promise<BaseResponse<Pagination<Service>>> => {
     // Map 'search' from frontend to 'query' expected by backend
     const apiParams = {
         ...params,
@@ -167,13 +167,14 @@ export const handleToggleActive = async (id: string, value: boolean): Promise<Ba
 // =====================
 
 // AllBookings
-export const getAllBookings = async (params: { page: number; limit: number; category?: string; search?: string }): Promise<BaseResponse<Pagination<Booking>>> => {
+export const getAllBookings = async (params: { page: number; limit: number; category?: string; search?: string; type?: string }): Promise<BaseResponse<Pagination<Booking>>> => {
     const query = new URLSearchParams({
         page: params.page.toString(),
         limit: params.limit.toString(),
     });
     if (params.category) query.append('category', params.category);
     if (params.search) query.append('search', params.search);
+    if (params.type) query.append('type', params.type);
 
     const response = await secureFetch(`${getBaseUrl()}/bookings?${query.toString()}`, {
         method: 'GET',
@@ -182,13 +183,14 @@ export const getAllBookings = async (params: { page: number; limit: number; cate
 };
 
 // MyBookings
-export const getMyBookings = async (params: { page: number; limit: number; category?: string; search?: string }): Promise<BaseResponse<Pagination<Booking>>> => {
+export const getMyBookings = async (params: { page: number; limit: number; category?: string; search?: string; type?: string }): Promise<BaseResponse<Pagination<Booking>>> => {
     const query = new URLSearchParams({
         page: params.page.toString(),
         limit: params.limit.toString(),
     });
     if (params.category) query.append('category', params.category);
     if (params.search) query.append('search', params.search);
+    if (params.type) query.append('type', params.type);
 
     const response = await secureFetch(`${getBaseUrl()}/bookings/my?${query.toString()}`, {
         method: 'GET',
@@ -497,7 +499,7 @@ export const createSubscriptionPlanAdmin = async (data: any): Promise<BaseRespon
     return await response.json();
 };
 
-export const getSubscriptionPlansAdmin = async (params: any): Promise<BaseResponse<Pagination<any>>> => {
+export const getSubscriptionPlansAdmin = async (params: any): Promise<BaseResponse<Pagination<SubscriptionPlan>>> => {
     const queryString = toQueryString(params);
     const response = await secureFetch(`${getBaseUrl()}/admin/subscription-plans?${queryString}`, {
         method: 'GET',
@@ -553,6 +555,18 @@ export const checkUserSubscription = async (): Promise<BaseResponse<any>> => {
     return await response.json();
 };
 
+export const getSubscriptionStatus = async (): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/auth/subscription-status`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
+export const isSubscriptionSystemEnabled = async (): Promise<BaseResponse<boolean>> => {
+    const response = await fetch(`${getBaseUrl()}/subscriptions/is-system-enabled`);
+    return await response.json();
+};
+
 /* =======================================================
    DATABASE API
 ======================================================= */
@@ -582,6 +596,66 @@ export const searchServiceIA = async (image: File): Promise<BaseResponse<any>> =
     const response = await fetch(`${getBaseUrl()}/search-service-ia`, {
         method: 'POST',
         body: formData,
+    });
+    return await response.json();
+};
+
+/* =======================================================
+   ADMIN - SUBSCRIPTION ENTITIES API
+   ======================================================= */
+export const adminGetPlanEntities = async (): Promise<BaseResponse<PlanEntity[]>> => {
+    const response = await secureFetch(`${getBaseUrl()}/admin/subscription-plans/entities/all`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
+export const adminCreatePlanEntity = async (data: { entityName: string }): Promise<BaseResponse<PlanEntity>> => {
+    const response = await secureFetch(`${getBaseUrl()}/admin/subscription-plans/entities`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const adminUpdatePlanEntity = async (id: string, data: { entityName: string }): Promise<BaseResponse<PlanEntity>> => {
+    const response = await secureFetch(`${getBaseUrl()}/admin/subscription-plans/entities/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const adminDeletePlanEntity = async (id: string): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/admin/subscription-plans/entities/${id}`, {
+        method: 'DELETE',
+    });
+    return await response.json();
+};
+
+/* =======================================================
+   ADMIN - USER SUBSCRIPTIONS API
+   ======================================================= */
+export const adminGetAllSubscriptions = async (params: AdminQueryParams): Promise<BaseResponse<Pagination<AdminUserSubscription>>> => {
+    const queryString = toQueryString(params);
+    const response = await secureFetch(`${getBaseUrl()}/subscriptions/admin/all?${queryString}`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
+export const adminAssignPlan = async (data: { userId: string, planId: string }): Promise<BaseResponse<Subscription>> => {
+    const response = await secureFetch(`${getBaseUrl()}/subscriptions/admin/assign-plan`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const adminSetSystemStatus = async (isEnabled: boolean): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/admin/subscription-plans/set-system-status`, {
+        method: 'POST',
+        body: JSON.stringify({ isEnabled }),
     });
     return await response.json();
 };
@@ -691,3 +765,199 @@ export const reconnectUser = async (userId: string): Promise<BaseResponse<any>> 
     });
     return await response.json();
 };
+
+/* =======================================================
+   PRODUCTS & ORDERS API
+======================================================= */
+
+export const getProducts = async (params: { page?: number; limit?: number; query?: string; categoryId?: string }): Promise<BaseResponse<Pagination<Product>>> => {
+    const queryString = toQueryString(params);
+    const response = await fetch(`${getBaseUrl()}/products?${queryString}`);
+    return await response.json();
+};
+
+export const getMyProducts = async (params: { page?: number; limit?: number; query?: string }): Promise<BaseResponse<Pagination<Product>>> => {
+    const queryString = toQueryString(params);
+    const response = await secureFetch(`${getBaseUrl()}/products/my-products?${queryString}`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
+export const getProductById = async (id: string): Promise<BaseResponse<Product>> => {
+    const response = await fetch(`${getBaseUrl()}/products/${id}`);
+    return await response.json();
+};
+
+export const getProductCategories = async (): Promise<BaseResponse<CategoryProd[]>> => {
+    const response = await fetch(`${getBaseUrl()}/products/categories`);
+    return await response.json();
+};
+
+export const createProduct = async (formData: FormData): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/products`, {
+        method: 'POST',
+        body: formData,
+    });
+    return await response.json();
+};
+
+export const updateProduct = async (id: string, formData: FormData): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/products/${id}`, {
+        method: 'PATCH',
+        body: formData,
+    });
+    return await response.json();
+};
+
+export const deleteProduct = async (id: string): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/products/${id}`, {
+        method: 'DELETE',
+    });
+    return await response.json();
+};
+
+export const createOrder = async (data: { items: { productId: string; quantity: number }[]; paymentMethod: string }): Promise<BaseResponse<Order>> => {
+    const response = await secureFetch(`${getBaseUrl()}/orders`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const getMyOrders = async (params: { page?: number; limit?: number } = {}): Promise<BaseResponse<Pagination<Order>>> => {
+    const queryString = toQueryString(params);
+    const response = await secureFetch(`${getBaseUrl()}/orders?${queryString}`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
+export const getOrderById = async (id: string): Promise<BaseResponse<Order>> => {
+    const response = await secureFetch(`${getBaseUrl()}/orders/${id}`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
+export const updateOrderStatus = async (id: string, status: string): Promise<BaseResponse<Order>> => {
+    const response = await secureFetch(`${getBaseUrl()}/orders/${id}/status`, {
+        method: 'POST',
+        body: JSON.stringify({ status }),
+    });
+    return await response.json();
+};
+
+/* =======================================================
+   ADMIN - NEW CRUD API
+======================================================= */
+
+// ADMIN - USERS
+export const adminGetUsers = async (params: AdminQueryParams): Promise<BaseResponse<Pagination<User>>> => {
+    const queryString = toQueryString(params);
+    const response = await secureFetch(`${getBaseUrl()}/admin/users?${queryString}`);
+    return await response.json();
+};
+
+export const adminUpdateUser = async (id: string, data: AdminUserUpdateDto): Promise<BaseResponse<User>> => {
+    const response = await secureFetch(`${getBaseUrl()}/admin/users/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+// ADMIN - PRODUCTS
+export const adminGetProducts = async (params: AdminQueryParams): Promise<BaseResponse<Pagination<Product>>> => {
+    const queryString = toQueryString(params);
+    const response = await secureFetch(`${getBaseUrl()}/admin/products?${queryString}`);
+    return await response.json();
+};
+
+export const adminUpdateProduct = async (id: string, data: AdminProductUpdateDto | FormData): Promise<BaseResponse<Product>> => {
+    const response = await secureFetch(`${getBaseUrl()}/admin/products/${id}`, {
+        method: 'PATCH',
+        body: data instanceof FormData ? data : JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const adminDeleteProduct = async (id: string): Promise<BaseResponse<Product>> => {
+    const response = await secureFetch(`${getBaseUrl()}/admin/products/${id}`, {
+        method: 'DELETE',
+    });
+    return await response.json();
+};
+
+// ADMIN - SERVICES
+export const adminGetServices = async (params: AdminQueryParams): Promise<BaseResponse<Pagination<Service>>> => {
+    const queryString = toQueryString(params);
+    const response = await secureFetch(`${getBaseUrl()}/admin/services?${queryString}`);
+    return await response.json();
+};
+
+export const adminUpdateService = async (id: string, data: AdminServiceUpdateDto | FormData): Promise<BaseResponse<Service>> => {
+    const response = await secureFetch(`${getBaseUrl()}/admin/services/${id}`, {
+        method: 'PATCH',
+        body: data instanceof FormData ? data : JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const adminDeleteService = async (id: string): Promise<BaseResponse<Service>> => {
+    const response = await secureFetch(`${getBaseUrl()}/admin/services/${id}`, {
+        method: 'DELETE',
+    });
+    return await response.json();
+};
+
+export const adminToggleServiceActive = async (id: string, value: boolean): Promise<BaseResponse<Service>> => {
+    const response = await secureFetch(`${getBaseUrl()}/admin/services/${id}/toggle-active`, {
+        method: 'PATCH',
+        body: JSON.stringify({ value }),
+    });
+    return await response.json();
+};
+
+// ADMIN - ANNONCES
+export const adminGetAnnonces = async (params: AdminQueryParams): Promise<BaseResponse<Pagination<Annonce>>> => {
+    const queryString = toQueryString(params);
+    const response = await secureFetch(`${getBaseUrl()}/admin/annonces?${queryString}`);
+    return await response.json();
+};
+
+export const adminUpdateAnnonce = async (id: string, data: AdminAnnonceUpdateDto | FormData): Promise<BaseResponse<Annonce>> => {
+    const response = await secureFetch(`${getBaseUrl()}/admin/annonces/${id}`, {
+        method: 'PATCH',
+        body: data instanceof FormData ? data : JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const adminDeleteAnnonce = async (id: string): Promise<BaseResponse<Annonce>> => {
+    const response = await secureFetch(`${getBaseUrl()}/admin/annonces/${id}`, {
+        method: 'DELETE',
+    });
+    return await response.json();
+};
+
+export const adminToggleAnnonceActive = async (id: string, value: boolean): Promise<BaseResponse<Annonce>> => {
+    const response = await secureFetch(`${getBaseUrl()}/admin/annonces/${id}/toggle-active`, {
+        method: 'PATCH',
+        body: JSON.stringify({ value }),
+    });
+    return await response.json();
+};
+
+export const setSystemSubscriptionStatus = async (isEnabled: boolean): Promise<BaseResponse<boolean>> => {
+    const response = await secureFetch(`${getBaseUrl()}/admin/subscription-plans/set-system-status`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ isEnabled }),
+    });
+    return await response.json();
+};
+
+

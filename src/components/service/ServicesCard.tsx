@@ -11,6 +11,7 @@ import Image from "next/image"
 import { Switch } from "../ui/switch"
 import { Button } from "../ui/button"
 import { useNotification } from "../toast/NotificationProvider"
+import { useSubscriptionCheck } from "@/hooks/useSubscriptionCheck"
 
 /* =====================================================
    PAGE
@@ -189,6 +190,8 @@ export default function ServicesCard({ data: propData, page: propPage, limit: pr
         page * limit
     )
 
+    const { checkEligibility, loading: checkLoading } = useSubscriptionCheck();
+
     return (
         <>
             <div className="flex flex-col w-full md:max-w-5xl max-w-full px-0">
@@ -252,8 +255,19 @@ export default function ServicesCard({ data: propData, page: propPage, limit: pr
                             </div>
 
                             <div className="flex justify-end mb-2">
-                                <Button onClick={() => { setIsOpen(true); setIsEditing(false); setSelectedService(null) }} className="bg-primary text-primary-foreground hover:bg-secondary"  >
-                                    <Icon icon="mdi-light:file-plus" className="w-10 h-10" />
+                                <Button
+                                    disabled={checkLoading}
+                                    onClick={async () => {
+                                        const canCreate = await checkEligibility('Service');
+                                        if (canCreate) {
+                                            setIsOpen(true);
+                                            setIsEditing(false);
+                                            setSelectedService(null)
+                                        }
+                                    }}
+                                    className="bg-primary text-primary-foreground hover:bg-secondary"
+                                >
+                                    {checkLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-6 h-6 mr-2" /> : <Icon icon="mdi-light:file-plus" className="w-10 h-10" />}
                                     Ajouter un service
                                 </Button>
                             </div>

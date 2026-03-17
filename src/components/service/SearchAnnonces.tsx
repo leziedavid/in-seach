@@ -1,16 +1,17 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Icon } from "@iconify/react";
 import Image from 'next/image';
-import { useInfiniteQuery } from "@tanstack/react-query";
 import { getAnnonces } from "@/api/api";
 import { Annonce, UserLocation } from "@/types/interface";
 import { getUserLocation } from "@/utils/location";
 import AnnonceModal from "../home/AnnonceModal";
 import InfiniteScroll from "../ui/InfiniteScroll";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 
 export default function SearchAnnonces() {
+    const { withAuth } = useRequireAuth();
     const [query, setQuery] = useState("");
     const [isSearching, setIsSearching] = useState(false);
     const [selectedAnnonce, setSelectedAnnonce] = useState<Annonce | null>(null);
@@ -19,39 +20,66 @@ export default function SearchAnnonces() {
     const [lng, setLng] = useState<number | undefined>();
     const [address, setAddress] = useState<string>("");
 
-    // Requête pour les annonces
-    const {
-        data: annoncesRes,
-        isLoading,
-        fetchNextPage,
-        hasNextPage,
-        isFetchingNextPage
-    } = useInfiniteQuery({
-        queryKey: ['search-annonces', query, lat, lng],
-        queryFn: ({ pageParam = 1 }) => getAnnonces({
-            page: pageParam as number,
-            limit: 3,
-            query: query || undefined,
-            lat: lat || undefined,
-            lng: lng || undefined,
-            radiusKm: lat && lng ? 10 : undefined // Rayon de 10km si position disponible
-        }),
-        initialPageParam: 1,
-        getNextPageParam: (lastPage) => {
-            if (!lastPage.data) return undefined;
-            const { page, totalPages } = lastPage.data;
-            return page < totalPages ? page + 1 : undefined;
-        },
-        enabled: isSearching
-    });
+    // State-based pagination
+    const [annonces, setAnnonces] = useState<Annonce[]>([]);
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
+    const [loading, setLoading] = useState(false);
+    const [total, setTotal] = useState(0);
 
-    const annonces = annoncesRes?.pages.flatMap(page => page.data?.data || []) || [];
-    const totalResults = annoncesRes?.pages[0]?.data?.total || 0;
+    const ITEMS_PER_PAGE = 6;
 
+    const fetchAnnonces = useCallback(async (pageNum: number, isNewSearch: boolean) => {
+        if (loading) return;
+        setLoading(true);
+
+        try {
+            const res = await getAnnonces({
+                page: pageNum,
+                limit: ITEMS_PER_PAGE,
+                query: query || undefined,
+                lat: lat || undefined,
+                lng: lng || undefined,
+                radiusKm: lat && lng ? 10 : undefined
+            });
+
+            if (res.statusCode === 200 && res.data) {
+                const newAnnonces = res.data.data;
+                setAnnonces(prev => isNewSearch ? newAnnonces : [...prev, ...newAnnonces]);
+                setHasMore(pageNum < res.data.totalPages);
+                setTotal(res.data.total);
+            } else {
+                setHasMore(false);
+            }
+        } catch (error) {
+            console.error("Error fetching annonces:", error);
+            setHasMore(false);
+        } finally {
+            setLoading(false);
+        }
+    }, [query, lat, lng]);
+
+    // Reset and fetch when filters change
+    useEffect(() => {
+        setPage(1);
+        fetchAnnonces(1, true);
+        // if (isSearching) {
+        //     setPage(1);
+        //     fetchAnnonces(1, true);
+        // }
+    }, [isSearching, query, lat, lng, fetchAnnonces]);
+
+    // Load more when page changes
+    useEffect(() => {
+        if (page > 1) {
+            fetchAnnonces(page, false);
+        }
+    }, [page, fetchAnnonces]);
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         if (query.trim() || lat || lng) {
+            setAnnonces([]);
             setIsSearching(true);
         }
     };
@@ -64,10 +92,8 @@ export default function SearchAnnonces() {
             setLng(location.lng ?? undefined);
             setAddress(`${location.city || ''}, ${location.country || ''}`.replace(/^, |, $/g, '') || 'Position obtenue');
 
-            // Déclencher automatiquement la recherche si un query existe déjà
-            if (query.trim()) {
-                setIsSearching(true);
-            }
+            setAnnonces([]);
+            setIsSearching(true);
         }
     };
 
@@ -75,6 +101,7 @@ export default function SearchAnnonces() {
     useEffect(() => {
         if (query === "" && !lat && !lng) {
             setIsSearching(false);
+            setAnnonces([]);
         }
     }, [query, lat, lng]);
 
@@ -112,79 +139,67 @@ export default function SearchAnnonces() {
             )}
 
             {/* Résultats de recherche */}
-            {isSearching && (
-                <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-2">
-                    <div className="flex items-center justify-start md:justify-center w-full px-2 md:px-0 mb-6">
-                        <h3 className="text-xl md:text-2xl font-black text-foreground italic text-left md:text-center">
-                            {isLoading ? 'Recherche en cours...' : `${totalResults} résultat${totalResults > 1 ? 's' : ''}`}
-                        </h3>
-                    </div>
+            {/* {isSearching && ( */}
+            <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-2">
+                <div className="flex items-center justify-start md:justify-center w-full px-2 md:px-0 mb-6">
+                    <h3 className="text-xl md:text-2xl font-black text-foreground italic text-left md:text-center">
+                        {loading && annonces.length === 0 ? 'Recherche en cours...' : `${annonces.length} résultat${annonces.length > 1 ? 's' : ''}`}
+                    </h3>
+                </div>
 
+                <InfiniteScroll loadMore={() => setPage(prev => prev + 1)} hasMore={hasMore} isLoading={loading} className="w-full px-2 md:px-0" >
+                    {annonces.length > 0 ? (
+                        <div className="grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-6 stagger-parent">
+                            {annonces.map((annonce: Annonce) => (
+                                <div key={annonce.id} className="group rounded-lg p-0 md:p-4 flex flex-col md:items-center text-left md:text-center bg-card w-full transition-all duration-300 shadow-sm hover:shadow-md hover-lift stagger-item">
+                                    {/* Image */}
+                                    <div className="relative w-full aspect-square mb-1.5 overflow-hidden rounded-lg md:rounded-2xl">
+                                        <Image src={(annonce.images?.[0] && typeof annonce.images?.[0] === 'string') ? annonce.images[0] : (Array.isArray(annonce.images) && (annonce.images[0] as any)?.fileUrl) || 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop'} alt={annonce.title} fill unoptimized className="object-cover group-hover:scale-110 transition-transform duration-500" />
+                                        {annonce.categorie && (
+                                            <div className="absolute top-1 left-1 md:top-2 md:left-2 bg-black/70 md:bg-background/95 backdrop-blur-sm px-1.5 py-0.5 md:px-2 md:py-0.5 rounded-full text-[8px] md:text-[9px] font-black text-white md:text-foreground shadow-sm uppercase tracking-tighter">
+                                                {annonce.categorie.label}
+                                            </div>
+                                        )}
+                                    </div>
 
-                    {isLoading ? (
-                        <div className="flex flex-col items-center justify-center py-20 text-muted-foreground md:py-20">
-                            <Icon icon="solar:refresh-bold-duotone" className="w-10 h-10 animate-spin text-primary" />
-                        </div>
-                    ) : annonces.length > 0 ? (
-                        <InfiniteScroll loadMore={fetchNextPage} hasMore={!!hasNextPage} isLoading={isFetchingNextPage} className="w-full px-2 md:px-0"  >
-                            <div className="grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-6">
-                                {annonces.map((annonce: Annonce) => (
-                                    <div key={annonce.id} className="group rounded-lg p-0 md:p-4 flex flex-col md:items-center text-left md:text-center bg-card w-full transition-all duration-300">
-                                        {/* Image */}
-                                        <div className="relative w-full aspect-square mb-1.5 overflow-hidden rounded-lg md:rounded-2xl">
-                                            <Image
-                                                src={(annonce.images?.[0] && annonce.images?.[0] !== "") ? annonce.images[0] : 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop'}
-                                                alt={annonce.title}
-                                                fill
-                                                unoptimized
-                                                className="object-cover group-hover:scale-110 transition-transform duration-500"
-                                            />
-                                            {annonce.categorie && (
-                                                <div className="absolute top-1 left-1 md:top-2 md:left-2 bg-black/70 md:bg-background/95 backdrop-blur-sm px-1.5 py-0.5 md:px-2 md:py-0.5 rounded-full text-[8px] md:text-[9px] font-black text-white md:text-foreground shadow-sm uppercase tracking-tighter">
-                                                    {annonce.categorie.label}
-                                                </div>
-                                            )}
+                                    {/* Contenu */}
+                                    <div className="px-0.5 pb-0 md:px-0 md:pb-0 w-full">
+                                        <h3 className="text-xs md:text-base font-black text-foreground mb-1 line-clamp-2 md:line-clamp-1 group-hover:text-primary transition-colors w-full text-left leading-tight">
+                                            {annonce.title}
+                                        </h3>
+
+                                        <div className="flex items-center justify-start gap-1 text-primary mb-2 md:mb-4 md:justify-center">
+                                            <Icon icon="solar:star-bold-duotone" className="w-2.5 h-2.5 fill-current md:w-3 md:h-3" />
+                                            <span className="text-[9px] md:text-xs font-black tracking-tight">
+                                                4.9 • <span className="text-muted-foreground">
+                                                    {annonce.type?.label || 'Annonce'}
+                                                </span>
+                                            </span>
                                         </div>
 
-                                        {/* Contenu */}
-                                        <div className="px-0.5 pb-0 md:px-0 md:pb-0 w-full">
-                                            <h3 className="text-xs md:text-base font-black text-foreground mb-1 line-clamp-2 md:line-clamp-1 group-hover:text-primary transition-colors w-full text-left leading-tight">
-                                                {annonce.title}
-                                            </h3>
-
-
-                                            <div className="flex items-center justify-start gap-1 text-primary mb-2 md:mb-4 md:justify-center">
-                                                <Icon icon="solar:star-bold-duotone" className="w-2.5 h-2.5 fill-current md:w-3 md:h-3" />
-                                                <span className="text-[9px] md:text-xs font-black tracking-tight">
-                                                    4.9 • <span className="text-muted-foreground">
-                                                        {annonce.type?.label || 'Annonce'}
-                                                    </span>
-                                                </span>
+                                        <div className="w-full flex items-center justify-between mt-auto">
+                                            <div className="text-left">
+                                                <p className="text-secondary font-black text-sm md:text-lg">
+                                                    {annonce.price?.toLocaleString() || '0'} <span className="text-[9px] font-bold text-muted-foreground">CFA</span>
+                                                </p>
                                             </div>
-
-                                            <div className="w-full flex items-center justify-between mt-auto">
-                                                <div className="text-left">
-                                                    <p className="text-secondary font-black text-sm md:text-lg">
-                                                        {annonce.price?.toLocaleString() || '0'} <span className="text-[9px] font-bold text-muted-foreground">CFA</span>
-                                                    </p>
-                                                </div>
-                                                <button onClick={() => setSelectedAnnonce(annonce)} className="bg-secondary text-white px-2 py-1 md:px-3 md:py-2 rounded-full md:rounded-full text-[10px] md:text-xs font-black hover:bg-primary transition-all active:scale-90 shadow-sm">
-                                                    <Icon icon="solar:check-circle-bold-duotone" className="w-4 h-4" />
-                                                </button>
-                                            </div>
+                                            <button onClick={() => withAuth(() => setSelectedAnnonce(annonce))} className="bg-secondary text-white px-2 py-1 md:px-3 md:py-2 rounded-full md:rounded-full text-[10px] md:text-xs font-black hover:bg-primary transition-all active:scale-90 shadow-sm">
+                                                <Icon icon="solar:check-circle-bold-duotone" className="w-4 h-4" />
+                                            </button>
                                         </div>
                                     </div>
-                                ))}
-                            </div>
-                        </InfiniteScroll>
-                    ) : (
+                                </div>
+                            ))}
+                        </div>
+                    ) : !loading && (
                         <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
                             <p className="text-lg">Aucune annonce trouvée</p>
                             <p className="text-sm mt-2">Essayez de modifier vos critères de recherche</p>
                         </div>
                     )}
-                </div>
-            )}
+                </InfiniteScroll>
+            </div>
+            {/* )} */}
 
             {/* Modal de réservation */}
             <AnnonceModal

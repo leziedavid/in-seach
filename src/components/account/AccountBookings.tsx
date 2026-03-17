@@ -26,6 +26,7 @@ export default function AccountBookings({ type, data, page, limit, total, totalP
                 totalPages={totalPages}
                 loading={loading}
                 onPageChange={onPageChange}
+                bookingType="SERVICE"
             />
         </div>
     );

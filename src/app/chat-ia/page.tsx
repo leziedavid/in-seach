@@ -116,6 +116,28 @@ export default function ChatIAPage() {
         if (res.statusCode === 200) setConversations(res.data || []);
     };
 
+    // Handle pending negotiation from ProductDetailModal
+    useEffect(() => {
+        if (!me || conversations.length === 0) return;
+
+        const pending = sessionStorage.getItem("pending_negotiation");
+        if (pending) {
+            try {
+                const { conversationId, message } = JSON.parse(pending);
+                const conv = conversations.find(c => c.id === conversationId);
+
+                if (conv) {
+                    setSelectedConversation(conv);
+                    setInputValue(message);
+                    // If focusing input is needed, we could do that here
+                }
+                sessionStorage.removeItem("pending_negotiation");
+            } catch (e) {
+                console.error("Error parsing pending negotiation", e);
+            }
+        }
+    }, [me, conversations, setSelectedConversation]);
+
     useEffect(() => {
         if (scrollRef.current) {
             scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
