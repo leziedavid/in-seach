@@ -94,7 +94,7 @@ export default function ProductsPage() {
 
             {/* Search Input */}
             <div className="flex flex-col md:flex-row items-center justify-center gap-4 w-full max-w-2xl mb-2">
-                <div className="flex items-center w-full bg-card border border-primary rounded-xl px-4 py-2 shadow-sm hover:border-secondary transition-colors">
+                <div className="flex items-center w-full bg-card border border-primary rounded-xl px-4 py-3 shadow-sm hover:border-secondary transition-colors">
                     <Icon icon="solar:magnifer-bold-duotone" className="w-4 h-4 text-muted-foreground mr-2 flex-shrink-0" />
                     <input type="text" placeholder="Quel produit recherchez-vous ?" className="flex-1 bg-transparent text-foreground outline-none text-sm min-w-0 md:text-sm placeholder:text-muted-foreground" value={search} onChange={(e) => setSearch(e.target.value)} inputMode="text" style={{ fontSize: '16px' }} suppressHydrationWarning />
                 </div>

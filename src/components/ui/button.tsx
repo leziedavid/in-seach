@@ -38,8 +38,9 @@ const buttonVariants = cva(
   }
 )
 
+// @ts-ignore - Conflict between Framer Motion and React types
 export interface ButtonProps
-  extends Omit<HTMLMotionProps<"button">, "ref">,
+  extends Omit<HTMLMotionProps<"button">, "ref" | "onAnimationStart" | "onDragStart" | "onDragEnd" | "onDrag" | "onDragEnter" | "onDragLeave" | "onDragOver" | "onDrop" | "onAnimationEnd" | "onAnimationIteration">,
   VariantProps<typeof buttonVariants> {
   asChild?: boolean
 }

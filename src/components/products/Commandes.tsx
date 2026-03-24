@@ -39,9 +39,12 @@ export default function Commandes({
     const limit = propLimit;
     const setPage = onPageChange ?? setInternalPage;
 
-    const [internalTotalPages, setInternalTotalPages] = useState(0);
-    const [internalOrders, setInternalOrders] = useState<Order[]>([]);
     const [internalLoading, setInternalLoading] = useState(false);
+    const [ordersReceived, setOrdersReceived] = useState<Order[]>([]);
+    const [ordersPlaced, setOrdersPlaced] = useState<Order[]>([]);
+    const [receivedTotalPages, setReceivedTotalPages] = useState(0);
+    const [placedTotalPages, setPlacedTotalPages] = useState(0);
+    const [activeTab, setActiveTab] = useState<'recues' | 'passees'>('recues');
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const [open, setOpen] = useState(false);
     const [userRole, setUserRole] = useState<Role | null>(null);
@@ -52,8 +55,8 @@ export default function Commandes({
     }, []);
 
     const loading = propLoading ?? internalLoading;
-    const orders = propData ?? internalOrders;
-    const totalPages = propTotalPages ?? internalTotalPages;
+    const orders = propData ?? (activeTab === 'recues' ? ordersReceived : ordersPlaced);
+    const totalPages = propTotalPages ?? (activeTab === 'recues' ? receivedTotalPages : placedTotalPages);
 
     const fetchOrders = async () => {
         if (propData) return;
@@ -61,9 +64,13 @@ export default function Commandes({
             setInternalLoading(true);
             const response = await getMyOrders({ page, limit });
             if (response?.statusCode === 200 && response?.data) {
-                const pagination = response.data as any;
-                setInternalOrders(pagination.data || []);
-                setInternalTotalPages(pagination.totalPages || 0);
+                const { ordersReceived: received, ordersPlaced: placed } = response.data;
+
+                setOrdersReceived(received.data || []);
+                setReceivedTotalPages(received.totalPages || 0);
+
+                setOrdersPlaced(placed.data || []);
+                setPlacedTotalPages(placed.totalPages || 0);
             }
         } finally {
             setInternalLoading(false);
@@ -123,6 +130,24 @@ export default function Commandes({
     return (
         <div className="w-full mx-auto py-4">
             <h1 className="text-xl font-bold mb-4">Mes Commandes</h1>
+
+            {/* TABS */}
+            <div className="flex bg-muted/50 p-1 rounded-2xl mb-6 w-full max-w-md">
+                <button
+                    onClick={() => setActiveTab('recues')}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'recues' ? 'bg-white text-primary shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                >
+                    <Icon icon="solar:cart-download-bold-duotone" width={18} />
+                    Commandes reçues
+                </button>
+                <button
+                    onClick={() => setActiveTab('passees')}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'passees' ? 'bg-white text-primary shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                >
+                    <Icon icon="solar:cart-check-bold-duotone" width={18} />
+                    Commandes passées
+                </button>
+            </div>
 
             <div className="gap-3">
                 {/* ========= LOADING ========= */}
@@ -191,22 +216,13 @@ export default function Commandes({
                                             {isOrderClient && (
                                                 <div className="flex items-center gap-2">
                                                     {(order.status === OrderStatus.PENDING || order.status === OrderStatus.PROCESSING) && (
-                                                        <Button
-                                                            size="sm"
-                                                            variant="destructive"
-                                                            className="h-8 px-3 text-[10px] font-black flex items-center gap-1.5"
-                                                            onClick={() => handleStatusChange(order.id, OrderStatus.CANCELLED)}
-                                                        >
+                                                        <Button size="sm" variant="destructive" className="h-8 px-3 text-[10px] font-black flex items-center gap-1.5" onClick={() => handleStatusChange(order.id, OrderStatus.CANCELLED)} >
                                                             <Icon icon="solar:close-circle-bold" className="w-4 h-4" />
                                                             <span className="hidden sm:inline">Annuler</span>
                                                         </Button>
                                                     )}
                                                     {order.status === OrderStatus.VALIDATED && (
-                                                        <Button
-                                                            size="sm"
-                                                            className="h-8 px-3 text-[10px] font-black flex items-center gap-1.5"
-                                                            onClick={() => handleStatusChange(order.id, OrderStatus.PAID)}
-                                                        >
+                                                        <Button size="sm" className="h-8 px-3 text-[10px] font-black flex items-center gap-1.5" onClick={() => handleStatusChange(order.id, OrderStatus.PAID)} >
                                                             <Icon icon="solar:wallet-2-bold" className="w-4 h-4" />
                                                             <span className="hidden sm:inline">Payer</span>
                                                         </Button>
@@ -218,41 +234,33 @@ export default function Commandes({
                                             {ownsSomeProducts && (
                                                 <div className="flex items-center gap-2">
                                                     {order.status === OrderStatus.PENDING && (
-                                                        <Button
-                                                            size="sm"
-                                                            className="h-8 px-3 text-[10px] font-black bg-orange-600 hover:bg-orange-700 flex items-center gap-1.5"
-                                                            onClick={() => handleStatusChange(order.id, OrderStatus.PROCESSING)}
-                                                        >
+                                                        <Button size="sm" className="h-8 px-3 text-[10px] font-black bg-orange-600 hover:bg-orange-700 flex items-center gap-1.5" onClick={() => handleStatusChange(order.id, OrderStatus.PROCESSING)} >
                                                             <Icon icon="solar:play-bold" className="w-4 h-4" />
                                                             <span className="hidden sm:inline">Traiter</span>
                                                         </Button>
                                                     )}
                                                     {order.status === OrderStatus.PROCESSING && (
-                                                        <Button
-                                                            size="sm"
-                                                            className="h-8 px-3 text-[10px] font-black bg-blue-600 hover:bg-blue-700 flex items-center gap-1.5"
-                                                            onClick={() => handleStatusChange(order.id, OrderStatus.VALIDATED)}
-                                                        >
+                                                        <Button size="sm" className="h-8 px-3 text-[10px] font-black bg-blue-600 hover:bg-blue-700 flex items-center gap-1.5" onClick={() => handleStatusChange(order.id, OrderStatus.VALIDATED)} >
                                                             <Icon icon="solar:check-read-bold" className="w-4 h-4" />
                                                             <span className="hidden sm:inline">Valider</span>
                                                         </Button>
                                                     )}
+
+                                                    {order.status === OrderStatus.VALIDATED && (
+                                                        <Button size="sm" className="h-8 px-3 text-[10px] font-black bg-purple-600 hover:bg-purple-700 flex items-center gap-1.5" onClick={() => handleStatusChange(order.id, OrderStatus.PAID)} >
+                                                            <Icon icon="solar:wallet-2-bold" className="w-4 h-4" />
+                                                            <span className="hidden sm:inline">Payer a la livraison</span>
+                                                        </Button>
+                                                    )}
+
                                                     {order.status === OrderStatus.PAID && (
-                                                        <Button
-                                                            size="sm"
-                                                            className="h-8 px-3 text-[10px] font-black bg-purple-600 hover:bg-purple-700 flex items-center gap-1.5"
-                                                            onClick={() => handleStatusChange(order.id, OrderStatus.SHIPPED)}
-                                                        >
+                                                        <Button size="sm" className="h-8 px-3 text-[10px] font-black bg-purple-600 hover:bg-purple-700 flex items-center gap-1.5" onClick={() => handleStatusChange(order.id, OrderStatus.SHIPPED)} >
                                                             <Icon icon="solar:delivery-bold" className="w-4 h-4" />
                                                             <span className="hidden sm:inline">Expédier</span>
                                                         </Button>
                                                     )}
                                                     {order.status === OrderStatus.SHIPPED && (
-                                                        <Button
-                                                            size="sm"
-                                                            className="h-8 px-3 text-[10px] font-black bg-indigo-600 hover:bg-indigo-700 flex items-center gap-1.5"
-                                                            onClick={() => handleStatusChange(order.id, OrderStatus.DELIVERED)}
-                                                        >
+                                                        <Button size="sm" className="h-8 px-3 text-[10px] font-black bg-indigo-600 hover:bg-indigo-700 flex items-center gap-1.5" onClick={() => handleStatusChange(order.id, OrderStatus.DELIVERED)} >
                                                             <Icon icon="solar:box-bold" className="w-4 h-4" />
                                                             <span className="hidden sm:inline">Livrer</span>
                                                         </Button>

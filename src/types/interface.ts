@@ -25,7 +25,35 @@ export interface Pagination<T> {
 export enum Role {
     CLIENT = 'CLIENT',
     PRESTATAIRE = 'PRESTATAIRE',
-    ADMIN = 'ADMIN'
+    ADMIN = 'ADMIN',
+    ENTREPRISE = 'ENTREPRISE'
+}
+
+export enum TransportType {
+    MARITIME = 'MARITIME',
+    AERIEN = 'AERIEN',
+    HORS_GABARIT = 'HORS_GABARIT',
+    SANTE = 'SANTE',
+    LOGISTIQUE_STOCKAGE = 'LOGISTIQUE_STOCKAGE',
+    DOUANE = 'DOUANE'
+}
+
+export enum QuoteStatus {
+    PENDING = 'PENDING',
+    REVIEWING = 'REVIEWING',
+    PROPOSED = 'PROPOSED',
+    ACCEPTED = 'ACCEPTED',
+    REJECTED = 'REJECTED',
+    CANCELLED = 'CANCELLED'
+}
+
+export enum DeliveryStatus {
+    PREPARING = 'PREPARING',
+    IN_TRANSIT = 'IN_TRANSIT',
+    AT_CUSTOMS = 'AT_CUSTOMS',
+    OUT_FOR_DELIVERY = 'OUT_FOR_DELIVERY',
+    DELIVERED = 'DELIVERED',
+    CANCELLED = 'CANCELLED'
 }
 
 export enum SubscriptionStatus {
@@ -67,6 +95,9 @@ export interface User {
     email: string;
     fullName?: string;
     phone?: string;
+    avatar?: string;
+    companyName?: string;
+    cni?: string;
     role: Role;
     isPremium: boolean;
     credits: number;
@@ -153,6 +184,7 @@ export interface Booking {
     updatedAt?: string;
 }
 
+
 export interface BookingsCalendar {
     id: string;
     clientId: string;
@@ -230,6 +262,8 @@ export interface Address {
 export interface UserProfile extends User {
     fullName?: string;
     phone?: string;
+    avatarUrl?: string;
+    cniUrl?: string;
     companyName?: string;
     servicesCount?: number;
     annoncesCount?: number;
@@ -334,9 +368,8 @@ export interface MySpaceResponse {
     user: UserProfile;
     services: Service[];
     annonces: Annonce[];
-    bookings: Booking[];
-    annoncesBookings: Booking[];
-    history: Booking[];
+    bookingsReceived: Pagination<Booking>;
+    bookingsPlaced: Pagination<Booking>;
     totalGain: number;
     page: number;
     limit: number;
@@ -450,6 +483,16 @@ export interface Order {
     updatedAt: string
 }
 
+export interface OrdersGroupedResponse {
+    ordersReceived: Pagination<Order>;
+    ordersPlaced: Pagination<Order>;
+}
+
+export interface BookingsGroupedResponse {
+    bookingsReceived: Pagination<Booking>;
+    bookingsPlaced: Pagination<Booking>;
+}
+
 // ===============================
 // ADMIN DTOs & PARAMS
 // ===============================
@@ -531,5 +574,83 @@ export interface AdminLog {
     context?: string;
     timestamp: string;
     metadata?: any;
+}
+
+// ===============================
+// LOGISTICS
+// ===============================
+
+export interface LogisticService {
+    id: string;
+    label: string;
+    description: string;
+    transportType: TransportType;
+    isActive: boolean;
+    companyId: string;
+    company?: {
+        id: string;
+        fullName?: string;
+        companyName?: string;
+        email?: string;
+        phone?: string;
+    };
+    images: {
+        id: number;
+        url: string;
+        fileName: string;
+        mimeType: string;
+        size: number;
+    }[];
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface Quote {
+    id: string;
+    transportType: TransportType;
+    serviceId: string;
+    service?: LogisticService;
+    departureCountry?: string;
+    arrivalCountry?: string;
+    departureAddress: string;
+    arrivalAddress: string;
+    description: string;
+    volume?: number;
+    weight?: number;
+    status: QuoteStatus;
+    montantTransac?: number;
+    senderId: string;
+    receiverId?: string;
+    sender?: {
+        fullName: string;
+        email: string;
+    };
+    delivery?: Delivery;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface Delivery {
+    id: string;
+    quoteId: string;
+    quote?: Quote;
+    trackingCode: string;
+    status: DeliveryStatus;
+    estimatedDeparture?: string;
+    estimatedArrival?: string;
+    actualDeparture?: string;
+    actualArrival?: string;
+    trackingEvents?: DeliveryTracking[];
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface DeliveryTracking {
+    id: string;
+    deliveryId: string;
+    status: DeliveryStatus;
+    location: string;
+    note?: string;
+    createdAt: string;
 }
 

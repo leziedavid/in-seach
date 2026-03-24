@@ -1,12 +1,16 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { HistoryIcon, AccountIcon, SearchIcon } from "./TabIcons"
-import SearchServies from "../service/SearchServies"
-import BookingsPage from "../bookings/BookingsPage"
 import SearchAnnonces from "../service/SearchAnnonces"
 import Boutique from "../products/Boutique"
+import LogisticsServicesList from "../logistics/LogisticsServicesList"
+import { HistoryIcon, AccountIcon, SearchIcon, LogisticsIcon } from "./TabIcons"
 import Info from "./Info"
+import SearchServies from "../service/SearchServies"
+import QuoteRequestModal from "../logistics/QuoteRequestModal"
+import { Modal } from "../modal/MotionModal"
+import { LogisticService } from "@/types/interface"
+import { Icon } from "@iconify/react"
 
 const tabs = [
     {
@@ -36,6 +40,15 @@ const tabs = [
             description: "Découvrez notre sélection de produits exclusifs et achetez en toute simplicité."
         }
     },
+    {
+        id: "logistics",
+        label: "Logistique",
+        Icon: LogisticsIcon,
+        info: {
+            title: "Espace Logistique",
+            description: "Services de transport maritime, aérien et gestion douanière pour vos colis."
+        }
+    },
 ]
 
 export default function AppTabs() {
@@ -44,6 +57,8 @@ export default function AppTabs() {
     const [showInfo, setShowInfo] = useState(true)
     const scrollContainerRef = useRef<HTMLDivElement>(null)
     const activeTabRef = useRef<HTMLButtonElement>(null)
+    const [selectedServiceForQuote, setSelectedServiceForQuote] = useState<LogisticService | null>(null)
+    const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false)
 
     const handleTabClick = (id: string) => {
         if (active !== id) {
@@ -52,16 +67,18 @@ export default function AppTabs() {
         }
     }
 
+    const openQuoteModal = (service: LogisticService) => {
+        setSelectedServiceForQuote(service)
+        setIsQuoteModalOpen(true)
+    }
+
     // Scroll vers l'onglet actif au chargement et quand il change
     useEffect(() => {
         if (activeTabRef.current && scrollContainerRef.current) {
             const container = scrollContainerRef.current
             const activeTab = activeTabRef.current
-            const containerRect = container.getBoundingClientRect()
-            const activeTabRect = activeTab.getBoundingClientRect()
             const scrollLeft = activeTab.offsetLeft - (container.clientWidth / 2) + (activeTab.clientWidth / 2)
             container.scrollTo({ left: scrollLeft, behavior: 'smooth' })
-
         }
     }, [active])
 
@@ -73,13 +90,13 @@ export default function AppTabs() {
 
                     {tabs.map((tab) => {
                         const isActive = active === tab.id
-                        const Icon = tab.Icon
+                        const IconComponent = tab.Icon
 
                         return (
                             <button key={tab.id} ref={isActive ? activeTabRef : null} onClick={() => handleTabClick(tab.id)} className="flex flex-col items-center shrink-0 transition-all"  >
                                 {/* Cercle */}
                                 <div className={`w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 flex items-center justify-center rounded-full border-2 transition-all duration-300 hover:scale-105  ${isActive ? "bg-primary border-primary shadow-lg shadow-primary/20" : "bg-card border-border"} `}  >
-                                    <Icon active={isActive} />
+                                    <IconComponent active={isActive} />
                                 </div>
 
                                 {/* Label */}
@@ -114,7 +131,6 @@ export default function AppTabs() {
             <div className="mt-4 sm:mt-6 w-full flex flex-col items-center stagger-parent">
                 {active === "search" && (
                     <div className="w-full flex flex-col items-center px-2 sm:px-0 stagger-item">
-                        {/* <TitlePage part1="Trouvez" highlight="le service idéal" part2="pour vos besoins !" /> */}
                         <SearchServies />
                     </div>
                 )}
@@ -131,7 +147,25 @@ export default function AppTabs() {
                     </div>
                 )}
 
+                {active === "logistics" && (
+                    <div className="w-full flex flex-col items-center px-2 sm:px-0 stagger-item">
+                        <LogisticsServicesList mode="marketplace" onRequestQuote={openQuoteModal} />
+                    </div>
+                )}
+
             </div>
+
+            {/* Quote Request Modal */}
+            <Modal isOpen={isQuoteModalOpen} onClose={() => setIsQuoteModalOpen(false)}>
+                {selectedServiceForQuote && (
+                    <QuoteRequestModal
+                        service={selectedServiceForQuote}
+                        isOpen={isQuoteModalOpen}
+                        onClose={() => setIsQuoteModalOpen(false)}
+                        onSuccess={() => { setIsQuoteModalOpen(false); }}
+                    />
+                )}
+            </Modal>
         </div>
     )
 }

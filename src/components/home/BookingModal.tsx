@@ -116,10 +116,23 @@ export default function BookingModal({ isOpen, onClose, item, type }: BookingMod
 
     const handleBooking = async () => {
         if (!interventionType || (interventionType === "rdv" && (!selectedDate || !selectedTime))) return;
+        // Combine date and time into a full ISO string for the backend
+        let isoScheduledDate = selectedDate;
+        if (selectedDate && selectedTime) {
+            try {
+                const [hours, minutes] = selectedTime.split(':').map(Number);
+                const dateObj = new Date(selectedDate);
+                dateObj.setHours(hours, minutes, 0, 0);
+                isoScheduledDate = dateObj.toISOString();
+            } catch (e) {
+                console.error("Error formatting date:", e);
+            }
+        }
+
         const payload: BookingPayload = {
             bookingType: type,
             interventionType: interventionType.toUpperCase(),
-            scheduledDate: selectedDate,
+            scheduledDate: isoScheduledDate,
             scheduledTime: selectedTime,
             description: getValues().description,
         };

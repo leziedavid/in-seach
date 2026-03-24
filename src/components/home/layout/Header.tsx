@@ -18,7 +18,7 @@ import { useNotification } from "@/components/toast/NotificationProvider";
 const NAVIGATION_TABS = [
     { key: "accueil", label: "Accueil", icon: "ic:twotone-home-max", path: "/" },
     // { key: "Tarifs", label: "Tarifs", icon: "solar:chat-round-money-bold-duotone", path: "/pricing" },
-    { key: "calendar", label: "Calendrier", icon: "solar:calendar-date-bold-duotone", path: "/akwaba" },
+    { key: "calendar", label: "Mon Espace", icon: "solar:calendar-date-bold-duotone", path: "/akwaba" },
 ];
 
 export default function Header() {
@@ -125,7 +125,7 @@ export default function Header() {
 
     return (
 
-        <header className="fixed left-1/2 -translate-x-1/2 z-50 bottom-4 w-[95%] max-w-[500px] md:top-4 md:bottom-auto md:w-fit md:max-w-none bg-background/60 backdrop-blur-xl border border-border rounded-full shadow-2xl px-2 py-1.5 md:px-4 md:py-2 flex items-center justify-between md:justify-start md:gap-4 transition-all duration-300">
+        <header className="fixed left-1/2 -translate-x-1/2 z-50 bottom-4 w-[95%] max-w-[700px] md:top-4 md:bottom-auto md:w-3xl md:max-w-none bg-background/60 backdrop-blur-xl border border-border rounded-full shadow-2xl px-2 py-1.5 md:px-4 md:py-2 flex items-center justify-between md:justify-start md:gap-6 transition-all duration-300">
 
             {/* User Section - Flat on mobile */}
             <div className="contents md:flex md:items-center md:gap-2">

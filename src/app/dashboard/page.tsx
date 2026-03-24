@@ -19,8 +19,8 @@ export default function DashboardPage() {
     });
 
     const bookingsData = bookingsRes?.data;
-    const bookings = bookingsData?.data || [];
-    const totalBookings = bookingsData?.total || 0;
+    const bookings = bookingsData?.bookingsPlaced?.data || [];
+    const totalBookings = bookingsData?.bookingsPlaced?.total || 0;
     const user = userRes?.data;
 
     const stats = [

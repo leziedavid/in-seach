@@ -12,9 +12,10 @@ interface AnnoncesBookingsProps {
     totalPages?: number;
     loading?: boolean;
     onPageChange?: (page: number) => void;
+    onSuccess?: () => void;
 }
 
-export default function AnnoncesBookings({ type, data, page, limit, total, totalPages, loading, onPageChange }: AnnoncesBookingsProps) {
+export default function AnnoncesBookings({ type, data, page, limit, total, totalPages, loading, onPageChange, onSuccess }: AnnoncesBookingsProps) {
 
     return (
         <div>
@@ -26,6 +27,7 @@ export default function AnnoncesBookings({ type, data, page, limit, total, total
                 totalPages={totalPages}
                 loading={loading}
                 onPageChange={onPageChange}
+                onSuccess={onSuccess}
                 bookingType="ANNONCE"
             />
         </div>

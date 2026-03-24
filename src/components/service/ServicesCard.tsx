@@ -225,14 +225,14 @@ export default function ServicesCard({ data: propData, page: propPage, limit: pr
 
                                     <div className="flex items-center gap-8">
                                         <div className="text-center md:text-left">
-                                            <p className="flex items-center gap-2 text-3xl md:text-4xl font-black text-primary">
+                                            {/* <p className="flex items-center gap-2 text-3xl md:text-4xl font-black text-primary">
                                                 <span>130</span>
                                                 <Icon icon="solar:wad-of-money-bold-duotone" className="w-8 h-8" />
                                             </p>
 
                                             <p className="text-sm text-muted-foreground font-medium">
                                                 Gains
-                                            </p>
+                                            </p> */}
 
                                         </div>
 
@@ -240,7 +240,7 @@ export default function ServicesCard({ data: propData, page: propPage, limit: pr
 
                                         <div className="text-center md:text-left">
                                             <p className="flex items-center gap-2 text-3xl md:text-4xl font-black text-secondary">
-                                                <span>130</span>
+                                                <span>{total}</span>
                                                 <Icon icon="solar:album-linear" className="w-8 h-8" />
                                             </p>
                                             <p className="text-sm text-muted-foreground font-medium">

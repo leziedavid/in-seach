@@ -25,7 +25,7 @@ export default function Content() {
             <AppTabs />
 
             {/* Workflow Badge */}
-            <div className={`mb-6 px-4 py-2 rounded-full bg-primary/5 border border-primary/10 flex items-center gap-2 transition-all duration-500`}>
+            {/* <div className={`mb-6 px-4 py-2 rounded-full bg-primary/5 border border-primary/10 flex items-center gap-2 transition-all duration-500`}>
                 <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
                 <span className="text-[11px] uppercase font-black tracking-[0.2em] text-primary">Comment ça marche ?</span>
             </div>
@@ -40,9 +40,7 @@ export default function Content() {
                         <p className="text-[11px] text-muted-foreground font-bold uppercase tracking-widest text-center">{step.desc}</p>
                     </div>
                 ))}
-            </div>
-
-
+            </div> */}
 
         </div>
     );

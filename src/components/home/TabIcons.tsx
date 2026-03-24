@@ -58,3 +58,12 @@ export function SearchIcon({ active }: IconProps) {
     )
 }
 
+export function LogisticsIcon({ active }: IconProps) {
+    return (
+        <Icon
+            icon="solar:delivery-bold-duotone"
+            className="w-[26px] h-[26px]"
+            style={{ color: strokeColor(active) }}
+        />
+    )
+}
