@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 // Routes qui nécessitent d'être authentifié
-const protectedRoutes = ['/akwaba', '/chat-ia', '/dashboard'];
+const protectedRoutes = ['/akwaba', '/chat-ia', '/admin'];
 
 // Helper pour décoder le JWT dans l'environnement Edge de Next.js
 function decodeJWTPayload(token: string) {
@@ -21,7 +21,21 @@ function decodeJWTPayload(token: string) {
     }
 }
 
-export function middleware(request: NextRequest) {
+export function getApiKey(request: NextRequest) {
+    const token = request.cookies.get('token')?.value;
+    if (!token) return null;
+    const payload = decodeJWTPayload(token);
+    return payload?.apiKey || null;
+}
+
+export function getRole(request: NextRequest) {
+    const token = request.cookies.get('token')?.value;
+    if (!token) return null;
+    const payload = decodeJWTPayload(token);
+    return payload?.role || null;
+}
+
+export function proxy(request: NextRequest) {
     const token = request.cookies.get('token')?.value;
     const { pathname } = request.nextUrl;
 
@@ -52,6 +66,6 @@ export const config = {
     matcher: [
         '/akwaba/:path*',
         '/chat-ia/:path*',
-        '/dashboard/:path*',
+        '/admin/:path*',
     ],
 };

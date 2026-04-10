@@ -87,12 +87,9 @@ export default function AdminProductsPage() {
                 <div className="flex items-center gap-4">
                     <div className="relative w-12 h-12 bg-muted rounded-xl overflow-hidden border border-border/50 flex-shrink-0">
                         {row.original.files && row.original.files[0] ? (
-                            <Image
-                                src={row.original.files[0].fileUrl}
-                                alt={row.original.name}
-                                fill
+                            <Image src={row.original.files[0].fileUrl} alt={row.original.name} fill
                                 className="object-cover"
-                            />
+                                unoptimized />
                         ) : (
                             <div className="absolute inset-0 flex items-center justify-center">
                                 <Package className="w-5 h-5 text-muted-foreground" />
@@ -149,6 +146,19 @@ export default function AdminProductsPage() {
                 </Badge>
             )
         },
+        // user 
+        {
+            accessorKey: 'user',
+            header: 'Vendeur',
+            cell: ({ row }) => (
+                <div className="flex items-center gap-2">
+                    <Box className="w-3 h-3 text-muted-foreground" />
+                    <span className={`text-xs font-bold ${row.original.user ? 'text-green-500' : 'text-foreground'}`}>  {row.original.user?.fullName}
+                    </span>
+                </div>
+            )
+        },
+
         {
             accessorKey: 'createdAt',
             header: 'Ajouté le',

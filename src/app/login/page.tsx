@@ -6,9 +6,13 @@ import { Icon } from '@iconify/react';
 import { login } from '@/api/api';
 import { setToken } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
+import { Role } from '@/types/interface';
+import { useUserLocation } from '@/utils/location';
+import { upsertLocationLog } from '@/api/api';
 
 export default function LoginPage() {
     const router = useRouter();
+    const { getUserLocation } = useUserLocation();
 
     const [useEmail, setUseEmail] = useState(false);
     const [identifier, setIdentifier] = useState('');
@@ -45,15 +49,38 @@ export default function LoginPage() {
         setError('');
 
         try {
+
             const res = await login(identifier, password); // OTP envoyé avec @
             if (res.statusCode === 200 || res.statusCode === 201) {
                 setToken(res.data.accessToken);
-                router.push('/');
+
+                // Track location on login
+                try {
+                    const location = await getUserLocation();
+                    if (location && location.lat && location.lng) {
+                        await upsertLocationLog({
+                            lat: location.lat,
+                            lng: location.lng,
+                            context: 'login'
+                        });
+                    }
+                } catch (trackErr) {
+                    console.error("Failed to track location on login:", trackErr);
+                }
+
+                if (res.data.role === Role.ADMIN) {
+                    router.push('/admin');
+                } else {
+                    router.push('/');
+                }
             } else {
                 setError(res.message || 'Identifiants invalides');
             }
         } catch {
+
+
             setError('Une erreur est survenue lors de la connexion');
+
         } finally {
             setLoading(false);
         }

@@ -14,11 +14,9 @@ import { useCart } from "@/components/providers/CartProvider";
 import CartDetailModal from "@/components/products/CartDetailModal";
 import { useNotification } from "@/components/toast/NotificationProvider";
 
-// Définition des onglets avec leurs URLs <Icon icon="ic:twotone-home-max" width="24" height="24" />
 const NAVIGATION_TABS = [
-    { key: "accueil", label: "Accueil", icon: "ic:twotone-home-max", path: "/" },
-    // { key: "Tarifs", label: "Tarifs", icon: "solar:chat-round-money-bold-duotone", path: "/pricing" },
-    { key: "calendar", label: "Mon Espace", icon: "solar:calendar-date-bold-duotone", path: "/akwaba" },
+  { key: "accueil", label: "Accueil", icon: "ic:twotone-home-max", path: "/" },
+  { key: "solutions", label: "Solutions", icon: "solar:lightbulb-bold-duotone", path: "/solutions" },
 ];
 
 export default function Header() {
@@ -35,7 +33,7 @@ export default function Header() {
     const { addNotification } = useNotification();
     const router = useRouter();
 
-    const protectedPaths = ["/akwaba", "/chat-ia", "/dashboard"];
+    const protectedPaths = ["/akwaba", "/chat-ia", "/admin"];
 
     const handleProtectedNavigation = (path: string) => {
         if (!isAuthenticated()) {
@@ -125,7 +123,7 @@ export default function Header() {
 
     return (
 
-        <header className="fixed left-1/2 -translate-x-1/2 z-50 bottom-4 w-[95%] max-w-[700px] md:top-4 md:bottom-auto md:w-3xl md:max-w-none bg-background/60 backdrop-blur-xl border border-border rounded-full shadow-2xl px-2 py-1.5 md:px-4 md:py-2 flex items-center justify-between md:justify-start md:gap-6 transition-all duration-300">
+        <header className="fixed left-1/2 -translate-x-1/2 z-50 bottom-4 w-[95%] max-w-[700px] md:top-4 md:bottom-auto md:w-2xl md:max-w-none bg-background/60 backdrop-blur-xl border border-border rounded-full shadow-2xl px-2 py-1.5 md:px-4 md:py-2 flex items-center justify-between md:justify-start md:gap-8 transition-all duration-300">
 
             {/* User Section - Flat on mobile */}
             <div className="contents md:flex md:items-center md:gap-2">
@@ -149,12 +147,8 @@ export default function Header() {
 
                     if (isProtected) {
                         return (
-                            <button
-                                key={tab.key}
-                                onClick={() => handleProtectedNavigation(tab.path)}
-                                className={`flex items-center gap-2 text-xs font-medium transition-all px-2 md:px-2.5 py-1.5 rounded-full ${active ? "text-primary-foreground bg-primary shadow-md shadow-primary/10" : "text-muted-foreground hover:text-foreground hover:bg-muted/50"}`}
-                                title={tab.label}
-                            >
+                            <button key={tab.key} onClick={() => handleProtectedNavigation(tab.path)} className={`flex items-center gap-2 text-xs font-medium transition-all px-2 md:px-2.5 py-1.5 rounded-full ${active ? "text-primary-foreground bg-primary shadow-md shadow-primary/10" : "text-muted-foreground hover:text-foreground hover:bg-muted/50"}`}
+                                title={tab.label} >
                                 <Icon icon={tab.icon} className="w-7 h-7 md:w-5 md:h-5" />
                                 <span className="hidden md:inline">{tab.label}</span>
                             </button>
@@ -172,7 +166,6 @@ export default function Header() {
 
             {/* Actions Section - Flat on mobile */}
             <div className="contents md:flex md:items-center md:gap-2">
-                <ThemeToggle />
 
                 <button onClick={() => setIsCartModalOpen(true)} className="relative bg-primary p-1.5 md:p-2 rounded-full transition hover:scale-105 active:scale-95 flex items-center justify-center" >
                     <Icon icon="solar:cart-bold" className="text-white w-4 h-4 md:w-5 md:h-5" />
@@ -186,21 +179,22 @@ export default function Header() {
                 {/* <pre> {userId}</pre> */}
                 <QrCodeLogo user={userId} />
 
-                <button
-                    onClick={() => handleProtectedNavigation("/chat-ia")}
-                    className="relative bg-primary p-1.5 md:p-2 rounded-full transition hover:scale-105 active:scale-95 flex items-center justify-center"
-                >
+                <button onClick={() => handleProtectedNavigation("/chat-ia")} className="relative bg-primary p-1.5 md:p-2 rounded-full transition hover:scale-105 active:scale-95 flex items-center justify-center">
                     <Icon icon="solar:bell-bing-bold-duotone" className="text-white w-4 h-4 md:w-5 md:h-5" />
                     {unreadMessages > 0 && (
-                        <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-1 py-0.5 text-[8px] font-bold text-white bg-red-500 rounded-full border border-background">
-                            {unreadMessages}
-                        </span>
+                        <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-1 py-0.5 text-[8px] font-bold text-white bg-red-500 rounded-full border border-background">  {unreadMessages}  </span>
                     )}
                 </button>
 
-                <button onClick={() => handleProtectedNavigation("/akwaba")} className="relative bg-background p-0.5 rounded-full border border-border transition hover:border-primary shrink-0" >
-                    <Image src="/profile.webp" alt="Service" width={24} height={24} className="rounded-full" />
+                <button onClick={() => handleProtectedNavigation("/akwaba")} className="relative bg-primary p-1.5 md:p-2 rounded-full transition hover:scale-105 active:scale-95 flex items-center justify-center">
+                    <Icon icon="solar:user-bold" className="text-white w-4 h-4 md:w-5 md:h-5" />
+                    {/* <span className="text-xs sm:text-sm hidden md:block font-medium text-white">
+                        Mon espace
+                    </span> */}
                 </button>
+
+                <ThemeToggle />
+
             </div>
 
             <CartDetailModal

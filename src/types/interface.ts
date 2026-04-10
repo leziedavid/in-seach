@@ -62,6 +62,26 @@ export enum SubscriptionStatus {
     CANCELLED = 'CANCELLED'
 }
 
+export enum PaymentMethod {
+    CARD = 'CARD',
+    MOBILE_MONEY = 'MOBILE_MONEY',
+    ADMIN = 'ADMIN'
+}
+
+export enum PaymentStatus {
+    PENDING = 'PENDING',
+    SUCCESS = 'SUCCESS',
+    FAILED = 'FAILED'
+}
+
+export enum OrderPaymentMethod {
+    LIVRAISON = 'LIVRAISON',
+    WAVE = 'WAVE',
+    ORANGE = 'ORANGE',
+    MTN = 'MTN',
+    MOOV = 'MOOV'
+}
+
 export enum ServiceType {
     DEPANNAGE = 'DEPANNAGE',
     VENTE = 'VENTE',
@@ -112,6 +132,7 @@ export interface SubscriptionPlan {
     serviceLimit: number;
     durationDays: number;
     isActive: boolean;
+    description?: string;
     features?: string[];
     entities?: PlanEntity[];
     _count?: {
@@ -126,6 +147,10 @@ export interface Subscription {
     startDate: string;
     endDate: string;
     status: SubscriptionStatus;
+    paymentMethod: PaymentMethod;
+    paymentStatus: PaymentStatus;
+    paymentProof?: string;
+    autoRenew: boolean;
     plan?: SubscriptionPlan;
 }
 
@@ -191,6 +216,8 @@ export interface BookingsCalendar {
     code: string;
     providerId: string;
     serviceId: string;
+    annonceId?: string | null;
+    bookingType?: 'SERVICE' | 'ANNONCE';
     status: BookingStatus;
     price: number | null;
     rating: number | null;
@@ -208,6 +235,7 @@ export interface BookingsCalendar {
     client?: { id: string; email: string; role: string; fullName?: string; phone?: string; } | null;
     provider?: { id: string; email: string; role: string; fullName?: string; phone?: string; } | null;
     service?: Service | null;
+    annonce?: Annonce | null;
 }
 
 export interface Category {
@@ -220,6 +248,7 @@ export interface UserLocation {
     lat: number | null;
     lng: number | null;
     country?: string | null;
+    countryCode?: string | null;
     city?: string | null;
     district?: string | null;
     street?: string | null;
@@ -269,6 +298,7 @@ export interface UserProfile extends User {
     annoncesCount?: number;
     bookingsCount?: number;
     subscription?: Subscription;
+    subscriptions?: Subscription[];
 }
 
 // ===============================
@@ -437,6 +467,8 @@ export interface Product {
     name: string
     description?: string | null
     price: number
+    pricePromo?: number | null
+    discountPercent?: number | null
     stock: number
     sku: string
     imageUrl?: string | null
@@ -475,7 +507,7 @@ export interface Order {
     code: string
     userId: string
     status: OrderStatus
-    paymentMethod?: string
+    paymentMethod?: OrderPaymentMethod
     totalAmount: number
     items: OrderItem[]
     user?: User
@@ -654,3 +686,45 @@ export interface DeliveryTracking {
     createdAt: string;
 }
 
+export interface LocationLog {
+    id: string;
+    userId: string;
+    lat: number;
+    lng: number;
+    date: string;
+    time: string;
+    createdAt: string;
+    updatedAt: string;
+    user?: Partial<User>;
+}
+
+export interface CarouselSlide {
+    id: string;
+    imageUrl: string;
+    alt: string;
+}
+
+// ===============================
+// NOTIFICATIONS
+// ===============================
+export interface NotificationSubscription {
+    id: string;
+    userId: string;
+    endpoint: string;
+    p256dh: string;
+    auth: string;
+    isActive: boolean;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface PushSubscriptionRequest {
+    userId: string;
+    subscription: {
+        endpoint: string;
+        keys: {
+            p256dh: string;
+            auth: string;
+        };
+    };
+}

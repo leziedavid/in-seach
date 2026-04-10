@@ -47,7 +47,9 @@ export default function LogisticsServiceDetailModal({ isOpen, onClose, service, 
         }
 
         const currentUserId = getUserId();
-        const ownerId = service.company?.id; // Assuming company object has an id or link to user
+        // const ownerId = service.company?.id; // Assuming company object has an id or link to user
+        const ownerId = service.companyId; // Assuming company object has an id or link to user
+
         if (currentUserId === ownerId) {
             addNotification("Vous ne pouvez pas négocier votre propre service", "warning");
             return;
@@ -55,7 +57,7 @@ export default function LogisticsServiceDetailModal({ isOpen, onClose, service, 
 
         setIsNegotiating(true);
         try {
-            const participant2Id = service.company?.id;
+            const participant2Id = service.companyId;
 
             if (!participant2Id) {
                 addNotification("Impossible d'identifier prestataire.", "error");
@@ -96,6 +98,7 @@ export default function LogisticsServiceDetailModal({ isOpen, onClose, service, 
         <AnimatePresence>
             {isOpen && (
                 <>
+
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 bg-black/60 backdrop-blur-xl z-[1000]" />
                     <motion.div initial={{ y: "100%", opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: "100%", opacity: 0 }}
                         transition={{ type: "spring", damping: 30, stiffness: 300 }}
@@ -140,6 +143,7 @@ export default function LogisticsServiceDetailModal({ isOpen, onClose, service, 
                                                         <Icon icon="solar:buildings-bold-duotone" width={20} />
                                                     </div>
                                                     <div>
+                                                        {/* <pre>{JSON.stringify(service.company, null, 2)}</pre> */}
                                                         <p className="text-[10px] font-black uppercase text-muted-foreground">Entreprise</p>
                                                         <p className="text-sm font-black">{service.company.companyName || service.company.fullName}</p>
                                                     </div>

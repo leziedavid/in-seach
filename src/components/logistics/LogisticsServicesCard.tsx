@@ -26,15 +26,7 @@ const TRANSPORT_TYPE_LABELS: Record<TransportType, { label: string; icon: string
     [TransportType.DOUANE]: { label: "Douane", icon: "solar:shield-user-bold-duotone", color: "text-indigo-600 bg-indigo-50 dark:bg-indigo-500/10" },
 };
 
-export default function LogisticsServicesCard({
-    service,
-    isOwner = false,
-    onEdit,
-    onDelete,
-    onToggleStatus,
-    onRequestQuote,
-    isUpdating = false
-}: LogisticsServicesCardProps) {
+export default function LogisticsServicesCard({ service, isOwner = false, onEdit, onDelete, onToggleStatus, onRequestQuote, isUpdating = false }: LogisticsServicesCardProps) {
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
     const transportInfo = TRANSPORT_TYPE_LABELS[service.transportType] || TRANSPORT_TYPE_LABELS[TransportType.MARITIME];
 

@@ -14,7 +14,7 @@ export const useSubscriptionCheck = () => {
     const { showNotification } = useNotification();
     const router = useRouter();
 
-    const checkEligibility = useCallback(async (entityName: 'Product' | 'Service' | 'Annonce'): Promise<boolean> => {
+    const checkEligibility = useCallback(async (entityName: 'Product' | 'Service' | 'Annonce' | 'LogisticService'): Promise<boolean> => {
         try {
             setLoading(true);
 

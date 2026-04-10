@@ -97,6 +97,16 @@ export default function ProductsPage() {
                 <div className="flex items-center w-full bg-card border border-primary rounded-xl px-4 py-3 shadow-sm hover:border-secondary transition-colors">
                     <Icon icon="solar:magnifer-bold-duotone" className="w-4 h-4 text-muted-foreground mr-2 flex-shrink-0" />
                     <input type="text" placeholder="Quel produit recherchez-vous ?" className="flex-1 bg-transparent text-foreground outline-none text-sm min-w-0 md:text-sm placeholder:text-muted-foreground" value={search} onChange={(e) => setSearch(e.target.value)} inputMode="text" style={{ fontSize: '16px' }} suppressHydrationWarning />
+                    {search && (
+                        <button
+                            type="button"
+                            onClick={() => setSearch("")}
+                            className="p-1 text-muted-foreground hover:text-primary transition-colors animate-in fade-in zoom-in duration-200"
+                            title="Effacer la recherche"
+                        >
+                            <Icon icon="solar:close-circle-bold-duotone" className="w-5 h-5" />
+                        </button>
+                    )}
                 </div>
             </div>
 

@@ -9,6 +9,7 @@ import { useNotification } from "@/components/toast/NotificationProvider";
 import { createPortal } from "react-dom";
 import { createOrder } from "@/api/api";
 import { useRouter } from "next/navigation";
+import { isAuthenticated, getUserId } from "@/lib/auth";
 
 interface CartDetailModalProps {
     isOpen: boolean;
@@ -39,6 +40,13 @@ export default function CartDetailModal({ isOpen, onClose }: CartDetailModalProp
 
     const handleValidateOrder = async () => {
         if (cart.length === 0) return;
+
+        if (!isAuthenticated()) {
+            addNotification("Veuillez vous connecter pour commander", "error");
+            onClose();
+            router.push("/login");
+            return;
+        }
 
         const paymentMethod = paymentType === "LIVRAISON" ? "LIVRAISON" : selectedMobileProvider;
 

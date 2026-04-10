@@ -3,6 +3,8 @@
 import { Icon } from "@iconify/react";
 import AppTabs from "./AppTabs";
 import Image from "next/image";
+import Carousel from "./layout/Carousel";
+import { fakeSlides } from "@/data/fakeSlides";
 
 export default function Content() {
 
@@ -14,12 +16,21 @@ export default function Content() {
     ];
 
     return (
-        <div className="flex flex-col items-center w-full max-w-7xl mx-auto px-4 py-12">
+        <div className="flex flex-col items-center w-full max-w-7xl mx-auto px-4 py-10">
 
 
             {/* IMAGE ANIMÉE */}
-            <div className="flex justify-center items-center w-full mb-4 md:mb-6">
+            {/* <div className="flex justify-center items-center w-full mb-4 md:mb-6">
+                <Carousel slides={fakeSlides} /> <br />
                 <Image src="/homepage-hero-animation-lf.avif" alt="Recherche intelligente" width={140} height={10} className="w-140 h-full object-contain" priority unoptimized />
+            </div> */}
+
+            {/* IMAGE ANIMÉE */}
+            <div className="flex justify-center items-center w-full mb-2 md:mb-3">
+                <div className="flex flex-col items-center gap-2">
+                    <Image src="/homepage-hero-animation-lf.avif" alt="Recherche intelligente" width={140} height={10} className="w-140 h-full object-contain" priority unoptimized />
+                    {/* <Carousel slides={fakeSlides} /> */}
+                </div>
             </div>
 
             <AppTabs />

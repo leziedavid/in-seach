@@ -1,5 +1,5 @@
 import { getCookie } from '@/lib/cookies';
-import { BaseResponse, Booking, Category, GlobalSearchResponse, Pagination, ReverseGeocodeData, Service, UserLocation, MySpaceResponse, Annonce, BookingsCalendar, Product, CategoryProd, Order, AdminQueryParams, AdminUserUpdateDto, AdminProductUpdateDto, AdminServiceUpdateDto, AdminAnnonceUpdateDto, AdminSubscriptionPlanDto, User, AdminLog, SubscriptionPlan, PlanEntity, AdminUserSubscription, Subscription, OrdersGroupedResponse, BookingsGroupedResponse, LogisticService, Quote, Delivery, DeliveryTracking, QuoteStatus, DeliveryStatus, TransportType } from '@/types/interface';
+import { BaseResponse, Booking, Category, GlobalSearchResponse, Pagination, ReverseGeocodeData, Service, UserLocation, MySpaceResponse, Annonce, BookingsCalendar, Product, CategoryProd, Order, AdminQueryParams, AdminUserUpdateDto, AdminProductUpdateDto, AdminServiceUpdateDto, AdminAnnonceUpdateDto, AdminSubscriptionPlanDto, User, AdminLog, SubscriptionPlan, PlanEntity, AdminUserSubscription, Subscription, OrdersGroupedResponse, BookingsGroupedResponse, LogisticService, Quote, Delivery, DeliveryTracking, QuoteStatus, DeliveryStatus, TransportType, LocationLog } from '@/types/interface';
 
 export const getBaseUrl = (): string => {
     return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
@@ -39,7 +39,18 @@ export const secureFetch = async (url: string, options: RequestInit = {}): Promi
         headers['Content-Type'] = 'application/json';
     }
 
-    return fetch(url, { ...options, headers });
+    const response = await fetch(url, { ...options, headers });
+
+    // Intercepter l'erreur 401 (Non autorisé / Session expirée)
+    if (response.status === 401) {
+        const token = getCookie('token');
+        if (token) {
+            // Uniquement si on avait un token (session expirée)
+            import('@/lib/auth').then(auth => auth.logout());
+        }
+    }
+
+    return response;
 };
 
 
@@ -247,7 +258,7 @@ export const getBookingsCalendar = async (params?: { year?: number; month?: numb
 // SUBSCRIPTIONS
 // =====================
 
-export const getPlans = async (): Promise<BaseResponse<any[]>> => {
+export const getPlans = async (): Promise<BaseResponse<Pagination<SubscriptionPlan>>> => {
     const response = await fetch(`${getBaseUrl()}/subscriptions/plans`);
     return await response.json();
 };
@@ -542,10 +553,27 @@ export const deleteSubscriptionPlanAdmin = async (id: string): Promise<BaseRespo
 /* =======================================================
    SUBSCRIPTIONS API (EXTRA)
 ======================================================= */
-export const subscribeToPlan = async (planId: string): Promise<BaseResponse<any>> => {
+export const subscribeToPlan = async (data: { planId: string; paymentMethod: string; paymentProof?: string }): Promise<BaseResponse<Subscription>> => {
     const response = await secureFetch(`${getBaseUrl()}/subscriptions/subscribe`, {
         method: 'POST',
-        body: JSON.stringify({ planId }),
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const renewSubscription = async (): Promise<BaseResponse<Subscription>> => {
+    const response = await secureFetch(`${getBaseUrl()}/subscriptions/renew`, {
+        method: 'POST',
+    });
+    return await response.json();
+};
+
+export const uploadSubscriptionProof = async (file: File): Promise<BaseResponse<{ url: string }>> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await secureFetch(`${getBaseUrl()}/subscriptions/upload-proof`, {
+        method: 'POST',
+        body: formData,
     });
     return await response.json();
 };
@@ -654,10 +682,18 @@ export const adminGetAllSubscriptions = async (params: AdminQueryParams): Promis
     return await response.json();
 };
 
-export const adminAssignPlan = async (data: { userId: string, planId: string }): Promise<BaseResponse<Subscription>> => {
+export const adminAssignPlan = async (data: { userId: string, planId: string, paymentMethod: string }): Promise<BaseResponse<Subscription>> => {
     const response = await secureFetch(`${getBaseUrl()}/subscriptions/admin/assign-plan`, {
         method: 'POST',
         body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const adminValidatePayment = async (id: string, success: boolean): Promise<BaseResponse<Subscription>> => {
+    const response = await secureFetch(`${getBaseUrl()}/subscriptions/admin/validate-payment/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ success }),
     });
     return await response.json();
 };
@@ -687,6 +723,14 @@ export const deleteAdminLogs = async (dates: string[]): Promise<BaseResponse<any
 
     const response = await secureFetch(`${getBaseUrl()}/admin/logs?${query.toString()}`, {
         method: 'DELETE',
+    });
+    return await response.json();
+};
+
+export const purgeAdminLogs = async (params: { startDate?: string; endDate?: string }): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/admin/logs/purge`, {
+        method: 'POST',
+        body: JSON.stringify(params),
     });
     return await response.json();
 };
@@ -753,6 +797,55 @@ export const markChatAsRead = async (conversationId: string): Promise<BaseRespon
     });
     return await response.json();
 };
+
+/* =======================================================
+   NOTIFICATIONS API
+======================================================= */
+export const subscribePush = async (userId: string, subscription: any): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/notifications/subscribe`, {
+        method: 'POST',
+        body: JSON.stringify({ userId, subscription }),
+    });
+    return await response.json();
+};
+
+export const getPushSubscriptions = async (userId: string): Promise<BaseResponse<any[]>> => {
+    const response = await secureFetch(`${getBaseUrl()}/notifications/subscriptions/${userId}`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
+export const togglePushSubscription = async (endpoint: string, isActive: boolean): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/notifications/toggle`, {
+        method: 'PUT',
+        body: JSON.stringify({ endpoint, isActive }),
+    });
+    return await response.json();
+};
+
+export const unsubscribePush = async (endpoint: string): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/notifications/unsubscribe`, {
+        method: 'DELETE',
+        body: JSON.stringify({ endpoint }),
+    });
+    return await response.json();
+};
+
+export const testWebPushNotification = async (): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/notifications/test-push`, {
+        method: 'POST',
+    });
+    return await response.json();
+};
+
+export const testWebSocketNotification = async (): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/notifications/test-socket`, {
+        method: 'POST',
+    });
+    return await response.json();
+};
+
 
 export const updateChatMessage = async (id: string, content: string): Promise<BaseResponse<any>> => {
     const response = await secureFetch(`${getBaseUrl()}/chat/message/${id}`, {
@@ -981,7 +1074,7 @@ export const getLogisticServices = async (params: { query?: string; transportTyp
     return await response.json();
 };
 
-export const getMyLogisticServices = async (params: { page?: number; limit?: number } = {}): Promise<BaseResponse<any>> => {
+export const getMyLogisticServices = async (params: { query?: string; transportType?: string; page?: number; limit?: number } = {}): Promise<BaseResponse<any>> => {
     const queryString = toQueryString(params);
     const response = await secureFetch(`${getBaseUrl()}/logistics/services/my-services?${queryString}`, {
         method: 'GET',
@@ -1013,6 +1106,14 @@ export const updateLogisticService = async (id: string, formData: FormData): Pro
 export const deleteLogisticService = async (id: string): Promise<BaseResponse<any>> => {
     const response = await secureFetch(`${getBaseUrl()}/logistics/services/${id}`, {
         method: 'DELETE',
+    });
+    return await response.json();
+};
+
+export const patchLogisticServiceStatus = async (id: string, isActive: boolean): Promise<BaseResponse<LogisticService>> => {
+    const response = await secureFetch(`${getBaseUrl()}/logistics/services/${id}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ isActive }),
     });
     return await response.json();
 };
@@ -1071,8 +1172,12 @@ export const updateQuoteStatus = async (id: string, status: QuoteStatus, montant
     return await response.json();
 };
 
-export const searchLocation = async (query: string): Promise<BaseResponse<any[]>> => {
-    const response = await fetch(`${getBaseUrl()}/logistics/quotes/search/location?q=${encodeURIComponent(query)}`);
+export const searchLocation = async (query: string, countryCode?: string): Promise<BaseResponse<any[]>> => {
+    let url = `${getBaseUrl()}/logistics/quotes/search/location?q=${encodeURIComponent(query)}`;
+    if (countryCode) {
+        url += `&countryCode=${countryCode}`;
+    }
+    const response = await fetch(url);
     return await response.json();
 };
 
@@ -1133,3 +1238,35 @@ export const getTrackingByDelivery = async (deliveryId: string, params?: { page?
 };
 
 
+/* =======================================================
+   LOCATION LOG API
+======================================================= */
+export const upsertLocationLog = async (data: { lat: number; lng: number; context: 'login' | 'akwaba' }): Promise<BaseResponse<LocationLog>> => {
+    const response = await secureFetch(`${getBaseUrl()}/location-log`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const getLocationLogByUserId = async (userId: string): Promise<BaseResponse<LocationLog>> => {
+    const response = await secureFetch(`${getBaseUrl()}/location-log/${userId}`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
+export const getAllLocationLogs = async (params: { page?: number; limit?: number; phone?: string }): Promise<BaseResponse<Pagination<LocationLog>>> => {
+    const queryString = toQueryString(params);
+    const response = await secureFetch(`${getBaseUrl()}/location-log?${queryString}`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
+export const deleteLocationLog = async (id: string): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/location-log/${id}`, {
+        method: 'DELETE',
+    });
+    return await response.json();
+};

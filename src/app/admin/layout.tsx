@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Users, Briefcase, CreditCard, Settings, Terminal, LayoutDashboard, ShoppingBag, Radio, Search, Bell, Menu } from 'lucide-react';
+import { Users, Briefcase, CreditCard, Settings, Terminal, LayoutDashboard, ShoppingBag, Radio, Search, Bell, Menu, MapPin } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -19,6 +19,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         { label: 'Annonces', icon: Radio, href: '/admin/annonces' },
         { label: 'Abonnements', icon: CreditCard, href: '/admin/subscriptions' },
         { label: 'Paramètres', icon: Settings, href: '/admin/settings' },
+        { label: 'Logs location', icon: MapPin, href: '/admin/location-logs' },
         { label: 'Logs Système', icon: Terminal, href: '/admin/logs' },
     ];
 

@@ -8,6 +8,7 @@ import AccountBookingRowSkeleton from "../bookings/AccountBookingRowSkeleton";
 import { TablePagination } from "../table/Pagination";
 import OrderDetailModal from "./OrderDetailModal";
 import ReceiptModal, { ReceiptData } from "../shared/ReceiptModal";
+import { useRealTimeUpdate } from "@/hooks/useRealTimeUpdate";
 
 export default function HistoriqueCommandes() {
     const [page, setPage] = useState(1);
@@ -48,6 +49,11 @@ export default function HistoriqueCommandes() {
 
     const displayedOrders = activeTab === 'recues' ? ordersReceived : ordersPlaced;
     const totalPages = activeTab === 'recues' ? receivedTotalPages : placedTotalPages;
+
+    // 🔄 SYNCHRONISATION TEMPS RÉEL
+    useRealTimeUpdate('Order', () => {
+        fetchOrders();
+    });
 
     const handleViewReceipt = (order: Order) => {
         const data: ReceiptData = {

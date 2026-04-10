@@ -5,9 +5,10 @@ import { Icon } from "@iconify/react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { LogisticService, TransportType } from "@/types/interface";
+import { LogisticService, TransportType, UserLocation } from "@/types/interface";
 import { searchLocation, createQuote } from "@/api/api";
 import { useNotification } from "../toast/NotificationProvider";
+import { useUserLocation } from "@/utils/location";
 
 const quoteSchema = z.object({
     departureAddress: z.string().min(5, "L'adresse de départ est requise"),
@@ -36,11 +37,23 @@ export default function QuoteRequestModal({ service, isOpen, onClose, onSuccess 
     });
 
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [suggestions, setSuggestions] = useState<string[]>([]);
+    const [suggestions, setSuggestions] = useState<any[]>([]);
     const [activeSearchField, setActiveSearchField] = useState<"departure" | "arrival" | null>(null);
     const [searchLoading, setSearchLoading] = useState(false);
+    const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
+    const [isGlobalDeparture, setIsGlobalDeparture] = useState(false);
+    const [isGlobalArrival, setIsGlobalArrival] = useState(false);
     const { addNotification } = useNotification();
+    const { getUserLocation } = useUserLocation();
     const searchTimeout = useRef<NodeJS.Timeout | null>(null);
+
+    useEffect(() => {
+        const initLocation = async () => {
+            const loc = await getUserLocation();
+            if (loc) setUserLocation(loc);
+        };
+        initLocation();
+    }, []);
 
     const handleSearch = async (query: string, field: "departure" | "arrival") => {
         if (query.length < 3) {
@@ -53,11 +66,11 @@ export default function QuoteRequestModal({ service, isOpen, onClose, onSuccess 
         searchTimeout.current = setTimeout(async () => {
             setSearchLoading(true);
             try {
-                const res = await searchLocation(query);
+                const isGlobal = field === "departure" ? isGlobalDeparture : isGlobalArrival;
+                const countryCode = isGlobal ? undefined : userLocation?.countryCode;
+                const res = await searchLocation(query, countryCode || undefined);
                 if (res.statusCode === 200 && Array.isArray(res.data)) {
-                    // Extract display names from Nominatim response
-                    const names = res.data.map((item: any) => item.display_name);
-                    setSuggestions(names);
+                    setSuggestions(res.data);
                     setActiveSearchField(field);
                 }
             } catch (error) {
@@ -68,17 +81,19 @@ export default function QuoteRequestModal({ service, isOpen, onClose, onSuccess 
         }, 500);
     };
 
-    const selectSuggestion = (suggestion: string) => {
+    const selectSuggestion = (suggestion: any) => {
+        const address = suggestion.displayName;
         if (activeSearchField === "departure") {
-            setValue("departureAddress", suggestion);
+            setValue("departureAddress", address);
         } else if (activeSearchField === "arrival") {
-            setValue("arrivalAddress", suggestion);
+            setValue("arrivalAddress", address);
         }
         setSuggestions([]);
         setActiveSearchField(null);
     };
 
     const onSubmit = async (data: QuoteFormData) => {
+        if (isSubmitting) return;
         setIsSubmitting(true);
         try {
             const payload = {
@@ -87,7 +102,9 @@ export default function QuoteRequestModal({ service, isOpen, onClose, onSuccess 
                 transportType: service.transportType,
             };
             const res = await createQuote(payload);
-            if (res.statusCode === 201) {
+
+            if (res.statusCode && res.statusCode === 201) {
+
                 addNotification("Demande de devis envoyée avec succès !", "success");
                 onSuccess?.();
                 onClose();
@@ -105,7 +122,7 @@ export default function QuoteRequestModal({ service, isOpen, onClose, onSuccess 
 
     return (
         <div className="p-1 md:p-6 space-y-6">
-            <div className="bg-primary/5 rounded-3xl p-6 border border-primary/10 flex items-center gap-4">
+            <div className="bg-primary/5 rounded-3xl p-6 border border-primary/10 flex flex-col md:flex-row items-center gap-4">
                 <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center shrink-0">
                     <Icon icon="solar:chat-round-money-bold-duotone" className="w-8 h-8 text-primary" />
                 </div>
@@ -120,26 +137,57 @@ export default function QuoteRequestModal({ service, isOpen, onClose, onSuccess 
                 {/* Addresses */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
                     <div className="space-y-2 relative">
-                        <label className="text-xs font-black text-muted-foreground uppercase flex items-center gap-2">
-                            <Icon icon="solar:map-point-wave-bold-duotone" className="text-emerald-500 w-4 h-4" />
-                            Point de départ
-                        </label>
+                        <div className="flex items-center justify-between">
+                            <label className="text-xs font-black text-muted-foreground uppercase flex items-center gap-2">
+                                <Icon icon="solar:map-point-wave-bold-duotone" className="text-emerald-500 w-4 h-4" />
+                                Point de départ
+                            </label>
+                            
+                            <button 
+                                type="button"
+                                onClick={() => setIsGlobalDeparture(!isGlobalDeparture)}
+                                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border transition-all ${
+                                    isGlobalDeparture 
+                                    ? "bg-primary/10 border-primary/20 text-primary" 
+                                    : "bg-muted border-border text-muted-foreground"
+                                }`}
+                            >
+                                <Icon icon={isGlobalDeparture ? "solar:global-bold-duotone" : "solar:city-bold-duotone"} className="w-3.5 h-3.5" />
+                                <span className="text-[9px] font-black uppercase tracking-tighter">
+                                    {isGlobalDeparture ? "Monde" : "Local"}
+                                </span>
+                            </button>
+                        </div>
                         <input
-                            {...register("departureAddress")}
-                            onChange={(e) => handleSearch(e.target.value, "departure")}
+                            {...register("departureAddress", {
+                                onChange: (e) => handleSearch(e.target.value, "departure")
+                            })}
                             placeholder="Adresse de collecte..."
                             className="w-full bg-muted border border-border rounded-2xl px-4 py-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all font-medium"
                         />
-                        {activeSearchField === "departure" && suggestions.length > 0 && (
-                            <div className="absolute z-50 left-0 right-0 top-full mt-1 bg-background border border-border rounded-2xl shadow-2xl max-h-48 overflow-y-auto overflow-x-hidden">
-                                {suggestions.map((s, i) => (
+                        {activeSearchField === "departure" && (suggestions.length > 0 || searchLoading) && (
+                            <div className="absolute z-50 left-0 right-0 top-full mt-1 bg-background border border-border rounded-2xl shadow-2xl max-h-64 overflow-y-auto overflow-x-hidden p-1">
+                                {searchLoading && (
+                                    <div className="flex items-center justify-center py-4 gap-2 text-primary">
+                                        <Icon icon="solar:refresh-bold-duotone" className="w-4 h-4 animate-spin" />
+                                        <span className="text-[10px] font-bold uppercase tracking-widest">Recherche...</span>
+                                    </div>
+                                )}
+                                {!searchLoading && suggestions.map((s, i) => (
                                     <button
                                         key={i}
                                         type="button"
                                         onClick={() => selectSuggestion(s)}
-                                        className="w-full text-left px-4 py-2.5 text-[11px] hover:bg-muted transition-colors font-medium border-b border-border/50 last:border-none"
+                                        className="w-full text-left px-4 py-3 hover:bg-muted transition-all rounded-xl border-b border-border/30 last:border-none group"
                                     >
-                                        {s}
+                                        <div className="flex flex-col gap-0.5">
+                                            <span className="text-[11px] font-black text-foreground group-hover:text-primary transition-colors line-clamp-1">
+                                                {s.district || s.city || 'Lieu inconnu'}
+                                            </span>
+                                            <span className="text-[9px] text-muted-foreground font-bold uppercase tracking-tight line-clamp-1">
+                                                {s.city ? `${s.city}, ` : ''}{s.country}
+                                            </span>
+                                        </div>
                                     </button>
                                 ))}
                             </div>
@@ -148,26 +196,57 @@ export default function QuoteRequestModal({ service, isOpen, onClose, onSuccess 
                     </div>
 
                     <div className="space-y-2 relative">
-                        <label className="text-xs font-black text-muted-foreground uppercase flex items-center gap-2">
-                            <Icon icon="solar:map-point-bold-duotone" className="text-primary w-4 h-4" />
-                            Destination
-                        </label>
+                        <div className="flex items-center justify-between">
+                            <label className="text-xs font-black text-muted-foreground uppercase flex items-center gap-2">
+                                <Icon icon="solar:map-point-bold-duotone" className="text-primary w-4 h-4" />
+                                Destination
+                            </label>
+
+                            <button 
+                                type="button"
+                                onClick={() => setIsGlobalArrival(!isGlobalArrival)}
+                                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border transition-all ${
+                                    isGlobalArrival 
+                                    ? "bg-primary/10 border-primary/20 text-primary" 
+                                    : "bg-muted border-border text-muted-foreground"
+                                }`}
+                            >
+                                <Icon icon={isGlobalArrival ? "solar:global-bold-duotone" : "solar:city-bold-duotone"} className="w-3.5 h-3.5" />
+                                <span className="text-[9px] font-black uppercase tracking-tighter">
+                                    {isGlobalArrival ? "Monde" : "Local"}
+                                </span>
+                            </button>
+                        </div>
                         <input
-                            {...register("arrivalAddress")}
-                            onChange={(e) => handleSearch(e.target.value, "arrival")}
+                            {...register("arrivalAddress", {
+                                onChange: (e) => handleSearch(e.target.value, "arrival")
+                            })}
                             placeholder="Adresse de livraison..."
                             className="w-full bg-muted border border-border rounded-2xl px-4 py-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all font-medium"
                         />
-                        {activeSearchField === "arrival" && suggestions.length > 0 && (
-                            <div className="absolute z-50 left-0 right-0 top-full mt-1 bg-background border border-border rounded-2xl shadow-2xl max-h-48 overflow-y-auto overflow-x-hidden">
-                                {suggestions.map((s, i) => (
+                        {activeSearchField === "arrival" && (suggestions.length > 0 || searchLoading) && (
+                            <div className="absolute z-50 left-0 right-0 top-full mt-1 bg-background border border-border rounded-2xl shadow-2xl max-h-64 overflow-y-auto overflow-x-hidden p-1">
+                                {searchLoading && (
+                                    <div className="flex items-center justify-center py-4 gap-2 text-primary">
+                                        <Icon icon="solar:refresh-bold-duotone" className="w-4 h-4 animate-spin" />
+                                        <span className="text-[10px] font-bold uppercase tracking-widest">Recherche...</span>
+                                    </div>
+                                )}
+                                {!searchLoading && suggestions.map((s, i) => (
                                     <button
                                         key={i}
                                         type="button"
                                         onClick={() => selectSuggestion(s)}
-                                        className="w-full text-left px-4 py-2.5 text-[11px] hover:bg-muted transition-colors font-medium border-b border-border/50 last:border-none"
+                                        className="w-full text-left px-4 py-3 hover:bg-muted transition-all rounded-xl border-b border-border/30 last:border-none group"
                                     >
-                                        {s}
+                                        <div className="flex flex-col gap-0.5">
+                                            <span className="text-[11px] font-black text-foreground group-hover:text-primary transition-colors line-clamp-1">
+                                                {s.district || s.city || 'Lieu inconnu'}
+                                            </span>
+                                            <span className="text-[9px] text-muted-foreground font-bold uppercase tracking-tight line-clamp-1">
+                                                {s.city ? `${s.city}, ` : ''}{s.country}
+                                            </span>
+                                        </div>
                                     </button>
                                 ))}
                             </div>

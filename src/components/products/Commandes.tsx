@@ -12,6 +12,7 @@ import { Role } from "@/types/interface";
 import { useNotification } from "../toast/NotificationProvider";
 import { Button } from "../ui/button";
 import { getUserId } from "@/lib/auth";
+import { useRealTimeUpdate } from "@/hooks/useRealTimeUpdate";
 
 interface CommandesProps {
     data?: Order[];
@@ -57,6 +58,11 @@ export default function Commandes({
     const loading = propLoading ?? internalLoading;
     const orders = propData ?? (activeTab === 'recues' ? ordersReceived : ordersPlaced);
     const totalPages = propTotalPages ?? (activeTab === 'recues' ? receivedTotalPages : placedTotalPages);
+    
+    // 🔄 SYNCHRONISATION TEMPS RÉEL
+    useRealTimeUpdate('Order', () => {
+        if (!propData) fetchOrders();
+    });
 
     const fetchOrders = async () => {
         if (propData) return;

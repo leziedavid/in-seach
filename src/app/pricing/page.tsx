@@ -2,9 +2,10 @@
 
 import React from 'react';
 import { Icon } from '@iconify/react';
-import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { getPlans } from '@/api/api';
+import SubscriptionPaymentModal from '@/components/subscription/SubscriptionPaymentModal';
+import { SubscriptionPlan } from '@/types/interface';
 
 interface Feature {
     text: string;
@@ -22,16 +23,23 @@ interface Plan {
 }
 
 export default function PricingPage() {
+
     const { data: plansRes, isLoading } = useQuery({
         queryKey: ['plans'],
         queryFn: getPlans
     });
 
-    const apiPlans = plansRes?.data || [];
+    const [selectedPlan, setSelectedPlan] = React.useState<SubscriptionPlan | null>(null);
+    const [isModalOpen, setIsModalOpen] = React.useState(false);
+
+    // Dynamic Plans from API
+    const apiPlans = React.useMemo(() => {
+        return (plansRes?.data?.data || []).filter((p: SubscriptionPlan) => p.isActive);
+    }, [plansRes]);
 
     const defaultFeatures = {
         FREE: [
-            { text: 'Jusqu\'à 5 services publiés', included: true },
+            { text: "Jusqu'à 5 services publiés", included: true },
             { text: 'Visibilité locale standard', included: true },
             { text: 'Messagerie basique', included: true },
             { text: 'Analyse IA limitée', included: true },
@@ -48,32 +56,49 @@ export default function PricingPage() {
         ]
     };
 
-    const defaultPlans: Plan[] = [
-        {
-            name: 'FREE',
-            price: '0',
-            description: 'Idéal pour commencer et tester la plateforme.',
-            features: defaultFeatures.FREE,
-            cta: 'Commencer gratuitement',
-            highlight: false,
-        },
-        {
-            name: 'PREMIUM',
-            price: '29',
-            description: 'Pour les professionnels qui veulent booster leur activité.',
-            features: defaultFeatures.PREMIUM,
-            cta: 'Passer au Premium',
-            highlight: true,
+    const plans = React.useMemo<Plan[]>(() => {
+        if (!apiPlans || apiPlans.length === 0) {
+            return [
+                {
+                    name: 'FREE',
+                    price: 0,
+                    description: 'Idéal pour commencer et tester la plateforme.',
+                    features: defaultFeatures.FREE,
+                    cta: 'Commencer gratuitement',
+                    highlight: false,
+                },
+                {
+                    name: 'PREMIUM',
+                    price: 29,
+                    description: 'Pour les professionnels qui veulent booster leur activité.',
+                    features: defaultFeatures.PREMIUM,
+                    cta: 'Passer au Premium',
+                    highlight: true,
+                }
+            ];
         }
-    ];
 
-    const plans: Plan[] = apiPlans.length > 0 ? apiPlans.map((p: any) => ({
-        ...p,
-        description: p.name === 'PREMIUM' ? 'Pour les professionnels qui veulent booster leur activité.' : 'Idéal pour commencer et tester la plateforme.',
-        features: p.name === 'PREMIUM' ? defaultFeatures.PREMIUM : defaultFeatures.FREE,
-        cta: p.name === 'PREMIUM' ? 'Passer au Premium' : 'Commencer gratuitement',
-        highlight: p.name === 'PREMIUM'
-    })) : defaultPlans;
+        return apiPlans.map((p) => {
+            const isFree = p.price === 0;
+            const isPremium = p.name.toUpperCase().includes('PREMIUM');
+            const isLogistic = p.name.toUpperCase().includes('LOGISTIC');
+
+            // Map features from string array to UI Feature object
+            const mappedFeatures = (p.features && p.features.length > 0)
+                ? p.features.map(f => ({ text: f, included: true }))
+                : (isFree ? defaultFeatures.FREE : defaultFeatures.PREMIUM);
+
+            return {
+                id: p.id,
+                name: p.name,
+                price: p.price,
+                description: p.description || (isFree ? 'Idéal pour commencer et tester la plateforme.' : 'Pour les professionnels qui veulent booster leur activité.'),
+                features: mappedFeatures,
+                cta: isFree ? 'Commencer gratuitement' : 'S\'abonner maintenant',
+                highlight: isPremium || isLogistic,
+            };
+        });
+    }, [apiPlans]);
 
     if (isLoading) return (
         <div className="min-h-screen flex items-center justify-center ">
@@ -82,11 +107,16 @@ export default function PricingPage() {
     );
 
     return (
+
         <div className="min-h-screen py-24 px-8">
             <div className="max-w-6xl mx-auto">
+
                 <div className="text-center mb-20">
-                    <h1 className="text-5xl font-extrabold text-slate-900 mb-6">Des tarifs simples et transparents</h1>
-                    <p className="text-xl text-slate-600 max-w-2xl mx-auto">
+                    <h1 className="text-5xl font-extrabold text-slate-900 dark:text-white mb-6">
+                        Des tarifs simples et transparents
+                    </h1>
+
+                    <p className="text-xl text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
                         Choisissez le plan qui correspond à vos ambitions. Pas de frais cachés, résiliable à tout moment.
                     </p>
                 </div>
@@ -130,14 +160,23 @@ export default function PricingPage() {
                                 ))}
                             </ul>
 
-                            <Link href={plan.name === 'FREE' ? '/register' : '/subscription/checkout'} className={`block w-full text-center py-4 rounded-2xl font-bold transition-all ${plan.highlight ? 'bg-primary text-white shadow-lg shadow-secondary hover:bg-secondary hover:text-white' : 'bg-white text-primary border-2 border-secondary hover:bg-secondary hover:text-white'}`} >
+                            <button onClick={() => { setSelectedPlan(apiPlans.find((p: any) => p.id === plan.id) || null); setIsModalOpen(true); }}
+                                className={`block w-full text-center py-4 rounded-2xl font-bold transition-all ${plan.highlight ? 'bg-primary text-white shadow-lg shadow-secondary hover:bg-secondary hover:text-white' : 'bg-white text-primary border-2 border-secondary hover:bg-secondary hover:text-white'}`} >
                                 {plan.cta}
-                            </Link>
+                            </button>
+
                         </div>
                     ))}
                 </div>
 
+                <SubscriptionPaymentModal
+                    isOpen={isModalOpen}
+                    onClose={() => setIsModalOpen(false)}
+                    plan={selectedPlan}
+                />
+
             </div>
         </div>
+
     );
 }

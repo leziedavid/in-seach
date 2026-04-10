@@ -11,6 +11,7 @@ export interface DecodedToken {
     role: string;
     fullName: string | null;
     phone: string | null;
+    apiKey: string | null;
     exp: number;       // expiration timestamp
 }
 
@@ -108,6 +109,19 @@ export const getUserPhone = (): string | null => {
     return null;
 };
 
+export const getApiKeyAuth = (): string | null => {
+    if (typeof window === 'undefined') return null;
+    const key = localStorage.getItem('apiKey');
+    if (key) return key;
+
+    const token = getToken();
+    if (token) {
+        const decoded = decodeToken(token);
+        return decoded?.apiKey || null;
+    }
+    return null;
+};
+
 /**
  * SETTERS
  */
@@ -123,6 +137,7 @@ export const setToken = (token: string) => {
         if (decoded.fullName) localStorage.setItem('fullName', decoded.fullName);
         if (decoded.role) localStorage.setItem('role', decoded.role);
         if (decoded.phone) localStorage.setItem('phone', decoded.phone);
+        if (decoded.apiKey) localStorage.setItem('apiKey', decoded.apiKey);
     }
 };
 
@@ -149,11 +164,28 @@ export const isAuthenticated = (): boolean => {
 
 export const logout = () => {
     if (typeof window === 'undefined') return;
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('role');
-    localStorage.removeItem('fullName');
-    localStorage.removeItem('phone');
-    deleteCookie('token'); // Supprimer le cookie
-    // Optional: window.location.href = '/login';
+
+    // 1. Sauvegarder le panier (s'il existe)
+    const cart = localStorage.getItem('cart');
+
+    // 2. Vider TOUT le localStorage (pour un nettoyage propre)
+    localStorage.clear();
+
+    // 3. Restaurer uniquement le panier
+    if (cart) {
+        localStorage.setItem('cart', cart);
+    }
+
+    // 4. Supprimer le cookie de session
+    deleteCookie('token');
+
+    // 5. Notifier les composants de la déconnexion via un événement
+    window.dispatchEvent(new Event('auth-logout'));
+
+    // 6. Redirection intelligente pour éviter les boucles infinies
+    // On ne redirige vers /login que si on n'y est pas déjà
+    const currentPath = window.location.pathname;
+    if (currentPath !== '/login' && currentPath !== '/register') {
+        window.location.href = '/login';
+    }
 };

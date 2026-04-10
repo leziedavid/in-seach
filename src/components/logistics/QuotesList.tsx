@@ -3,10 +3,12 @@
 import React, { useEffect, useState } from "react";
 import { Icon } from "@iconify/react";
 import { Quote, QuoteStatus, TransportType } from "@/types/interface";
-import { getSentQuotes, getReceivedQuotes, updateQuoteStatus, createDeliveryFromQuote } from "@/api/api";
+import { getSentQuotes, getReceivedQuotes, updateQuoteStatus, createDeliveryFromQuote, createChatConversation } from "@/api/api";
 import { useNotification } from "../toast/NotificationProvider";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
+import { useRouter } from "next/navigation";
+import { getUserId, isAuthenticated } from "@/lib/auth";
 
 interface QuotesListProps {
     role: "CLIENT" | "ENTREPRISE";
@@ -22,11 +24,14 @@ const STATUS_CONFIG: Record<QuoteStatus, { label: string; color: string; icon: s
 };
 
 export default function QuotesList({ role }: QuotesListProps) {
+
     const [quotes, setQuotes] = useState<Quote[]>([]);
     const [loading, setLoading] = useState(true);
     const [proposingPriceId, setProposingPriceId] = useState<string | null>(null);
     const [tempPrice, setTempPrice] = useState<string>("");
+    const [isNegotiating, setIsNegotiating] = useState<Record<string, boolean>>({});
     const { addNotification } = useNotification();
+    const router = useRouter();
 
     const fetchQuotes = async () => {
         setLoading(true);
@@ -74,6 +79,56 @@ export default function QuotesList({ role }: QuotesListProps) {
         }
     };
 
+    const handleNegotiate = async (quote: Quote) => {
+        if (!isAuthenticated()) {
+            addNotification("Veuillez vous connecter pour négocier", "error");
+            router.push("/login");
+            return;
+        }
+
+        const currentUserId = getUserId();
+        const participant2Id = role === "CLIENT" ? quote.receiverId : quote.senderId;
+
+        if (!participant2Id) {
+            addNotification("Impossible d'identifier l'interlocuteur.", "error");
+            return;
+        }
+
+        if (currentUserId === participant2Id) {
+            addNotification("Vous ne pouvez pas négocier avec vous-même.", "warning");
+            return;
+        }
+
+        setIsNegotiating(prev => ({ ...prev, [quote.id]: true }));
+        try {
+            const res = await createChatConversation({
+                participant2Id: participant2Id,
+            });
+
+            if (res.statusCode === 200 || res.statusCode === 201) {
+                const transportLabel = quote.transportType;
+                const initialMessage = role === "CLIENT" 
+                    ? `Bonjour, je souhaiterais discuter de votre proposition pour mon devis #${quote.id.slice(0, 8)} (${transportLabel}).`
+                    : `Bonjour, j'ai bien reçu votre demande de devis #${quote.id.slice(0, 8)} (${transportLabel}). Discutons des détails.`;
+
+                sessionStorage.setItem("pending_negotiation", JSON.stringify({
+                    conversationId: res.data.id,
+                    message: initialMessage,
+                    quoteId: quote.id
+                }));
+
+                router.push("/chat-ia");
+            } else {
+                addNotification("Erreur lors de la création de la conversation", "error");
+            }
+        } catch (error) {
+            console.error("Negotiation error:", error);
+            addNotification("Une erreur est survenue", "error");
+        } finally {
+            setIsNegotiating(prev => ({ ...prev, [quote.id]: false }));
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center py-20 gap-4">
@@ -91,7 +146,7 @@ export default function QuotesList({ role }: QuotesListProps) {
                     return (
                         <div key={quote.id} className="bg-card hover:bg-muted/20 border border-border rounded-3xl p-5 transition-all group shadow-sm hover:shadow-md">
                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                                {/* Left Side: Role Specific Info */}
+                                {/* Left Side: Info */}
                                 <div className="space-y-3 flex-1">
                                     <div className="flex items-center gap-3">
                                         <div className={`p-2 rounded-xl ${status.color}`}>
@@ -152,7 +207,7 @@ export default function QuotesList({ role }: QuotesListProps) {
 
                                 {/* Right Side: Actions */}
                                 <div className="flex items-center gap-2 md:pl-6 md:border-l border-border/50">
-                                    {role === "ENTREPRISE" && quote.status === QuoteStatus.PENDING && (
+                                    {(role === "ENTREPRISE" && (quote.status === QuoteStatus.PENDING || quote.status === QuoteStatus.PROPOSED)) && (
                                         <div className="flex flex-col gap-2">
                                             {proposingPriceId === quote.id ? (
                                                 <div className="flex items-center gap-2 animate-in slide-in-from-right-4">
@@ -186,33 +241,71 @@ export default function QuotesList({ role }: QuotesListProps) {
                                                     </Button>
                                                 </div>
                                             ) : (
-                                                <Button
-                                                    size="sm"
-                                                    className="rounded-xl h-10 bg-primary hover:bg-secondary text-white font-black text-[10px] gap-2 px-6 shadow-lg shadow-primary/20"
-                                                    onClick={() => setProposingPriceId(quote.id)}
-                                                >
-                                                    PROPOSER UN PRIX
-                                                </Button>
+                                                <div className="flex flex-col gap-2">
+                                                    <Button
+                                                        size="sm"
+                                                        className="rounded-xl h-10 bg-primary hover:bg-secondary text-white font-black text-[10px] gap-2 px-6 shadow-lg shadow-primary/20"
+                                                        onClick={() => {
+                                                            setProposingPriceId(quote.id);
+                                                            if (quote.montantTransac) setTempPrice(quote.montantTransac.toString());
+                                                        }}
+                                                    >
+                                                        {quote.status === QuoteStatus.PROPOSED ? "MODIFIER LE PRIX" : "PROPOSER UN PRIX"}
+                                                    </Button>
+                                                    
+                                                    {quote.status === QuoteStatus.PROPOSED && (
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            className="rounded-xl h-10 border-primary/20 text-primary hover:bg-primary/5 font-black text-[10px] gap-2"
+                                                            onClick={() => handleNegotiate(quote)}
+                                                            disabled={isNegotiating[quote.id]}
+                                                        >
+                                                            {isNegotiating[quote.id] ? (
+                                                                <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" />
+                                                            ) : (
+                                                                <Icon icon="solar:chat-round-dots-bold-duotone" className="w-4 h-4" />
+                                                            )}
+                                                            DISCUTER
+                                                        </Button>
+                                                    )}
+                                                </div>
                                             )}
                                         </div>
                                     )}
 
                                     {role === "CLIENT" && quote.status === QuoteStatus.PROPOSED && (
-                                        <div className="flex gap-2">
-                                            <Button
-                                                size="sm"
-                                                className="rounded-xl h-10 bg-emerald-500 hover:bg-emerald-600 text-white font-black text-[10px] gap-2 px-6 shadow-lg shadow-emerald-500/20"
-                                                onClick={() => handleUpdateStatus(quote.id, QuoteStatus.ACCEPTED)}
-                                            >
-                                                ACCEPTER
-                                            </Button>
+                                        <div className="flex flex-col gap-2">
+                                            <div className="flex gap-2">
+                                                <Button
+                                                    size="sm"
+                                                    className="rounded-xl h-10 bg-emerald-500 hover:bg-emerald-600 text-white font-black text-[10px] gap-2 px-6 shadow-lg shadow-emerald-500/20"
+                                                    onClick={() => handleUpdateStatus(quote.id, QuoteStatus.ACCEPTED)}
+                                                >
+                                                    ACCEPTER
+                                                </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="rounded-xl h-10 border-red-100 text-red-500 hover:bg-red-50 font-black text-[10px] px-4"
+                                                    onClick={() => handleUpdateStatus(quote.id, QuoteStatus.REJECTED)}
+                                                >
+                                                    REFUSER
+                                                </Button>
+                                            </div>
                                             <Button
                                                 variant="outline"
                                                 size="sm"
-                                                className="rounded-xl h-10 border-red-100 text-red-500 hover:bg-red-50 font-black text-[10px] px-4"
-                                                onClick={() => handleUpdateStatus(quote.id, QuoteStatus.REJECTED)}
+                                                className="rounded-xl h-10 border-primary/20 text-primary hover:bg-primary/5 font-black text-[10px] gap-2"
+                                                onClick={() => handleNegotiate(quote)}
+                                                disabled={isNegotiating[quote.id]}
                                             >
-                                                REFUSER
+                                                {isNegotiating[quote.id] ? (
+                                                    <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" />
+                                                ) : (
+                                                    <Icon icon="solar:chat-round-dots-bold-duotone" className="w-4 h-4" />
+                                                )}
+                                                DISCUTER LA PROPOSITION
                                             </Button>
                                         </div>
                                     )}
@@ -238,7 +331,7 @@ export default function QuotesList({ role }: QuotesListProps) {
                                     )}
 
                                     {quote.status === QuoteStatus.REJECTED && (
-                                        <span className="text-[10px] font-black text-red-500 uppercase opacity-50 italic px-4">Refusé par le prestataire</span>
+                                        <span className="text-[10px] font-black text-red-500 uppercase opacity-50 italic px-4">Refusé</span>
                                     )}
                                 </div>
                             </div>

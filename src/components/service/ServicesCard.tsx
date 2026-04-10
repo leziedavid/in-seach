@@ -12,6 +12,8 @@ import { Switch } from "../ui/switch"
 import { Button } from "../ui/button"
 import { useNotification } from "../toast/NotificationProvider"
 import { useSubscriptionCheck } from "@/hooks/useSubscriptionCheck"
+import Delete from "../logistics/Delete"
+import { deleteService as apiDeleteService } from "@/api/api"
 
 /* =====================================================
    PAGE
@@ -41,6 +43,9 @@ export default function ServicesCard({ data: propData, page: propPage, limit: pr
     const [internalLoading, setInternalLoading] = useState(false)
     const [internalListes, setInternalListes] = useState<Service[]>([])
     const [isOpen, setIsOpen] = useState(false)
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+    const [serviceToDelete, setServiceToDelete] = useState<Service | null>(null)
+    const [isDeleting, setIsDeleting] = useState(false)
 
     const loading = propLoading ?? internalLoading;
     const listes = propData ?? internalListes;
@@ -125,7 +130,8 @@ export default function ServicesCard({ data: propData, page: propPage, limit: pr
         }
 
         if (action === "delete") {
-            setInternalListes((prev) => prev.filter((p) => p.id !== row.id))
+            setServiceToDelete(row)
+            setIsDeleteModalOpen(true)
         }
 
         if (action === "duplicate") {
@@ -178,6 +184,30 @@ export default function ServicesCard({ data: propData, page: propPage, limit: pr
             showNotification(error.message, "error");
         } finally {
             setIsCreating(false)
+        }
+    }
+
+    /* ===============================
+        DELETE SERVICE
+    =============================== */
+    const handleDeleteConfirm = async () => {
+        if (!serviceToDelete) return;
+        try {
+            setIsDeleting(true)
+            const response = await apiDeleteService(serviceToDelete.id)
+            if (response.statusCode === 200) {
+                showNotification("Service supprimé avec succès", "success")
+                setInternalListes((prev) => prev.filter((s) => s.id !== serviceToDelete.id))
+                onSuccess?.()
+            } else {
+                showNotification(response.message || "Erreur lors de la suppression", "error")
+            }
+        } catch (error: any) {
+            showNotification(error.message || "Erreur serveur", "error")
+        } finally {
+            setIsDeleting(false)
+            setIsDeleteModalOpen(false)
+            setServiceToDelete(null)
         }
     }
 
@@ -255,18 +285,15 @@ export default function ServicesCard({ data: propData, page: propPage, limit: pr
                             </div>
 
                             <div className="flex justify-end mb-2">
-                                <Button
-                                    disabled={checkLoading}
-                                    onClick={async () => {
-                                        const canCreate = await checkEligibility('Service');
-                                        if (canCreate) {
-                                            setIsOpen(true);
-                                            setIsEditing(false);
-                                            setSelectedService(null)
-                                        }
-                                    }}
-                                    className="bg-primary text-primary-foreground hover:bg-secondary"
-                                >
+                                <Button disabled={checkLoading} onClick={async () => {
+                                    const canCreate = await checkEligibility('Service');
+                                    if (canCreate) {
+                                        setIsOpen(true);
+                                        setIsEditing(false);
+                                        setSelectedService(null)
+                                    }
+                                }}
+                                    className="bg-primary text-primary-foreground hover:bg-secondary">
                                     {checkLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-6 h-6 mr-2" /> : <Icon icon="mdi-light:file-plus" className="w-10 h-10" />}
                                     Ajouter un service
                                 </Button>
@@ -361,6 +388,17 @@ export default function ServicesCard({ data: propData, page: propPage, limit: pr
                     onClose={() => setIsOpen(false)}
                 />
             </Modal>
+
+            {/* DELETE CONFIRMATION */}
+            <Delete
+                isOpen={isDeleteModalOpen}
+                onClose={() => {
+                    setIsDeleteModalOpen(false)
+                    setServiceToDelete(null)
+                }}
+                onConfirm={handleDeleteConfirm}
+                isDeleting={isDeleting}
+            />
         </>
     )
 }

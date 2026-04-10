@@ -6,7 +6,8 @@ import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescri
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { getAllSearch, getMySpace } from '@/api/api';
+import { getAllSearch, getMySpace, upsertLocationLog } from '@/api/api';
+import { useUserLocation } from '@/utils/location';
 import AccountServicesList from '@/components/account/AccountServicesList';
 import AccountAnnonces from '@/components/account/AccountAnnonces';
 import AccountBookings from '@/components/account/AccountBookings';
@@ -24,6 +25,7 @@ import LogisticsServicesList from '@/components/logistics/LogisticsServicesList'
 import QuotesList from '@/components/logistics/QuotesList';
 import DeliveriesList from '@/components/logistics/DeliveriesList';
 import QuoteRequestModal from '@/components/logistics/QuoteRequestModal';
+import ApiDocumentation from '@/components/account/ApiDocumentation';
 import { Modal } from '@/components/modal/MotionModal';
 
 type TabType =
@@ -37,23 +39,47 @@ type TabType =
     'Commandes' |
     'Historique-commandes' |
     'Paramètres' |
+    'Tarifs' |
     'Services-logistiques' |
     'Mes-devis' |
     'Mes-livraisons' |
     'Mes-services-logistiques' |
     'Devis-recus' |
-    'Livraisons'
+    'Livraisons' |
+    'Documentation-API'
     ;
 
 export default function Page() {
     const router = useRouter();
+    const { getUserLocation } = useUserLocation();
 
     const [isMounted, setIsMounted] = useState(false);
     const [userRole, setUserRole] = useState<Role | null>(null);
+    const [locationError, setLocationError] = useState(false);
 
     useEffect(() => {
         setIsMounted(true);
         setUserRole(getUserRole() as Role);
+
+        // Track location on akwaba page
+        const trackLocation = async () => {
+            const location = await getUserLocation();
+            if (location && location.lat && location.lng) {
+                try {
+                    await upsertLocationLog({
+                        lat: location.lat,
+                        lng: location.lng,
+                        context: 'akwaba'
+                    });
+                } catch (err) {
+                    console.error("Failed to update location on akwaba:", err);
+                }
+            } else {
+                setLocationError(true);
+            }
+        };
+
+        trackLocation();
     }, []);
 
     const isClient = userRole === Role.CLIENT;
@@ -152,12 +178,15 @@ export default function Page() {
         { label: 'Boutique', icon: <Icon icon="solar:history-bold-duotone" width={18} />, key: 'Boutique', roles: [Role.CLIENT, Role.ADMIN, Role.PRESTATAIRE] },
         { label: 'Commandes', icon: <Icon icon="solar:history-bold-duotone" width={18} />, key: 'Commandes', roles: [Role.CLIENT, Role.ADMIN, Role.PRESTATAIRE] },
         { label: 'Historique-commandes', icon: <Icon icon="solar:history-bold-duotone" width={18} />, key: 'Historique-commandes', roles: [Role.CLIENT, Role.ADMIN, Role.PRESTATAIRE] },
-        { label: 'Services logistiques', icon: <Icon icon="solar:delivery-bold-duotone" width={18} />, key: 'Services-logistiques', roles: [Role.CLIENT] },
-        { label: 'Mes devis', icon: <Icon icon="solar:chat-round-money-bold-duotone" width={18} />, key: 'Mes-devis', roles: [Role.CLIENT] },
-        { label: 'Mes livraisons', icon: <Icon icon="solar:map-point-wave-bold-duotone" width={18} />, key: 'Mes-livraisons', roles: [Role.CLIENT] },
-        { label: 'Mes services', icon: <Icon icon="solar:box-bold-duotone" width={18} />, key: 'Mes-services-logistiques', roles: [Role.ENTREPRISE] },
-        { label: 'Devis reçus', icon: <Icon icon="solar:chat-round-money-bold-duotone" width={18} />, key: 'Devis-recus', roles: [Role.ENTREPRISE] },
-        { label: 'Livraisons', icon: <Icon icon="solar:delivery-bold-duotone" width={18} />, key: 'Livraisons', roles: [Role.ENTREPRISE] },
+        { label: 'Services logistiques', icon: <Icon icon="solar:delivery-bold-duotone" width={18} />, key: 'Services-logistiques', roles: [Role.CLIENT, Role.ADMIN] },
+        { label: 'Mes devis', icon: <Icon icon="solar:chat-round-money-bold-duotone" width={18} />, key: 'Mes-devis', roles: [Role.CLIENT, Role.ADMIN] },
+        { label: 'Mes livraisons', icon: <Icon icon="solar:map-point-wave-bold-duotone" width={18} />, key: 'Mes-livraisons', roles: [Role.CLIENT, Role.ADMIN] },
+        { label: 'Mes services', icon: <Icon icon="solar:box-bold-duotone" width={18} />, key: 'Mes-services-logistiques', roles: [Role.ENTREPRISE, Role.ADMIN] },
+        { label: 'Devis reçus', icon: <Icon icon="solar:chat-round-money-bold-duotone" width={18} />, key: 'Devis-recus', roles: [Role.ENTREPRISE, Role.ADMIN] },
+        { label: 'Livraisons', icon: <Icon icon="solar:delivery-bold-duotone" width={18} />, key: 'Livraisons', roles: [Role.ENTREPRISE, Role.ADMIN] },
+        // pricing
+        { label: 'Tarifs', icon: <Icon icon="solar:bill-list-bold-duotone" width={18} />, key: 'Tarifs', roles: [Role.ENTREPRISE, Role.ADMIN, Role.PRESTATAIRE, Role.CLIENT] },
+        { label: 'Documentation API', icon: <Icon icon="solar:document-bold-duotone" width={18} />, key: 'Documentation-API', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ADMIN, Role.ENTREPRISE] },
         { label: 'Paramètres', icon: <Icon icon="solar:settings-bold-duotone" width={18} />, key: 'Paramètres', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ADMIN, Role.ENTREPRISE] }
     ];
 
@@ -171,6 +200,10 @@ export default function Page() {
     }
 
     const handleTabChange = (tab: TabType) => {
+        if (tab === 'Tarifs') {
+            router.push('/pricing');
+            return;
+        }
         setActiveTab(tab);
         setPage(1); // Reset page on tab change
     };
@@ -352,6 +385,8 @@ export default function Page() {
 
                     {activeTab === 'Paramètres' && <AccountSettings />}
 
+                    {activeTab === 'Documentation-API' && <ApiDocumentation />}
+
                 </main>
             </div>
 
@@ -418,6 +453,26 @@ export default function Page() {
                 </Sheet>
 
             </div>
+
+            {/* Blocking Location Error Overlay */}
+            {locationError && (
+                <div className="fixed inset-0 z-[999] bg-background/80 backdrop-blur-md flex items-center justify-center p-6">
+                    <div className="bg-card border border-border p-8 rounded-3xl shadow-2xl max-w-sm w-full text-center space-y-6">
+                        <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto text-red-500">
+                            <Icon icon="solar:map-point-remove-bold-duotone" width={48} />
+                        </div>
+                        <div className="space-y-2">
+                            <h2 className="text-xl font-black text-foreground">Localisation requise</h2>
+                            <p className="text-sm text-muted-foreground">
+                                Veuillez activer la localisation pour continuer d'utiliser l'application.
+                            </p>
+                        </div>
+                        <Button onClick={() => window.location.reload()} className="w-full h-12 rounded-xl font-bold">
+                            Réessayer
+                        </Button>
+                    </div>
+                </div>
+            )}
         </div>
 
     );

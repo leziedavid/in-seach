@@ -5,7 +5,7 @@ import { Icon } from "@iconify/react";
 import Image from 'next/image';
 import { getServices, searchServiceIA } from "@/api/api";
 import { UserLocation, Service } from "@/types/interface";
-import { getUserLocation } from "@/utils/location";
+import { useUserLocation } from "@/utils/location";
 import BookingModal from "../home/BookingModal";
 import ImageSearchModal from "./ImageSearchModal";
 import InfiniteScroll from "../ui/InfiniteScroll";
@@ -13,6 +13,7 @@ import { useRequireAuth } from "@/hooks/useRequireAuth";
 
 export default function SearchServies() {
     const { withAuth } = useRequireAuth();
+    const { getUserLocation } = useUserLocation();
     const [query, setQuery] = useState("");
     const [isSearching, setIsSearching] = useState(false);
     const [selectedService, setSelectedService] = useState<any>(null);
@@ -141,6 +142,19 @@ export default function SearchServies() {
                         inputMode="text"
                         style={{ fontSize: '16px' }}
                     />
+                    {query && (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setQuery("");
+                                if (!lat && !lng) setIsSearching(false);
+                            }}
+                            className="p-1 text-muted-foreground hover:text-primary transition-colors animate-in fade-in zoom-in duration-200"
+                            title="Effacer la recherche"
+                        >
+                            <Icon icon="solar:close-circle-bold-duotone" className="w-5 h-5" />
+                        </button>
+                    )}
                     <button type="button" onClick={() => setIsImageModalOpen(true)}
                         className="p-2 text-muted-foreground hover:text-primary transition-colors"
                         title="Recherche par image (IA)" >

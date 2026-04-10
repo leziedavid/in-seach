@@ -7,15 +7,69 @@ import { Modal } from "../modal/MotionModal";
 import AvatarUploadForm from "./AvatarUploadForm";
 import CNIUploadForm from "./CNIUploadForm";
 import { Skeleton } from "../ui/skeleton";
-import { getMe, updateUserProfile } from "@/api/api";
-import { UserProfile } from "@/types/interface";
+import { getMe, updateUserProfile, testWebPushNotification, testWebSocketNotification } from "@/api/api";
+import { UserProfile, SubscriptionPlan, SubscriptionStatus } from "@/types/interface";
 import { toast } from "sonner";
+import SubscriptionPaymentModal from "../subscription/SubscriptionPaymentModal";
+import { useRouter } from "next/navigation";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+
+import { useNotifications } from "@/hooks/useNotifications";
 
 export default function AccountSettings() {
+    const { permission, subscribe, unsubscribe, loading, isNotificationsEnabled } = useNotifications();
+    
+    // Simplification : on utilise directement isNotificationsEnabled calculé par le hook
+    
+    const handleToggleNotifications = async () => {
+        if (isNotificationsEnabled) {
+            await unsubscribe();
+        } else {
+            await subscribe();
+        }
+    };
+
+    const handleTestPush = async () => {
+        setIsTestingPush(true);
+        try {
+            const res = await testWebPushNotification();
+            if (res.statusCode === 201 || res.statusCode === 200) {
+                toast.success("Test Web Push envoyé !");
+            } else {
+                toast.error(res.message || "Échec du test Web Push");
+            }
+        } catch (error) {
+            toast.error("Erreur lors du test Web Push");
+        } finally {
+            setIsTestingPush(false);
+        }
+    };
+
+    const handleTestSocket = async () => {
+        setIsTestingSocket(true);
+        try {
+            const res = await testWebSocketNotification();
+            if (res.statusCode === 201 || res.statusCode === 200) {
+                toast.success("Test WebSocket envoyé !");
+            } else {
+                toast.error(res.message || "Échec du test WebSocket");
+            }
+        } catch (error) {
+            toast.error("Erreur lors du test WebSocket");
+        } finally {
+            setIsTestingSocket(false);
+        }
+    };
 
     const [user, setUser] = useState<UserProfile | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const router = useRouter();
+
+    // Subscription Modal
+    const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(false);
+    const [selectedPlanToRenew, setSelectedPlanToRenew] = useState<SubscriptionPlan | null>(null);
 
     // Form states
     const [formData, setFormData] = useState({
@@ -26,6 +80,9 @@ export default function AccountSettings() {
         password: "",
         confirmPassword: ""
     });
+
+    const [isTestingPush, setIsTestingPush] = useState(false);
+    const [isTestingSocket, setIsTestingSocket] = useState(false);
 
     // Modal states
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -177,8 +234,8 @@ export default function AccountSettings() {
                     <Skeleton className="h-4 w-96" />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <Skeleton className="h-48 rounded-[2rem]" />
-                    <Skeleton className="h-48 rounded-[2rem]" />
+                    <Skeleton className="h-48 rounded-lg" />
+                    <Skeleton className="h-48 rounded-lg" />
                 </div>
                 <Skeleton className="h-96 rounded-[2.5rem]" />
             </div>
@@ -196,42 +253,41 @@ export default function AccountSettings() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* CARD 1: AVATAR */}
-                <div onClick={() => handleOpenModal('avatar')} className="group relative bg-card h-48 rounded-[2rem] border border-border shadow-sm hover:shadow-xl hover:border-primary/30 transition-all cursor-pointer overflow-hidden" >
+                <div onClick={() => handleOpenModal('avatar')} className="group relative bg-card h-48 rounded-lg border border-border shadow-sm hover:shadow-xl hover:border-primary/30 transition-all cursor-pointer overflow-hidden" >
                     <div className="absolute inset-0 flex flex-col items-center justify-center space-y-3 z-10">
                         {user?.avatar ? (
-                            <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-background shadow-lg">
+                            <div className="relative w-24 h-24 rounded-lg overflow-hidden border-4 border-background shadow-lg">
                                 <Image src={user.avatar} alt="Avatar" fill className="object-cover group-hover:scale-110 transition-transform duration-500" unoptimized />
                             </div>
                         ) : (
-                            <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center border-4 border-background shadow-lg">
+                            <div className="w-24 h-24 rounded-lg bg-muted flex items-center justify-center border-4 border-background shadow-lg">
                                 <Icon icon="solar:user-bold-duotone" className="w-12 h-12 text-muted-foreground" />
                             </div>
                         )}
                         <span className="text-xs font-black uppercase tracking-wider text-muted-foreground group-hover:text-primary transition-colors">Modifier l'avatar</span>
                     </div>
                     {/* Background decoration */}
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 group-hover:bg-primary/10 transition-all" />
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-lg -mr-16 -mt-16 group-hover:bg-primary/10 transition-all" />
                     {!user?.avatarUrl && <Skeleton className="absolute inset-0 opacity-20" />}
 
                     <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/5 transition-all" />
                 </div>
 
                 {/* CARD 2: CNI */}
-                <div onClick={() => handleOpenModal('cni')} className="group relative bg-card h-48 rounded-[2rem] border border-border shadow-sm hover:shadow-xl hover:border-primary/30 transition-all cursor-pointer overflow-hidden"  >
+                <div onClick={() => handleOpenModal('cni')} className="group relative bg-card h-48 rounded-lg border border-border transition-all cursor-pointer overflow-hidden"  >
                     <div className="absolute inset-0 flex flex-col items-center justify-center space-y-3 z-10 px-6">
                         {user?.cni ? (
-                            <div className="relative w-full h-24 rounded-xl overflow-hidden border-2 border-background shadow-lg">
+                            <div className="relative w-full h-24 overflow-hidden ">
                                 <Image src={user.cni} alt="CNI" fill className="object-cover group-hover:scale-105 transition-transform duration-500" unoptimized />
                             </div>
                         ) : (
-                            <div className="w-full h-24 rounded-xl bg-muted flex items-center justify-center border-2 border-background shadow-lg">
+                            <div className="w-full h-24 bg-muted flex items-center justify-center ">
                                 <Icon icon="solar:card-2-bold-duotone" className="w-10 h-10 text-muted-foreground" />
                             </div>
                         )}
                         <span className="text-xs font-black uppercase tracking-wider text-muted-foreground group-hover:text-primary transition-colors">Pièce d'identité</span>
                     </div>
                     {/* Background decoration */}
-                    <div className="absolute bottom-0 left-0 w-32 h-32 bg-secondary/5 rounded-full -ml-16 -mb-16 group-hover:bg-secondary/10 transition-all" />
                     {!user?.cniUrl && <Skeleton className="absolute inset-0 opacity-20" />}
                     <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/5 transition-all" />
                 </div>
@@ -239,11 +295,11 @@ export default function AccountSettings() {
             </div>
 
             {/* PERSO INFO FORM */}
-            <div className="bg-card p-6 md:p-8 rounded-[2.5rem] border border-border shadow-sm space-y-8 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-32 -mt-32 blur-3xl pointer-events-none" />
+            <div className="bg-card p-6 md:p-8 rounded-lg border border-border shadow-sm space-y-8 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-lg -mr-32 -mt-32 blur-3xl pointer-events-none" />
 
                 <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                         <Icon icon="solar:user-id-bold-duotone" className="w-6 h-6" />
                     </div>
                     <h2 className="text-xl font-black text-foreground">Informations personnelles</h2>
@@ -254,7 +310,7 @@ export default function AccountSettings() {
                         <label className="text-xs font-black text-muted-foreground uppercase tracking-widest ml-1">Nom Complet</label>
                         <div className="relative group">
                             <Icon icon="solar:user-bold-duotone" className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors w-5 h-5" />
-                            <input name="fullName" value={formData.fullName} onChange={handleInputChange} className="w-full border border-border bg-muted/50 rounded-2xl p-4 pl-12 text-sm font-bold text-foreground focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all" placeholder="Votre nom complet" />
+                            <input name="fullName" value={formData.fullName} onChange={handleInputChange} className="w-full border border-border bg-muted/50 rounded-xl p-4 pl-12 text-sm font-bold text-foreground focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all" placeholder="Votre nom complet" />
                         </div>
                     </div>
 
@@ -263,7 +319,7 @@ export default function AccountSettings() {
                         <div className="relative group">
                             <Icon icon="solar:letter-bold-duotone" className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors w-5 h-5" />
                             <input name="email" value={formData.email} onChange={handleInputChange} type="email"
-                                className="w-full border border-border bg-muted/50 rounded-2xl p-4 pl-12 text-sm font-bold text-foreground focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all"
+                                className="w-full border border-border bg-muted/50 rounded-xl p-4 pl-12 text-sm font-bold text-foreground focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all"
                                 placeholder="votre@email.com" />
                         </div>
                     </div>
@@ -276,7 +332,7 @@ export default function AccountSettings() {
                                 name="phone"
                                 value={formData.phone}
                                 onChange={handleInputChange}
-                                className="w-full border border-border bg-muted/50 rounded-2xl p-4 pl-12 text-sm font-bold text-foreground focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all"
+                                className="w-full border border-border bg-muted/50 rounded-xl p-4 pl-12 text-sm font-bold text-foreground focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all"
                                 placeholder="+229 00 00 00 00"
                             />
                         </div>
@@ -286,11 +342,10 @@ export default function AccountSettings() {
                         <label className="text-xs font-black text-muted-foreground uppercase tracking-widest ml-1">Entreprise</label>
                         <div className="relative group">
                             <Icon icon="solar:case-bold-duotone" className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors w-5 h-5" />
-                            <input
-                                name="companyName"
+                            <input name="companyName"
                                 value={formData.companyName}
                                 onChange={handleInputChange}
-                                className="w-full border border-border bg-muted/50 rounded-2xl p-4 pl-12 text-sm font-bold text-foreground focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all"
+                                className="w-full border border-border bg-muted/50 rounded-xl p-4 pl-12 text-sm font-bold text-foreground focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all"
                                 placeholder="Nom de votre entreprise"
                             />
                         </div>
@@ -298,7 +353,7 @@ export default function AccountSettings() {
                 </div>
 
                 <div className="pt-6 border-t border-border/50">
-                    <button onClick={() => handleSaveProfile()} disabled={isSubmitting} className="w-full md:w-auto bg-primary hover:bg-secondary text-white font-black px-8 py-4 rounded-2xl transition-all active:scale-95 shadow-xl shadow-primary/20 flex items-center justify-center gap-3 group disabled:opacity-50"  >
+                    <button onClick={() => handleSaveProfile()} disabled={isSubmitting} className="w-full md:w-auto bg-primary hover:bg-secondary text-white font-black px-8 py-4 rounded-xl transition-all active:scale-95 shadow-xl shadow-primary/20 flex items-center justify-center gap-3 group disabled:opacity-50"  >
                         {isSubmitting ? (
                             <Icon icon="solar:refresh-bold-duotone" className="w-5 h-5 animate-spin" />
                         ) : (
@@ -306,6 +361,184 @@ export default function AccountSettings() {
                         )}
                         Mettre à jour mon profil
                     </button>
+                </div>
+
+            </div>
+
+            {/* NOTIFICATIONS SECTION */}
+            <div className="bg-card p-6 md:p-8 rounded-lg border border-border shadow-sm space-y-8 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 rounded-lg -mr-32 -mt-32 blur-3xl pointer-events-none" />
+
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-600">
+                            <Icon icon="solar:bell-bing-bold-duotone" className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <h2 className="text-xl font-black text-foreground">Notifications Push</h2>
+                            <p className="text-xs text-muted-foreground font-medium">Recevez des alertes en temps réel sur mobile et PC</p>
+                        </div>
+                    </div>
+
+                    <button 
+                        onClick={handleToggleNotifications} 
+                        disabled={loading} 
+                        className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all focus:outline-none ${isNotificationsEnabled ? 'bg-green-500 shadow-lg shadow-green-500/30' : 'bg-muted'} ${loading ? 'opacity-50 cursor-not-allowed' : 'active:scale-95'}`} 
+                    >
+                        <span className={`${isNotificationsEnabled ? 'translate-x-6' : 'translate-x-1'} inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform duration-200 ease-in-out`} />
+                        {loading && (
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <Icon icon="solar:refresh-bold-duotone" className="w-4 h-4 text-white animate-spin opacity-40" />
+                            </div>
+                        )}
+                    </button>
+                </div>
+
+                <div className="relative z-10 p-4 rounded-xl bg-amber-500/5 border border-amber-500/10">
+                    <div className="flex gap-3">
+                        <Icon icon="solar:info-circle-bold-duotone" className="w-5 h-5 text-amber-600 shrink-0" />
+                        <p className="text-xs text-amber-800 dark:text-amber-400 font-medium leading-relaxed">
+                            Comme sur WhatsApp, les notifications de bureau et mobiles vous permettent de rester réactif face à vos clients et partenaires même lorsque l'application est fermée.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            {/* TEST NOTIFICATIONS SECTION */}
+            <div className="bg-card p-6 md:p-8 rounded-lg border border-border shadow-sm space-y-6 relative overflow-hidden">
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-600">
+                        <Icon icon="solar:test-tube-bold-duotone" className="w-6 h-6" />
+                    </div>
+                    <div>
+                        <h2 className="text-xl font-black text-foreground">Tester les notifications</h2>
+                        <p className="text-xs text-muted-foreground font-medium">Vérifiez manuellement le bon fonctionnement de vos alertes.</p>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-10">
+                    <button 
+                        onClick={handleTestPush}
+                        disabled={isTestingPush || !isNotificationsEnabled}
+                        className="flex items-center justify-center gap-3 px-6 py-4 rounded-2xl bg-muted border border-border hover:border-primary/50 hover:bg-primary/5 transition-all group disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {isTestingPush ? (
+                            <Icon icon="solar:refresh-bold-duotone" className="w-5 h-5 animate-spin text-primary" />
+                        ) : (
+                            <Icon icon="solar:plain-bold-duotone" className="w-5 h-5 text-primary group-hover:scale-110 transition-transform" />
+                        )}
+                        <div className="text-left">
+                            <span className="block text-sm font-black text-foreground">Tester Web Push</span>
+                            <span className="block text-[10px] text-muted-foreground font-bold uppercase tracking-tighter">Notification système</span>
+                        </div>
+                    </button>
+
+                    <button 
+                        onClick={handleTestSocket}
+                        disabled={isTestingSocket}
+                        className="flex items-center justify-center gap-3 px-6 py-4 rounded-2xl bg-muted border border-border hover:border-secondary/50 hover:bg-secondary/5 transition-all group disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {isTestingSocket ? (
+                            <Icon icon="solar:refresh-bold-duotone" className="w-5 h-5 animate-spin text-secondary" />
+                        ) : (
+                            <Icon icon="solar:flash-bold-duotone" className="w-5 h-5 text-secondary group-hover:scale-110 transition-transform" />
+                        )}
+                        <div className="text-left">
+                            <span className="block text-sm font-black text-foreground">Tester WebSocket</span>
+                            <span className="block text-[10px] text-muted-foreground font-bold uppercase tracking-tighter">Notification temps réel</span>
+                        </div>
+                    </button>
+                </div>
+
+                {!isNotificationsEnabled && (
+                    <p className="text-[10px] text-amber-600 font-bold bg-amber-500/5 p-3 rounded-xl border border-amber-500/10 flex items-center gap-2 italic">
+                        <Icon icon="solar:danger-bold-duotone" className="w-3.5 h-3.5" />
+                        Note : Activez les notifications via le bouton ci-dessus pour tester le mode Web Push.
+                    </p>
+                )}
+            </div>
+
+            {/* SUBSCRIPTIONS SECTION */}
+            <div className="bg-card p-6 md:p-8 rounded-lg border border-border shadow-sm space-y-8 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-secondary/5 rounded-lg -mr-32 -mt-32 blur-3xl pointer-events-none" />
+
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center text-secondary">
+                            <Icon icon="solar:bill-list-bold-duotone" className="w-6 h-6" />
+                        </div>
+                        <h2 className="text-xl font-black text-foreground">Mes abonnements</h2>
+                    </div>
+                    {(user?.subscriptions && user.subscriptions.length > 0) && (
+                        <button onClick={() => router.push('/pricing')} className="text-xs font-black uppercase tracking-widest text-primary hover:text-secondary transition-colors underline decoration-2 underline-offset-4">
+                            Mettre à niveau
+                        </button>
+                    )}
+                </div>
+
+                <div className="relative z-10 space-y-4">
+                    {(!user?.subscriptions || user.subscriptions.length === 0) ? (
+                        <div className="bg-muted/30 rounded-lg p-10 flex flex-col items-center justify-center text-center space-y-4 border-2 border-dashed border-border/50">
+                            <div className="w-20 h-20 rounded-lg bg-background flex items-center justify-center text-muted-foreground shadow-sm">
+                                <Icon icon="solar:ghost-bold-duotone" className="w-10 h-10" />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-black text-foreground">Aucun plan disponible</h3>
+                                <p className="text-sm text-muted-foreground font-medium max-w-xs mx-auto">
+                                    Vous n'avez pas encore souscrit à un abonnement premium.
+                                </p>
+                            </div>
+                            <button onClick={() => router.push('/pricing')} className="bg-primary text-white font-black px-8 py-3 rounded-lg transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/20">
+                                Voir les tarifs
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 gap-4">
+                            {user.subscriptions.map((sub, i) => (
+                                <div key={sub.id} className="bg-background/50 border border-border rounded-3xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 hover:border-primary/30 transition-all group">
+                                    <div className="flex items-center gap-5">
+                                        <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${sub.status === SubscriptionStatus.ACTIVE ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
+                                            <Icon icon={sub.status === SubscriptionStatus.ACTIVE ? "solar:verified-check-bold-duotone" : "solar:re-order-bold-duotone"} className="w-8 h-8" />
+                                        </div>
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <h4 className="font-black text-lg">{sub.plan?.name || "Plan standard"}</h4>
+                                                <span className={`px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-tighter ${sub.status === SubscriptionStatus.ACTIVE ? 'bg-green-500 text-white' : 'bg-muted text-muted-foreground'}`}>
+                                                    {sub.status}
+                                                </span>
+                                            </div>
+                                            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs font-medium text-muted-foreground">
+                                                <p className="flex items-center gap-1">
+                                                    <Icon icon="solar:calendar-bold-duotone" className="w-3.5 h-3.5" />
+                                                    Début : {format(new Date(sub.startDate), 'dd MMMM yyyy', { locale: fr })}
+                                                </p>
+                                                <p className="flex items-center gap-1">
+                                                    <Icon icon="solar:history-bold-duotone" className="w-3.5 h-3.5" />
+                                                    Fin : {format(new Date(sub.endDate), 'dd MMMM yyyy', { locale: fr })}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-3 w-full md:w-auto">
+                                        <button
+                                            onClick={() => {
+                                                if (sub.plan) {
+                                                    setSelectedPlanToRenew(sub.plan as any);
+                                                    setIsSubscriptionModalOpen(true);
+                                                } else {
+                                                    router.push('/pricing');
+                                                }
+                                            }}
+                                            className="flex-1 md:flex-none px-6 py-3 rounded-lg bg-muted hover:bg-primary hover:text-white font-black text-xs transition-all uppercase tracking-widest whitespace-nowrap"
+                                        >
+                                            Renouveler
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -340,6 +573,19 @@ export default function AccountSettings() {
                     )}
                 </div>
             </Modal>
+
+            {/* SUBSCRIPTION PAYMENT MODAL */}
+            {selectedPlanToRenew && (
+                <SubscriptionPaymentModal
+                    isOpen={isSubscriptionModalOpen}
+                    onClose={() => {
+                        setIsSubscriptionModalOpen(false);
+                        setSelectedPlanToRenew(null);
+                        void fetchUserData();
+                    }}
+                    plan={selectedPlanToRenew}
+                />
+            )}
 
         </div>
 

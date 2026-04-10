@@ -6,12 +6,13 @@ import { Icon } from "@iconify/react"
 import { TablePagination } from "../table/Pagination"
 import FormsAnnonce from "../Forms/FormsAnnonce"
 import { Annonce, AnnonceStatus } from "@/types/interface"
-import { createAnnonce, getAnnonces, handleToggleAnnonceActive, updateAnnonce } from "@/api/api"
+import { createAnnonce, getAnnonces, handleToggleAnnonceActive, updateAnnonce, deleteAnnonce as apiDeleteAnnonce } from "@/api/api"
 import { Modal } from "../modal/MotionModal"
 import { Switch } from "../ui/switch"
 import { useNotification } from "../toast/NotificationProvider"
 import { Button } from "../ui/button"
 import { useSubscriptionCheck } from "@/hooks/useSubscriptionCheck"
+import Delete from "../logistics/Delete"
 
 interface AnnoncesCardProps {
     data?: Annonce[];
@@ -45,6 +46,9 @@ export default function AnnoncesCard({
     const [internalLoading, setInternalLoading] = useState(false)
     const [internalListes, setInternalListes] = useState<Annonce[]>([])
     const [isOpen, setIsOpen] = useState(false)
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+    const [annonceToDelete, setAnnonceToDelete] = useState<Annonce | null>(null)
+    const [isDeleting, setIsDeleting] = useState(false)
 
     const loading = propLoading ?? internalLoading;
     const listes = propData ?? internalListes;
@@ -96,7 +100,8 @@ export default function AnnoncesCard({
             setIsOpen(true)
         }
         if (action === "delete") {
-            setInternalListes((prev) => prev.filter((p) => p.id !== row.id))
+            setAnnonceToDelete(row)
+            setIsDeleteModalOpen(true)
         }
         if (action === "duplicate") {
             setInternalListes((prev) => [
@@ -152,6 +157,30 @@ export default function AnnoncesCard({
             showNotification(error.message || "Erreur de connexion", "error");
         } finally {
             setIsCreating(false)
+        }
+    }
+
+    /* ===============================
+        DELETE ANNONCE
+    =============================== */
+    const handleDeleteConfirm = async () => {
+        if (!annonceToDelete) return;
+        try {
+            setIsDeleting(true)
+            const response = await apiDeleteAnnonce(annonceToDelete.id)
+            if (response.statusCode === 200) {
+                showNotification("Annonce supprimée avec succès", "success")
+                setInternalListes((prev) => prev.filter((a) => a.id !== annonceToDelete.id))
+                onSuccess?.()
+            } else {
+                showNotification(response.message || "Erreur lors de la suppression", "error")
+            }
+        } catch (error: any) {
+            showNotification(error.message || "Erreur serveur", "error")
+        } finally {
+            setIsDeleting(false)
+            setIsDeleteModalOpen(false)
+            setAnnonceToDelete(null)
         }
     }
 
@@ -287,6 +316,17 @@ export default function AnnoncesCard({
                     onClose={() => setIsOpen(false)}
                 />
             </Modal>
+
+            {/* DELETE CONFIRMATION */}
+            <Delete
+                isOpen={isDeleteModalOpen}
+                onClose={() => {
+                    setIsDeleteModalOpen(false)
+                    setAnnonceToDelete(null)
+                }}
+                onConfirm={handleDeleteConfirm}
+                isDeleting={isDeleting}
+            />
         </>
     )
 }

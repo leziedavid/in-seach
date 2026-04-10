@@ -12,6 +12,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger, } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import BookingDetailModal from "../home/BookingDetail";
+import BookingModal from "../home/BookingModal";
 import { motion, AnimatePresence } from "framer-motion";
 import { createPortal } from "react-dom";
 
@@ -22,6 +23,7 @@ const BookingCalendar: React.FC = () => {
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [isDayModalOpen, setIsDayModalOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [selectedDayBookings, setSelectedDayBookings] = useState<BookingsCalendar[]>([]);
     const [mounted, setMounted] = useState(false);
 
@@ -377,7 +379,26 @@ const BookingCalendar: React.FC = () => {
                 isOpen={open}
                 onClose={() => setOpen(false)}
                 booking={selectedBooking}
+                onEditRdv={(b) => {
+                    setSelectedBooking(b as BookingsCalendar);
+                    setIsEditModalOpen(true);
+                }}
             />
+
+                {selectedBooking && (
+                    <BookingModal
+                        isOpen={isEditModalOpen}
+                        onClose={() => {
+                            setIsEditModalOpen(false);
+                            setTimeout(() => setSelectedBooking(null), 300);
+                            fetchCalendarData();
+                        }}
+                        mode="edit"
+                        booking={selectedBooking}
+                        item={(selectedBooking.service || selectedBooking.annonce) as any}
+                        type={(selectedBooking.bookingType || (selectedBooking.service ? 'SERVICE' : 'ANNONCE')) as 'SERVICE' | 'ANNONCE'}
+                    />
+                )}
 
             {/* Modal for Day Bookings */}
             {mounted && createPortal(

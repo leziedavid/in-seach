@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
+import { motion, AnimatePresence } from "framer-motion"
 import SearchAnnonces from "../service/SearchAnnonces"
 import Boutique from "../products/Boutique"
 import LogisticsServicesList from "../logistics/LogisticsServicesList"
@@ -11,6 +12,8 @@ import QuoteRequestModal from "../logistics/QuoteRequestModal"
 import { Modal } from "../modal/MotionModal"
 import { LogisticService } from "@/types/interface"
 import { Icon } from "@iconify/react"
+
+
 
 const tabs = [
     {
@@ -84,6 +87,7 @@ export default function AppTabs() {
 
     return (
         <div className="flex flex-col items-center w-full px-2 sm:px-4 py-4 sm:py-8">
+
             {/* TABS RESPONSIVE AVEC SCROLL + CENTRÉ */}
             <div ref={scrollContainerRef} className="w-full overflow-x-auto scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                 <div className="flex w-fit mx-auto gap-4 sm:gap-6 px-3 py-2">
@@ -93,16 +97,50 @@ export default function AppTabs() {
                         const IconComponent = tab.Icon
 
                         return (
-                            <button key={tab.id} ref={isActive ? activeTabRef : null} onClick={() => handleTabClick(tab.id)} className="flex flex-col items-center shrink-0 transition-all"  >
+                            <button
+                                key={tab.id}
+                                ref={isActive ? activeTabRef : null}
+                                onClick={() => handleTabClick(tab.id)}
+                                onMouseEnter={() => handleTabClick(tab.id)}
+                                className="relative flex flex-col items-center shrink-0 group py-2 px-1"
+                            >
+                                {/* Active Indicator (Sliding Background) */}
+                                {isActive && (
+                                    <motion.div
+                                        layoutId="activeTabBackground"
+                                        className="absolute inset-0 bg-primary/5 rounded-2xl z-0"
+                                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                                    />
+                                )}
+
                                 {/* Cercle */}
-                                <div className={`w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 flex items-center justify-center rounded-full border-2 transition-all duration-300 hover:scale-105  ${isActive ? "bg-primary border-primary shadow-lg shadow-primary/20" : "bg-card border-border"} `}  >
+                                <div className={`relative z-10 w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 flex items-center justify-center rounded-full border-2 transition-all duration-300 group-hover:scale-110 active:scale-95 ${isActive ? "bg-primary border-primary shadow-lg shadow-primary/20 scale-105" : "bg-card border-border hover:border-primary/40"} `}  >
                                     <IconComponent active={isActive} />
+                                    
+                                    {/* Small indicator dot for active state */}
+                                    {isActive && (
+                                        <motion.div 
+                                            layoutId="activeDot"
+                                            className="absolute -top-1 -right-1 w-3 h-3 bg-secondary rounded-full border-2 border-background"
+                                            initial={{ scale: 0 }}
+                                            animate={{ scale: 1 }}
+                                        />
+                                    )}
                                 </div>
 
                                 {/* Label */}
-                                <span className={` text-[10px] sm:text-xs mt-1 sm:mt-2 whitespace-nowrap ${tab.label === "" ? "hidden sm:block" : ""} ${isActive ? "text-primary font-medium" : "text-muted-foreground"} `}  >
+                                <span className={`relative z-10 text-[10px] sm:text-xs mt-1 sm:mt-2 whitespace-nowrap transition-colors duration-300 ${tab.label === "" ? "hidden sm:block" : ""} ${isActive ? "text-primary font-bold" : "text-muted-foreground group-hover:text-primary/70"} `}  >
                                     {tab.label || "Recherche"}
                                 </span>
+
+                                {/* Bottom sliding bar */}
+                                {isActive && (
+                                    <motion.div
+                                        layoutId="activeTabUnderline"
+                                        className="absolute -bottom-1 left-1/4 right-1/4 h-0.5 bg-primary rounded-full"
+                                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                                    />
+                                )}
                             </button>
                         )
                     })}

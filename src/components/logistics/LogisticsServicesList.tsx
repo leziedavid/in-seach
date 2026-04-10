@@ -4,12 +4,14 @@ import React, { useEffect, useState, useRef, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import { Icon } from "@iconify/react";
 import { LogisticService, TransportType } from "@/types/interface";
-import { getLogisticServices, getMyLogisticServices, createLogisticService, updateLogisticService, deleteLogisticService } from "@/api/api";
+import { getLogisticServices, getMyLogisticServices, createLogisticService, updateLogisticService, deleteLogisticService, patchLogisticServiceStatus } from "@/api/api";
 import LogisticsServicesCard from "./LogisticsServicesCard";
 import { useNotification } from "../toast/NotificationProvider";
 import { Button } from "../ui/button";
 import { Modal } from "../modal/MotionModal";
 import FormsLogistics from "./FormsLogistics";
+import { useSubscriptionCheck } from "@/hooks/useSubscriptionCheck";
+import Delete from "./Delete";
 
 const ITEMS_PER_PAGE = 6;
 
@@ -31,7 +33,12 @@ export default function LogisticsServicesList({ mode = "marketplace", onRequestQ
     const [total, setTotal] = useState(0);
     const [editingService, setEditingService] = useState<LogisticService | null>(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [serviceToDelete, setServiceToDelete] = useState<string | null>(null);
+    const [updatingId, setUpdatingId] = useState<string | null>(null);
     const { addNotification } = useNotification();
+
+    const { checkEligibility, loading: checkLoading } = useSubscriptionCheck()
 
     const openEditModal = (service: LogisticService) => {
         setEditingService(service);
@@ -57,7 +64,7 @@ export default function LogisticsServicesList({ mode = "marketplace", onRequestQ
 
             let res;
             if (isManagement) {
-                res = await getMyLogisticServices({ page: pageNum, limit: ITEMS_PER_PAGE });
+                res = await getMyLogisticServices(params);
             } else {
                 res = await getLogisticServices(params);
             }
@@ -153,23 +160,62 @@ export default function LogisticsServicesList({ mode = "marketplace", onRequestQ
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm("Voulez-vous vraiment supprimer ce service ?")) return;
+        setServiceToDelete(id);
+        setIsDeleteModalOpen(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!serviceToDelete) return;
+        setIsSubmitting(true);
         try {
-            const res = await deleteLogisticService(id);
+            const res = await deleteLogisticService(serviceToDelete);
             if (res.statusCode === 200) {
-                addNotification("Service supprimé", "success");
-                fetchServices(1, true);
+                addNotification("Service supprimé avec succès", "success");
+                // Granular update: remove from state without full refetch
+                setServices(prev => prev.filter(s => s.id !== serviceToDelete));
+                setTotal(prev => prev - 1);
+                setIsDeleteModalOpen(false);
+            } else {
+                addNotification(res.message || "Erreur lors de la suppression", "error");
             }
         } catch (error) {
             addNotification("Erreur lors de la suppression", "error");
+        } finally {
+            setIsSubmitting(false);
+            setServiceToDelete(null);
         }
     };
 
-    const handleToggle = async (id: string, value: boolean) => {
-        const formData = new FormData();
-        formData.append('isActive', String(value));
-        await handleUpdate(id, formData);
+    const updateStatus = async (id: string, value: boolean) => {
+        return await patchLogisticServiceStatus(id, value);
     };
+
+    const handleToggle = async (id: string, value: boolean) => {
+        setUpdatingId(id);
+        
+        try {
+            const res = await updateStatus(id, value);
+            
+            if (res.statusCode === 200) {
+                addNotification(`Service ${value ? 'activé' : 'désactivé'}`, "success");
+                fetchServices(1, true); // Actualise la liste après la modification
+            } else {
+                addNotification("Erreur lors du changement de statut", "error");
+            }
+        } catch (error) {
+            addNotification("Erreur serveur", "error");
+        } finally {
+            setUpdatingId(null);
+        }
+    };
+
+    const openCreateModal = async () => {
+        const canCreate = await checkEligibility('LogisticService')
+        if (canCreate) {
+            setEditingService(null);
+            setIsCreateModalOpen(true)
+        }
+    }
 
     return (
         <div className="flex flex-col items-center w-full max-w-7xl mx-auto px-4 py-2">
@@ -179,10 +225,7 @@ export default function LogisticsServicesList({ mode = "marketplace", onRequestQ
                 <div className="flex flex-col md:flex-row items-center justify-center gap-4 w-full max-w-2xl mb-2">
                     <div className="flex items-center w-full bg-card border border-primary rounded-xl px-4 py-3 shadow-sm hover:border-secondary transition-colors">
                         <Icon icon="solar:magnifer-bold-duotone" className="w-4 h-4 text-muted-foreground mr-2 flex-shrink-0" />
-                        <input type="text" placeholder="Quel service logistique recherchez-vous ?" className="flex-1 bg-transparent text-foreground outline-none text-sm min-w-0 md:text-sm placeholder:text-muted-foreground" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} inputMode="text"
-                            style={{ fontSize: '16px' }}
-                            suppressHydrationWarning
-                        />
+                        <input type="text" placeholder="Quel service logistique recherchez-vous ?" className="flex-1 bg-transparent text-foreground outline-none text-sm min-w-0 md:text-sm placeholder:text-muted-foreground" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} inputMode="text" style={{ fontSize: '16px' }} suppressHydrationWarning />
                     </div>
                 </div>
             )}
@@ -228,7 +271,7 @@ export default function LogisticsServicesList({ mode = "marketplace", onRequestQ
                                 </div>
 
                                 <div className="flex justify-end mb-2">
-                                    <Button onClick={() => setIsCreateModalOpen(true)} className="w-full md:w-auto bg-primary text-white px-8 py-2 rounded-xl text-base font-black flex items-center justify-center gap-3 hover:bg-secondary transition-all shadow-xs active:scale-95 flex-shrink-0">
+                                    <Button onClick={() => openCreateModal()} className="w-full md:w-auto bg-primary text-white px-8 py-2 rounded-xl text-base font-black flex items-center justify-center gap-3 hover:bg-secondary transition-all shadow-xs active:scale-95 flex-shrink-0">
                                         Créer
                                         <Icon icon="solar:plus-circle-bold-duotone" className="w-5 h-5" />
                                     </Button>
@@ -261,7 +304,7 @@ export default function LogisticsServicesList({ mode = "marketplace", onRequestQ
                             onDelete={handleDelete}
                             onToggleStatus={handleToggle}
                             onRequestQuote={onRequestQuote}
-                            isUpdating={isSubmitting}
+                            isUpdating={updatingId === service.id}
                         />
                     ))}
                 </div>
@@ -298,6 +341,15 @@ export default function LogisticsServicesList({ mode = "marketplace", onRequestQ
                         </p>
                     </div>
                 )}
+
+                {/* Delete Modal */}
+                <Delete 
+                    isOpen={isDeleteModalOpen}
+                    onClose={() => setIsDeleteModalOpen(false)}
+                    onConfirm={confirmDelete}
+                    isDeleting={isSubmitting}
+                    message="Voulez-vous vraiment supprimer ce service logistique ? Cette action supprimera définitivement toutes les données associées."
+                />
 
                 {/* Loading State / Trigger */}
                 <div ref={loaderRef} className="w-full flex justify-center py-8">

@@ -1,16 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Booking, BookingStatus } from "@/types/interface";
+import { Booking, BookingStatus, BookingsCalendar } from "@/types/interface";
 import { getAllBookings, getMyBookings, updateBookingStatus } from "@/api/api";
 import { Icon } from "@iconify/react";
 import { Button } from "../ui/button";
 import AccountBookingRowSkeleton from "./AccountBookingRowSkeleton";
 import { TablePagination } from "../table/Pagination";
 import BookingDetail from "../home/BookingDetail";
+import BookingModal from "../home/BookingModal";
 import { useNotification } from "../toast/NotificationProvider";
 import { getUserId, getUserRole } from "@/lib/auth";
 import { Role } from "@/types/interface";
+import { useRealTimeUpdate } from "@/hooks/useRealTimeUpdate";
 
 interface BookingsPageProps {
     data?: Booking[];
@@ -47,7 +49,8 @@ export default function BookingsPage({
     const [placedTotalPages, setPlacedTotalPages] = useState(0);
 
     const [internalLoading, setInternalLoading] = useState(false);
-    const [selectedService, setSelectedService] = useState<Booking | null>(null);
+    const [selectedService, setSelectedService] = useState<Booking | BookingsCalendar | null>(null);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [open, setOpen] = useState(false);
 
     const userRole: string | null = getUserRole();
@@ -58,6 +61,11 @@ export default function BookingsPage({
     const totalPages = propTotalPages ?? (activeTab === 'recues' ? receivedTotalPages : placedTotalPages);
     const total = propTotal ?? (bookings.length > 0 ? totalPages * limit : 0);
     const { showNotification } = useNotification();
+
+    // 🔄 SYNCHRONISATION TEMPS RÉEL
+    useRealTimeUpdate('Booking', () => {
+        if (!propData) fetchBookings();
+    });
 
     /* ================= FETCH (Only if not controlled) getAllBookings  ================= */
     const fetchBookings = async () => {
@@ -141,7 +149,7 @@ export default function BookingsPage({
                     {bookingType === 'ANNONCE' ? 'Rendez-vous Annonces' : 'Rendez-vous Services'}
                 </h1>
 
-                <pre>{JSON.stringify(userRole, null, 2)}</pre>
+                {/* <pre>{JSON.stringify(userRole, null, 2)}</pre> */}
 
                 {isPrestataire && !propData && (
                     <div className="flex bg-muted/30 p-1 rounded-xl border border-border w-fit">
@@ -252,8 +260,32 @@ export default function BookingsPage({
                         </div>
 
 
-                        {/* Booking Modal */}
-                        <BookingDetail isOpen={!!selectedService} onClose={() => setSelectedService(null)} booking={selectedService} />
+                        {/* Booking Details Modal */}
+                        <BookingDetail 
+                            isOpen={!!selectedService} 
+                            onClose={() => setSelectedService(null)} 
+                            booking={selectedService} 
+                            onEditRdv={(b) => {
+                                setSelectedService(b);
+                                setIsEditModalOpen(true);
+                            }}
+                        />
+
+                        {/* Booking Edit Modal */}
+                        {selectedService && (
+                            <BookingModal
+                                isOpen={isEditModalOpen}
+                                onClose={() => {
+                                    setIsEditModalOpen(false);
+                                    setSelectedService(null);
+                                    fetchBookings(); // Refresh list after edit
+                                }}
+                                mode="edit"
+                                booking={selectedService}
+                                item={(selectedService.service || selectedService.annonce) as any}
+                                type={(selectedService.bookingType || (selectedService.service ? 'SERVICE' : 'ANNONCE')) as 'SERVICE' | 'ANNONCE'}
+                            />
+                        )}
                     </>
 
                 )}

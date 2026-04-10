@@ -11,6 +11,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { NotificationProvider } from "@/components/toast/NotificationProvider";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import InstallPWA from "@/components/pwa/InstallPWA";
+import BackgroundDecoration from "@/components/layout/BackgroundDecoration";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -27,19 +28,21 @@ const jost = Jost({
 })
 
 export const metadata: Metadata = {
-  title: "ServiceMarket - Dépannage Géolocalisé",
-  description: "Trouvez un expert près de chez vous en quelques clics.",
+  title: "In Search - Trouvez un professionnel près de chez vous",
+  description: "Trouvez un professionnel près de chez vous en quelques clics.",
 };
 
 export default function RootLayout({ children, }: Readonly<{ children: React.ReactNode; }>) {
   return (
     <html lang="fr" suppressHydrationWarning>
+
+
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#b07b5e" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="ServiceMarket" />
+        <meta name="apple-mobile-web-app-title" content="In Search" />
       </head>
       {/* <body className={inter.className}> */}
       <body className={`${jost.variable} font-sans antialiased`}>
@@ -49,6 +52,7 @@ export default function RootLayout({ children, }: Readonly<{ children: React.Rea
             <QueryProvider>
               <SocketProvider>
                 <CartProvider>
+                  <BackgroundDecoration />
                   <ClientLayout>
                     {children}
                   </ClientLayout>

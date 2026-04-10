@@ -297,7 +297,17 @@ export default function BookingDetailModal({ isOpen, onClose, booking, onEditRdv
 
                             {canEdit && (
                                 <div className="sticky bottom-0 p-6 bg-card border-t">
-                                    <button onClick={() => onEditRdv?.(booking)} className="w-full py-4 bg-primary text-white rounded-xl font-black text-sm active:scale-95 transition-all">Modifier le rendez-vous</button>
+                                    <button 
+                                        onClick={() => {
+                                            if (onEditRdv) {
+                                                onEditRdv(booking);
+                                                onClose();
+                                            }
+                                        }} 
+                                        className="w-full py-4 bg-primary text-white rounded-xl font-black text-sm active:scale-95 transition-all"
+                                    >
+                                        Modifier le rendez-vous
+                                    </button>
                                 </div>
                             )}
                         </motion.div>

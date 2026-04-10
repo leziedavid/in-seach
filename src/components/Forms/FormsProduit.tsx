@@ -15,6 +15,7 @@ const productSchema = z.object({
     name: z.string().min(3, "Le nom doit contenir au moins 3 caractères").max(100, "Le nom est trop long"),
     description: z.string().optional(),
     price: z.number().min(0.01, "Le prix est requis").positive("Le prix doit être positif"),
+    discountPercent: z.number().optional(),
     stock: z.number().int().min(0, "Le stock est requis").nonnegative("Le stock ne peut pas être négatif"),
     categoryId: z.string().uuid("Veuillez sélectionner une catégorie"),
     isActive: z.boolean(),
@@ -25,6 +26,7 @@ export interface ProductFormData {
     name: string;
     description?: string;
     price: number;
+    discountPercent?: number;
     stock: number;
     categoryId: string;
     isActive: boolean;
@@ -57,6 +59,7 @@ export default function FormsProduit({ initialData, onSubmit, isSubmitting = fal
             name: initialData?.name || "",
             description: initialData?.description || "",
             price: initialData?.price ?? 0,
+            discountPercent: initialData?.discountPercent ?? undefined,
             stock: initialData?.stock ?? 0,
             categoryId: initialData?.categoryId || "",
             isActive: initialData?.isActive ?? true,
@@ -203,6 +206,25 @@ export default function FormsProduit({ initialData, onSubmit, isSubmitting = fal
                                 suppressHydrationWarning
                             />
                             {errors.stock && <p className="text-[10px] text-red-500">{errors.stock.message}</p>}
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                            <label className="text-xs font-bold">Promotion (%)</label>
+                            <input type="number" {...register("discountPercent", { valueAsNumber: true })}
+                                className="w-full px-3 py-2 rounded-lg border border-border bg-muted text-sm outline-none focus:border-primary transition-all" placeholder="ex: 20"
+                                inputMode={'numeric'}
+                                style={{ fontSize: '16px' }}
+                            />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-xs font-bold text-muted-foreground">Prix Promotionnel</label>
+                            <div className="w-full px-3 py-2 rounded-lg border border-border bg-muted/50 text-sm italic text-muted-foreground">
+                                {watch("price") && watch("discountPercent") ? 
+                                    (watch("price") - ((watch("price") || 0) * (watch("discountPercent") || 0) / 100)).toLocaleString() : 
+                                    "Aucune promo"}
+                            </div>
                         </div>
                     </div>
 

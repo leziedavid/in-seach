@@ -7,6 +7,7 @@ import { Product } from "@/types/interface"
 import ProductDetailModal from "./ProductDetailModal"
 import { useCart } from "@/components/providers/CartProvider"
 import { useNotification } from "@/components/toast/NotificationProvider"
+import Delete from "../logistics/Delete"
 
 export default function ProductCard({
     product,
@@ -18,6 +19,7 @@ export default function ProductCard({
     onDelete?: (id: string) => void;
 }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const { addToCart } = useCart();
     const { addNotification } = useNotification();
 
@@ -34,9 +36,14 @@ export default function ProductCard({
 
     const handleDelete = (e: React.MouseEvent) => {
         e.stopPropagation();
-        if (onDelete && window.confirm("Voulez-vous vraiment supprimer ce produit ?")) {
+        setIsDeleteModalOpen(true);
+    };
+
+    const confirmDelete = () => {
+        if (onDelete) {
             onDelete(product.id);
         }
+        setIsDeleteModalOpen(false);
     };
 
     return (
@@ -53,6 +60,11 @@ export default function ProductCard({
                     <div className="absolute top-1 left-1 md:top-2 md:left-2 bg-black/70 md:bg-background/95 backdrop-blur-sm px-1.5 py-0.5 md:px-2 md:py-0.5 rounded-full text-[8px] md:text-[9px] font-black text-white md:text-foreground uppercase tracking-tighter">
                         {product.category?.name || 'Produit'}
                     </div>
+                    {product.discountPercent && (
+                        <div className="absolute top-1 right-1 md:top-2 md:right-2 bg-red-500 text-white px-1.5 py-0.5 md:px-2 md:py-1 rounded-lg text-[8px] md:text-[10px] font-black animate-pulse shadow-lg">
+                            -{product.discountPercent}%
+                        </div>
+                    )}
                 </div>
 
                 {/* Contenu */}
@@ -68,9 +80,20 @@ export default function ProductCard({
 
                     <div className="w-full flex items-center justify-between mt-auto">
                         <div className="text-left">
-                            <p className="text-secondary font-black text-sm md:text-lg">
-                                {Number(product.price).toLocaleString()} <span className="text-[9px] font-bold text-muted-foreground">CFA</span>
-                            </p>
+                            {product.pricePromo ? (
+                                <div className="space-y-0.5">
+                                    <p className="text-primary font-black text-sm md:text-lg">
+                                        {Number(product.pricePromo).toLocaleString()} <span className="text-[9px] font-bold text-muted-foreground">CFA</span>
+                                    </p>
+                                    <p className="text-[9px] md:text-xs font-bold text-muted-foreground/60 line-through decoration-red-500/30">
+                                        {Number(product.price).toLocaleString()} CFA
+                                    </p>
+                                </div>
+                            ) : (
+                                <p className="text-secondary font-black text-sm md:text-lg">
+                                    {Number(product.price).toLocaleString()} <span className="text-[9px] font-bold text-muted-foreground">CFA</span>
+                                </p>
+                            )}
                         </div>
                         {onEdit || onDelete ? (
                             <div className="flex items-center gap-1">
@@ -95,6 +118,14 @@ export default function ProductCard({
             </div>
 
             <ProductDetailModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} product={product} />
+
+            <Delete
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                onConfirm={confirmDelete}
+                // ProductCard relies on the parent to handle the actual API call and loading state via onDelete
+                isDeleting={false} 
+            />
         </>
     )
 }

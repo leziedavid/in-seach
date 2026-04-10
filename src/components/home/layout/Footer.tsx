@@ -32,6 +32,10 @@ export default function SocialFollow() {
                         <div className="flex flex-wrap justify-center gap-x-2 gap-y-1">
                             <span>Developpé par inSeach</span>
                             <span className="text-gray-300">|</span>
+                            <Link href="/solutions" className="hover:text-primary transition-colors underline-offset-2 hover:underline">
+                                Nos Solutions
+                            </Link>
+                            <span className="text-gray-300">|</span>
                             <Link href="/terms-of-use" className="hover:text-primary transition-colors underline-offset-2 hover:underline">
                                 Conditions Générales d'Utilisation
                             </Link>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Booking, BookingStatus, Role } from "@/types/interface";
+import { Booking, BookingStatus, Role, BookingsCalendar } from "@/types/interface";
 import { Icon } from "@iconify/react";
 import AccountBookingRowSkeleton from "../bookings/AccountBookingRowSkeleton";
 import { TablePagination } from "../table/Pagination";
@@ -10,6 +10,7 @@ import { getUserId, getUserRole } from "@/lib/auth";
 import ReceiptModal, { ReceiptData } from "../shared/ReceiptModal";
 import { getMyBookings } from "@/api/api";
 import { useNotification } from "../toast/NotificationProvider";
+import BookingModal from "../home/BookingModal";
 
 interface HistoriqueRdvProps {
     type: 'history';
@@ -37,9 +38,10 @@ export default function HistoriqueRdv({ data: propData, page: propPage, limit: p
     const setPage = onPageChange ?? setInternalPage;
 
     const [internalLoading, setInternalLoading] = useState(false);
-    const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+    const [selectedBooking, setSelectedBooking] = useState<Booking | BookingsCalendar | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isReceiptOpen, setIsReceiptOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [receiptData, setReceiptData] = useState<ReceiptData | null>(null);
 
     const userRole: string | null = getUserRole();
@@ -229,7 +231,31 @@ export default function HistoriqueRdv({ data: propData, page: propPage, limit: p
                         )}
 
                         {/* Booking Detail Modal */}
-                        <BookingDetail isOpen={isModalOpen} onClose={() => { setIsModalOpen(false); setSelectedBooking(null); }} booking={selectedBooking} />
+                        <BookingDetail 
+                            isOpen={isModalOpen} 
+                            onClose={() => { setIsModalOpen(false); setSelectedBooking(null); }} 
+                            booking={selectedBooking} 
+                            onEditRdv={(b) => {
+                                setSelectedBooking(b);
+                                setIsEditModalOpen(true);
+                            }}
+                        />
+
+                        {/* Booking Edit Modal */}
+                        {selectedBooking && (
+                            <BookingModal
+                                isOpen={isEditModalOpen}
+                                onClose={() => {
+                                    setIsEditModalOpen(false);
+                                    setSelectedBooking(null);
+                                    fetchBookings(); // Refresh list after edit
+                                }}
+                                mode="edit"
+                                booking={selectedBooking}
+                                item={(selectedBooking.service || selectedBooking.annonce) as any}
+                                type={(selectedBooking.bookingType || (selectedBooking.service ? 'SERVICE' : 'ANNONCE')) as 'SERVICE' | 'ANNONCE'}
+                            />
+                        )}
 
                         {/* Receipt Modal */}
                         <ReceiptModal isOpen={isReceiptOpen} onClose={() => { setIsReceiptOpen(false); setReceiptData(null); }} data={receiptData} />

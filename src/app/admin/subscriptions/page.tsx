@@ -13,7 +13,8 @@ import {
     adminUpdatePlanEntity,
     adminDeletePlanEntity,
     adminGetAllSubscriptions,
-    adminAssignPlan
+    adminAssignPlan,
+    adminValidatePayment
 } from '@/api/api';
 import {
     CreditCard, Plus, Trash2, Edit3, CheckCircle2,
@@ -153,6 +154,18 @@ export default function AdminSubscriptionsPage() {
         }
     };
 
+    const handleTogglePlanActive = async (plan: SubscriptionPlan) => {
+        try {
+            const res = await updateSubscriptionPlanAdmin(plan.id, { isActive: !plan.isActive });
+            if (res.statusCode === 200) {
+                addNotification(`Plan ${!plan.isActive ? 'activé' : 'désactivé'}`, "success");
+                fetchData();
+            }
+        } catch (error) {
+            addNotification("Erreur lors de la modification du statut", "error");
+        }
+    };
+
     const handleDeletePlan = async (id: string) => {
         if (!confirm("Supprimer ce plan ?")) return;
         try {
@@ -216,12 +229,27 @@ export default function AdminSubscriptionsPage() {
     };
 
     // --- User Subscription Handlers ---
+    const handleValidatePayment = async (id: string, success: boolean) => {
+        setIsSubmitting(true);
+        try {
+            const res = await adminValidatePayment(id, success);
+            if (res.statusCode === 200) {
+                addNotification(success ? "Paiement validé" : "Paiement rejeté", "success");
+                fetchSubscriptions(subPage);
+            }
+        } catch (error) {
+            addNotification("Erreur lors de la validation", "error");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
     const handleAssignPlan = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!assignForm.userId || !assignForm.planId) return;
         setIsSubmitting(true);
         try {
-            const res = await adminAssignPlan(assignForm);
+            const res = await adminAssignPlan({ ...assignForm, paymentMethod: 'ADMIN' });
             if (res.statusCode === 201 || res.statusCode === 200) {
                 addNotification("Plan assigné avec succès", "success");
                 setIsAssignModalOpen(false);
@@ -263,28 +291,95 @@ export default function AdminSubscriptionsPage() {
             accessorKey: 'startDate',
             header: 'Période',
             cell: ({ row }) => (
-                <div className="flex items-center gap-2 text-[11px] text-muted-foreground font-medium">
-                    <Calendar className="w-3 h-3" />
-                    <span>{new Date(row.original.startDate).toLocaleDateString()} - {new Date(row.original.endDate).toLocaleDateString()}</span>
+                <div className="flex flex-col gap-1 text-[10px] text-muted-foreground font-medium">
+                    <div className="flex items-center gap-1.5">
+                        <Calendar className="w-3 h-3 text-primary" />
+                        <span>Du {new Date(row.original.startDate).toLocaleDateString()}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                        <Calendar className="w-3 h-3 text-rose-400" />
+                        <span>Au {new Date(row.original.endDate).toLocaleDateString()}</span>
+                    </div>
+                </div>
+            )
+        },
+        {
+            accessorKey: 'paymentMethod',
+            header: 'Paiement',
+            cell: ({ row }) => {
+                const method = row.original.paymentMethod;
+                const icon = method === 'CARD' ? 'solar:card-bold-duotone' : method === 'MOBILE_MONEY' ? 'solar:phone-bold-duotone' : 'solar:bank-bold-duotone';
+                return (
+                    <div className="flex items-center gap-2">
+                        <Icon icon={icon} className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-[10px] font-bold uppercase tracking-tight">{method}</span>
+                    </div>
+                );
+            }
+        },
+        {
+            accessorKey: 'paymentStatus',
+            header: 'État Paiement',
+            cell: ({ row }) => (
+                <div className="flex flex-col gap-2">
+                    <Badge variant="outline" className={`font-black text-[9px] uppercase tracking-widest ${row.original.paymentStatus === 'SUCCESS'
+                        ? 'text-emerald-600 border-emerald-200 bg-emerald-50'
+                        : row.original.paymentStatus === 'PENDING'
+                            ? 'text-amber-600 border-amber-200 bg-amber-50'
+                            : 'text-rose-600 border-rose-200 bg-rose-50'
+                        }`}>
+                        {row.original.paymentStatus}
+                    </Badge>
+                    {row.original.paymentProof && (
+                        <a href={row.original.paymentProof} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-[8px] font-black uppercase text-primary hover:underline">
+                            <Icon icon="solar:eye-bold-duotone" width={10} /> Voir Preuve
+                        </a>
+                    )}
                 </div>
             )
         },
         {
             accessorKey: 'status',
-            header: 'Statut',
+            header: 'Abonnement',
             cell: ({ row }) => (
-                <Badge variant="outline" className={`font-black text-[9px] uppercase tracking-widest ${row.original.status === 'ACTIVE'
-                    ? 'text-emerald-600 border-emerald-200 bg-emerald-50'
-                    : 'text-rose-600 border-rose-200 bg-rose-50'
-                    }`}>
-                    {row.original.status === 'ACTIVE' ? 'Actif' : 'Expiré'}
-                </Badge>
+                <div className="flex flex-col gap-3">
+                    <Badge variant="outline" className={`font-black text-[9px] uppercase tracking-widest ${row.original.status === 'ACTIVE'
+                        ? 'text-indigo-600 border-indigo-200 bg-indigo-50'
+                        : 'text-slate-400 border-slate-200 bg-slate-50'
+                        }`}>
+                        {row.original.status === 'ACTIVE' ? 'Actif' : 'Expiré'}
+                    </Badge>
+                    
+                    {row.original.paymentStatus === 'PENDING' && (
+                        <div className="flex gap-1.5">
+                            <Button 
+                                size="sm" 
+                                variant="outline" 
+                                className="h-7 px-2 text-[8px] font-black bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100"
+                                onClick={() => handleValidatePayment(row.original.id, true)}
+                                disabled={isSubmitting}
+                            >
+                                <Icon icon="solar:check-circle-bold-duotone" className="mr-1" /> VALIDER
+                            </Button>
+                            <Button 
+                                size="sm" 
+                                variant="outline" 
+                                className="h-7 px-2 text-[8px] font-black bg-rose-50 text-rose-600 border-rose-200 hover:bg-rose-100"
+                                onClick={() => handleValidatePayment(row.original.id, false)}
+                                disabled={isSubmitting}
+                            >
+                                <Icon icon="solar:close-circle-bold-duotone" className="mr-1" /> REJETER
+                            </Button>
+                        </div>
+                    )}
+                </div>
             )
         }
     ];
 
     return (
-        <div className="p-8 space-y-8 animate-in fade-in duration-500">
+        <>
+            <div className="p-8 space-y-8 animate-in fade-in duration-500">
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-black tracking-tight mb-1">Abonnements</h1>
@@ -379,12 +474,19 @@ export default function AdminSubscriptionsPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {plans.map((plan) => (
-                            <Card key={plan.id} className="rounded-lg border-border/50 shadow-xs overflow-hidden group hover:border-primary/50 transition-all flex flex-col">
-                                <CardHeader className="p-8 pb-4">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <Badge variant={plan.isActive ? "default" : "secondary"} className="font-black text-[9px] uppercase tracking-widest">
-                                            {plan.isActive ? 'Actif' : 'Draft'}
-                                        </Badge>
+                                    <div key={plan.id} className={`rounded-xl border border-border/50 shadow-sm overflow-hidden group transition-all flex flex-col ${!plan.isActive ? 'bg-muted/30 grayscale-[0.5] opacity-80' : 'bg-card hover:border-primary/50 hover:shadow-md'}`}>
+                                        <CardHeader className="p-6 pb-4">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <div className="flex items-center gap-3">
+                                                    <Badge variant={plan.isActive ? "default" : "secondary"} className="font-black text-[9px] uppercase tracking-widest px-2 py-0.5">
+                                                        {plan.isActive ? 'Actif' : 'Inactif'}
+                                                    </Badge>
+                                                    <Switch 
+                                                        checked={plan.isActive} 
+                                                        onCheckedChange={() => handleTogglePlanActive(plan)}
+                                                        className="scale-75"
+                                                    />
+                                                </div>
                                         <div className="flex gap-1">
                                             <Button variant="ghost" size="icon" onClick={() => handleEditPlan(plan)} className="h-8 w-8 rounded-lg"><Edit3 className="w-3.5 h-3.5 text-muted-foreground" /></Button>
                                             <Button variant="ghost" size="icon" onClick={() => handleDeletePlan(plan.id)} className="h-8 w-8 rounded-lg hover:text-rose-500"><Trash2 className="w-3.5 h-3.5 text-muted-foreground" /></Button>
@@ -419,7 +521,7 @@ export default function AdminSubscriptionsPage() {
                                         {plan._count?.subscriptions || 0} Abonnés
                                     </div>
                                 </div>
-                            </Card>
+                            </div>
                         ))}
                     </div>
                 </div>
@@ -570,5 +672,6 @@ export default function AdminSubscriptionsPage() {
                 </div>
             </Modal>
         </div>
+    </>
     );
 }

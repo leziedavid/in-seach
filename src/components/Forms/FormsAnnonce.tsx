@@ -9,7 +9,7 @@ import Image from "next/image";
 import { getForSelectCategorieAnnonces, getForSelectTypeAnnonces } from "@/api/api";
 import { Select2 } from "./Select2";
 import { AnnonceStatus, TypeAnnonce, CategorieAnnonce, UserLocation } from "@/types/interface";
-import { getUserLocation } from "@/utils/location";
+import { useUserLocation } from "@/utils/location";
 import RichTextEditor from "../rich-text-editor";
 
 // Schéma de validation Zod basé sur le modèle Annonce
@@ -38,6 +38,7 @@ interface FormsAnnonceProps {
 }
 
 export default function FormsAnnonce({ initialData, onSubmit, isSubmitting = false, isEditMode = false, isOpen, onClose }: FormsAnnonceProps) {
+    const { getUserLocation } = useUserLocation();
 
     const [categories, setCategories] = useState<CategorieAnnonce[]>([]);
     const [types, setTypes] = useState<TypeAnnonce[]>([]);

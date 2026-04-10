@@ -11,7 +11,7 @@ import { z } from 'zod';
 const registerSchema = z.object({
     email: z.string().email(),
     phone: z.string().min(8),
-    role: z.enum(['CLIENT', 'PRESTATAIRE']),
+    role: z.enum(['CLIENT', 'PRESTATAIRE', 'LOGISTICIAN']),
     otp: z.string().length(5), // @ + 4 chiffres
     fullname: z.string().optional(),
     company: z.string().optional(),
@@ -20,7 +20,7 @@ const registerSchema = z.object({
 export default function RegisterPage() {
     const router = useRouter();
 
-    const [role, setRole] = useState<'CLIENT' | 'PRESTATAIRE'>('CLIENT');
+    const [role, setRole] = useState<'CLIENT' | 'PRESTATAIRE' | 'LOGISTICIAN'>('CLIENT');
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
     const [otp, setOtp] = useState(Array(4).fill(''));
@@ -64,7 +64,7 @@ export default function RegisterPage() {
                 otp: password,
                 role,
                 fullname: fullname || undefined,
-                company: role === 'PRESTATAIRE' && company ? company : undefined,
+                company: role === 'PRESTATAIRE' || role === 'LOGISTICIAN' && company ? company : undefined,
             };
 
             const validation = registerSchema.safeParse(payload);
@@ -110,6 +110,10 @@ export default function RegisterPage() {
                     <div onClick={() => setRole('PRESTATAIRE')} className={`p-4 rounded-2xl border-2 cursor-pointer transition-all flex flex-col items-center gap-2 ${role === 'PRESTATAIRE' ? 'border-primary bg-primary/20' : 'border-gray-200 bg-gray-50 hover:bg-gray-100'}`} >
                         <Icon icon="solar:case-minimalistic-bold-duotone" className={role === 'PRESTATAIRE' ? 'text-primary' : 'text-gray-400'} width={24} />
                         <span className={`text-xs font-bold ${role === 'PRESTATAIRE' ? 'text-primary' : 'text-gray-500'}`}>Professionnel</span>
+                    </div>
+                    <div onClick={() => setRole('LOGISTICIAN')} className={`p-4 rounded-2xl border-2 cursor-pointer transition-all flex flex-col items-center gap-2 ${role === 'LOGISTICIAN' ? 'border-primary bg-primary/20' : 'border-gray-200 bg-gray-50 hover:bg-gray-100'}`} >
+                        <Icon icon="solar:case-minimalistic-bold-duotone" className={role === 'LOGISTICIAN' ? 'text-primary' : 'text-gray-400'} width={24} />
+                        <span className={`text-xs font-bold ${role === 'LOGISTICIAN' ? 'text-primary' : 'text-gray-500'}`}>Logisticien</span>
                     </div>
                 </div>
 
@@ -172,7 +176,7 @@ export default function RegisterPage() {
                     </div>
 
                     {/* Optional Company if PRESTATAIRE */}
-                    {role === 'PRESTATAIRE' && (
+                    {(role === 'PRESTATAIRE' || role === 'LOGISTICIAN') && (
                         <div className="space-y-2">
                             <label className="text-[11px] sm:text-xs font-black text-gray-600">Nom de votre entreprise (optionnel)</label>
                             <div className="relative">

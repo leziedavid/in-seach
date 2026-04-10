@@ -140,6 +140,8 @@ export default function Store() {
         return () => observer.disconnect()
     }, [hasMore, loading])
 
+
+
     return (
         <div className="flex flex-col items-center w-full max-w-7xl mx-auto px-4 py-2">
             {/* Action Bar */}
@@ -149,11 +151,7 @@ export default function Store() {
                     <input type="text" placeholder="Rechercher dans mes produits..." className="flex-1 bg-transparent text-foreground outline-none text-sm placeholder:text-muted-foreground" value={search} onChange={(e) => setSearch(e.target.value)} />
                 </div>
 
-                <button
-                    disabled={checkLoading}
-                    onClick={openCreateModal}
-                    className="w-full md:w-auto flex items-center justify-center gap-2 bg-primary text-white px-6 py-2.5 rounded-xl font-bold hover:bg-secondary transition-all active:scale-95 shadow-lg shadow-primary/20 disabled:opacity-50"
-                >
+                <button disabled={checkLoading} onClick={openCreateModal} className="w-full md:w-auto flex items-center justify-center gap-2 bg-primary text-white px-6 py-2.5 rounded-xl font-bold hover:bg-secondary transition-all active:scale-95 shadow-lg shadow-primary/20 disabled:opacity-50">
                     {checkLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-5 h-5" /> : <Icon icon="solar:plus-circle-bold-duotone" className="w-5 h-5" />}
                     Ajouter un produit
                 </button>

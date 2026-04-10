@@ -6,17 +6,20 @@ import { Icon } from "@iconify/react";
 import Image from 'next/image';
 import FormsIntervention, { InterventionType } from "./FormsIntervention";
 import { Service, Annonce } from "@/types/interface";
-import { createBooking } from "@/api/api";
+import { createBooking, updateBooking } from "@/api/api";
 import { useNotification } from "../toast/NotificationProvider";
 import RichTextEditor from "../rich-text-editor";
 import { useForm, Controller } from "react-hook-form";
 import { createPortal } from "react-dom";
+import { Booking, BookingsCalendar } from "@/types/interface";
 
 interface BookingModalProps {
     isOpen: boolean;
     onClose: () => void;
     item: Service | Annonce;
     type: 'SERVICE' | 'ANNONCE';
+    booking?: Booking | BookingsCalendar | null;
+    mode?: 'create' | 'edit';
 }
 
 const generateTimeSlots = (startHour = 8, endHour = 19) => {
@@ -41,7 +44,7 @@ interface BookingPayload {
     description?: string;
 }
 
-export default function BookingModal({ isOpen, onClose, item, type }: BookingModalProps) {
+export default function BookingModal({ isOpen, onClose, item, type, booking, mode = 'create' }: BookingModalProps) {
     const [mounted, setMounted] = useState(false);
     const { control, formState: { errors }, getValues, reset: resetForm } = useForm({
         defaultValues: { description: "" }
@@ -64,8 +67,16 @@ export default function BookingModal({ isOpen, onClose, item, type }: BookingMod
             setSelectedTime("");
             setActiveImageIndex(0);
             resetForm({ description: "" });
+        } else if (mode === 'edit' && booking) {
+            setInterventionType(booking.interventionType?.toLowerCase() as InterventionType || null);
+            if (booking.scheduledDate) {
+                const date = new Date(booking.scheduledDate);
+                setSelectedDate(date.toISOString().split("T")[0]);
+            }
+            setSelectedTime(booking.scheduledTime || "");
+            resetForm({ description: booking.description || "" });
         }
-    }, [isOpen, resetForm]);
+    }, [isOpen, resetForm, mode, booking]);
 
     useEffect(() => {
         if (interventionType === "urgence") {
@@ -129,7 +140,7 @@ export default function BookingModal({ isOpen, onClose, item, type }: BookingMod
             }
         }
 
-        const payload: BookingPayload = {
+        const payload: any = {
             bookingType: type,
             interventionType: interventionType.toUpperCase(),
             scheduledDate: isoScheduledDate,
@@ -137,22 +148,27 @@ export default function BookingModal({ isOpen, onClose, item, type }: BookingMod
             description: getValues().description,
         };
 
-        if (type === 'SERVICE') {
-            payload.serviceId = item.id;
-        } else {
-            payload.annonceId = item.id;
+        if (mode === 'create') {
+            if (type === 'SERVICE') {
+                payload.serviceId = item.id;
+            } else {
+                payload.annonceId = item.id;
+            }
         }
 
         try {
-            const res = await createBooking(payload);
-            if (res.statusCode === 201) {
-                showNotification(res.message || "Réservation réussie", "success");
+            const res = mode === 'create' 
+                ? await createBooking(payload)
+                : await updateBooking((booking as any).id, payload);
+
+            if (res.statusCode === 201 || res.statusCode === 200) {
+                showNotification(res.message || (mode === 'create' ? "Réservation réussie" : "Réservation mise à jour"), "success");
                 onClose();
             } else {
                 showNotification(res.message || "Erreur", "error");
             }
         } catch {
-            showNotification("Erreur lors de la réservation", "error");
+            showNotification(`Erreur lors de la ${mode === 'create' ? 'réservation' : 'mise à jour'}`, "error");
         }
     };
 
@@ -176,7 +192,9 @@ export default function BookingModal({ isOpen, onClose, item, type }: BookingMod
                                     <Icon icon="solar:alt-arrow-left-bold-duotone" className="w-5 h-5" />
                                 </button>
                                 <div className="flex-1">
-                                    <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-1 block">Réservation {type === 'SERVICE' ? 'Service' : 'Annonce'}</span>
+                                    <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-1 block">
+                                        {mode === 'edit' ? 'Modification' : 'Réservation'} {type === 'SERVICE' ? 'Service' : 'Annonce'}
+                                    </span>
                                     <h2 className="text-lg md:text-2xl font-black text-foreground line-clamp-1">{item.title}</h2>
                                 </div>
                             </div>
@@ -324,7 +342,7 @@ export default function BookingModal({ isOpen, onClose, item, type }: BookingMod
                                         </p>
                                     </div>
                                     <button onClick={handleBooking} className={`w-full md:w-auto py-4 px-8 rounded-xl font-black ${interventionType ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'}`} disabled={!interventionType}>
-                                        Confirmer la réservation
+                                        {mode === 'edit' ? 'Enregistrer les modifications' : 'Confirmer la réservation'}
                                     </button>
                                 </div>
                             </div>

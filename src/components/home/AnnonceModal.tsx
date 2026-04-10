@@ -228,10 +228,7 @@ export default function AnnonceModal({ isOpen, onClose, annonce }: AnnonceModalP
                                                 <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest mb-1">Prix total</p>
                                                 <p className="text-2xl font-black text-secondary">{annonce.price?.toLocaleString()} CFA</p>
                                             </div>
-                                            <button
-                                                onClick={() => setIsBookingModalOpen(true)}
-                                                className="flex-1 sm:flex-none bg-primary text-white py-4 px-10 rounded-xl font-black shadow-lg hover:bg-primary/90 transition-all flex items-center justify-center gap-2"
-                                            >
+                                            <button onClick={() => setIsBookingModalOpen(true)} className="flex-1 sm:flex-none bg-primary text-white py-4 px-10 rounded-xl font-black shadow-lg hover:bg-primary/90 transition-all flex items-center justify-center gap-2">
                                                 <Icon icon="solar:calendar-date-bold-duotone" className="w-5 h-5" />
                                                 Prendre rendez-vous
                                             </button>

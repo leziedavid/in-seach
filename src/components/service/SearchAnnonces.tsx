@@ -5,13 +5,14 @@ import { Icon } from "@iconify/react";
 import Image from 'next/image';
 import { getAnnonces } from "@/api/api";
 import { Annonce, UserLocation } from "@/types/interface";
-import { getUserLocation } from "@/utils/location";
+import { useUserLocation } from "@/utils/location";
 import AnnonceModal from "../home/AnnonceModal";
 import InfiniteScroll from "../ui/InfiniteScroll";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 
 export default function SearchAnnonces() {
     const { withAuth } = useRequireAuth();
+    const { getUserLocation } = useUserLocation();
     const [query, setQuery] = useState("");
     const [isSearching, setIsSearching] = useState(false);
     const [selectedAnnonce, setSelectedAnnonce] = useState<Annonce | null>(null);
@@ -116,6 +117,16 @@ export default function SearchAnnonces() {
                         onChange={(e) => { setQuery(e.target.value); }}
                         inputMode="text" style={{ fontSize: '16px' }}
                     />
+                    {query && (
+                        <button
+                            type="button"
+                            onClick={() => setQuery("")}
+                            className="p-1 text-muted-foreground hover:text-primary transition-colors animate-in fade-in zoom-in duration-200"
+                            title="Effacer la recherche"
+                        >
+                            <Icon icon="solar:close-circle-bold-duotone" className="w-5 h-5" />
+                        </button>
+                    )}
                     <button
                         type="button"
                         onClick={handleUseMyLocation}

@@ -9,7 +9,7 @@ import Image from "next/image";
 import { getForSelectCategories } from "@/api/api";
 import { Select2 } from "./Select2"; // Import du composant Select2
 import { Category, ServiceStatus, ServiceType, UserLocation } from "@/types/interface";
-import { getUserLocation } from "@/utils/location";
+import { useUserLocation } from "@/utils/location";
 import RichTextEditor from "../rich-text-editor";
 
 // Schéma de validation Zod basé sur le DTO
@@ -48,6 +48,7 @@ interface FormsServicesProps {
 }
 
 export default function FormsServices({ initialData, onSubmit, isSubmitting = false, isEditMode = false, isOpen, onClose }: FormsServicesProps) {
+    const { getUserLocation } = useUserLocation();
 
     const [categories, setCategories] = useState<Category[]>([]);
     const [isLoadingCategories, setIsLoadingCategories] = useState(false);

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { getAdminLogs, getAdminLogFiles, deleteAdminLogs } from '@/api/api';
+import { getAdminLogs, getAdminLogFiles, deleteAdminLogs, purgeAdminLogs } from '@/api/api';
 import { ColumnDef } from '@tanstack/react-table';
 import { Terminal, Search, Filter, Trash2, RefreshCw, FileText, AlertTriangle, Info, XCircle, Calendar, ShieldAlert } from 'lucide-react';
 import { useNotification } from '@/components/toast/NotificationProvider';
@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import { GenericTable } from '@/components/table/table';
 
 export default function AdminLogsPage() {
@@ -18,6 +19,8 @@ export default function AdminLogsPage() {
     const [loading, setLoading] = React.useState(true);
     const [total, setTotal] = React.useState(0);
     const [filters, setFilters] = React.useState({ level: '', startDate: '', endDate: '', page: 1, limit: 10 });
+    const [purgeRange, setPurgeRange] = React.useState({ startDate: '', endDate: '' });
+    const [purging, setPurging] = React.useState(false);
     const { addNotification } = useNotification();
 
     const fetchData = async () => {
@@ -40,6 +43,41 @@ export default function AdminLogsPage() {
     React.useEffect(() => {
         fetchData();
     }, [filters.page, filters.level, filters.startDate, filters.endDate]);
+
+    const handleDelete = async (dates: string[]) => {
+        if (!confirm(`Voulez-vous vraiment supprimer les logs pour : ${dates.join(', ')} ?`)) return;
+        try {
+            const res = await deleteAdminLogs(dates);
+            if (res.statusCode === 200) {
+                addNotification("Logs supprimés", "success");
+                fetchData();
+            }
+        } catch (error) {
+            addNotification("Erreur lors de la suppression", "error");
+        }
+    };
+
+    const handlePurge = async () => {
+        const message = purgeRange.startDate && purgeRange.endDate 
+            ? `Voulez-vous vraiment purger les logs du ${purgeRange.startDate} au ${purgeRange.endDate} ?`
+            : "Voulez-vous vraiment effectuer une purge automatique (logs de plus de 48h) ?";
+        
+        if (!confirm(message)) return;
+
+        setPurging(true);
+        try {
+            const res = await purgeAdminLogs(purgeRange);
+            if (res.statusCode === 200) {
+                addNotification(res.data?.message || "Purge effectuée avec succès", "success");
+                fetchData();
+                setPurgeRange({ startDate: '', endDate: '' });
+            }
+        } catch (error) {
+            addNotification("Erreur lors de la purge", "error");
+        } finally {
+            setPurging(false);
+        }
+    };
 
     const getLevelBadge = (level: string) => {
         switch (level.toLowerCase()) {
@@ -108,10 +146,12 @@ export default function AdminLogsPage() {
                     </Button>
                     <Button
                         variant="destructive"
-                        className="rounded-xl font-bold gap-2 px-6"
+                        className="rounded-xl font-bold gap-2 px-6 shadow-lg shadow-rose-500/20 active:scale-95 transition-all"
+                        onClick={handlePurge}
+                        disabled={purging}
                     >
-                        <Trash2 className="w-4 h-4" />
-                        Purger les logs
+                        {purging ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                        {purgeRange.startDate ? 'Confirmer la purge' : 'Auto Purge (48h)'}
                     </Button>
                 </div>
             </header>
@@ -167,6 +207,43 @@ export default function AdminLogsPage() {
                                     )}
                                 </div>
                             </div>
+
+                            <div className="space-y-4 pt-4 border-t border-border/50">
+                                <h3 className="text-sm font-black text-foreground flex items-center gap-2 uppercase tracking-widest">
+                                    <Trash2 className="w-4 h-4 text-rose-500" />
+                                    Période de purge
+                                </h3>
+                                <div className="grid grid-cols-1 gap-3">
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Début</label>
+                                        <Input 
+                                            type="date" 
+                                            className="rounded-xl h-10 text-xs font-bold bg-muted/30 border-border/50"
+                                            value={purgeRange.startDate}
+                                            onChange={(e) => setPurgeRange({...purgeRange, startDate: e.target.value})}
+                                        />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Fin</label>
+                                        <Input 
+                                            type="date" 
+                                            className="rounded-xl h-10 text-xs font-bold bg-muted/30 border-border/50"
+                                            value={purgeRange.endDate}
+                                            onChange={(e) => setPurgeRange({...purgeRange, endDate: e.target.value})}
+                                        />
+                                    </div>
+                                    {(purgeRange.startDate || purgeRange.endDate) && (
+                                        <Button 
+                                            variant="ghost" 
+                                            size="sm" 
+                                            className="text-[10px] font-bold h-8 hover:bg-rose-50 text-rose-500"
+                                            onClick={() => setPurgeRange({ startDate: '', endDate: '' })}
+                                        >
+                                            Effacer la sélection
+                                        </Button>
+                                    )}
+                                </div>
+                            </div>
                         </CardContent>
                     </Card>
 
@@ -177,7 +254,7 @@ export default function AdminLogsPage() {
                             Rétention
                         </h4>
                         <p className="text-muted-foreground text-xs font-medium leading-relaxed">
-                            Les logs sont conservés pendant 30 jours calendaires avant d'être automatiquement purgés.
+                            Les logs sont automatiquement purgés après <span className="text-foreground font-black underline decoration-primary/30">48 heures</span> pour optimiser les performances. Vous pouvez également effectuer une purge manuelle par période.
                         </p>
                     </Card>
                 </div>
