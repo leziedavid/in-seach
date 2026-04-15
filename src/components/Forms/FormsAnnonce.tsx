@@ -22,14 +22,14 @@ const annonceSchema = z.object({
     latitude: z.number().optional(),
     longitude: z.number().optional(),
     typeId: z.string().uuid("Veuillez sélectionner un type d'annonce"),
-    categorieId: z.string().uuid("Veuillez sélectionner une catégorie"),
+    categorieIds: z.array(z.string().uuid("Veuillez sélectionner une catégorie")).min(1, "Veuillez sélectionner au moins une catégorie"),
     images: z.array(z.instanceof(File)).refine((files) => files.every(file => ['image/png', 'image/jpeg', 'image/jpg'].includes(file.type)), { message: 'Les fichiers doivent être des images PNG ou JPEG.' }).refine((files) => files.every(file => file.size <= 5 * 1024 * 1024), { message: 'Chaque fichier ne doit pas dépasser 5 Mo.' })
 });
 
 export type AnnonceFormData = z.infer<typeof annonceSchema>;
 
 interface FormsAnnonceProps {
-    initialData?: Partial<AnnonceFormData & { id?: string; imageUrls?: string[]; files?: any[] }>;
+    initialData?: Partial<AnnonceFormData & { id?: string; imageUrls?: string[]; files?: any[]; categories?: any[] }>;
     onSubmit: (data: FormData) => Promise<void>;
     isSubmitting?: boolean;
     isEditMode?: boolean;
@@ -52,7 +52,11 @@ export default function FormsAnnonce({ initialData, onSubmit, isSubmitting = fal
     );
     const [optionInput, setOptionInput] = useState("");
     const [locationLoading, setLocationLoading] = useState(false);
-    const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(initialData?.categorieId || null);
+    const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>(
+        initialData?.categorieIds ||
+        initialData?.categories?.map((c) => c.id) ||
+        ((initialData as any)?.categorieId ? [(initialData as any).categorieId] : [])
+    );
     const [selectedTypeId, setSelectedTypeId] = useState<string | null>(initialData?.typeId || null);
     const [address, setAddress] = useState<string>("");
     const [location, setLocation] = useState<UserLocation | null>(null);
@@ -75,7 +79,7 @@ export default function FormsAnnonce({ initialData, onSubmit, isSubmitting = fal
             latitude: initialData?.latitude || 6.3654, // Default Cotonou
             longitude: initialData?.longitude || 2.4183,
             typeId: initialData?.typeId || "",
-            categorieId: initialData?.categorieId || "",
+            categorieIds: initialData?.categorieIds || initialData?.categories?.map((c) => c.id) || ((initialData as any)?.categorieId ? [(initialData as any).categorieId] : []),
             images: [],
         }
     });
@@ -104,8 +108,12 @@ export default function FormsAnnonce({ initialData, onSubmit, isSubmitting = fal
 
     // Sync select fields with form state
     useEffect(() => {
-        if (selectedCategoryId) setValue("categorieId", selectedCategoryId, { shouldValidate: true });
-    }, [selectedCategoryId, setValue]);
+        if (selectedCategoryIds && selectedCategoryIds.length > 0) {
+            setValue("categorieIds", selectedCategoryIds, { shouldValidate: true });
+        } else {
+            setValue("categorieIds", [], { shouldValidate: true });
+        }
+    }, [selectedCategoryIds, setValue]);
 
     useEffect(() => {
         if (selectedTypeId) setValue("typeId", selectedTypeId, { shouldValidate: true });
@@ -184,7 +192,7 @@ export default function FormsAnnonce({ initialData, onSubmit, isSubmitting = fal
     const onFormSubmit = async (formData: AnnonceFormData) => {
         const submitData = new FormData();
         Object.entries(formData).forEach(([key, value]) => {
-            if (value !== undefined && value !== null && key !== 'images' && key !== 'options') {
+            if (value !== undefined && value !== null && key !== 'images' && key !== 'options' && key !== 'categorieIds') {
                 if (typeof value === 'boolean') {
                     submitData.append(key, String(value));
                 } else if (typeof value === 'number') {
@@ -195,15 +203,20 @@ export default function FormsAnnonce({ initialData, onSubmit, isSubmitting = fal
             }
         });
 
+        // Append categorieIds individually
+        if (formData.categorieIds && Array.isArray(formData.categorieIds)) {
+            formData.categorieIds.forEach(id => submitData.append('categorieIds', id));
+        }
+
         // Append options individually
         if (formData.options && Array.isArray(formData.options)) {
             formData.options.forEach(option => submitData.append('options', option));
         }
 
         images.forEach(image => submitData.append('files', image));
-        if (existingImageUrls.length > 0) {
-            submitData.append('existingImageUrls', JSON.stringify(existingImageUrls.map(img => img.url)));
-        }
+        // if (existingImageUrls.length > 0) {
+        //     submitData.append('existingImageUrls', JSON.stringify(existingImageUrls.map(img => img.url)));
+        // }
 
         await onSubmit(submitData);
     };
@@ -314,11 +327,12 @@ export default function FormsAnnonce({ initialData, onSubmit, isSubmitting = fal
                             options={categories}
                             labelExtractor={(o) => o.label}
                             valueExtractor={(o) => o.id}
-                            placeholder="Choisir une catégorie"
-                            mode="single"
-                            selectedItem={selectedCategoryId}
-                            onSelectionChange={setSelectedCategoryId}
+                            placeholder="Choisir des catégories"
+                            mode="multiple"
+                            selectedItem={selectedCategoryIds}
+                            onSelectionChange={(v) => setSelectedCategoryIds(v as string[])}
                         />
+                        {errors.categorieIds && <p className="text-xs text-red-500 mt-1">{errors.categorieIds.message}</p>}
                     </div>
                     <div className="space-y-1">
                         <label className="text-xs font-black text-foreground">Type d'annonce</label>
@@ -338,7 +352,7 @@ export default function FormsAnnonce({ initialData, onSubmit, isSubmitting = fal
                 {/* Informations principales */}
                 <div className="bg-card rounded-xl border border-border p-2 ">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-600">
+                        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                             <Icon icon="solar:stars-bold-duotone" className="w-5 h-5" />
                         </div>
                         <h3 className="text-lg font-black text-foreground">Détails de l'annonce</h3>
@@ -393,7 +407,7 @@ export default function FormsAnnonce({ initialData, onSubmit, isSubmitting = fal
                 {/* Options / Caractéristiques */}
                 <div className="bg-card rounded-xl border border-border p-2 ">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-600">
+                        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                             <Icon icon="solar:tag-bold-duotone" className="w-5 h-5" />
                         </div>
                         <div>
@@ -439,13 +453,13 @@ export default function FormsAnnonce({ initialData, onSubmit, isSubmitting = fal
                 <div className="bg-card rounded-xl border border-border p-2 ">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center text-green-600">
+                            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                                 <Icon icon="solar:map-point-bold-duotone" className="w-5 h-5" />
                             </div>
                             <h3 className="text-lg font-black text-foreground">Localisation</h3>
                         </div>
 
-                        <button type="button" onClick={getCurrentLocation} disabled={locationLoading} className="flex items-center gap-2 px-4 py-2 bg-green-500/10 text-green-700 dark:text-green-400 rounded-lg text-sm font-black hover:bg-green-500/20">
+                        <button type="button" onClick={getCurrentLocation} disabled={locationLoading} className="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-lg text-sm font-black hover:bg-primary/20 transition-all active:scale-95">
                             {locationLoading ? <Icon icon="solar:refresh-bold-duotone" className="w-3.5 h-3.5 animate-spin" /> : <Icon icon="solar:map-point-bold-duotone" className="w-3.5 h-3.5" />}
                             Utiliser ma position
                         </button>
@@ -453,6 +467,11 @@ export default function FormsAnnonce({ initialData, onSubmit, isSubmitting = fal
                     </div>
                     {address && <p className="text-xs text-muted-foreground font-bold ml-1">{address}</p>}
 
+                </div>
+
+                {/* message d'info pour dire a l'utilisateur que la localisation es obligatoire pour que son service soit visible par les autres utilisateurs */}
+                <div className="bg-card">
+                    <p className="text-xs text-red-500 font-bold ml-1">La localisation est obligatoire pour que votre annonce soit visible par les autres utilisateurs</p>
                 </div>
 
                 {/* Description */}
@@ -490,7 +509,7 @@ export default function FormsAnnonce({ initialData, onSubmit, isSubmitting = fal
                             ) : (
                                 <>
                                     <Icon icon="solar:check-circle-bold-duotone" className="w-4.5 h-4.5" />
-                                    {isEditMode ? 'Mettre à jour' : 'Publier le service'}
+                                    {isEditMode ? 'Mettre à jour' : 'Publier l\'annonce'}
                                 </>
                             )}
                         </button>

@@ -22,9 +22,9 @@ const serviceSchema = z.object({
     frais: z.number().nonnegative("Les frais doivent être positifs").optional(),
     reduction: z.number().min(0, "La réduction ne peut pas être négative").max(100, "La réduction ne peut pas dépasser 100%").optional(),
     tags: z.array(z.string()),
-    latitude: z.number(),
-    longitude: z.number(),
-    categoryId: z.string().uuid("Veuillez sélectionner une catégorie"),
+    latitude: z.number({ message: "La localisation est obligatoire" }).refine(val => val !== 0, "Veuillez renseigner votre position"),
+    longitude: z.number({ message: "La localisation est obligatoire" }).refine(val => val !== 0, "Veuillez renseigner votre position"),
+    categoryIds: z.array(z.string().uuid("Veuillez sélectionner une catégorie")).min(1, "Veuillez sélectionner au moins une catégorie"),
     images: z.array(z.instanceof(File))
         .refine((files) =>
             files.every(file => ['image/png', 'image/jpeg', 'image/jpg'].includes(file.type)),
@@ -39,7 +39,7 @@ const serviceSchema = z.object({
 export type ServiceFormData = z.infer<typeof serviceSchema>;
 
 interface FormsServicesProps {
-    initialData?: Partial<ServiceFormData & { id?: string; imageUrls?: string[]; files?: any[] }>;
+    initialData?: Partial<ServiceFormData & { id?: string; imageUrls?: string[]; files?: any[]; categories?: any[] }>;
     onSubmit: (data: FormData) => Promise<void>;
     isSubmitting?: boolean;
     isEditMode?: boolean;
@@ -60,7 +60,11 @@ export default function FormsServices({ initialData, onSubmit, isSubmitting = fa
     );
     const [tagInput, setTagInput] = useState("");
     const [locationLoading, setLocationLoading] = useState(false);
-    const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(initialData?.categoryId || null);
+    const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>(
+        initialData?.categoryIds || 
+        initialData?.categories?.map((c) => c.id) || 
+        ((initialData as any)?.categoryId ? [(initialData as any).categoryId] : [])
+    );
     const [address, setAddress] = useState<string>("");
     const [location, setLocation] = useState<UserLocation | null>(null);
 
@@ -93,9 +97,9 @@ export default function FormsServices({ initialData, onSubmit, isSubmitting = fa
             frais: initialData?.frais || undefined,
             reduction: initialData?.reduction || 0,
             tags: initialData?.tags || [],
-            latitude: initialData?.latitude || 48.8566,
-            longitude: initialData?.longitude || 2.3522,
-            categoryId: initialData?.categoryId || "",
+            latitude: initialData?.latitude || undefined,
+            longitude: initialData?.longitude || undefined,
+            categoryIds: initialData?.categoryIds || initialData?.categories?.map((c) => c.id) || ((initialData as any)?.categoryId ? [(initialData as any).categoryId] : []),
             images: [],
         }
     });
@@ -117,14 +121,15 @@ export default function FormsServices({ initialData, onSubmit, isSubmitting = fa
         fetchCategories();
     }, []);
 
-    // Mettre à jour categoryId dans le formulaire quand selectedCategoryId change
+    // Mettre à jour categoryIds dans le formulaire quand selectedCategoryIds change
     // Et pré-remplir le titre lors de la création
     useEffect(() => {
-        if (selectedCategoryId) {
-            setValue("categoryId", selectedCategoryId, { shouldValidate: true });
+        if (selectedCategoryIds && selectedCategoryIds.length > 0) {
+            setValue("categoryIds", selectedCategoryIds, { shouldValidate: true });
 
             if (!isEditMode) {
-                const selectedCategory = categories.find(cat => cat.id === selectedCategoryId);
+                // On prend la première catégorie sélectionnée pour le titre automatique
+                const selectedCategory = categories.find(cat => cat.id === selectedCategoryIds[0]);
                 if (selectedCategory) {
                     const currentTitle = watch("title");
                     // On met à jour le titre uniquement s'il est vide ou s'il correspond au dernier titre auto-généré
@@ -134,8 +139,10 @@ export default function FormsServices({ initialData, onSubmit, isSubmitting = fa
                     }
                 }
             }
+        } else {
+            setValue("categoryIds", [], { shouldValidate: true });
         }
-    }, [selectedCategoryId, setValue, categories, isEditMode, watch]);
+    }, [selectedCategoryIds, setValue, categories, isEditMode, watch]);
 
     // Gestion des images - Upload
     const handleImageUpload = (files: FileList) => {
@@ -219,7 +226,7 @@ export default function FormsServices({ initialData, onSubmit, isSubmitting = fa
 
         // Ajouter les champs texte
         Object.entries(formData).forEach(([key, value]) => {
-            if (value !== undefined && value !== null && key !== 'images' && key !== 'tags') {
+            if (value !== undefined && value !== null && key !== 'images' && key !== 'tags' && key !== 'categoryIds') {
                 if (typeof value === 'boolean') {
                     submitData.append(key, String(value));
                 } else if (typeof value === 'number') {
@@ -229,6 +236,11 @@ export default function FormsServices({ initialData, onSubmit, isSubmitting = fa
                 }
             }
         });
+
+        // Append categoryIds individually
+        if (formData.categoryIds && Array.isArray(formData.categoryIds)) {
+            formData.categoryIds.forEach(id => submitData.append('categoryIds', id));
+        }
 
         // Append tags individually
         if (formData.tags && Array.isArray(formData.tags)) {
@@ -351,7 +363,7 @@ export default function FormsServices({ initialData, onSubmit, isSubmitting = fa
                         <p className="text-red-500 text-sm mt-2">{errors.images.message}</p>
                     )}
                     {!isEditMode && totalImages === 0 && (
-                        <p className="text-sm text-amber-600 dark:text-amber-500 mt-2 flex items-center gap-1">
+                        <p className="text-sm text-primary mt-2 flex items-center gap-1">
                             <Icon icon="solar:danger-bold-duotone" className="w-4 h-4" />
                             * Au moins une image est requise lors de la création
                         </p>
@@ -389,17 +401,17 @@ export default function FormsServices({ initialData, onSubmit, isSubmitting = fa
                                 options={categories}
                                 labelExtractor={(cat) => cat.label}
                                 valueExtractor={(cat) => cat.id}
-                                placeholder="Choisir une catégorie..."
-                                mode="single"
-                                selectedItem={selectedCategoryId}
-                                onSelectionChange={setSelectedCategoryId}
+                                placeholder="Choisir des catégories..."
+                                mode="multiple"
+                                selectedItem={selectedCategoryIds}
+                                onSelectionChange={(v) => setSelectedCategoryIds(v as string[])}
                             />
                         )}
 
-                        {errors.categoryId && (
+                        {errors.categoryIds && (
                             <p className="text-xs text-red-500 font-medium flex items-center gap-1 mt-2">
                                 <Icon icon="solar:danger-bold-duotone" className="w-3 h-3" />
-                                {errors.categoryId.message}
+                                {errors.categoryIds.message}
                             </p>
                         )}
                     </div>
@@ -421,7 +433,7 @@ export default function FormsServices({ initialData, onSubmit, isSubmitting = fa
                         />
 
                         {!isEditMode && (
-                            <p className="text-[11px] text-amber-600/80 font-medium mt-1.5 flex items-start gap-1.5 px-0.5 leading-relaxed">
+                            <p className="text-[11px] text-primary/80 font-medium mt-1.5 flex items-start gap-1.5 px-0.5 leading-relaxed">
                                 <Icon icon="solar:info-circle-bold-duotone" className="w-3.5 h-3.5 mt-0.5 shrink-0" />
                                 <span>Laisser le titre par défaut (nom de la catégorie) permet à votre service d'être mieux référencé et trouvé plus facilement.</span>
                             </p>
@@ -572,61 +584,33 @@ export default function FormsServices({ initialData, onSubmit, isSubmitting = fa
                 </div>
 
                 {/* Localisation */}
-                <div className="bg-card rounded-xl border border-border p-4 sm:p-6 space-y-4">
-                    {/* Header : icône + titre + bouton */}
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
+                <div className="bg-card rounded-xl border border-border p-2 ">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center">
-                                <Icon icon="solar:map-point-bold-duotone" className="text-green-600 dark:text-green-400 w-5 h-5" />
+                            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                                <Icon icon="solar:map-point-bold-duotone" className="w-5 h-5" />
                             </div>
-                            <div>
-                                <h3 className="text-lg font-black text-foreground">Localisation</h3>
-                                <p className="text-xs text-muted-foreground">Coordonnées GPS du service</p>
-                            </div>
+                            <h3 className="text-lg font-black text-foreground">Localisation</h3>
                         </div>
 
-
-                        {/* Bouton responsive */}
-                        <button type="button" onClick={getCurrentLocation} disabled={locationLoading} className="flex items-center justify-center sm:justify-start gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-green-500/10 text-green-700 dark:text-green-400 rounded-lg text-xs sm:text-sm font-black hover:bg-green-500/20 transition-all active:scale-95 w-full sm:w-auto" >
-                            {locationLoading ? (
-                                <Icon icon="solar:refresh-bold-duotone" className="w-3.5 h-3.5 animate-spin" />
-                            ) : (
-                                <Icon icon="solar:map-point-bold-duotone" className="w-3.5 h-3.5" />
-                            )}
-                            <span className="truncate">Utiliser ma position</span>
+                        <button type="button" onClick={getCurrentLocation} disabled={locationLoading} className="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-lg text-sm font-black hover:bg-primary/20 transition-all active:scale-95">
+                            {locationLoading ? <Icon icon="solar:refresh-bold-duotone" className="w-3.5 h-3.5 animate-spin" /> : <Icon icon="solar:map-point-bold-duotone" className="w-3.5 h-3.5" />}
+                            Utiliser ma position
                         </button>
 
                     </div>
-
-                    {/* Inputs Latitude / Longitude */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label className="text-xs font-black text-foreground mb-2 block">Latitude</label>
-                            <input type="number" step="any" readOnly {...register("latitude", { valueAsNumber: true })}
-                                className="w-full p-3 rounded-sm border-2 border-border bg-muted outline-none focus:border-primary transition-all text-sm font-medium text-foreground"
-                                inputMode={'numeric'}
-                                style={{ fontSize: '16px' }}
-                                suppressHydrationWarning
-                            />
-                        </div>
-
-                        <div>
-                            <label className="text-xs font-black text-foreground mb-2 block">Longitude</label>
-                            <input type="number" step="any" readOnly {...register("longitude", { valueAsNumber: true })}
-                                className="w-full p-3 rounded-sm border-2 border-border bg-muted outline-none focus:border-primary transition-all text-sm font-medium text-foreground"
-                                inputMode={'numeric'}
-                                style={{ fontSize: '16px' }}
-                                suppressHydrationWarning />
-                        </div>
-
-                    </div>
-
-                    {address && (
-                        <div className="mb-8 px-4 py-2 rounded-full bg-primary/5 border border-primary/10 flex items-center gap-2 md:mb-8 md:px-4 md:py-2">
-                            <Icon icon="solar:map-point-bold-duotone" className="w-4 h-4 text-primary flex-shrink-0" />
-                            <span className="text-sm text-foreground/80 md:text-sm">{address}</span>
-                        </div>
+                    {address && <p className="text-xs text-muted-foreground font-bold ml-1">{address}</p>}
+                    {(errors.latitude || errors.longitude) && (
+                        <p className="text-xs text-red-500 font-medium flex items-center gap-1 mt-2 ml-1">
+                            <Icon icon="solar:danger-bold-duotone" className="w-3 h-3" />
+                            {errors.latitude?.message || errors.longitude?.message}
+                        </p>
                     )}
+                </div>
+
+                {/* message d'info pour dire a l'utilisateur que la localisation es obligatoire pour que son service soit visible par les autres utilisateurs */}
+                <div className="bg-card">
+                    <p className="text-xs text-red-500 font-bold ml-1">La localisation est obligatoire pour que votre service soit visible par les autres utilisateurs</p>
                 </div>
 
 

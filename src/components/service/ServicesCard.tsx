@@ -118,6 +118,7 @@ export default function ServicesCard({ data: propData, page: propPage, limit: pr
         latitude: service.latitude,
         longitude: service.longitude,
         categoryId: service.categoryId,
+        categories: service.categories || [],
         imageUrls: service.imageUrls || [],
         files: service.files || [],
     })
@@ -242,62 +243,61 @@ export default function ServicesCard({ data: propData, page: propPage, limit: pr
 
                 {/* CARD GRID */}
 
+                {/* Action Bar */}
+                <div className="flex flex-col md:flex-row items-center justify-between gap-4 w-full max-w-4xl mb-6">
+                    <div className="flex items-center w-full"></div>
+                    <Button disabled={checkLoading} onClick={async () => {
+                        const canCreate = await checkEligibility('Service');
+                        if (canCreate) {
+                            setIsOpen(true);
+                            setIsEditing(false);
+                            setSelectedService(null)
+                        }
+                    }}
+                        className="bg-primary text-primary-foreground hover:bg-secondary">
+                        {checkLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-6 h-6 mr-2" /> : <Icon icon="mdi-light:file-plus" className="w-10 h-10" />}
+                        Ajouter un service
+                    </Button>
+                </div>
+
+                <div className="w-full max-w-full px-1">
+
+                    {/* Title */}
+                    <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-gray-900 ext-center">
+                        Boostez votre visibilité et revenus
+                    </h1>
+                    {/* Subtitle */}
+                    <p className="mt-3 text-sm  text-gray-600 leading-relaxed">
+                        Développez votre activité en ajoutant de nouveaux services afin d’améliorer votre visibilité et vos revenus.
+                    </p>
+
+                </div>
+
+
                 {!loading && listes.length > 0 && (
                     <>
+                        {/* DASHBOARD HEADER */}
+
+                        <div className="w-full max-w-6xl mb-8">
+                            <div className="flex flex-col md:flex-row items-start md:items-center justify-between">
+                                <h2 className="text-2xl md:text-3xl font-bold text-foreground"> </h2>
+                                <div className="flex items-center gap-8">
+                                    <div className="text-center md:text-left"> </div>
+                                    <div className="h-10 w-px bg-border" />
+                                    <div className="text-center md:text-left">
+                                        <p className="flex items-center gap-2 text-3xl md:text-4xl font-black text-secondary">
+                                            <span>{total}</span>
+                                            <Icon icon="solar:album-linear" className="w-8 h-8" />
+                                        </p>
+                                        <p className="text-sm text-muted-foreground font-medium">
+                                            Rendez-vous
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
                         <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-2">
-
-                            {/* DASHBOARD HEADER */}
-                            <div className="w-full max-w-6xl mb-8">
-                                <div className="flex flex-col md:flex-row items-start md:items-center justify-between">
-                                    <h2 className="text-2xl md:text-3xl font-bold text-foreground"> </h2>
-
-
-                                    <div className="flex items-center gap-8">
-                                        <div className="text-center md:text-left">
-                                            {/* <p className="flex items-center gap-2 text-3xl md:text-4xl font-black text-primary">
-                                                <span>130</span>
-                                                <Icon icon="solar:wad-of-money-bold-duotone" className="w-8 h-8" />
-                                            </p>
-
-                                            <p className="text-sm text-muted-foreground font-medium">
-                                                Gains
-                                            </p> */}
-
-                                        </div>
-
-                                        <div className="h-10 w-px bg-border" />
-
-                                        <div className="text-center md:text-left">
-                                            <p className="flex items-center gap-2 text-3xl md:text-4xl font-black text-secondary">
-                                                <span>{total}</span>
-                                                <Icon icon="solar:album-linear" className="w-8 h-8" />
-                                            </p>
-                                            <p className="text-sm text-muted-foreground font-medium">
-                                                Rendez-vous
-                                            </p>
-                                        </div>
-
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-                            <div className="flex justify-end mb-2">
-                                <Button disabled={checkLoading} onClick={async () => {
-                                    const canCreate = await checkEligibility('Service');
-                                    if (canCreate) {
-                                        setIsOpen(true);
-                                        setIsEditing(false);
-                                        setSelectedService(null)
-                                    }
-                                }}
-                                    className="bg-primary text-primary-foreground hover:bg-secondary">
-                                    {checkLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-6 h-6 mr-2" /> : <Icon icon="mdi-light:file-plus" className="w-10 h-10" />}
-                                    Ajouter un service
-                                </Button>
-                            </div>
 
                             <div className="w-full px-2 md:px-0">
                                 <div className="grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-6">

@@ -107,7 +107,7 @@ export default function AdminUsersPage() {
                     ? 'text-rose-600 border-rose-200 bg-rose-50'
                     : row.original.role === Role.PRESTATAIRE
                         ? 'text-amber-600 border-amber-200 bg-amber-50'
-                        : 'text-emerald-600 border-emerald-200 bg-emerald-50'
+                        : 'text-primary border-primary/20 bg-primary/5'
                     }`}>
                     {row.original.role}
                 </Badge>

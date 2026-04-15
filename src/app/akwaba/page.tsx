@@ -56,29 +56,42 @@ export default function Page() {
     const [isMounted, setIsMounted] = useState(false);
     const [userRole, setUserRole] = useState<Role | null>(null);
     const [locationError, setLocationError] = useState(false);
+    const [isLocationLoading, setIsLocationLoading] = useState(true);
+    const [isRetrying, setIsRetrying] = useState(false);
+
+    const trackLocation = async (isRetry = false) => {
+        if (isRetry) {
+            setIsRetrying(true);
+        } else {
+            setIsLocationLoading(true);
+            setLocationError(false);
+        }
+
+        const location = await getUserLocation();
+        if (location && location.lat && location.lng) {
+            setLocationError(false);
+            try {
+                await upsertLocationLog({
+                    lat: location.lat,
+                    lng: location.lng,
+                    context: 'akwaba'
+                });
+            } catch (err) {
+                console.error("Failed to update location on akwaba:", err);
+            }
+        } else {
+            setLocationError(true);
+        }
+
+        setIsRetrying(false);
+        setIsLocationLoading(false);
+    };
 
     useEffect(() => {
         setIsMounted(true);
         setUserRole(getUserRole() as Role);
 
         // Track location on akwaba page
-        const trackLocation = async () => {
-            const location = await getUserLocation();
-            if (location && location.lat && location.lng) {
-                try {
-                    await upsertLocationLog({
-                        lat: location.lat,
-                        lng: location.lng,
-                        context: 'akwaba'
-                    });
-                } catch (err) {
-                    console.error("Failed to update location on akwaba:", err);
-                }
-            } else {
-                setLocationError(true);
-            }
-        };
-
         trackLocation();
     }, []);
 
@@ -217,8 +230,6 @@ export default function Page() {
 
         <div className="min-h-screen">
 
-            {/* <pre>{JSON.stringify(data, null, 2)}</pre> */}
-
             {/* Container centré */}
             <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-6 px-4 py-10">
 
@@ -228,8 +239,12 @@ export default function Page() {
 
                         {/* Profil */}
                         <div className="flex flex-col items-center mb-8">
-                            <div className="w-20 h-20 rounded-full border-4 border-primary flex items-center justify-center text-2xl font-bold text-primary bg-primary/5">
+                            {/* <div className="w-20 h-20 rounded-full border-4 border-primary flex items-center justify-center text-2xl font-bold text-primary bg-primary/5">
                                 {data?.user?.fullName?.charAt(0) || 'P'}
+                            </div> */}
+
+                            <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-white shadow-xl shrink-0">
+                                <Image src={data?.user?.avatar || "/avatars/user2.png?q=80&w=200&auto=format&fit=crop"} fill className="object-cover" alt="Provider" unoptimized />
                             </div>
 
                             <p className="font-bold mt-3 text-foreground">{data?.user?.fullName || 'Mon compte'}</p>
@@ -261,10 +276,7 @@ export default function Page() {
 
                         {/* Logout Desktop */}
                         <div className="mt-8 pt-6 border-t border-border">
-                            <button
-                                onClick={handleLogout}
-                                className="w-full flex items-center gap-3 p-3 rounded-xl text-sm text-red-500 hover:bg-red-50 transition-all duration-300"
-                            >
+                            <button onClick={handleLogout} className="w-full flex items-center gap-3 p-3 rounded-xl text-sm text-red-500 hover:bg-red-50 transition-all duration-300">
                                 <Icon icon="solar:logout-bold-duotone" width={18} />
                                 Déconnexion
                             </button>
@@ -388,6 +400,7 @@ export default function Page() {
                     {activeTab === 'Documentation-API' && <ApiDocumentation />}
 
                 </main>
+
             </div>
 
             {/* Quote Request Modal for Marketplace */}
@@ -439,10 +452,7 @@ export default function Page() {
                             </div>
 
                             <div className="pt-2 border-t border-border mt-2">
-                                <button
-                                    onClick={handleLogout}
-                                    className="w-full flex items-center gap-3 p-4 rounded-xl text-sm text-red-500 bg-red-50/50 hover:bg-red-50 transition-all font-bold"
-                                >
+                                <button onClick={handleLogout} className="w-full flex items-center gap-3 p-4 rounded-xl text-sm text-red-500 bg-red-50/50 hover:bg-red-50 transition-all font-bold" >
                                     <Icon icon="solar:logout-bold-duotone" width={18} />
                                     Déconnexion
                                 </button>
@@ -453,6 +463,24 @@ export default function Page() {
                 </Sheet>
 
             </div>
+
+            {/* Blocking Location Loading Overlay */}
+            {isLocationLoading && !locationError && (
+                <div className="fixed inset-0 z-[999] bg-background/80 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center space-y-6">
+                    <div className="relative">
+                        <div className="w-20 h-20 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+                        <div className="absolute inset-0 flex items-center justify-center text-primary">
+                            <Icon icon="solar:map-point-bold-duotone" width={32} />
+                        </div>
+                    </div>
+                    <div className="space-y-2">
+                        <h2 className="text-xl font-black text-foreground">Localisation...</h2>
+                        <p className="text-sm text-muted-foreground">
+                            Nous configurons votre espace en fonction de votre position.
+                        </p>
+                    </div>
+                </div>
+            )}
 
             {/* Blocking Location Error Overlay */}
             {locationError && (
@@ -467,8 +495,13 @@ export default function Page() {
                                 Veuillez activer la localisation pour continuer d'utiliser l'application.
                             </p>
                         </div>
-                        <Button onClick={() => window.location.reload()} className="w-full h-12 rounded-xl font-bold">
-                            Réessayer
+                        <Button onClick={() => trackLocation(true)} disabled={isRetrying} className="w-full h-12 rounded-xl font-bold flex items-center justify-center gap-2 transition-all duration-300" >
+                            {isRetrying ? (
+                                <>
+                                    <Icon icon="line-md:loading-twotone-loop" width={20} />
+                                    <span>Traitement en cours...</span>
+                                </>
+                            ) : ("Réessayer")}
                         </Button>
                     </div>
                 </div>

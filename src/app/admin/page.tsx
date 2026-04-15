@@ -1,7 +1,9 @@
 'use client';
 
 import React from 'react';
-import { Users, Briefcase, CreditCard, ShoppingBag, Radio, TrendingUp, Activity, ArrowUpRight, ArrowDownRight, Clock, Shield, Globe, MoreVertical, Calendar, DollarSign, Target, Zap } from 'lucide-react';
+import Link from 'next/link';
+import { Icon } from '@iconify/react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { adminGetUsers, adminGetProducts, adminGetServices, adminGetAnnonces, getAdminLogs } from '@/api/api';
 import { useNotification } from '@/components/toast/NotificationProvider';
 import { AdminLog } from '@/types/interface';
@@ -10,12 +12,70 @@ import { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
+/* ─── Static data for charts & team ───────────────────────────── */
+
+const weeklyData = [
+    { day: 'Sun', primary: 30000, secondary: 19000 },
+    { day: 'Mon', primary: 38000, secondary: 28000 },
+    { day: 'Tue', primary: 43000, secondary: 32000 },
+    { day: 'Wed', primary: 29000, secondary: 22000 },
+    { day: 'Thu', primary: 35000, secondary: 26000 },
+    { day: 'Fri', primary: 49000, secondary: 38000 },
+    { day: 'Sat', primary: 50000, secondary: 43000 },
+];
+
+const teamMembers = [
+    { name: 'Aneeta T rose', role: 'Project Manager', initials: 'AT', color: 'bg-rose-400' },
+    { name: 'Safan Ahmed', role: 'Head Of Department', initials: 'SA', color: 'bg-blue-400' },
+    { name: 'Karina', role: 'Co-ordinator', initials: 'KA', color: 'bg-emerald-400' },
+    { name: 'Manuel', role: 'Co-ordinator', initials: 'MA', color: 'bg-amber-400' },
+];
+
+/* ─── Card colour map ──────────────────────────────────────────── */
+
+const CARD_STYLES = [
+    {
+        bg: 'bg-[#b3e4d2]',
+        iconBg: 'bg-white/50',
+        iconColor: 'text-emerald-700',
+        text: 'text-emerald-900',
+        sub: 'text-emerald-700/80',
+        badge: 'bg-white/40 text-emerald-800',
+    },
+    {
+        bg: 'bg-[#aecfed]',
+        iconBg: 'bg-white/50',
+        iconColor: 'text-blue-700',
+        text: 'text-blue-900',
+        sub: 'text-blue-700/80',
+        badge: 'bg-white/40 text-blue-800',
+    },
+    {
+        bg: 'bg-[#c4b5f4]',
+        iconBg: 'bg-white/50',
+        iconColor: 'text-violet-700',
+        text: 'text-violet-900',
+        sub: 'text-violet-700/80',
+        badge: 'bg-white/40 text-violet-800',
+    },
+    {
+        bg: 'bg-[#fcd9a0]',
+        iconBg: 'bg-white/50',
+        iconColor: 'text-amber-700',
+        text: 'text-amber-900',
+        sub: 'text-amber-700/80',
+        badge: 'bg-white/40 text-amber-800',
+    },
+];
+
+/* ─── Component ────────────────────────────────────────────────── */
+
 export default function AdminPage() {
     const [stats, setStats] = React.useState([
-        { label: 'Utilisateurs', value: '0', growth: '+12%', icon: Users, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-        { label: 'Produits', value: '0', growth: '+8%', icon: ShoppingBag, color: 'text-rose-600', bg: 'bg-rose-50' },
-        { label: 'Services', value: '0', growth: '+15%', icon: Briefcase, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-        { label: 'Annonces', value: '0', growth: '+5%', icon: Radio, color: 'text-amber-600', bg: 'bg-amber-50' },
+        { label: 'Utilisateurs', value: '0', growth: '+12%', icon: 'solar:users-group-rounded-bold-duotone', sub: 'Comptes actifs' },
+        { label: 'Produits', value: '0', growth: '+8%', icon: 'solar:bag-heart-bold-duotone', sub: 'En catalogue' },
+        { label: 'Services', value: '0', growth: '+15%', icon: 'solar:hand-stars-bold-duotone', sub: 'Disponibles' },
+        { label: 'Annonces', value: '0', growth: '+5%', icon: 'solar:eye-bold-duotone', sub: 'Publiées' },
     ]);
     const [recentLogs, setRecentLogs] = React.useState<AdminLog[]>([]);
     const [loading, setLoading] = React.useState(true);
@@ -33,14 +93,14 @@ export default function AdminPage() {
             ]);
 
             setStats([
-                { label: 'Utilisateurs', value: users.data?.total?.toString() || '0', growth: '+12%', icon: Users, color: 'text-indigo-600', bg: 'bg-indigo-500/10' },
-                { label: 'Produits', value: prods.data?.total?.toString() || '0', growth: '+8%', icon: ShoppingBag, color: 'text-rose-600', bg: 'bg-rose-500/10' },
-                { label: 'Services', value: servs.data?.total?.toString() || '0', growth: '+15%', icon: Briefcase, color: 'text-emerald-600', bg: 'bg-emerald-500/10' },
-                { label: 'Annonces', value: anns.data?.total?.toString() || '0', growth: '+5%', icon: Radio, color: 'text-amber-600', bg: 'bg-amber-500/10' },
+                { label: 'Utilisateurs', value: users.data?.total?.toString() || '0', growth: '+12%', icon: 'solar:users-group-rounded-bold-duotone', sub: 'Comptes actifs' },
+                { label: 'Produits', value: prods.data?.total?.toString() || '0', growth: '+8%', icon: 'solar:bag-heart-bold-duotone', sub: 'En catalogue' },
+                { label: 'Services', value: servs.data?.total?.toString() || '0', growth: '+15%', icon: 'solar:hand-stars-bold-duotone', sub: 'Disponibles' },
+                { label: 'Annonces', value: anns.data?.total?.toString() || '0', growth: '+5%', icon: 'solar:megaphone-bold-duotone', sub: 'Publiées' },
             ]);
 
             setRecentLogs(logs.data?.data || []);
-        } catch (error) {
+        } catch {
             addNotification("Erreur lors de la mise à jour du tableau de bord", "error");
         } finally {
             setLoading(false);
@@ -55,14 +115,17 @@ export default function AdminPage() {
         {
             accessorKey: 'timestamp',
             header: 'Heure',
-            cell: ({ row }) => <span className="text-muted-foreground tabular-nums text-[10px]">{row.original.timestamp.split('T')[1]?.substring(0, 8) || row.original.timestamp}</span>
+            cell: ({ row }) => (
+                <span className="text-muted-foreground tabular-nums text-[10px]">
+                    {row.original.timestamp.split('T')[1]?.substring(0, 8) || row.original.timestamp}
+                </span>
+            )
         },
         {
             accessorKey: 'level',
             header: 'Niveau',
             cell: ({ row }) => (
-                <Badge variant="outline" className={`text-[9px] uppercase font-black px-2 py-0 ${row.original.level === 'error' ? 'text-rose-500 border-rose-200 bg-rose-50' : 'text-primary border-primary/20 bg-primary/5'
-                    }`}>
+                <Badge variant="outline" className={`text-[9px] uppercase font-black px-2 py-0 ${row.original.level === 'error' ? 'text-rose-500 border-rose-200 bg-rose-50' : 'text-primary border-primary/20 bg-primary/5'}`}>
                     {row.original.level}
                 </Badge>
             )
@@ -70,89 +133,108 @@ export default function AdminPage() {
         {
             accessorKey: 'message',
             header: 'Message',
-            cell: ({ row }) => <span className="text-xs font-medium truncate max-w-[200px] block">{row.original.message}</span>
+            cell: ({ row }) => (
+                <span className="text-xs font-medium truncate max-w-[200px] block">{row.original.message}</span>
+            )
         }
     ];
 
-    return (
-        <div className="p-8 space-y-8 animate-in fade-in duration-500">
-            <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-                <div>
-                    <h1 className="text-3xl font-black tracking-tight mb-1">Dashboard</h1>
-                    <p className="text-muted-foreground font-medium">Bon retour, voici l'activité de votre plateforme.</p>
-                </div>
-                <div className="flex items-center gap-2 bg-card border border-border/50 p-1 rounded-xl shadow-sm">
-                    <button className="px-4 py-2 text-xs font-bold rounded-lg bg-primary text-primary-foreground shadow-sm">Aujourd'hui</button>
-                    <button className="px-4 py-2 text-xs font-bold rounded-lg text-muted-foreground hover:bg-muted transition-colors">7J</button>
-                    <button className="px-4 py-2 text-xs font-bold rounded-lg text-muted-foreground hover:bg-muted transition-colors">30J</button>
-                </div>
-            </header>
+    /* ── JSX ──────────────────────────────────────────────────── */
 
-            <div className="grid grid-cols-1 xl:grid-cols-4 lg:grid-cols-2 gap-6">
-                {stats.map((stat, i) => (
-                    <div key={i} className="bg-card p-6 rounded-[2rem] border border-border/50 shadow-sm hover:shadow-md transition-all group relative overflow-hidden">
-                        <div className="flex items-center justify-between mb-4">
-                            <div className={`${stat.bg} ${stat.color} p-3 rounded-2xl group-hover:scale-110 transition-transform`}>
-                                <stat.icon className="w-6 h-6" />
+    return (
+        <div className="p-6 space-y-6 animate-in fade-in duration-500">
+
+            {/* ── 1. Stats row ─────────────────────────────────── */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+                {stats.map((stat, i) => {
+                    const s = CARD_STYLES[i];
+                    return (
+                        <div
+                            key={i}
+                            className={`${s.bg} rounded-3xl p-6 relative overflow-hidden group hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 cursor-default`}
+                        >
+                            {/* Subtle background circle */}
+                            <div className="absolute -right-6 -top-6 w-24 h-24 bg-white/20 rounded-full" />
+
+                            <div className="relative z-10">
+                                <div className="flex items-start justify-between mb-4">
+                                    <div className={`${s.iconBg} w-11 h-11 rounded-2xl flex items-center justify-center shadow-sm`}>
+                                        <Icon icon={stat.icon} width={22} className={s.iconColor} />
+                                    </div>
+                                    <span className={`text-[11px] font-bold ${s.badge} flex items-center gap-0.5 px-2 py-1 rounded-full`}>
+                                        <Icon icon="solar:arrow-right-up-bold-duotone" width={12} />
+                                        {stat.growth}
+                                    </span>
+                                </div>
+
+                                <p className={`text-[11px] font-bold ${s.sub} uppercase tracking-widest mb-1`}>{stat.label}</p>
+                                <h3 className={`text-4xl font-black ${s.text} tabular-nums leading-none mb-1`}>{stat.value}</h3>
+                                <p className={`text-[11px] ${s.sub}`}>{stat.sub}</p>
                             </div>
-                            <button className="text-muted-foreground hover:text-foreground transition-colors">
-                                <MoreVertical className="w-5 h-5" />
-                            </button>
                         </div>
-                        <div className="space-y-1">
-                            <p className="text-muted-foreground font-bold text-xs uppercase tracking-widest">{stat.label}</p>
-                            <div className="flex items-baseline gap-2">
-                                <h3 className="text-3xl font-black tabular-nums">{stat.value}</h3>
-                                <span className="text-[10px] font-black text-emerald-500 flex items-center gap-0.5">
-                                    <ArrowUpRight className="w-3 h-3" />
-                                    {stat.growth}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
 
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-                {/* Main Content Area */}
-                <div className="xl:col-span-2 space-y-8">
-                    {/* Announcement Card (Inspired by "Update" in image) */}
-                    <div className="bg-[#022c22] rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-2xl">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
-                        <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
-                            <div className="flex-1 space-y-4 text-center md:text-left">
-                                <span className="bg-emerald-500/20 text-emerald-300 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest border border-emerald-500/30 inline-flex items-center gap-2">
-                                    <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-                                    Mise à jour système
-                                </span>
-                                <h2 className="text-3xl font-black leading-tight">
-                                    Les performances ont augmenté de <span className="text-emerald-400">24%</span> cette semaine
-                                </h2>
-                                <p className="text-emerald-100/70 font-medium">
-                                    De nouveaux outils d'analyse sont disponibles dans votre espace d'administration.
-                                </p>
-                                <Button className="bg-emerald-500 hover:bg-emerald-400 text-white font-black rounded-2xl px-8 h-12 shadow-xl shadow-emerald-900/20 border-none transition-all hover:-translate-y-1">
-                                    Consulter les stats
-                                </Button>
-                            </div>
-                            <div className="w-48 h-48 bg-emerald-900/50 rounded-[2.5rem] flex items-center justify-center border border-emerald-500/20 shadow-inner">
-                                <TrendingUp className="w-24 h-24 text-emerald-400 opacity-50" />
-                            </div>
+            {/* ── 2. Main content + Right column ───────────────── */}
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+
+                {/* Left — chart + table */}
+                <div className="xl:col-span-2 space-y-6">
+
+                    {/* Bar chart */}
+                    <div className="bg-card rounded-3xl p-6 shadow-sm border border-border">
+                        <div className="flex items-center justify-between mb-6">
+                            <h3 className="text-lg font-black text-foreground">Regular Sell</h3>
+                            <button className="bg-primary hover:bg-primary/90 text-white px-5 py-2 rounded-xl text-xs font-black transition-all">
+                                Export
+                            </button>
                         </div>
+                        <ResponsiveContainer width="100%" height={220}>
+                            <BarChart data={weeklyData} barGap={4} barCategoryGap="30%">
+                                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
+                                <XAxis
+                                    dataKey="day"
+                                    tick={{ fontSize: 12, fill: '#9ca3af', fontWeight: 600 }}
+                                    axisLine={false}
+                                    tickLine={false}
+                                />
+                                <YAxis
+                                    tick={{ fontSize: 11, fill: '#9ca3af' }}
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tickFormatter={(v) => `${v / 1000}k`}
+                                />
+                                <Tooltip
+                                    cursor={{ fill: '#f9fafb', radius: 8 }}
+                                    formatter={(value: any) => [`${(Number(value) / 1000).toFixed(0)}k`, '']}
+                                    contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 4px 24px rgba(0,0,0,0.08)', fontSize: 12, fontWeight: 700 }}
+                                />
+                                <Bar dataKey="primary" fill="#a8e6cf" radius={[6, 6, 0, 0]} />
+                                <Bar dataKey="secondary" fill="#c4b5f4" radius={[6, 6, 0, 0]} />
+                            </BarChart>
+                        </ResponsiveContainer>
                     </div>
 
-                    {/* Table Container */}
-                    <div className="bg-card rounded-[2.5rem] border border-border/50 shadow-sm overflow-hidden">
-                        <div className="p-8 border-b border-border/50 flex items-center justify-between">
-                            <h3 className="text-lg font-black flex items-center gap-3">
-                                <Activity className="w-5 h-5 text-primary" />
-                                Activité Récente
-                            </h3>
-                            <Button variant="ghost" size="sm" className="font-bold text-primary hover:text-primary/80">
+                    {/* Activity Table */}
+                    <div className="bg-card rounded-3xl shadow-sm overflow-hidden border border-border">
+                        <div className="p-6 border-b border-border flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <Icon icon="solar:pulse-bold-duotone" width={22} className="text-foreground" />
+                                <div>
+                                    <h3 className="text-base font-black text-foreground">Activité Récente</h3>
+                                    <p className="text-[11px] text-muted-foreground">Logs système en temps réel</p>
+                                </div>
+                            </div>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="font-bold text-foreground hover:bg-muted rounded-xl text-xs"
+                            >
                                 Voir tout
                             </Button>
                         </div>
-                        <div className="p-4 pt-0">
+                        <div className="p-4">
                             <GenericTable
                                 columns={logColumns}
                                 data={recentLogs}
@@ -164,56 +246,111 @@ export default function AdminPage() {
                     </div>
                 </div>
 
-                {/* Right Summary Column */}
-                <div className="space-y-8">
-                    {/* Performance Widget */}
-                    <div className="bg-card rounded-[2.5rem] border border-border/50 p-8 shadow-sm space-y-8">
-                        <div className="flex items-center justify-between">
-                            <h3 className="font-black text-lg">Performance</h3>
-                            <Target className="w-5 h-5 text-muted-foreground" />
+                {/* Right column */}
+                <div className="space-y-5">
+
+                    {/* Upgrade to Pro */}
+                    <div className="bg-secondary rounded-3xl p-6 relative overflow-hidden">
+                        <div className="absolute -top-8 -right-8 w-32 h-32 bg-white/5 rounded-full" />
+                        <div className="absolute -bottom-6 -left-6 w-28 h-28 bg-primary/10 rounded-full" />
+                        <div className="absolute top-4 right-4">
+                            <Icon icon="solar:menu-dots-bold-duotone" width={18} className="text-white/30" />
                         </div>
 
-                        <div className="relative flex items-center justify-center py-4">
-                            {/* Simple SVG Donut Chart */}
-                            <svg className="w-48 h-48 -rotate-90">
-                                <circle cx="96" cy="96" r="80" fill="transparent" stroke="currentColor" strokeWidth="24" className="text-muted/10" />
-                                <circle cx="96" cy="96" r="80" fill="transparent" stroke="currentColor" strokeWidth="24" strokeDasharray="502" strokeDashoffset="150" className="text-primary" />
-                                <circle cx="96" cy="96" r="80" fill="transparent" stroke="currentColor" strokeWidth="24" strokeDasharray="502" strokeDashoffset="400" className="text-emerald-500" />
-                            </svg>
-                            <div className="absolute flex flex-col items-center">
-                                <span className="text-3xl font-black">78%</span>
-                                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Score Global</span>
+                        <div className="relative z-10">
+                            <h3 className="text-white font-black text-lg mb-3">Upgrade to Pro</h3>
+                            <div className="flex items-baseline gap-1 mb-0.5">
+                                <span className="text-3xl font-black text-white">$4.20</span>
+                                <span className="text-slate-400 text-sm font-medium">/ month</span>
                             </div>
-                        </div>
-
-                        <div className="space-y-4">
-                            {[
-                                { label: 'Conversion', val: '68%', color: 'bg-primary' },
-                                { label: 'Rétention', val: '24%', color: 'bg-emerald-500' },
-                                { label: 'Rejet', val: '8%', color: 'bg-rose-500' },
-                            ].map((item, i) => (
-                                <div key={i} className="flex items-center justify-between p-4 bg-muted/20 rounded-2xl border border-border/10">
-                                    <div className="flex items-center gap-3">
-                                        <div className={`w-3 h-3 rounded-full ${item.color}`}></div>
-                                        <span className="text-sm font-bold">{item.label}</span>
-                                    </div>
-                                    <span className="text-sm font-black tabular-nums">{item.val}</span>
-                                </div>
-                            ))}
+                            <p className="text-slate-500 text-xs mb-6">$50 Billed Annually</p>
+                            <button className="w-full bg-primary hover:bg-primary/90 text-white font-black py-3 rounded-2xl text-sm transition-all hover:-translate-y-0.5 shadow-lg shadow-primary/20">
+                                Upgrade now
+                            </button>
                         </div>
                     </div>
 
-                    {/* Upsell Card */}
-                    <div className="bg-primary/5 border border-primary/20 rounded-[2.5rem] p-8 relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-2xl -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700"></div>
-                        <Zap className="w-10 h-10 text-primary mb-6" />
-                        <h4 className="text-xl font-black mb-2">Passez au niveau supérieur</h4>
-                        <p className="text-sm text-muted-foreground font-medium mb-8 leading-relaxed">
-                            Débloquez des rapports avancés et une gestion multisite avec l'option Admin Gold.
-                        </p>
-                        <Button className="w-full bg-foreground text-background font-black h-12 rounded-2xl shadow-lg transition-transform active:scale-95">
-                            Mettre à niveau
-                        </Button>
+                    {/* More Analysis */}
+                    <div className="bg-card rounded-3xl p-6 shadow-sm border border-border">
+                        <h3 className="text-base font-black text-foreground mb-0.5">More Analysis</h3>
+                        <p className="text-[11px] text-muted-foreground mb-5">There are more to view</p>
+                        <div className="space-y-3">
+                            <Link
+                                href="/admin/products"
+                                className="flex items-center gap-4 p-3.5 bg-muted rounded-2xl hover:bg-muted/80 transition-all group"
+                            >
+                                <div className="w-9 h-9 bg-card rounded-xl flex items-center justify-center shadow-sm group-hover:shadow-md transition-all border border-border">
+                                    <Icon icon="solar:shop-bold-duotone" width={18} className="text-muted-foreground" />
+                                </div>
+                                <span className="flex-1 text-sm font-bold text-foreground">Store sell Ratio</span>
+                                <Icon icon="solar:alt-arrow-right-bold-duotone" width={16} className="text-muted-foreground group-hover:text-foreground transition-colors" />
+                            </Link>
+                            <Link
+                                href="/admin/products"
+                                className="flex items-center gap-4 p-3.5 bg-muted rounded-2xl hover:bg-muted/80 transition-all group"
+                            >
+                                <div className="w-9 h-9 bg-card rounded-xl flex items-center justify-center shadow-sm group-hover:shadow-md transition-all border border-border">
+                                    <Icon icon="solar:medal-ribbon-bold-duotone" width={18} className="text-muted-foreground" />
+                                </div>
+                                <span className="flex-1 text-sm font-bold text-foreground">Top item sold</span>
+                                <Icon icon="solar:alt-arrow-right-bold-duotone" width={16} className="text-muted-foreground group-hover:text-foreground transition-colors" />
+                            </Link>
+                        </div>
+                    </div>
+
+                    {/* Daily Meeting */}
+                    <div className="bg-card rounded-3xl p-6 shadow-sm border border-border">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">
+                                <Icon icon="solar:videocamera-record-bold-duotone" width={20} className="text-blue-600 dark:text-blue-400" />
+                            </div>
+                            <div>
+                                <h4 className="font-black text-foreground text-sm">Daily Meeting</h4>
+                                <p className="text-[10px] text-muted-foreground">12+ person · 9:30 pm</p>
+                            </div>
+                        </div>
+
+                        <div className="flex items-start gap-3 mb-5">
+                            <div className="flex -space-x-2 flex-shrink-0">
+                                {[
+                                    { color: 'bg-rose-400', letter: 'A' },
+                                    { color: 'bg-blue-400', letter: 'S' },
+                                    { color: 'bg-amber-400', letter: 'K' },
+                                ].map((m, i) => (
+                                    <div key={i} className={`w-7 h-7 ${m.color} rounded-full border-2 border-card flex items-center justify-center text-[9px] font-black text-white`}>
+                                        {m.letter}
+                                    </div>
+                                ))}
+                            </div>
+                            <p className="text-xs text-muted-foreground font-medium leading-relaxed">They will conduct the meeting</p>
+                        </div>
+
+                        {/* Bouton dark fixe — élément de design identitaire */}
+                        <button className="w-full bg-foreground hover:opacity-90 text-background text-xs font-bold py-3 rounded-2xl transition-all">
+                            Click for meeting link
+                        </button>
+                    </div>
+
+                    {/* Team Members */}
+                    <div className="bg-card rounded-3xl p-6 shadow-sm border border-border">
+                        <h3 className="text-base font-black text-foreground mb-4">Team Member</h3>
+                        <div className="space-y-1.5">
+                            {teamMembers.map((member, i) => (
+                                <div
+                                    key={i}
+                                    className="flex items-center gap-3 p-2.5 hover:bg-muted rounded-xl transition-all group cursor-pointer"
+                                >
+                                    <div className={`w-9 h-9 ${member.color} rounded-full flex items-center justify-center text-white font-black text-xs flex-shrink-0`}>
+                                        {member.initials}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-bold text-foreground truncate">{member.name}</p>
+                                        <p className="text-[10px] text-muted-foreground truncate">{member.role}</p>
+                                    </div>
+                                    <Icon icon="solar:alt-arrow-right-bold-duotone" width={16} className="text-muted-foreground/50 group-hover:text-muted-foreground transition-colors flex-shrink-0" />
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
             </div>

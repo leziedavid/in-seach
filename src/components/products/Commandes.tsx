@@ -58,7 +58,7 @@ export default function Commandes({
     const loading = propLoading ?? internalLoading;
     const orders = propData ?? (activeTab === 'recues' ? ordersReceived : ordersPlaced);
     const totalPages = propTotalPages ?? (activeTab === 'recues' ? receivedTotalPages : placedTotalPages);
-    
+
     // 🔄 SYNCHRONISATION TEMPS RÉEL
     useRealTimeUpdate('Order', () => {
         if (!propData) fetchOrders();
@@ -135,7 +135,11 @@ export default function Commandes({
 
     return (
         <div className="w-full mx-auto py-4">
-            <h1 className="text-xl font-bold mb-4">Mes Commandes</h1>
+
+            <h1 className=" flex gap-2 text-xl sm:text-xl lg:text-2xl font-extrabold tracking-tight text-gray-900 ext-center">
+                <Icon icon="solar:history-bold-duotone" className="text-primary w-6 h-6" />
+                Mes Commandes
+            </h1>
 
             {/* TABS */}
             <div className="flex bg-muted/50 p-1 rounded-2xl mb-6 w-full max-w-md">

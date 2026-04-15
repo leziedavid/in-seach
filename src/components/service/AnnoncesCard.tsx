@@ -89,6 +89,7 @@ export default function AnnoncesCard({
         longitude: annonce.longitude,
         typeId: annonce.typeId,
         categorieId: annonce.categorieId,
+        categories: annonce.categories || [],
         imageUrls: annonce.images || [],
         files: annonce.images || [],
     })
@@ -194,47 +195,42 @@ export default function AnnoncesCard({
         <>
             <div className="flex flex-col w-full px-0">
 
-                {/* DASHBOARD HEADER */}
-                <div className="w-full max-w-6xl mb-8">
-                    <div className="flex flex-col md:flex-row items-start md:items-center justify-between">
-                        <h2 className="text-2xl md:text-3xl font-bold text-foreground">   </h2>
-
-                        <div className="flex items-center gap-8">
-
-                            <div className="h-10 w-px bg-border" />
-
-                            <div className="text-center md:text-left">
-                                <p className="flex items-center gap-2 text-3xl md:text-4xl font-black text-secondary">
-                                    <span>{total}</span>
-                                    <Icon icon="solar:album-linear" className="w-8 h-8" />
-                                </p>
-                                <p className="text-sm text-muted-foreground font-medium"> Annonces </p>
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <div className="flex justify-end mb-2">
-                    <Button
-                        disabled={checkLoading}
-                        onClick={async () => {
-                            const canCreate = await checkEligibility('Annonce');
-                            if (canCreate) {
-                                setIsOpen(true);
-                                setIsEditing(false);
-                                setSelectedAnnonce(null)
-                            }
-                        }}
-                        className="bg-primary text-primary-foreground hover:bg-secondary"
-                    >
+                {/* Action Bar */}
+                <div className="flex flex-col md:flex-row items-center justify-between gap-4 w-full max-w-4xl mb-6">
+                    <div className="flex items-center w-full"></div>
+                    <Button disabled={checkLoading} onClick={async () => {
+                        const canCreate = await checkEligibility('Annonce');
+                        if (canCreate) {
+                            setIsOpen(true);
+                            setIsEditing(false);
+                            setSelectedAnnonce(null)
+                        }
+                    }}
+                        className="bg-primary text-primary-foreground hover:bg-secondary">
                         {checkLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-6 h-6 mr-2" /> : <Icon icon="mdi-light:file-plus" className="w-10 h-10" />}
                         Ajouter une annonce
                     </Button>
                 </div>
 
+                <div className="w-full max-w-full px-1">
+
+                    {/* Title */}
+                    <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-gray-900 ext-center">
+                        Publiez toutes vos annonces
+                    </h1>
+                    {/* Subtitle */}
+                    <p className="mt-3 text-sm  text-gray-600 leading-relaxed">
+                        Vente de tickets, location, tourisme… publiez vos annonces, fixez vos prix et trouvez rapidement des clients.
+                    </p>
+                </div>
+
+                <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-2">
+                    <div className="flex items-center justify-between w-full px-2 md:px-0 mb-6 border-b border-border pb-4">
+                        <h3 className="text-lg font-black text-foreground">
+                            {loading && listes.length === 0 ? 'Chargement...' : listes.length === 0 ? 'Mes Annonces' : `Mes Annonces (${total})`}
+                        </h3>
+                    </div>
+                </div>
 
                 {loading && <div className="text-center py-10 text-muted-foreground">Chargement...</div>}
                 {!loading && listes.length === 0 && <div className="text-center py-10 text-muted-foreground/60">Aucune annonce trouvée</div>}

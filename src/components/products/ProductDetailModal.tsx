@@ -90,7 +90,7 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                         transition={{ type: "spring", damping: 30, stiffness: 300 }}
                         className="fixed inset-0 flex items-end md:items-center justify-center z-[1001] pointer-events-none">
                         <motion.div className="bg-card shadow-2xl overflow-hidden flex flex-col md:w-[90%] md:max-w-2xl md:max-h-[90vh] md:rounded-[2.5rem] rounded-t-[2.5rem] w-full h-[90vh] md:h-auto pb-safe pointer-events-auto border border-border/50" initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.1 }} >
-                            
+
                             {/* Header Handle for Mobile */}
                             <div className="flex justify-center pt-4 pb-2 shrink-0 md:hidden absolute top-0 left-0 right-0 z-20">
                                 <div className="w-12 h-1.5 bg-white/30 backdrop-blur-md rounded-full shadow-sm" />
@@ -106,7 +106,7 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                                             <Icon icon="solar:box-bold-duotone" width={80} />
                                         </div>
                                     )}
-                                    
+
                                     {/* Overlay Gradient */}
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
 
@@ -153,14 +153,23 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                                                 <p className="text-3xl font-black text-primary">{product.price.toLocaleString()} <span className="text-sm">FCFA</span></p>
                                             )}
                                         </div>
-                                        <div className="flex items-center gap-3 p-3 bg-white shadow-sm rounded-2xl border border-border">
-                                            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                                                <Icon icon="solar:shop-bold-duotone" width={20} />
+                                        <div className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 bg-white shadow-sm rounded-xl sm:rounded-2xl border border-border w-full max-w-full">
+
+                                            {/* Icon */}
+                                            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                                                <Icon icon="solar:shop-bold-duotone" className="w-4 h-4 sm:w-5 sm:h-5" />
                                             </div>
-                                            <div>
-                                                <p className="text-[10px] font-bold uppercase text-muted-foreground leading-none mb-1">Boutique</p>
-                                                <p className="text-xs font-black truncate max-w-[100px]">{product.user?.fullName || "Officielle"}</p>
+
+                                            {/* Content */}
+                                            <div className="min-w-0">
+                                                <p className="text-[9px] sm:text-[10px] font-bold uppercase text-muted-foreground leading-none mb-0.5 sm:mb-1">
+                                                    Boutique
+                                                </p>
+                                                <p className="text-[11px] sm:text-xs font-black truncate">
+                                                    {product.user?.fullName || "Officielle"}
+                                                </p>
                                             </div>
+
                                         </div>
                                     </div>
 
@@ -170,33 +179,20 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                                             <Icon icon="solar:notes-bold-duotone" className="text-primary" />
                                             <h3 className="text-xs font-black uppercase text-muted-foreground tracking-widest">Description du produit</h3>
                                         </div>
-                                        
+
                                         <div className="relative">
-                                            <motion.div 
-                                                animate={{ height: isExpanded ? "auto" : "90px" }}
-                                                className="overflow-hidden"
-                                                transition={{ type: "spring", damping: 20, stiffness: 100 }}
-                                            >
-                                                <div 
-                                                    className="text-sm text-card-foreground/80 font-sans leading-relaxed text-justify"
-                                                    dangerouslySetInnerHTML={{ __html: product.description || "Aucune description détaillée n'est disponible pour l'instant." }}
-                                                />
+                                            <motion.div animate={{ height: isExpanded ? "auto" : "90px" }} className="overflow-hidden" transition={{ type: "spring", damping: 20, stiffness: 100 }}>
+                                                <div className="text-sm text-card-foreground/80 font-sans leading-relaxed text-justify" dangerouslySetInnerHTML={{ __html: product.description || "Aucune description détaillée n'est disponible pour l'instant." }} />
                                             </motion.div>
-                                            
+
                                             {!isExpanded && (
                                                 <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-card via-card/50 to-transparent pointer-events-none" />
                                             )}
                                         </div>
 
-                                        <button 
-                                            onClick={() => setIsExpanded(!isExpanded)}
-                                            className="group flex items-center gap-2 text-primary font-black text-xs uppercase tracking-widest px-1 py-2 hover:opacity-80 transition-all"
-                                        >
+                                        <button onClick={() => setIsExpanded(!isExpanded)} className="group flex items-center gap-2 text-primary font-black text-xs uppercase tracking-widest px-1 py-2 hover:opacity-80 transition-all" >
                                             {isExpanded ? "Voir moins" : "Voir plus de détails"}
-                                            <Icon 
-                                                icon={isExpanded ? "solar:alt-arrow-up-bold-duotone" : "solar:alt-arrow-down-bold-duotone"} 
-                                                className="transition-transform group-hover:translate-y-0.5" 
-                                            />
+                                            <Icon icon={isExpanded ? "solar:alt-arrow-up-bold-duotone" : "solar:alt-arrow-down-bold-duotone"} className="transition-transform group-hover:translate-y-0.5" />
                                         </button>
                                     </div>
 
@@ -222,11 +218,7 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
 
                             {/* Actions Floating Footer */}
                             <div className="p-6 bg-card/80 backdrop-blur-2xl border-t border-border flex gap-4 shrink-0">
-                                <button
-                                    onClick={handleNegotiate}
-                                    disabled={isNegotiating}
-                                    className="p-4 bg-muted hover:bg-primary/10 text-card-foreground rounded-2xl font-black text-sm active:scale-95 transition-all shadow-sm flex items-center justify-center gap-2 group border border-border"
-                                >
+                                <button onClick={handleNegotiate} disabled={isNegotiating} className="p-4 bg-muted hover:bg-primary/10 text-card-foreground rounded-2xl font-black text-sm active:scale-95 transition-all shadow-sm flex items-center justify-center gap-2 group border border-border" >
                                     {isNegotiating ? (
                                         <Icon icon="line-md:loading-twotone-loop" width={22} />
                                     ) : (
@@ -234,12 +226,8 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                                     )}
                                     <span className="hidden md:block">Négocier</span>
                                 </button>
-                                <button
-                                    onClick={handleAddToCart}
-                                    className="flex-1 py-4 px-8 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl font-black text-sm active:scale-95 transition-all shadow-[0_10px_30px_-10px_rgba(var(--primary),0.5)] flex items-center justify-center gap-3"
-                                >
-                                    <Icon icon="solar:cart-large-bold-duotone" width={22} className="animate-pulse" />
-                                    Acheter & Ajouter au panier
+                                <button onClick={handleAddToCart} className="flex-1 py-4 px-8 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl font-black text-sm active:scale-95 transition-all shadow-[0_10px_30px_-10px_rgba(var(--primary),0.5)] flex items-center justify-center gap-3" >
+                                    <Icon icon="solar:cart-large-bold-duotone" width={22} className="animate-pulse" /> Ajouter au panier
                                 </button>
                             </div>
                         </motion.div>

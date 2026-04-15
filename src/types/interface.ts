@@ -175,6 +175,7 @@ export interface Service {
     categoryId: string;
     user?: User;
     category?: Category;
+    categories?: Category[];
     ville?: string;
     duration?: number;
     createdAt: string;
@@ -232,8 +233,8 @@ export interface BookingsCalendar {
     prestaQrScanned: boolean | null;
     createdAt: string;
     updatedAt: string;
-    client?: { id: string; email: string; role: string; fullName?: string; phone?: string; } | null;
-    provider?: { id: string; email: string; role: string; fullName?: string; phone?: string; } | null;
+    client?: { id: string; email: string; role: string; fullName?: string; phone?: string; avatar?: string; } | null;
+    provider?: { id: string; email: string; role: string; fullName?: string; phone?: string; avatar?: string; } | null;
     service?: Service | null;
     annonce?: Annonce | null;
 }
@@ -242,6 +243,9 @@ export interface Category {
     id: string;
     label: string;
     iconName: string;
+    _count?: {
+        services: number;
+    };
 }
 
 export interface UserLocation {
@@ -334,6 +338,9 @@ export interface TypeAnnonce {
     id: string;
     label: string;
     slug: string;
+    _count?: {
+        annonces: number;
+    };
 }
 
 export interface CategorieAnnonce {
@@ -341,6 +348,9 @@ export interface CategorieAnnonce {
     label: string;
     slug: string;
     iconName?: string;
+    _count?: {
+        annonces: number;
+    };
 }
 
 export interface Annonce {
@@ -362,6 +372,7 @@ export interface Annonce {
     categorieId: string;
     type?: TypeAnnonce;
     categorie?: CategorieAnnonce;
+    categories?: CategorieAnnonce[];
     ville?: string;
     createdAt: string;
     updatedAt: string;

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react"
-import { getMyProducts, createProduct, updateProduct, deleteProduct } from "@/api/api"
+import { getMyProducts, createProduct, updateProduct, deleteProduct, handleToggleProductActive } from "@/api/api"
 import { Product } from "@/types/interface"
 import ProductCard from "./ProductCard"
 import { Icon } from "@iconify/react"
@@ -9,10 +9,13 @@ import { useNotification } from "@/components/toast/NotificationProvider"
 import { Modal } from "@/components/modal/MotionModal"
 import FormsProduit from "@/components/Forms/FormsProduit"
 import { useSubscriptionCheck } from "@/hooks/useSubscriptionCheck"
+import NotFound from "@/components/shared/NotFound"
+import VoiceSearchModal from "../service/VoiceSearchModal"
 
 const ITEMS_PER_PAGE = 6
 
 export default function Store() {
+
     const [search, setSearch] = useState("")
     const [products, setProducts] = useState<Product[]>([])
     const [page, setPage] = useState(1)
@@ -26,6 +29,7 @@ export default function Store() {
     const [isEditing, setIsEditing] = useState(false)
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
     const [isSubmitting, setIsSubmitting] = useState(false)
+    const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false)
     const { addNotification } = useNotification()
 
     const { checkEligibility, loading: checkLoading } = useSubscriptionCheck()
@@ -73,6 +77,21 @@ export default function Store() {
         }
     }
 
+    const handleToggleStatus = async (product: Product, value: boolean) => {
+        try {
+            const res = await handleToggleProductActive(product.id, value)
+            if (res.statusCode === 200) {
+                addNotification(res.message || "Statut mis à jour", "success")
+                fetchProducts(1, true)
+            } else {
+                addNotification(res.message || "Erreur lors de la mise à jour", "error")
+            }
+        } catch (error) {
+            console.error("Error toggling product status:", error)
+            addNotification("Erreur lors de la mise à jour", "error")
+        }
+    }
+
     const openCreateModal = async () => {
         const canCreate = await checkEligibility('Product')
         if (canCreate) {
@@ -116,6 +135,10 @@ export default function Store() {
         }
     }, [search])
 
+    const handleVoiceResult = (text: string) => {
+        setSearch(text)
+    }
+
     // Reset and fetch when filters change
     useEffect(() => {
         setPage(1)
@@ -144,38 +167,71 @@ export default function Store() {
 
     return (
         <div className="flex flex-col items-center w-full max-w-7xl mx-auto px-4 py-2">
+
             {/* Action Bar */}
             <div className="flex flex-col md:flex-row items-center justify-between gap-4 w-full max-w-4xl mb-6">
                 <div className="flex items-center w-full md:max-w-md bg-card border border-border rounded-xl px-4 py-2.5 shadow-sm focus-within:border-primary transition-all">
                     <Icon icon="solar:magnifer-bold-duotone" className="w-5 h-5 text-muted-foreground mr-3 flex-shrink-0" />
                     <input type="text" placeholder="Rechercher dans mes produits..." className="flex-1 bg-transparent text-foreground outline-none text-sm placeholder:text-muted-foreground" value={search} onChange={(e) => setSearch(e.target.value)} />
+                    <button type="button" onClick={() => setIsVoiceModalOpen(true)} className="p-1 text-muted-foreground hover:text-primary transition-colors hover:scale-110 active:scale-90" title="Recherche vocale" >
+                        <Icon icon="solar:microphone-bold-duotone" className="w-5 h-5" />
+                    </button>
                 </div>
 
                 <button disabled={checkLoading} onClick={openCreateModal} className="w-full md:w-auto flex items-center justify-center gap-2 bg-primary text-white px-6 py-2.5 rounded-xl font-bold hover:bg-secondary transition-all active:scale-95 shadow-lg shadow-primary/20 disabled:opacity-50">
                     {checkLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-5 h-5" /> : <Icon icon="solar:plus-circle-bold-duotone" className="w-5 h-5" />}
-                    Ajouter un produit
+                    Mettre en vente un article
                 </button>
+            </div>
+
+            <div className="w-full max-w-full px-1">
+
+                {/* Title */}
+                <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-gray-900 ext-center">
+                    Vendez ou revendez vos produits
+                </h1>
+
+                {/* Subtitle */}
+                <p className="mt-3 text-sm  text-gray-600 leading-relaxed">Dès aujourd’hui, mettez vos produits en vente en toute simplicité. Vous définissez le prix, les acheteurs viennent à vous.                </p>
+
             </div>
 
             {/* Results count header */}
             <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-2">
                 <div className="flex items-center justify-between w-full px-2 md:px-0 mb-6 border-b border-border pb-4">
                     <h3 className="text-lg font-black text-foreground">
-                        {loading && products.length === 0 ? 'Chargement...' : products.length === 0 ? 'Aucun produit' : `Mes Produits (${total})`}
+                        {loading && products.length === 0 ? 'Chargement...' : products.length === 0 ? 'Ma Boutique' : `Mes Produits (${total})`}
                     </h3>
                 </div>
 
-                {/* PRODUCTS GRID */}
-                <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-6">
-                    {products.map((product) => (
-                        <ProductCard
-                            key={product.id}
-                            product={product}
-                            onEdit={openEditModal}
-                            onDelete={handleDeleteProduct}
-                        />
-                    ))}
-                </div>
+                {/* PRODUCTS GRID / NOT FOUND */}
+                {products.length === 0 && !loading ? (
+                    <NotFound
+                        title="Aucun produit"
+                        description="Il semble que vous n'ayez aucun produit en vente ou correspondant à votre recherche."
+                        action={
+                            <button
+                                onClick={openCreateModal}
+                                className="flex items-center justify-center gap-2 text-primary font-black hover:underline"
+                            >
+                                <Icon icon="solar:add-circle-bold" className="w-5 h-5" />
+                                Mettre en vente un article
+                            </button>
+                        }
+                    />
+                ) : (
+                    <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-6">
+                        {products.map((product) => (
+                            <ProductCard
+                                key={product.id}
+                                product={product}
+                                onEdit={openEditModal}
+                                onDelete={handleDeleteProduct}
+                                onStatusChange={handleToggleStatus}
+                            />
+                        ))}
+                    </div>
+                )}
 
                 {/* Loading State / Trigger */}
                 <div ref={loaderRef} className="w-full flex justify-center py-12">
@@ -220,6 +276,12 @@ export default function Store() {
                     />
                 </div>
             </Modal>
+
+            <VoiceSearchModal
+                isOpen={isVoiceModalOpen}
+                onClose={() => setIsVoiceModalOpen(false)}
+                onResult={handleVoiceResult}
+            />
         </div>
     )
 }

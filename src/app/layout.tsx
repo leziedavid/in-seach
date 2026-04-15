@@ -28,8 +28,8 @@ const jost = Jost({
 })
 
 export const metadata: Metadata = {
-  title: "In Search - Trouvez un professionnel près de chez vous",
-  description: "Trouvez un professionnel près de chez vous en quelques clics.",
+  title: "Nexxa - L'écosystème tout-en-un pour vos services, vos biens et vos échanges globaux",
+  description: "Simplifiez votre quotidien avec Nexxa : services à la demande, marketplace sécurisée et solutions logistiques internationales.",
 };
 
 export default function RootLayout({ children, }: Readonly<{ children: React.ReactNode; }>) {
@@ -42,7 +42,7 @@ export default function RootLayout({ children, }: Readonly<{ children: React.Rea
         <meta name="theme-color" content="#b07b5e" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="In Search" />
+        <meta name="apple-mobile-web-app-title" content="Nexxa" />
       </head>
       {/* <body className={inter.className}> */}
       <body className={`${jost.variable} font-sans antialiased`}>
@@ -52,7 +52,7 @@ export default function RootLayout({ children, }: Readonly<{ children: React.Rea
             <QueryProvider>
               <SocketProvider>
                 <CartProvider>
-                  <BackgroundDecoration />
+                  {/* <BackgroundDecoration /> */}
                   <ClientLayout>
                     {children}
                   </ClientLayout>

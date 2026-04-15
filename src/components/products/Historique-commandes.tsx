@@ -130,8 +130,8 @@ export default function HistoriqueCommandes() {
 
     return (
         <div className="w-full mx-auto py-4">
-            <h1 className="text-xl font-bold mb-4 italic flex items-center gap-2">
-                <Icon icon="solar:history-bold-duotone" className="text-primary" />
+            <h1 className=" flex gap-2 text-xl sm:text-xl lg:text-2xl font-extrabold tracking-tight text-gray-900 ext-center">
+                <Icon icon="solar:history-bold-duotone" className="text-primary w-6 h-6" />
                 Historique des Commandes
             </h1>
 

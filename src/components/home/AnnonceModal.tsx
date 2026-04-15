@@ -104,14 +104,7 @@ export default function AnnonceModal({ isOpen, onClose, annonce }: AnnonceModalP
                                     {imageGallery.length > 0 && (
                                         <div className="relative w-full aspect-[16/9] rounded-2xl overflow-hidden border-2 border-card shadow-xl group">
                                             <AnimatePresence mode="wait">
-                                                <motion.div
-                                                    key={activeImageIndex}
-                                                    initial={{ opacity: 0, x: 20 }}
-                                                    animate={{ opacity: 1, x: 0 }}
-                                                    exit={{ opacity: 0, x: -20 }}
-                                                    transition={{ duration: 0.3 }}
-                                                    className="absolute inset-0"
-                                                >
+                                                <motion.div key={activeImageIndex} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3 }} className="absolute inset-0" >
                                                     <Image src={imageGallery[activeImageIndex].url} fill unoptimized className="object-cover" alt={annonce.title} />
                                                 </motion.div>
                                             </AnimatePresence>
@@ -121,22 +114,18 @@ export default function AnnonceModal({ isOpen, onClose, annonce }: AnnonceModalP
                                             {/* Slider Controls */}
                                             {imageGallery.length > 1 && (
                                                 <>
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setActiveImageIndex((prev) => (prev - 1 + imageGallery.length) % imageGallery.length);
-                                                        }}
-                                                        className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/30 backdrop-blur-md text-white border border-white/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-black/50 active:scale-90 z-20"
-                                                    >
+                                                    <button onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setActiveImageIndex((prev) => (prev - 1 + imageGallery.length) % imageGallery.length);
+                                                    }}
+                                                        className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/30 backdrop-blur-md text-white border border-white/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-black/50 active:scale-90 z-20" >
                                                         <Icon icon="solar:alt-arrow-left-bold" className="w-5 h-5" />
                                                     </button>
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setActiveImageIndex((prev) => (prev + 1) % imageGallery.length);
-                                                        }}
-                                                        className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/30 backdrop-blur-md text-white border border-white/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-black/50 active:scale-90 z-20"
-                                                    >
+                                                    <button onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setActiveImageIndex((prev) => (prev + 1) % imageGallery.length);
+                                                    }}
+                                                        className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/30 backdrop-blur-md text-white border border-white/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-black/50 active:scale-90 z-20" >
                                                         <Icon icon="solar:alt-arrow-right-bold" className="w-5 h-5" />
                                                     </button>
                                                 </>

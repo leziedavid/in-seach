@@ -21,17 +21,17 @@ const tabs = [
         label: "",
         Icon: SearchIcon,
         info: {
-            title: "Recherche Intelligente",
-            description: "Trouvez rapidement des produits, services ou annonces grâce à notre moteur de recherche optimisé."
+            title: "Expertise à la Demande",
+            description: "Accédez instantanément aux meilleurs talents. Du dépannage d'urgence aux services experts, Nexxa vous connecte avec des professionnels vérifiés."
         }
     },
     {
         id: "annonces",
-        label: "Annonces",
+        label: "Opportunités",
         Icon: HistoryIcon,
         info: {
-            title: "Annonces & Opportunités",
-            description: "Publiez vos propres annonces ou consultez les opportunités disponibles autour de vous."
+            title: "Marketplace d'Opportunités",
+            description: "Vendez, achetez ou dénichez des pépites locales. Une interface intuitive pour donner une seconde vie à vos biens en toute sécurité."
         }
     },
     {
@@ -39,8 +39,8 @@ const tabs = [
         label: "Boutique",
         Icon: AccountIcon,
         info: {
-            title: "Espace Boutique",
-            description: "Découvrez notre sélection de produits exclusifs et achetez en toute simplicité."
+            title: "Shopping Premium",
+            description: "Découvrez une sélection exclusive de produits. Une expérience d'achat fluide pensée pour votre confort et votre sécurité."
         }
     },
     {
@@ -48,8 +48,8 @@ const tabs = [
         label: "Logistique",
         Icon: LogisticsIcon,
         info: {
-            title: "Espace Logistique",
-            description: "Services de transport maritime, aérien et gestion douanière pour vos colis."
+            title: "Logistique Globale",
+            description: "Expédiez sans frontières. Solutions de transport maritime, aérien et suivi en temps réel pour vos flux internationaux."
         }
     },
 ]
@@ -86,7 +86,7 @@ export default function AppTabs() {
     }, [active])
 
     return (
-        <div className="flex flex-col items-center w-full px-2 sm:px-4 py-4 sm:py-8">
+        <div className="flex flex-col items-center w-full px-0 sm:px-4 py-4 sm:py-8">
 
             {/* TABS RESPONSIVE AVEC SCROLL + CENTRÉ */}
             <div ref={scrollContainerRef} className="w-full overflow-x-auto scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -97,29 +97,19 @@ export default function AppTabs() {
                         const IconComponent = tab.Icon
 
                         return (
-                            <button
-                                key={tab.id}
-                                ref={isActive ? activeTabRef : null}
-                                onClick={() => handleTabClick(tab.id)}
-                                onMouseEnter={() => handleTabClick(tab.id)}
-                                className="relative flex flex-col items-center shrink-0 group py-2 px-1"
-                            >
+                            <button key={tab.id} ref={isActive ? activeTabRef : null} onClick={() => handleTabClick(tab.id)} onMouseEnter={() => handleTabClick(tab.id)} className="relative flex flex-col items-center shrink-0 group py-2 px-1" >
                                 {/* Active Indicator (Sliding Background) */}
                                 {isActive && (
-                                    <motion.div
-                                        layoutId="activeTabBackground"
-                                        className="absolute inset-0 bg-primary/5 rounded-2xl z-0"
-                                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                                    />
+                                    <motion.div layoutId="activeTabBackground" className="absolute inset-0 bg-primary/5 rounded-2xl z-0" transition={{ type: "spring", bounce: 0.2, duration: 0.6 }} />
                                 )}
 
                                 {/* Cercle */}
                                 <div className={`relative z-10 w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 flex items-center justify-center rounded-full border-2 transition-all duration-300 group-hover:scale-110 active:scale-95 ${isActive ? "bg-primary border-primary shadow-lg shadow-primary/20 scale-105" : "bg-card border-border hover:border-primary/40"} `}  >
                                     <IconComponent active={isActive} />
-                                    
+
                                     {/* Small indicator dot for active state */}
                                     {isActive && (
-                                        <motion.div 
+                                        <motion.div
                                             layoutId="activeDot"
                                             className="absolute -top-1 -right-1 w-3 h-3 bg-secondary rounded-full border-2 border-background"
                                             initial={{ scale: 0 }}
@@ -157,8 +147,7 @@ export default function AppTabs() {
 
 
             {/* INFO COMPONENT */}
-            <Info
-                isOpen={showInfo}
+            <Info isOpen={showInfo}
                 onClose={() => setShowInfo(false)}
                 title={tabs.find(t => t.id === active)?.info.title || ""}
                 description={tabs.find(t => t.id === active)?.info.description || ""}
@@ -168,29 +157,28 @@ export default function AppTabs() {
             {/* CONTENT */}
             <div className="mt-4 sm:mt-6 w-full flex flex-col items-center stagger-parent">
                 {active === "search" && (
-                    <div className="w-full flex flex-col items-center px-2 sm:px-0 stagger-item">
+                    <div className="w-full flex flex-col items-center px-0 sm:px-0 stagger-item">
                         <SearchServies />
                     </div>
                 )}
 
                 {active === "annonces" && (
-                    <div className="w-full flex flex-col items-center px-2 sm:px-0 stagger-item">
+                    <div className="w-full flex flex-col items-center px-0 sm:px-0 stagger-item">
                         <SearchAnnonces />
                     </div>
                 )}
 
                 {active === "boutique" && (
-                    <div className="w-full flex flex-col items-center px-2 sm:px-0 stagger-item">
+                    <div className="w-full flex flex-col items-center px-0 sm:px-0 stagger-item">
                         <Boutique />
                     </div>
                 )}
 
                 {active === "logistics" && (
-                    <div className="w-full flex flex-col items-center px-2 sm:px-0 stagger-item">
+                    <div className="w-full flex flex-col items-center px-0 sm:px-0 stagger-item">
                         <LogisticsServicesList mode="marketplace" onRequestQuote={openQuoteModal} />
                     </div>
                 )}
-
             </div>
 
             {/* Quote Request Modal */}

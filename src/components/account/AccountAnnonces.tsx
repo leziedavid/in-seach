@@ -17,7 +17,6 @@ interface AccountAnnoncesProps {
 export default function AccountAnnonces({ data = [], page = 1, limit = 6, total = 0, totalPages = 0, loading = false, onPageChange, onSuccess }: AccountAnnoncesProps) {
     return (
         <div className="w-full mx-auto py-4">
-            <h1 className="text-xl  mb-4 font-medium">Mes annonces</h1>
             <AnnoncesCard
                 data={data}
                 page={page}

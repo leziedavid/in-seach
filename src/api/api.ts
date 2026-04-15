@@ -1,5 +1,5 @@
 import { getCookie } from '@/lib/cookies';
-import { BaseResponse, Booking, Category, GlobalSearchResponse, Pagination, ReverseGeocodeData, Service, UserLocation, MySpaceResponse, Annonce, BookingsCalendar, Product, CategoryProd, Order, AdminQueryParams, AdminUserUpdateDto, AdminProductUpdateDto, AdminServiceUpdateDto, AdminAnnonceUpdateDto, AdminSubscriptionPlanDto, User, AdminLog, SubscriptionPlan, PlanEntity, AdminUserSubscription, Subscription, OrdersGroupedResponse, BookingsGroupedResponse, LogisticService, Quote, Delivery, DeliveryTracking, QuoteStatus, DeliveryStatus, TransportType, LocationLog } from '@/types/interface';
+import { BaseResponse, Booking, Category, GlobalSearchResponse, Pagination, ReverseGeocodeData, Service, UserLocation, MySpaceResponse, Annonce, BookingsCalendar, Product, CategoryProd, Order, AdminQueryParams, AdminUserUpdateDto, AdminProductUpdateDto, AdminServiceUpdateDto, AdminAnnonceUpdateDto, AdminSubscriptionPlanDto, User, AdminLog, SubscriptionPlan, PlanEntity, AdminUserSubscription, Subscription, OrdersGroupedResponse, BookingsGroupedResponse, LogisticService, Quote, Delivery, DeliveryTracking, QuoteStatus, DeliveryStatus, TransportType, LocationLog, CategorieAnnonce, TypeAnnonce } from '@/types/interface';
 
 export const getBaseUrl = (): string => {
     return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
@@ -13,15 +13,22 @@ export const useAuthMiddleware = async (): Promise<void> => {
 };
 
 
-export function toQueryString(params: Record<string, string | number | boolean | undefined | null>): string {
-    return new URLSearchParams(
-        Object.entries(params).reduce((acc, [key, value]) => {
-            if (value !== undefined && value !== null) {
-                acc[key] = String(value);
-            }
-            return acc;
-        }, {} as Record<string, string>)
-    ).toString();
+export function toQueryString(params: Record<string, any>): string {
+    const searchParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+        if (value === undefined || value === null || value === '') return;
+        
+        if (Array.isArray(value)) {
+            value.forEach(v => {
+                if (v !== undefined && v !== null && v !== '') {
+                    searchParams.append(key, String(v));
+                }
+            });
+        } else {
+            searchParams.append(key, String(value));
+        }
+    });
+    return searchParams.toString();
 }
 
 
@@ -920,6 +927,14 @@ export const deleteProduct = async (id: string): Promise<BaseResponse<any>> => {
     return await response.json();
 };
 
+export const handleToggleProductActive = async (id: string, isActive: boolean): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/products/${id}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ isActive }),
+    });
+    return await response.json();
+};
+
 export const createOrder = async (data: { items: { productId: string; quantity: number }[]; paymentMethod: string }): Promise<BaseResponse<Order>> => {
     const response = await secureFetch(`${getBaseUrl()}/orders`, {
         method: 'POST',
@@ -992,6 +1007,65 @@ export const adminDeleteProduct = async (id: string): Promise<BaseResponse<Produ
     return await response.json();
 };
 
+// ADMIN - CATEGORY PRODUCTS
+export const adminGetCategoriesProduct = async (): Promise<BaseResponse<CategoryProd[]>> => {
+    const response = await secureFetch(`${getBaseUrl()}/category-products`);
+    return await response.json();
+};
+
+export const adminCreateCategoryProduct = async (data: { name: string }): Promise<BaseResponse<CategoryProd>> => {
+    const response = await secureFetch(`${getBaseUrl()}/category-products`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const adminUpdateCategoryProduct = async (id: string, data: { name: string }): Promise<BaseResponse<CategoryProd>> => {
+    const response = await secureFetch(`${getBaseUrl()}/category-products/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const adminDeleteCategoryProduct = async (id: string): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/category-products/${id}`, {
+        method: 'DELETE',
+    });
+    return await response.json();
+};
+
+// ADMIN - SERVICE CATEGORIES
+export const adminGetCategories = async (params: { page?: number; limit?: number; query?: string }): Promise<BaseResponse<Pagination<Category>>> => {
+    const queryString = toQueryString(params);
+    const response = await fetch(`${getBaseUrl()}/categories?${queryString}`);
+    return await response.json();
+};
+
+export const adminCreateCategory = async (formData: FormData): Promise<BaseResponse<Category>> => {
+    const response = await secureFetch(`${getBaseUrl()}/categories`, {
+        method: 'POST',
+        body: formData,
+    });
+    return await response.json();
+};
+
+export const adminUpdateCategory = async (id: string, formData: FormData): Promise<BaseResponse<Category>> => {
+    const response = await secureFetch(`${getBaseUrl()}/categories/${id}`, {
+        method: 'PATCH',
+        body: formData,
+    });
+    return await response.json();
+};
+
+export const adminDeleteCategory = async (id: string): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/categories/${id}`, {
+        method: 'DELETE',
+    });
+    return await response.json();
+};
+
 // ADMIN - SERVICES
 export const adminGetServices = async (params: AdminQueryParams): Promise<BaseResponse<Pagination<Service>>> => {
     const queryString = toQueryString(params);
@@ -1048,6 +1122,66 @@ export const adminToggleAnnonceActive = async (id: string, value: boolean): Prom
     const response = await secureFetch(`${getBaseUrl()}/admin/annonces/${id}/toggle-active`, {
         method: 'PATCH',
         body: JSON.stringify({ value }),
+    });
+    return await response.json();
+};
+
+// ADMIN - CATEGORIE ANNONCES
+export const adminGetCategorieAnnonces = async (params: { page?: number; limit?: number; query?: string }): Promise<BaseResponse<Pagination<CategorieAnnonce>>> => {
+    const queryString = toQueryString(params);
+    const response = await secureFetch(`${getBaseUrl()}/categorie-annonce?${queryString}`);
+    return await response.json();
+};
+
+export const adminCreateCategorieAnnonce = async (formData: FormData): Promise<BaseResponse<CategorieAnnonce>> => {
+    const response = await secureFetch(`${getBaseUrl()}/categorie-annonce`, {
+        method: 'POST',
+        body: formData,
+    });
+    return await response.json();
+};
+
+export const adminUpdateCategorieAnnonce = async (id: string, formData: FormData): Promise<BaseResponse<CategorieAnnonce>> => {
+    const response = await secureFetch(`${getBaseUrl()}/categorie-annonce/${id}`, {
+        method: 'PATCH',
+        body: formData,
+    });
+    return await response.json();
+};
+
+export const adminDeleteCategorieAnnonce = async (id: string): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/categorie-annonce/${id}`, {
+        method: 'DELETE',
+    });
+    return await response.json();
+};
+
+// ADMIN - TYPE ANNONCES
+export const adminGetTypeAnnonces = async (params: { page?: number; limit?: number; query?: string }): Promise<BaseResponse<Pagination<TypeAnnonce>>> => {
+    const queryString = toQueryString(params);
+    const response = await secureFetch(`${getBaseUrl()}/type-annonce?${queryString}`);
+    return await response.json();
+};
+
+export const adminCreateTypeAnnonce = async (data: { label: string }): Promise<BaseResponse<TypeAnnonce>> => {
+    const response = await secureFetch(`${getBaseUrl()}/type-annonce`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const adminUpdateTypeAnnonce = async (id: string, data: { label: string }): Promise<BaseResponse<TypeAnnonce>> => {
+    const response = await secureFetch(`${getBaseUrl()}/type-annonce/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const adminDeleteTypeAnnonce = async (id: string): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/type-annonce/${id}`, {
+        method: 'DELETE',
     });
     return await response.json();
 };

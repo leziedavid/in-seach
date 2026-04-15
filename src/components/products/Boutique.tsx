@@ -6,6 +6,8 @@ import { Product, CategoryProd } from "@/types/interface"
 import CategoryButton from "./CategoryButton"
 import ProductCard from "./ProductCard"
 import { Icon } from "@iconify/react"
+import NotFound from "../shared/NotFound"
+import VoiceSearchModal from "../service/VoiceSearchModal"
 
 const ITEMS_PER_PAGE = 6
 
@@ -18,6 +20,7 @@ export default function ProductsPage() {
     const [hasMore, setHasMore] = useState(true)
     const [loading, setLoading] = useState(false)
     const [total, setTotal] = useState(0)
+    const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false)
 
     const loaderRef = useRef<HTMLDivElement | null>(null)
 
@@ -66,6 +69,10 @@ export default function ProductsPage() {
         }
     }, [search, selectedCategory])
 
+    const handleVoiceResult = (text: string) => {
+        setSearch(text)
+    }
+
     // Reset and fetch when filters change
     useEffect(() => {
         setPage(1)
@@ -107,6 +114,9 @@ export default function ProductsPage() {
                             <Icon icon="solar:close-circle-bold-duotone" className="w-5 h-5" />
                         </button>
                     )}
+                    <button type="button" onClick={() => setIsVoiceModalOpen(true)} className="p-1 text-muted-foreground hover:text-primary transition-colors hover:scale-110 active:scale-90" title="Recherche vocale" >
+                        <Icon icon="solar:microphone-bold-duotone" className="w-5 h-5" />
+                    </button>
                 </div>
             </div>
 
@@ -122,16 +132,20 @@ export default function ProductsPage() {
             <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-2">
                 <div className="flex items-center justify-start md:justify-center w-full px-2 md:px-0 mb-6">
                     <h3 className="text-xl md:text-2xl font-black text-foreground italic text-left md:text-center">
-                        {loading && products.length === 0 ? 'Chargement...' : products.length === 0 ? 'Aucun produit trouvé' : `${total} résultat${total > 1 ? 's' : ''}`}
+                        {loading && products.length === 0 ? 'Chargement...' : products.length === 0 ? ' ' : `${total} résultat${total > 1 ? 's' : ''}`}
                     </h3>
                 </div>
 
                 {/* PRODUCTS GRID */}
-                <div className="grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-6">
-                    {products.map((product) => (
-                        <ProductCard key={product.id} product={product} />
-                    ))}
-                </div>
+                {products.length > 0 ? (
+                    <div className="grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-6">
+                        {products.map((product) => (
+                            <ProductCard key={product.id} product={product} />
+                        ))}
+                    </div>
+                ) : !loading && (
+                    <NotFound title="Aucun produit trouvé" description="Désolés, nous n'avons trouvé aucun article correspondant à cette catégorie ou recherche." icon="solar:shop-2-bold-duotone" />
+                )}
 
                 {/* Loading State / Trigger */}
                 <div ref={loaderRef} className="w-full flex justify-center py-8">
@@ -144,6 +158,11 @@ export default function ProductsPage() {
                 </div>
             </div>
 
+            <VoiceSearchModal
+                isOpen={isVoiceModalOpen}
+                onClose={() => setIsVoiceModalOpen(false)}
+                onResult={handleVoiceResult}
+            />
         </div>
     )
 }

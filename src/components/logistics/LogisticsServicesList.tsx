@@ -12,6 +12,8 @@ import { Modal } from "../modal/MotionModal";
 import FormsLogistics from "./FormsLogistics";
 import { useSubscriptionCheck } from "@/hooks/useSubscriptionCheck";
 import Delete from "./Delete";
+import NotFound from "../shared/NotFound";
+import VoiceSearchModal from "../service/VoiceSearchModal";
 
 const ITEMS_PER_PAGE = 6;
 
@@ -36,6 +38,7 @@ export default function LogisticsServicesList({ mode = "marketplace", onRequestQ
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [serviceToDelete, setServiceToDelete] = useState<string | null>(null);
     const [updatingId, setUpdatingId] = useState<string | null>(null);
+    const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
     const { addNotification } = useNotification();
 
     const { checkEligibility, loading: checkLoading } = useSubscriptionCheck()
@@ -192,10 +195,10 @@ export default function LogisticsServicesList({ mode = "marketplace", onRequestQ
 
     const handleToggle = async (id: string, value: boolean) => {
         setUpdatingId(id);
-        
+
         try {
             const res = await updateStatus(id, value);
-            
+
             if (res.statusCode === 200) {
                 addNotification(`Service ${value ? 'activé' : 'désactivé'}`, "success");
                 fetchServices(1, true); // Actualise la liste après la modification
@@ -207,6 +210,10 @@ export default function LogisticsServicesList({ mode = "marketplace", onRequestQ
         } finally {
             setUpdatingId(null);
         }
+    };
+
+    const handleVoiceResult = (text: string) => {
+        setSearchTerm(text);
     };
 
     const openCreateModal = async () => {
@@ -226,6 +233,9 @@ export default function LogisticsServicesList({ mode = "marketplace", onRequestQ
                     <div className="flex items-center w-full bg-card border border-primary rounded-xl px-4 py-3 shadow-sm hover:border-secondary transition-colors">
                         <Icon icon="solar:magnifer-bold-duotone" className="w-4 h-4 text-muted-foreground mr-2 flex-shrink-0" />
                         <input type="text" placeholder="Quel service logistique recherchez-vous ?" className="flex-1 bg-transparent text-foreground outline-none text-sm min-w-0 md:text-sm placeholder:text-muted-foreground" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} inputMode="text" style={{ fontSize: '16px' }} suppressHydrationWarning />
+                        <button type="button" onClick={() => setIsVoiceModalOpen(true)} className="p-1 text-muted-foreground hover:text-primary transition-colors hover:scale-110 active:scale-90" title="Recherche vocale" >
+                            <Icon icon="solar:microphone-bold-duotone" className="w-5 h-5" />
+                        </button>
                     </div>
                 </div>
             )}
@@ -287,9 +297,9 @@ export default function LogisticsServicesList({ mode = "marketplace", onRequestQ
 
             {/* Results count header */}
             <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-2">
-                <div className="flex items-center justify-start md:justify-center w-full px-2 md:px-0 mb-6">
+                <div className="flex items-center justify-start md:justify-center w-full px-2 md:px-0 mb-4">
                     <h3 className="text-xl md:text-2xl font-black text-foreground italic text-left md:text-center">
-                        {loading && services.length === 0 ? 'Chargement...' : services.length === 0 ? 'Aucun service trouvé' : `${total} résultat${total > 1 ? 's' : ''}`}
+                        {loading && services.length === 0 ? 'Chargement...' : services.length === 0 ? ' ' : `${total} résultat${total > 1 ? 's' : ''}`}
                     </h3>
                 </div>
 
@@ -331,19 +341,17 @@ export default function LogisticsServicesList({ mode = "marketplace", onRequestQ
 
                 {/* Empty State */}
                 {!loading && services.length === 0 && (
-                    <div className="bg-card/30 border border-dashed border-border rounded-3xl py-12 flex flex-col items-center justify-center text-center px-6 stagger-item">
-                        <Icon icon="solar:box-minimalistic-bold-duotone" className="w-12 h-12 text-muted-foreground/30 mb-4" />
-                        <h3 className="font-black text-foreground/70 uppercase text-sm mb-1">Aucun service disponible</h3>
-                        <p className="text-xs text-muted-foreground max-w-xs">
-                            {searchTerm || filterTransport !== "ALL"
-                                ? "Essayez de modifier vos filtres ou votre recherche."
-                                : isManagement ? "Vous n'avez pas encore créé de services." : "Aucun prestataire n'est disponible."}
-                        </p>
-                    </div>
+                    <NotFound title="Aucun service disponible" description={searchTerm || filterTransport !== "ALL" ? "Désolé, nous n'avons trouvé aucun service correspondant à votre recherche ou à vos filtres." : isManagement ? "Vous n'avez pas encore créé de services logistiques." : "Aucun prestataire logistique n'est disponible pour le moment."} icon="solar:delivery-bold-duotone" action={isManagement && (
+                        <Button onClick={() => openCreateModal()} className="bg-primary/10 text-primary hover:bg-primary/20 border-none shadow-none font-black text-xs">
+                            <Icon icon="solar:add-circle-bold" className="mr-2 w-4 h-4" />
+                            Créer mon premier service
+                        </Button>
+                    )}
+                    />
                 )}
 
                 {/* Delete Modal */}
-                <Delete 
+                <Delete
                     isOpen={isDeleteModalOpen}
                     onClose={() => setIsDeleteModalOpen(false)}
                     onConfirm={confirmDelete}
@@ -378,6 +386,11 @@ export default function LogisticsServicesList({ mode = "marketplace", onRequestQ
                 </div>
             </Modal>
 
+            <VoiceSearchModal
+                isOpen={isVoiceModalOpen}
+                onClose={() => setIsVoiceModalOpen(false)}
+                onResult={handleVoiceResult}
+            />
         </div>
     );
 }

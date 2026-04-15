@@ -9,14 +9,18 @@ import { useCart } from "@/components/providers/CartProvider"
 import { useNotification } from "@/components/toast/NotificationProvider"
 import Delete from "../logistics/Delete"
 
+import { Switch } from "../ui/switch"
+
 export default function ProductCard({
     product,
     onEdit,
-    onDelete
+    onDelete,
+    onStatusChange
 }: {
     product: Product;
     onEdit?: (product: Product) => void;
     onDelete?: (id: string) => void;
+    onStatusChange?: (product: Product, value: boolean) => void;
 }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -44,6 +48,10 @@ export default function ProductCard({
             onDelete(product.id);
         }
         setIsDeleteModalOpen(false);
+    };
+
+    const handleToggle = (value: boolean) => {
+        if (onStatusChange) onStatusChange(product, value);
     };
 
     return (
@@ -78,44 +86,53 @@ export default function ProductCard({
                         <span className="text-[9px] md:text-xs font-black tracking-tight">4.9 • <span className="text-muted-foreground">Boutique</span></span>
                     </div>
 
-                    <div className="w-full flex items-center justify-between mt-auto">
-                        <div className="text-left">
-                            {product.pricePromo ? (
-                                <div className="space-y-0.5">
-                                    <p className="text-primary font-black text-sm md:text-lg">
-                                        {Number(product.pricePromo).toLocaleString()} <span className="text-[9px] font-bold text-muted-foreground">CFA</span>
-                                    </p>
-                                    <p className="text-[9px] md:text-xs font-bold text-muted-foreground/60 line-through decoration-red-500/30">
-                                        {Number(product.price).toLocaleString()} CFA
-                                    </p>
-                                </div>
-                            ) : (
-                                <p className="text-secondary font-black text-sm md:text-lg">
-                                    {Number(product.price).toLocaleString()} <span className="text-[9px] font-bold text-muted-foreground">CFA</span>
+                    <div className="text-left mb-3">
+                        {product.pricePromo ? (
+                            <div className="space-y-0.5">
+                                <p className="text-primary font-black text-sm md:text-base">
+                                    {Number(product.pricePromo).toLocaleString()} <span className="text-[9px] font-bold text-muted-foreground">CFA</span>
                                 </p>
-                            )}
-                        </div>
-                        {onEdit || onDelete ? (
-                            <div className="flex items-center gap-1">
+                                <p className="text-[9px] md:text-xs font-bold text-muted-foreground/60 line-through decoration-red-500/30">
+                                    {Number(product.price).toLocaleString()} CFA
+                                </p>
+                            </div>
+                        ) : (
+                            <p className="text-secondary font-black text-sm md:text-base">
+                                {Number(product.price).toLocaleString()} <span className="text-[9px] font-bold text-muted-foreground">CFA</span>
+                            </p>
+                        )}
+                    </div>
+
+                    {onEdit || onDelete ? (
+                        <div className="flex items-center justify-center w-full gap-3">
+                            <Switch
+                                checked={product.isActive}
+                                onCheckedChange={handleToggle}
+                                onClick={(e) => e.stopPropagation()}
+                            />
+                            <div className="flex items-center gap-2">
                                 {onEdit && (
-                                    <button onClick={handleEdit} className="bg-blue-500 text-white p-1.5 md:p-2 rounded-full hover:bg-blue-600 transition-all active:scale-90 shadow-sm" title="Modifier" >
-                                        <Icon icon="solar:pen-bold-duotone" className="w-4 h-4" />
+                                    <button onClick={handleEdit} className="p-2 rounded-lg hover:bg-muted transition" title="Modifier" >
+                                        <Icon icon="solar:pen-new-square-bold-duotone" width={18} height={18} />
                                     </button>
                                 )}
                                 {onDelete && (
-                                    <button onClick={handleDelete} className="bg-red-500 text-white p-1.5 md:p-2 rounded-full hover:bg-red-600 transition-all active:scale-90 shadow-sm" title="Supprimer">
-                                        <Icon icon="solar:trash-bin-trash-bold-duotone" className="w-4 h-4" />
+                                    <button onClick={handleDelete} className="p-2 rounded-lg hover:bg-destructive/10 text-destructive transition" title="Supprimer">
+                                        <Icon icon="solar:trash-bin-trash-bold-duotone" width={18} height={18} />
                                     </button>
                                 )}
                             </div>
-                        ) : (
-                            <button onClick={handleAddToCart} className="bg-secondary text-white px-2 py-1 md:px-3 md:py-2 rounded-full md:rounded-full text-[10px] md:text-xs font-black hover:bg-primary transition-all active:scale-90 shadow-sm">
+                        </div>
+                    ) : (
+                        <div className="flex justify-end w-full">
+                            <button onClick={handleAddToCart} className="bg-secondary text-white px-2 py-1 md:px-3 md:py-2 rounded-lg text-[10px] md:text-xs font-black hover:bg-primary transition-all active:scale-90 shadow-sm">
                                 <Icon icon="solar:cart-large-minimalistic-bold-duotone" className="w-4 h-4" />
                             </button>
-                        )}
-                    </div>
+                        </div>
+                    )}
                 </div>
             </div>
+
 
             <ProductDetailModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} product={product} />
 

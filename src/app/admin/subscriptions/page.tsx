@@ -323,7 +323,7 @@ export default function AdminSubscriptionsPage() {
             cell: ({ row }) => (
                 <div className="flex flex-col gap-2">
                     <Badge variant="outline" className={`font-black text-[9px] uppercase tracking-widest ${row.original.paymentStatus === 'SUCCESS'
-                        ? 'text-emerald-600 border-emerald-200 bg-emerald-50'
+                        ? 'text-primary border-primary/20 bg-primary/5'
                         : row.original.paymentStatus === 'PENDING'
                             ? 'text-amber-600 border-amber-200 bg-amber-50'
                             : 'text-rose-600 border-rose-200 bg-rose-50'
@@ -355,7 +355,7 @@ export default function AdminSubscriptionsPage() {
                             <Button 
                                 size="sm" 
                                 variant="outline" 
-                                className="h-7 px-2 text-[8px] font-black bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100"
+                                className="h-7 px-2 text-[8px] font-black bg-primary/5 text-primary border-primary/20 hover:bg-primary/10"
                                 onClick={() => handleValidatePayment(row.original.id, true)}
                                 disabled={isSubmitting}
                             >
@@ -446,7 +446,7 @@ export default function AdminSubscriptionsPage() {
                         {[
                             { label: 'Plans Actifs', val: plans.filter(p => p.isActive).length, icon: CreditCard, color: 'text-primary' },
                             { label: 'Entités', val: entities.length, icon: Database, color: 'text-amber-500' },
-                            { label: 'Abonnés', val: userSubscriptions.length, icon: Users, color: 'text-emerald-500' },
+                            { label: 'Abonnés', val: userSubscriptions.length, icon: Users, color: 'text-primary' },
                             { label: 'Chiffre d\'Affaires', val: '0 CFA', icon: ShieldCheck, color: 'text-rose-500' },
                         ].map((stat, i) => (
                             <Card key={i} className="rounded-3xl border-border/50 shadow-xs">
@@ -570,7 +570,7 @@ export default function AdminSubscriptionsPage() {
                             <h2 className="text-xl font-black">Clients & Souscriptions</h2>
                             <p className="text-muted-foreground text-sm font-medium">Historique et statut des abonnements utilisateurs.</p>
                         </div>
-                        <Button onClick={() => setIsAssignModalOpen(true)} className="rounded-xl font-bold gap-2 bg-emerald-600 hover:bg-emerald-700">
+                        <Button onClick={() => setIsAssignModalOpen(true)} className="rounded-xl font-bold gap-2 bg-primary hover:bg-primary/90">
                             <ShieldCheck className="w-4 h-4" /> Attribution Manuelle
                         </Button>
                     </div>
@@ -664,7 +664,7 @@ export default function AdminSubscriptionsPage() {
                         </div>
                         <div className="flex justify-end gap-2 pt-2">
                             <Button variant="ghost" type="button" onClick={() => setIsAssignModalOpen(false)}>Annuler</Button>
-                            <Button type="submit" disabled={isSubmitting} className="font-bold rounded-xl px-8 bg-emerald-600 hover:bg-emerald-700">
+                            <Button type="submit" disabled={isSubmitting} className="font-bold rounded-xl px-8 bg-primary hover:bg-primary/90">
                                 {isSubmitting ? '...' : 'Attribuer'}
                             </Button>
                         </div>

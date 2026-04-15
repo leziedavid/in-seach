@@ -9,6 +9,8 @@ import { useUserLocation } from "@/utils/location";
 import AnnonceModal from "../home/AnnonceModal";
 import InfiniteScroll from "../ui/InfiniteScroll";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
+import NotFound from "../shared/NotFound";
+import VoiceSearchModal from "./VoiceSearchModal";
 
 export default function SearchAnnonces() {
     const { withAuth } = useRequireAuth();
@@ -20,6 +22,7 @@ export default function SearchAnnonces() {
     const [lat, setLat] = useState<number | undefined>();
     const [lng, setLng] = useState<number | undefined>();
     const [address, setAddress] = useState<string>("");
+    const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
 
     // State-based pagination
     const [annonces, setAnnonces] = useState<Annonce[]>([]);
@@ -106,6 +109,14 @@ export default function SearchAnnonces() {
         }
     }, [query, lat, lng]);
 
+    const handleVoiceResult = (text: string) => {
+        setQuery(text);
+        if (text.trim()) {
+            setAnnonces([]);
+            setIsSearching(true);
+        }
+    };
+
     return (
         <div className="flex flex-col items-center w-full max-w-7xl mx-auto px-4 py-2">
             {/* Search Input - Centered */}
@@ -129,10 +140,15 @@ export default function SearchAnnonces() {
                     )}
                     <button
                         type="button"
-                        onClick={handleUseMyLocation}
-                        className="flex items-center gap-1.5 bg-primary text-white px-3 py-1.5 rounded-lg text-sm ml-2 flex-shrink-0 md:px-3 md:py-1.5" >
-                        <Icon icon="solar:gps-bold-duotone" className="w-4 h-4" />
-                        <span className="hidden md:inline">Ma position</span>
+                        onClick={() => setIsVoiceModalOpen(true)}
+                        className="p-2 text-muted-foreground hover:text-primary transition-colors hover:scale-110 active:scale-90"
+                        title="Recherche vocale"
+                    >
+                        <Icon icon="solar:microphone-bold-duotone" className="w-5 h-5" />
+                    </button>
+
+                    <button type="button" onClick={handleUseMyLocation} className="p-2 text-muted-foreground hover:text-primary transition-colors" title="Recherche par image (IA)" >
+                        <Icon icon="solar:gps-bold-duotone" className="w-5 h-5" />
                     </button>
                 </div>
                 <button type="submit" className="w-full md:w-auto bg-primary text-white px-8 py-2 rounded-xl text-base font-black flex items-center justify-center gap-3 hover:bg-secondary transition-all shadow-xs active:scale-95 flex-shrink-0 md:px-8 md:py-2" >
@@ -154,7 +170,7 @@ export default function SearchAnnonces() {
             <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-2">
                 <div className="flex items-center justify-start md:justify-center w-full px-2 md:px-0 mb-6">
                     <h3 className="text-xl md:text-2xl font-black text-foreground italic text-left md:text-center">
-                        {loading && annonces.length === 0 ? 'Recherche en cours...' : `${annonces.length} résultat${annonces.length > 1 ? 's' : ''}`}
+                        {loading && annonces.length === 0 ? 'Recherche en cours...' : ``}
                     </h3>
                 </div>
 
@@ -203,10 +219,7 @@ export default function SearchAnnonces() {
                             ))}
                         </div>
                     ) : !loading && (
-                        <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
-                            <p className="text-lg">Aucune annonce trouvée</p>
-                            <p className="text-sm mt-2">Essayez de modifier vos critères de recherche</p>
-                        </div>
+                        <NotFound title="Aucune annonce trouvée" description="Nous n'avons pas trouvé d'annonces correspondant à vos critères. Essayez de modifier votre recherche ou de changer de localisation." icon="solar:bill-cross-bold-duotone" />
                     )}
                 </InfiniteScroll>
             </div>
@@ -217,6 +230,12 @@ export default function SearchAnnonces() {
                 isOpen={!!selectedAnnonce}
                 onClose={() => setSelectedAnnonce(null)}
                 annonce={selectedAnnonce}
+            />
+
+            <VoiceSearchModal
+                isOpen={isVoiceModalOpen}
+                onClose={() => setIsVoiceModalOpen(false)}
+                onResult={handleVoiceResult}
             />
         </div>
     );

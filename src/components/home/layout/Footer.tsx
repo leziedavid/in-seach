@@ -30,7 +30,7 @@ export default function SocialFollow() {
                     {/* Footer petit */}
                     <div className="text-center text-[9px] sm:text-[10px] text-gray-500 space-y-1 pt-2">
                         <div className="flex flex-wrap justify-center gap-x-2 gap-y-1">
-                            <span>Developpé par inSeach</span>
+                            <span>Développé par Nexxa</span>
                             <span className="text-gray-300">|</span>
                             <Link href="/solutions" className="hover:text-primary transition-colors underline-offset-2 hover:underline">
                                 Nos Solutions
@@ -45,7 +45,7 @@ export default function SocialFollow() {
                             </Link>
                         </div>
                         <div className="text-gray-400">
-                            &copy; 2025 inSeach. Tous droits réservés.
+                            &copy; 2025 Nexxa. Tous droits réservés.
                         </div>
                     </div>
                 </div>

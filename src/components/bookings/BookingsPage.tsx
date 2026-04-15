@@ -145,7 +145,7 @@ export default function BookingsPage({
     return (
         <div className="w-full mx-auto py-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                <h1 className="text-xl font-bold">
+                <h1 className="text-xl sm:text-xl lg:text-2xl font-extrabold tracking-tight text-gray-900 ext-center">
                     {bookingType === 'ANNONCE' ? 'Rendez-vous Annonces' : 'Rendez-vous Services'}
                 </h1>
 
@@ -261,10 +261,10 @@ export default function BookingsPage({
 
 
                         {/* Booking Details Modal */}
-                        <BookingDetail 
-                            isOpen={!!selectedService} 
-                            onClose={() => setSelectedService(null)} 
-                            booking={selectedService} 
+                        <BookingDetail
+                            isOpen={!!selectedService}
+                            onClose={() => setSelectedService(null)}
+                            booking={selectedService}
                             onEditRdv={(b) => {
                                 setSelectedService(b);
                                 setIsEditModalOpen(true);

@@ -11,6 +11,7 @@ import { useUserLocation } from '@/utils/location';
 import { upsertLocationLog } from '@/api/api';
 
 export default function LoginPage() {
+
     const router = useRouter();
     const { getUserLocation } = useUserLocation();
 

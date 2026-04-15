@@ -185,4 +185,18 @@
   .stagger-parent > *:nth-child(4) { animation-delay: 0.2s; }
   .stagger-parent > *:nth-child(5) { animation-delay: 0.25s; }
   .stagger-parent > *:nth-child(6) { animation-delay: 0.3s; }
+
+  /* Sidebar hover subtle white overlay */
+  .hover\:bg-white\/8:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+  }
+
+  /* Sidebar scrollbar hide */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 }

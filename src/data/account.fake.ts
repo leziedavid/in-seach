@@ -1,4 +1,4 @@
-import { UserProfile, Service, Booking, Annonce, Role, AnnonceStatus, SubscriptionStatus, BookingStatus, ServiceStatus, ServiceType, InterventionType, Category, Product, CategoryProd } from "@/types/interface";
+import { UserProfile, Service, Booking, Annonce, Role, AnnonceStatus, SubscriptionStatus, BookingStatus, ServiceStatus, ServiceType, InterventionType, Category, Product, CategoryProd, PaymentMethod, PaymentStatus } from "@/types/interface";
 // ================= USER =================
 export const fakeUser: UserProfile = {
     id: "u1",
@@ -21,6 +21,9 @@ export const fakeUser: UserProfile = {
         startDate: new Date().toISOString(),
         endDate: new Date(Date.now() + 20 * 86400000).toISOString(),
         status: SubscriptionStatus.ACTIVE,
+        paymentMethod: PaymentMethod.MOBILE_MONEY,
+        paymentStatus: PaymentStatus.SUCCESS,
+        autoRenew: true,
         plan: {
             id: "p1",
             name: "Premium Pro",
