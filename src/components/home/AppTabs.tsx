@@ -62,10 +62,20 @@ export default function AppTabs() {
     const [selectedServiceForQuote, setSelectedServiceForQuote] = useState<LogisticService | null>(null)
     const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false)
 
+    useEffect(() => {
+        const isInfoClosed = localStorage.getItem("infoClosed") === "true"
+        if (isInfoClosed) {
+            setShowInfo(false)
+        }
+    }, [])
+
     const handleTabClick = (id: string) => {
         if (active !== id) {
             setActive(id)
-            setShowInfo(true)
+            const isInfoClosed = localStorage.getItem("infoClosed") === "true"
+            if (!isInfoClosed) {
+                setShowInfo(true)
+            }
         }
     }
 
@@ -142,7 +152,10 @@ export default function AppTabs() {
 
             {/* INFO COMPONENT */}
             <Info isOpen={showInfo}
-                onClose={() => setShowInfo(false)}
+                onClose={() => {
+                    setShowInfo(false)
+                    localStorage.setItem("infoClosed", "true")
+                }}
                 title={tabs.find(t => t.id === active)?.info.title || ""}
                 description={tabs.find(t => t.id === active)?.info.description || ""}
             />

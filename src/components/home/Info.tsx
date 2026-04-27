@@ -44,13 +44,13 @@ export default function Info({ isOpen, onClose, title, description }: InfoProps)
 
             {isOpen && (
 
-                <motion.div variants={containerVariants} initial="hidden" animate="visible" exit="exit" className="w-full max-w-xl mt-4 p-4 md:p-6 bg-white/40 dark:bg-black/20 backdrop-blur-xl border border-white/40 dark:border-white/10 rounded-[24px] shadow-lg relative overflow-visible flex items-center gap-4 group">
+                <motion.div variants={containerVariants} initial="hidden" animate="visible" exit="exit" className="w-[calc(100%-2rem)] mx-4 md:mx-auto max-w-xl mt-4 p-4 md:p-6 bg-white/40 dark:bg-black/20 backdrop-blur-xl border border-white/40 dark:border-white/10 rounded-[24px] shadow-lg relative overflow-visible flex items-center gap-4 group">
 
-                    {/* Floating Red Close Button (The 'Hat') */}
-                    <motion.div initial={{ scale: 0, rotate: -45 }} animate={{ scale: 1, rotate: 0 }} transition={{ delay: 0.3, type: "spring" }} className="absolute -top-3 -right-3 z-50">
-                        <Button variant="default" size="icon-xs" onClick={onClose} className="bg-red-500 hover:bg-red-600 text-white rounded-full h-8 w-8 shadow-lg shadow-red-500/40 border-2 border-white dark:border-gray-800 transition-transform active:scale-90">
-                            <Icon icon="solar:close-bold" className="w-4 h-4" />
-                        </Button>
+                    {/* Floating Red Close Button (The 'Hat') - Modernized Icon */}
+                    <motion.div initial={{ scale: 0, rotate: -45 }} animate={{ scale: 1, rotate: 0 }} transition={{ delay: 0.3, type: "spring" }} className="absolute -top-3 -right-2 z-50">
+                        <button onClick={onClose} className="bg-red-500 hover:bg-red-600 text-white rounded-full h-8 w-8 flex items-center justify-center shadow-lg shadow-red-500/40 border-2 border-white dark:border-zinc-900 transition-all active:scale-90 hover:scale-110">
+                            <Icon icon="solar:close-circle-bold" className="w-5 h-5" />
+                        </button>
                     </motion.div>
 
                     {/* Left Icon Section */}
