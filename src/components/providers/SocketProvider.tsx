@@ -33,6 +33,14 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
             window.dispatchEvent(event);
         });
 
+        // 3. Écouter la déconnexion forcée (Suspension)
+        newSocket.on('FORCE_LOGOUT', (data: { message: string }) => {
+            import('@/lib/auth').then(auth => {
+                auth.logout();
+                showNotification(data.message || 'Votre session a expiré ou votre compte a été suspendu.', 'error');
+            });
+        });
+
         setSocket(newSocket);
 
         return () => {

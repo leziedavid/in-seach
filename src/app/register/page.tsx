@@ -7,6 +7,7 @@ import { register } from '@/api/api';
 import { setToken } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import { z } from 'zod';
+import { Switch } from '@/components/ui/switch';
 
 const registerSchema = z.object({
     email: z.string().email(),
@@ -15,6 +16,9 @@ const registerSchema = z.object({
     otp: z.string().length(5), // @ + 4 chiffres
     fullname: z.string().optional(),
     company: z.string().optional(),
+    acceptedTerms: z.boolean().refine(val => val === true, {
+        message: "Vous devez accepter les conditions d'utilisation"
+    }),
 });
 
 export default function RegisterPage() {
@@ -29,6 +33,7 @@ export default function RegisterPage() {
     const [company, setCompany] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [acceptedTerms, setAcceptedTerms] = useState(true);
 
     const inputsRef = useRef<HTMLInputElement[]>([]);
 
@@ -65,6 +70,7 @@ export default function RegisterPage() {
                 role,
                 fullname: fullname || undefined,
                 company: role === 'PRESTATAIRE' || role === 'LOGISTICIAN' && company ? company : undefined,
+                acceptedTerms,
             };
 
             const validation = registerSchema.safeParse(payload);
@@ -220,6 +226,23 @@ export default function RegisterPage() {
                                 />
                             ))}
                         </div>
+                    </div>
+
+                    {/* Terms Acceptance */}
+                    <div className="flex items-center gap-4 p-4 rounded-2xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800">
+                        <div className="flex-1">
+                            <p className="text-[11px] sm:text-xs font-bold text-gray-700 dark:text-gray-300">
+                                J'accepte les{" "}
+                                <Link href="/terms-of-use" className="text-primary hover:underline">conditions d'utilisation</Link>
+                                {" "}et la{" "}
+                                <Link href="/privacy-policy" className="text-primary hover:underline">politique de confidentialité</Link>.
+                            </p>
+                        </div>
+                        <Switch 
+                            checked={acceptedTerms} 
+                            onCheckedChange={setAcceptedTerms} 
+                            className="data-[state=checked]:bg-primary scale-90 sm:scale-100"
+                        />
                     </div>
 
                     {/* Submit */}

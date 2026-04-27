@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 import { Role } from '@/types/interface';
 import { useUserLocation } from '@/utils/location';
 import { upsertLocationLog } from '@/api/api';
+import { AccountRecoveryModal } from '@/components/auth/AccountRecoveryModal';
 
 export default function LoginPage() {
 
@@ -21,6 +22,7 @@ export default function LoginPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [isRecoveryModalOpen, setIsRecoveryModalOpen] = useState(false);
 
     const inputsRef = useRef<HTMLInputElement[]>([]);
 
@@ -214,7 +216,23 @@ export default function LoginPage() {
                         </div>
                     </div>
 
+                    <div className="text-center pt-2">
+                        <button 
+                            type="button" 
+                            onClick={() => setIsRecoveryModalOpen(true)}
+                            className="text-[11px] sm:text-xs font-bold text-muted-foreground hover:text-primary transition-colors flex items-center justify-center gap-1.5 mx-auto opacity-70 hover:opacity-100"
+                        >
+                            <Icon icon="solar:question-circle-bold-duotone" width={14} />
+                            Compte suspendu ? Récupérer mon compte
+                        </button>
+                    </div>
+
                 </form>
+
+                <AccountRecoveryModal 
+                    isOpen={isRecoveryModalOpen} 
+                    onClose={() => setIsRecoveryModalOpen(false)} 
+                />
 
 
 

@@ -4,12 +4,13 @@ import React, { useState, useEffect } from "react";
 import { Icon } from "@iconify/react";
 import Image from "next/image";
 import { Modal } from "../modal/MotionModal";
+import Link from "next/link";
 import AvatarUploadForm from "./AvatarUploadForm";
 import CNIUploadForm from "./CNIUploadForm";
 import LogoUploadForm from "./LogoUploadForm";
 import SignatureUploadForm from "./SignatureUploadForm";
 import { Skeleton } from "../ui/skeleton";
-import { getMe, updateUserProfile, testWebPushNotification, testWebSocketNotification } from "@/api/api";
+import { getMe, updateUserProfile, testWebPushNotification, testWebSocketNotification, suspendMe } from "@/api/api";
 import { UserProfile, SubscriptionPlan, SubscriptionStatus } from "@/types/interface";
 import { toast } from "sonner";
 import SubscriptionPaymentModal from "../subscription/SubscriptionPaymentModal";
@@ -473,6 +474,63 @@ export default function AccountSettings() {
                 </div>
             </div>
 
+            {/* TERMS AND PRIVACY SECTION */}
+            <div className="bg-card p-6 md:p-8 rounded-lg border border-border shadow-sm space-y-8 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-lg -mr-32 -mt-32 blur-3xl pointer-events-none" />
+
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                            <Icon icon="solar:shield-check-bold-duotone" className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <h2 className="text-xl font-black text-foreground">Confidentialité & CGU</h2>
+                            <p className="text-xs text-muted-foreground font-medium">Acceptez les conditions pour continuer à utiliser nos services en toute sécurité</p>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                        <Switch 
+                            checked={user?.acceptedTerms || false} 
+                            onCheckedChange={async (checked) => {
+                                try {
+                                    const response = await updateUserProfile({ acceptedTerms: checked });
+                                    if (response?.statusCode === 200 || response?.statusCode === 201) {
+                                        toast.success(checked ? "Conditions acceptées" : "Consentement retiré");
+                                        await fetchUserData();
+                                    }
+                                } catch (error) {
+                                    toast.error("Erreur lors de la mise à jour");
+                                }
+                            }} 
+                            className="data-[state=checked]:bg-primary" 
+                        />
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-10">
+                    <Link href="/terms-of-use" className="flex items-center gap-3 p-4 rounded-xl bg-muted/30 border border-border hover:border-primary/50 transition-all group">
+                        <Icon icon="solar:document-text-bold-duotone" className="w-5 h-5 text-primary" />
+                        <span className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">Conditions d'Utilisation</span>
+                        <Icon icon="solar:arrow-right-up-bold" className="w-3 h-3 ml-auto opacity-30 group-hover:opacity-100 transition-opacity" />
+                    </Link>
+                    <Link href="/privacy-policy" className="flex items-center gap-3 p-4 rounded-xl bg-muted/30 border border-border hover:border-primary/50 transition-all group">
+                        <Icon icon="solar:lock-password-bold-duotone" className="w-5 h-5 text-primary" />
+                        <span className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">Politique de Confidentialité</span>
+                        <Icon icon="solar:arrow-right-up-bold" className="w-3 h-3 ml-auto opacity-30 group-hover:opacity-100 transition-opacity" />
+                    </Link>
+                </div>
+
+                <div className="relative z-10 p-4 rounded-xl bg-blue-500/5 border border-blue-500/10">
+                    <div className="flex gap-3">
+                        <Icon icon="solar:info-square-bold-duotone" className="w-5 h-5 text-blue-600 shrink-0" />
+                        <p className="text-xs text-blue-800 dark:text-blue-400 font-medium leading-relaxed">
+                            Conformément à la loi n°2013-450 sur la protection des données en Côte d'Ivoire, nous nous engageons à protéger votre vie privée et à ne jamais vendre vos données à des tiers.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
             {/* TEST NOTIFICATIONS SECTION */}
             <div className="bg-card p-6 md:p-8 rounded-lg border border-border shadow-sm space-y-6 relative overflow-hidden">
                 <div className="flex items-center gap-4">
@@ -665,6 +723,54 @@ export default function AccountSettings() {
                     plan={selectedPlanToRenew}
                 />
             )}
+
+            {/* DANGER ZONE - ACCOUNT SUSPENSION */}
+            <div className="bg-rose-500/5 p-6 md:p-8 rounded-lg border border-rose-500/20 space-y-8 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-rose-500/5 rounded-lg -mr-32 -mt-32 blur-3xl pointer-events-none" />
+
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-600">
+                            <Icon icon="solar:shield-warning-bold-duotone" className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <h2 className="text-xl font-black text-rose-900 dark:text-rose-400">Zone de danger</h2>
+                            <p className="text-xs text-rose-700/70 font-medium italic">Actions irréversibles sans assistance administrative</p>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                        <Switch 
+                            checked={false} 
+                            onCheckedChange={async (checked) => {
+                                if (checked) {
+                                    const confirmed = window.confirm("ATTENTION : En suspendant votre compte, vous serez déconnecté instantanément. Vous devrez contacter l'administration pour le récupérer. Continuer ?");
+                                    if (confirmed) {
+                                        try {
+                                            const res = await suspendMe();
+                                            if (res.statusCode === 200) {
+                                                toast.success("Compte suspendu.");
+                                                // Le logout est géré par WebSocket, mais on redirige par précaution
+                                                router.push('/login');
+                                            }
+                                        } catch (error) {
+                                            toast.error("Erreur technique lors de la suspension");
+                                        }
+                                    }
+                                }
+                            }}
+                            className="data-[state=checked]:bg-rose-600" 
+                        />
+                    </div>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                    <h3 className="text-sm font-black text-rose-900 dark:text-rose-400">Suspendre mon compte</h3>
+                    <p className="text-xs text-rose-700/60 font-medium leading-relaxed">
+                        Cette action désactivera immédiatement votre accès à la plateforme. Vos données seront conservées, mais vous devrez soumettre une demande de récupération pour réactiver votre compte.
+                    </p>
+                </div>
+            </div>
 
         </div>
 

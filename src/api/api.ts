@@ -98,6 +98,15 @@ export const getMe = async (): Promise<BaseResponse<any>> => {
     return await response.json();
 };
 
+export const requestRecovery = async (phone: string): Promise<BaseResponse<any>> => {
+    const response = await fetch(`${getBaseUrl()}/auth/request-recovery`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone }),
+    });
+    return await response.json();
+};
+
 export const logout = async (): Promise<BaseResponse<any>> => {
     const response = await secureFetch(`${getBaseUrl()}/auth/logout`, {
         method: 'POST',
@@ -482,6 +491,13 @@ export const getUserProfile = async (): Promise<BaseResponse<any>> => {
     return await response.json();
 };
 
+export const suspendMe = async (): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/users/suspend-me`, {
+        method: 'PATCH',
+    });
+    return await response.json();
+};
+
 export const updateUserProfile = async (data: any): Promise<BaseResponse<any>> => {
     const isFormData = data instanceof FormData;
     // const url = isFormData ? `${getBaseUrl()}/users/profile/avatar` : `${getBaseUrl()}/users/profile`;
@@ -494,8 +510,52 @@ export const updateUserProfile = async (data: any): Promise<BaseResponse<any>> =
 
 export const getAllUsers = async (params: any): Promise<BaseResponse<Pagination<any>>> => {
     const queryString = toQueryString(params);
-    const response = await secureFetch(`${getBaseUrl()}/users?${queryString}`, {
+    const response = await secureFetch(`${getBaseUrl()}/admin/users?${queryString}`, {
         method: 'GET',
+    });
+    return await response.json();
+};
+
+export const getSuspendedUsersAdmin = async (params: any): Promise<BaseResponse<Pagination<any>>> => {
+    const queryString = toQueryString(params);
+    const response = await secureFetch(`${getBaseUrl()}/admin/users/suspended?${queryString}`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
+export const getRecoveryRequestsAdmin = async (params: any): Promise<BaseResponse<Pagination<any>>> => {
+    const queryString = toQueryString(params);
+    const response = await secureFetch(`${getBaseUrl()}/admin/users/recovery-requests?${queryString}`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
+export const suspendUserAdmin = async (id: string): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/admin/users/${id}/suspend`, {
+        method: 'POST',
+    });
+    return await response.json();
+};
+
+export const reactivateUserAdmin = async (id: string): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/admin/users/${id}/reactivate`, {
+        method: 'POST',
+    });
+    return await response.json();
+};
+
+export const searchUserByPhoneAdmin = async (phone: string): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/admin/users/search?phone=${phone}`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
+export const deleteUserAdmin = async (id: string): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/admin/users/${id}`, {
+        method: 'DELETE',
     });
     return await response.json();
 };

@@ -128,6 +128,9 @@ export interface User {
     role: Role;
     isPremium: boolean;
     credits: number;
+    acceptedTerms: boolean;
+    isSuspended: boolean;
+    recoveryRequested: boolean;
     createdAt: string;
     updatedAt: string;
 }

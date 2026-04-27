@@ -1,110 +1,116 @@
-"use client"
+import React from 'react';
+import { Icon } from '@iconify/react';
+import Link from 'next/link';
 
-import React from 'react'
-import { Icon } from '@iconify/react'
+export const metadata = {
+  title: "Conditions d'Utilisation | Djamko",
+  description: "Consultez les conditions générales d'utilisation de la plateforme Djamko.",
+};
 
 export default function TermsOfUse() {
-    return (
-        <div className="container mx-auto px-4 py-12 max-w-4xl">
-            <div className="flex items-center gap-3 mb-8">
-                <div className="p-3 bg-primary/10 rounded-2xl text-primary">
-                    <Icon icon="solar:document-text-bold-duotone" width="32" />
+  return (
+    <div className="min-h-screen bg-background pb-20 pt-10 px-6">
+      <div className="max-w-4xl mx-auto">
+        <Link href="/" className="inline-flex items-center gap-2 text-sm font-bold text-muted-foreground hover:text-primary transition-colors mb-8 group">
+          <Icon icon="solar:arrow-left-bold" className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+          Retour à l'accueil
+        </Link>
+
+        <div className="bg-card rounded-[2.5rem] border border-border p-8 md:p-12 shadow-sm relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-32 -mt-32 blur-3xl" />
+          
+          <div className="relative z-10">
+            <h1 className="text-3xl md:text-4xl font-black text-foreground mb-4 tracking-tight">
+              Conditions Générales d'Utilisation <span className="text-primary">(CGU)</span>
+            </h1>
+            <p className="text-muted-foreground text-sm font-medium mb-12 italic">
+              Dernière mise à jour : 27 Avril 2026
+            </p>
+
+            <div className="space-y-10 text-zinc-700 dark:text-zinc-300">
+              <section>
+                <h2 className="text-xl font-black text-foreground mb-4 flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">1</div>
+                  Objet
+                </h2>
+                <p className="leading-relaxed text-sm">
+                  Les présentes Conditions Générales d'Utilisation ont pour objet de définir les modalités de mise à disposition des services de la plateforme **Djamko**, ci-après dénommée « le Service », et les conditions d'utilisation du Service par l'Utilisateur. 
+                </p>
+                <p className="mt-4 leading-relaxed text-sm">
+                   Djamko est une plateforme multi-services opérant conformément aux lois de la République de Côte d'Ivoire.
+                </p>
+              </section>
+
+              <section>
+                <h2 className="text-xl font-black text-foreground mb-4 flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">2</div>
+                  Acceptation des conditions
+                </h2>
+                <p className="leading-relaxed text-sm">
+                  L'accès et l'utilisation du Service sont soumis à l'acceptation et au respect des présentes CGU. En cochant la case « J'accepte les conditions d'utilisation » lors de son inscription ou dans ses paramètres, l'Utilisateur reconnaît avoir pris connaissance de l'intégralité des présentes et les accepter sans réserve.
+                </p>
+              </section>
+
+              <section>
+                <h2 className="text-xl font-black text-foreground mb-4 flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">3</div>
+                  Description des services
+                </h2>
+                <p className="leading-relaxed text-sm">
+                  Djamko propose une plateforme technologique permettant la mise en relation entre des prestataires de services, des vendeurs et des clients. Les services incluent :
+                </p>
+                <ul className="list-disc list-inside mt-4 space-y-2 text-sm ml-4 font-medium">
+                  <li>La réservation de services de dépannage et maintenance.</li>
+                  <li>Une marketplace pour la vente et l'achat de biens.</li>
+                  <li>Des solutions logistiques nationales et internationales.</li>
+                  <li>Une messagerie et un système de notification en temps réel.</li>
+                </ul>
+              </section>
+
+              <section>
+                <h2 className="text-xl font-black text-foreground mb-4 flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">4</div>
+                  Responsabilité
+                </h2>
+                <p className="leading-relaxed text-sm">
+                  Djamko agit en qualité de simple intermédiaire. À ce titre, Djamko n'est pas partie aux contrats conclus entre les Utilisateurs et ne saurait être tenue responsable de la qualité des prestations ou des produits vendus.
+                </p>
+                <div className="mt-4 p-4 rounded-2xl bg-amber-500/5 border border-amber-500/10 flex gap-3">
+                   <Icon icon="solar:danger-bold-duotone" className="w-5 h-5 text-amber-600 shrink-0" />
+                   <p className="text-xs text-amber-800 dark:text-amber-400 font-bold leading-relaxed">
+                     L'Utilisateur est seul responsable de la véracité des informations transmises et du respect des engagements pris vis-à-vis des autres membres de la communauté.
+                   </p>
                 </div>
-                <h1 className="text-3xl font-black">Conditions Générales d'Utilisation</h1>
+              </section>
+
+              <section>
+                <h2 className="text-xl font-black text-foreground mb-4 flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">5</div>
+                  Propriété Intellectuelle
+                </h2>
+                <p className="leading-relaxed text-sm">
+                  L'ensemble des éléments constituant la plateforme (textes, graphismes, logiciels, photographies, logos, marques, etc.) est protégé par le droit de la propriété intellectuelle en vigueur en Côte d'Ivoire. Toute reproduction non autorisée constitue une contrefaçon.
+                </p>
+              </section>
+
+              <section>
+                <h2 className="text-xl font-black text-foreground mb-4 flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">6</div>
+                  Loi applicable et juridiction
+                </h2>
+                <p className="leading-relaxed text-sm">
+                  Les présentes CGU sont régies par le droit ivoirien. En cas de litige, et après une tentative de recherche d'une solution amiable, compétence expresse est attribuée aux tribunaux d'Abidjan.
+                </p>
+              </section>
             </div>
 
-            <div className="prose prose-slate dark:prose-invert max-w-none space-y-8">
-                <section className="bg-card border border-border p-6 rounded-3xl shadow-sm">
-                    <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                        <span className="w-8 h-8 flex items-center justify-center bg-primary text-white rounded-full text-sm">1</span>
-                        Objet de la plateforme
-                    </h2>
-                    <p className="text-muted-foreground leading-relaxed">
-                        La plateforme <strong>inSeach</strong> est un espace numérique de mise en relation entre des particuliers ou entreprises (les "Utilisateurs") et des professionnels offrant divers services à domicile ou en entreprise (les "Prestataires").
-                        Elle propose également une fonctionnalité secondaire de place de marché (Marketplace) permettant la vente de produits entre utilisateurs.
-                    </p>
-                </section>
-
-                <section className="bg-card border border-border p-6 rounded-3xl shadow-sm">
-                    <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                        <span className="w-8 h-8 flex items-center justify-center bg-primary text-white rounded-full text-sm">2</span>
-                        Définition des utilisateurs
-                    </h2>
-                    <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-                        <li><strong>Client :</strong> Toute personne physique ou morale utilisant la plateforme pour rechercher un service ou acheter un produit.</li>
-                        <li><strong>Prestataire :</strong> Professionnel (indépendant ou entreprise) proposant ses compétences (plomberie, électricité, nettoyage, etc.).</li>
-                        <li><strong>Vendeur :</strong> Utilisateur proposant des produits à la vente via la marketplace.</li>
-                    </ul>
-                </section>
-
-                <section className="bg-card border border-border p-6 rounded-3xl shadow-sm">
-                    <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                        <span className="w-8 h-8 flex items-center justify-center bg-primary text-white rounded-full text-sm">3</span>
-                        Création et Gestion de compte
-                    </h2>
-                    <p className="text-muted-foreground leading-relaxed">
-                        L'accès à certaines fonctionnalités nécessite la création d'un compte. L'utilisateur s'engage à fournir des informations exactes. Chaque compte est personnel et l'utilisateur est responsable de la confidentialité de ses identifiants.
-                    </p>
-                </section>
-
-                <section className="bg-card border border-border p-6 rounded-3xl shadow-sm">
-                    <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                        <span className="w-8 h-8 flex items-center justify-center bg-primary text-white rounded-full text-sm">4</span>
-                        Mise en relation (Activité Principale)
-                    </h2>
-                    <p className="text-muted-foreground leading-relaxed">
-                        inSeach facilite la rencontre entre Clients et Prestataires. La plateforme n'intervient pas dans l'exécution du service lui-même. Le contrat de prestation est formé directement entre le Client et le Prestataire.
-                        Les services incluent, sans s'y limiter : plomberie, nettoyage, réparation, électricité et livraison.
-                    </p>
-                </section>
-
-                <section className="bg-card border border-border p-6 rounded-3xl shadow-sm">
-                    <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                        <span className="w-8 h-8 flex items-center justify-center bg-primary text-white rounded-full text-sm">5</span>
-                        Option Marketplace (Vente de produits)
-                    </h2>
-                    <p className="text-muted-foreground leading-relaxed">
-                        La plateforme permet aux utilisateurs de publier des annonces de vente.
-                    </p>
-                    <ul className="list-disc pl-6 mt-4 space-y-2 text-muted-foreground font-medium italic">
-                        <li>Les produits sont publiés par leurs propriétaires respectifs.</li>
-                        <li>Chaque vendeur gère lui-même ses stocks, ses prix et ses descriptions.</li>
-                        <li>La gestion des commandes et les modalités de livraison sont sous la responsabilité exclusive du vendeur.</li>
-                        <li>inSeach agit uniquement comme un intermédiaire technique et ne possède aucun stock.</li>
-                    </ul>
-                </section>
-
-                <section className="bg-card border border-border p-6 rounded-3xl shadow-sm">
-                    <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                        <span className="w-8 h-8 flex items-center justify-center bg-primary text-white rounded-full text-sm">6</span>
-                        Responsabilités et Limitations
-                    </h2>
-                    <p className="text-muted-foreground leading-relaxed">
-                        inSeach décline toute responsabilité en cas de :
-                    </p>
-                    <ul className="list-disc pl-6 mt-4 space-y-2 text-muted-foreground">
-                        <li>Mauvaise exécution d'un service par un Prestataire.</li>
-                        <li>Non-conformité ou retard de livraison d'un produit vendu via la marketplace.</li>
-                        <li>Litiges financiers entre utilisateurs en dehors des systèmes de paiement intégrés le cas échéant.</li>
-                        <li>Interruption technique temporaire de la plateforme.</li>
-                    </ul>
-                </section>
-
-                <section className="bg-card border border-border p-6 rounded-3xl shadow-sm">
-                    <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                        <span className="w-8 h-8 flex items-center justify-center bg-primary text-white rounded-full text-sm">7</span>
-                        Suspension et Droit Applicable
-                    </h2>
-                    <p className="text-muted-foreground leading-relaxed">
-                        inSeach se réserve le droit de suspendre tout compte ne respectant pas les présentes CGU ou ayant un comportement frauduleux.
-                        Les présentes conditions sont régies par le droit en vigueur en Côte d'Ivoire.
-                    </p>
-                </section>
-
-                <div className="text-center pt-8 text-sm text-muted-foreground italic">
-                    Dernière mise à jour : 09 Mars 2026
-                </div>
+            <div className="mt-16 pt-10 border-t border-border flex flex-col items-center text-center">
+              <Icon icon="solar:shield-check-bold-duotone" className="w-16 h-16 text-primary mb-4 opacity-20" />
+              <p className="text-xs text-muted-foreground font-black uppercase tracking-[0.2em]">Djamko &bull; Sécurité &bull; Confiance</p>
             </div>
+          </div>
         </div>
-    )
+      </div>
+    </div>
+  );
 }

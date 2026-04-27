@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Search } from "lucide-react"
 import { TablePagination } from "./Pagination"
+import { cn } from "@/lib/utils"
 
 export type TableAction<T> = {
     icon: any
@@ -18,6 +19,7 @@ export type TableAction<T> = {
     value: string
     variant?: "default" | "destructive"
     disabled?: (row: T) => boolean
+    className?: string
 }
 
 export interface TableProps<T, S extends string> {
@@ -140,7 +142,10 @@ export function GenericTable<T, S extends string>({
                                     key={a.value}
                                     onClick={() => onAction?.(a.value, row.original)}
                                     disabled={a.disabled?.(row.original)}
-                                    className={a.variant === "destructive" ? "text-red-600" : ""}
+                                    className={cn(
+                                        a.variant === "destructive" && "text-red-600",
+                                        a.className
+                                    )}
                                 >
                                     <a.icon className="mr-2 h-4 w-4" />
                                     {a.label}
