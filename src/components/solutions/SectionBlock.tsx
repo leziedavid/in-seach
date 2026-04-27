@@ -23,7 +23,7 @@ export default function SectionBlock({
   className = "",
 }: SectionBlockProps) {
   return (
-    <section id={id} className={`w-full py-24 px-6 md:px-12 flex flex-col items-center gap-16 ${className}`}>
+    <section id={id} className={`w-full py-20 px-6 md:px-12 flex flex-col items-center gap-24 ${className}`}>
       <div className={`w-full max-w-7xl flex flex-col lg:flex-row items-center gap-12 lg:gap-24 ${reversed ? "lg:flex-row-reverse" : ""}`}>
         
         {/* Content Side */}
@@ -40,7 +40,7 @@ export default function SectionBlock({
                 {subtitle}
               </span>
             )}
-            <h2 className="text-4xl md:text-5xl font-black text-foreground leading-[1.1]">
+            <h2 className="text-4xl md:text-6xl font-black text-foreground tracking-tight leading-[1.05]">
               {title}
             </h2>
           </motion.div>

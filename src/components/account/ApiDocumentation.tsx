@@ -46,6 +46,7 @@ const ENDPOINTS = [
       { method: 'GET', url: '/open-api/logistic-services', description: 'Récupérer vos services logistiques.' },
       { method: 'GET', url: '/open-api/quotes', description: 'Récupérer vos devis (envoyés et reçus).' },
       { method: 'GET', url: '/open-api/deliveries', description: 'Récupérer vos livraisons.' },
+      { method: 'GET', url: '/open-api/fleet', description: 'Récupérer la liste de vos engins (véhicules, camions, etc.).' },
       { method: 'GET', url: '/open-api/delivery-tracking?trackingCode=XXX', description: 'Suivre une livraison spécifique.', noPagination: true },
     ],
   },
@@ -506,7 +507,9 @@ export default function ApiDocumentation() {
                   <EntityBox label="Logistique" items={[
                     { label: 'Services', value: analytics.logistics.services },
                     { label: 'Devis (Quotes)', value: analytics.logistics.quotes },
-                    { label: 'Revenu (Quotes)', value: `${(analytics.logistics.revenue || 0).toLocaleString()} F`, color: 'text-green-500' },
+                    { label: 'Flotte (Total)', value: analytics.logistics.fleet?.total || 0 },
+                    { label: 'Véhicules Actifs', value: analytics.logistics.fleet?.active || 0, color: 'text-primary' },
+                    { label: 'Revenu Total', value: `${(analytics.logistics.revenue || 0).toLocaleString()} F`, color: 'text-green-500' },
                   ]} />
                 </div>
               </div>

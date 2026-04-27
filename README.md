@@ -1,7 +1,7 @@
-# SaaS Marketplace Frontend 🎨
+# Djamko 🎨
 
 ## Introduction
-Le frontend de **SaaS Marketplace** est une application web moderne, performante et hautement interactive. Elle offre une expérience utilisateur fluide pour la gestion des services, des annonces et de la messagerie, avec une attention particulière portée au design et à l'ergonomie (Dark Mode, Glassmorphism).
+Le frontend de **Djamko** est une application web moderne, performante et hautement interactive. Elle offre une expérience utilisateur fluide pour la gestion des services, des annonces et de la messagerie, avec une attention particulière portée au design et à l'ergonomie (Dark Mode, Glassmorphism).
 
 ## Fonctionnalités Clés
 - 📊 **Tableau de Bord Dynamique** : Vue d'ensemble des services, annonces et revenus.

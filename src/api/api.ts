@@ -1,5 +1,5 @@
 import { getCookie } from '@/lib/cookies';
-import { BaseResponse, Booking, Category, GlobalSearchResponse, Pagination, ReverseGeocodeData, Service, UserLocation, MySpaceResponse, Annonce, BookingsCalendar, Product, CategoryProd, Order, AdminQueryParams, AdminUserUpdateDto, AdminProductUpdateDto, AdminServiceUpdateDto, AdminAnnonceUpdateDto, AdminSubscriptionPlanDto, User, AdminLog, SubscriptionPlan, PlanEntity, AdminUserSubscription, Subscription, OrdersGroupedResponse, BookingsGroupedResponse, LogisticService, Quote, Delivery, DeliveryTracking, QuoteStatus, DeliveryStatus, TransportType, LocationLog, CategorieAnnonce, TypeAnnonce } from '@/types/interface';
+import { BaseResponse, Booking, Category, GlobalSearchResponse, Pagination, ReverseGeocodeData, Service, UserLocation, MySpaceResponse, Annonce, BookingsCalendar, Product, CategoryProd, Order, AdminQueryParams, AdminUserUpdateDto, AdminProductUpdateDto, AdminServiceUpdateDto, AdminAnnonceUpdateDto, AdminSubscriptionPlanDto, User, AdminLog, SubscriptionPlan, PlanEntity, AdminUserSubscription, Subscription, OrdersGroupedResponse, BookingsGroupedResponse, LogisticService, Quote, Delivery, DeliveryTracking, QuoteStatus, DeliveryStatus, TransportType, LocationLog, CategorieAnnonce, TypeAnnonce, LogisticsClient } from '@/types/interface';
 
 export const getBaseUrl = (): string => {
     return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
@@ -17,7 +17,7 @@ export function toQueryString(params: Record<string, any>): string {
     const searchParams = new URLSearchParams();
     Object.entries(params).forEach(([key, value]) => {
         if (value === undefined || value === null || value === '') return;
-        
+
         if (Array.isArray(value)) {
             value.forEach(v => {
                 if (v !== undefined && v !== null && v !== '') {
@@ -1262,9 +1262,19 @@ export const toggleLogisticStatus = async (isEnabled: boolean): Promise<BaseResp
 
 // --- Quotes ---
 export const createQuote = async (data: any): Promise<BaseResponse<Quote>> => {
+    const isFormData = data instanceof FormData;
     const response = await secureFetch(`${getBaseUrl()}/logistics/quotes`, {
         method: 'POST',
-        body: JSON.stringify(data),
+        body: isFormData ? data : JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const updateQuote = async (id: string, data: any): Promise<BaseResponse<Quote>> => {
+    const isFormData = data instanceof FormData;
+    const response = await secureFetch(`${getBaseUrl()}/logistics/quotes/${id}`, {
+        method: 'PATCH',
+        body: isFormData ? data : JSON.stringify(data),
     });
     return await response.json();
 };
@@ -1338,8 +1348,26 @@ export const getMyDeliveries = async (params?: { status?: DeliveryStatus; page?:
     return getDeliveries(params);
 };
 
+export const getDriverDeliveries = async (params?: { status?: DeliveryStatus; page?: number; limit?: number }): Promise<BaseResponse<any>> => {
+    const page = params?.page || 1;
+    const limit = params?.limit || 10;
+    let url = `${getBaseUrl()}/logistics/deliveries/driver?page=${page}&limit=${limit}`;
+    if (params?.status) url += `&status=${params.status}`;
+    const response = await secureFetch(url, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
 export const getDeliveryById = async (id: string): Promise<BaseResponse<Delivery>> => {
     const response = await secureFetch(`${getBaseUrl()}/logistics/deliveries/${id}`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
+export const getDeliveryDocumentData = async (id: string): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/logistics/deliveries/${id}/document-data`, {
         method: 'GET',
     });
     return await response.json();
@@ -1401,6 +1429,124 @@ export const getAllLocationLogs = async (params: { page?: number; limit?: number
 export const deleteLocationLog = async (id: string): Promise<BaseResponse<any>> => {
     const response = await secureFetch(`${getBaseUrl()}/location-log/${id}`, {
         method: 'DELETE',
+    });
+    return await response.json();
+};
+
+// --- Clients (Logistics) ---
+export const getCompanyClients = async (params: { page?: number; limit?: number } = {}): Promise<BaseResponse<Pagination<LogisticsClient>>> => {
+    const queryString = toQueryString(params);
+    const response = await secureFetch(`${getBaseUrl()}/logistics/clients?${queryString}`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
+export const createCompanyClient = async (data: any): Promise<BaseResponse<LogisticsClient>> => {
+    const response = await secureFetch(`${getBaseUrl()}/logistics/clients`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const updateCompanyClient = async (id: string, data: any): Promise<BaseResponse<LogisticsClient>> => {
+    const response = await secureFetch(`${getBaseUrl()}/logistics/clients/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const deleteCompanyClient = async (id: string): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/logistics/clients/${id}`, {
+        method: 'DELETE',
+    });
+    return await response.json();
+};
+
+// --- Fleet Management ---
+export const getFleet = async (params: { page?: number; limit?: number } = {}): Promise<BaseResponse<Pagination<any>>> => {
+    const queryString = toQueryString(params);
+    const response = await secureFetch(`${getBaseUrl()}/logistics/fleet?${queryString}`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
+export const getActiveFleet = async (): Promise<BaseResponse<any[]>> => {
+    const response = await secureFetch(`${getBaseUrl()}/logistics/fleet/active`, {
+        method: 'GET',
+    });
+    const res = await response.json();
+    return res.data || [];
+};
+
+export const createFleetItem = async (data: any): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/logistics/fleet`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const updateFleetItem = async (id: string, data: any): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/logistics/fleet/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const deleteFleetItem = async (id: string): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/logistics/fleet/${id}`, {
+        method: 'DELETE',
+    });
+    return await response.json();
+};
+
+export const toggleFleetStatus = async (id: string): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/logistics/fleet/${id}/toggle-status`, {
+        method: 'PATCH',
+    });
+    return await response.json();
+};
+
+// --- Seed Administration ---
+export interface SeedTableConfig {
+    name: string;
+    key: string;
+    order: number;
+    dependsOn?: string[];
+    description?: string;
+}
+
+export const getSeedConfig = async (): Promise<BaseResponse<SeedTableConfig[]>> => {
+    const response = await secureFetch(`${getBaseUrl()}/admin/seed`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
+export const runSeed = async (tables: string[]): Promise<BaseResponse<{ success: boolean; logs: string[] }>> => {
+    const response = await secureFetch(`${getBaseUrl()}/admin/seed/run`, {
+        method: 'POST',
+        body: JSON.stringify({ tables }),
+    });
+    return await response.json();
+};
+
+export const clearDatabase = async (): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/admin/seed/clear`, {
+        method: 'DELETE',
+    });
+    return await response.json();
+};
+
+export const assignToDelivery = async (deliveryId: string, data: { floteIds?: string[], driverIds?: string[] }): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/logistics/deliveries/${deliveryId}/assign`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
     });
     return await response.json();
 };

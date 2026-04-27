@@ -207,7 +207,7 @@ export default function AnnoncesCard({
                         }
                     }}
                         className="bg-primary text-primary-foreground hover:bg-secondary">
-                        {checkLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-6 h-6 mr-2" /> : <Icon icon="mdi-light:file-plus" className="w-10 h-10" />}
+                        {checkLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-6 h-6 mr-2" /> : <Icon icon="solar:widget-add-bold" width="24" height="24" />}
                         Ajouter une annonce
                     </Button>
                 </div>

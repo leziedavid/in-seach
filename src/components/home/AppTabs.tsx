@@ -11,7 +11,6 @@ import SearchServies from "../service/SearchServies"
 import QuoteRequestModal from "../logistics/QuoteRequestModal"
 import { Modal } from "../modal/MotionModal"
 import { LogisticService } from "@/types/interface"
-import { Icon } from "@iconify/react"
 
 
 
@@ -22,7 +21,7 @@ const tabs = [
         Icon: SearchIcon,
         info: {
             title: "Expertise à la Demande",
-            description: "Accédez instantanément aux meilleurs talents. Du dépannage d'urgence aux services experts, Nexxa vous connecte avec des professionnels vérifiés."
+            description: "Accédez instantanément aux meilleurs talents. Du dépannage d'urgence aux services experts, Djamko vous connecte avec des professionnels vérifiés."
         }
     },
     {
@@ -103,34 +102,15 @@ export default function AppTabs() {
                                     <motion.div layoutId="activeTabBackground" className="absolute inset-0 bg-primary/5 rounded-2xl z-0" transition={{ type: "spring", bounce: 0.2, duration: 0.6 }} />
                                 )}
 
-                                {/* Cercle */}
-                                <div className={`relative z-10 w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 flex items-center justify-center rounded-full border-2 transition-all duration-300 group-hover:scale-110 active:scale-95 ${isActive ? "bg-primary border-primary shadow-lg shadow-primary/20 scale-105" : "bg-card border-border hover:border-primary/40"} `}  >
+                                 {/* Cercle */}
+                                <div className={`relative z-10 w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 flex items-center justify-center rounded-full border transition-all duration-300 ${isActive ? "bg-primary border-primary shadow-lg" : "bg-card/50 border-border/50 hover:border-sidebar-primary"} `}  >
                                     <IconComponent active={isActive} />
-
-                                    {/* Small indicator dot for active state */}
-                                    {isActive && (
-                                        <motion.div
-                                            layoutId="activeDot"
-                                            className="absolute -top-1 -right-1 w-3 h-3 bg-secondary rounded-full border-2 border-background"
-                                            initial={{ scale: 0 }}
-                                            animate={{ scale: 1 }}
-                                        />
-                                    )}
                                 </div>
 
-                                {/* Label */}
-                                <span className={`relative z-10 text-[10px] sm:text-xs mt-1 sm:mt-2 whitespace-nowrap transition-colors duration-300 ${tab.label === "" ? "hidden sm:block" : ""} ${isActive ? "text-primary font-bold" : "text-muted-foreground group-hover:text-primary/70"} `}  >
+                                 {/* Label */}
+                                <span className={`text-[10px] sm:text-xs mt-2 whitespace-nowrap transition-colors duration-300 font-medium ${tab.label === "" ? "hidden sm:block" : ""} ${isActive ? "text-primary" : "text-muted-foreground group-hover:text-primary"} `}  >
                                     {tab.label || "Recherche"}
                                 </span>
-
-                                {/* Bottom sliding bar */}
-                                {isActive && (
-                                    <motion.div
-                                        layoutId="activeTabUnderline"
-                                        className="absolute -bottom-1 left-1/4 right-1/4 h-0.5 bg-primary rounded-full"
-                                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                                    />
-                                )}
                             </button>
                         )
                     })}

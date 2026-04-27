@@ -245,7 +245,12 @@ export default function ServicesCard({ data: propData, page: propPage, limit: pr
 
                 {/* Action Bar */}
                 <div className="flex flex-col md:flex-row items-center justify-between gap-4 w-full max-w-4xl mb-6">
-                    <div className="flex items-center w-full"></div>
+                    <div className="flex items-center w-full md:max-w-md bg-card border border-border rounded-xl px-4 py-2.5 shadow-sm focus-within:border-primary transition-all">
+                        <Icon icon="solar:magnifer-bold-duotone" className="w-5 h-5 text-muted-foreground mr-3 flex-shrink-0" />
+                        <input type="text" placeholder="Rechercher dans mes produits..." className="flex-1 bg-transparent text-foreground outline-none text-sm placeholder:text-muted-foreground" />
+                    </div>
+
+
                     <Button disabled={checkLoading} onClick={async () => {
                         const canCreate = await checkEligibility('Service');
                         if (canCreate) {
@@ -255,7 +260,7 @@ export default function ServicesCard({ data: propData, page: propPage, limit: pr
                         }
                     }}
                         className="bg-primary text-primary-foreground hover:bg-secondary">
-                        {checkLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-6 h-6 mr-2" /> : <Icon icon="mdi-light:file-plus" className="w-10 h-10" />}
+                        {checkLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-6 h-6 mr-2" /> : <Icon icon="solar:widget-add-bold" width="24" height="24" />}
                         Ajouter un service
                     </Button>
                 </div>

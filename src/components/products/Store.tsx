@@ -170,6 +170,7 @@ export default function Store() {
 
             {/* Action Bar */}
             <div className="flex flex-col md:flex-row items-center justify-between gap-4 w-full max-w-4xl mb-6">
+
                 <div className="flex items-center w-full md:max-w-md bg-card border border-border rounded-xl px-4 py-2.5 shadow-sm focus-within:border-primary transition-all">
                     <Icon icon="solar:magnifer-bold-duotone" className="w-5 h-5 text-muted-foreground mr-3 flex-shrink-0" />
                     <input type="text" placeholder="Rechercher dans mes produits..." className="flex-1 bg-transparent text-foreground outline-none text-sm placeholder:text-muted-foreground" value={search} onChange={(e) => setSearch(e.target.value)} />
@@ -178,10 +179,11 @@ export default function Store() {
                     </button>
                 </div>
 
-                <button disabled={checkLoading} onClick={openCreateModal} className="w-full md:w-auto flex items-center justify-center gap-2 bg-primary text-white px-6 py-2.5 rounded-xl font-bold hover:bg-secondary transition-all active:scale-95 shadow-lg shadow-primary/20 disabled:opacity-50">
-                    {checkLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-5 h-5" /> : <Icon icon="solar:plus-circle-bold-duotone" className="w-5 h-5" />}
+                <button disabled={checkLoading} onClick={openCreateModal} className="w-full md:w-auto text-sm flex items-center justify-center gap-2 bg-primary text-white px-6 py-2.5 rounded-xl font-bold hover:bg-secondary transition-all active:scale-95  shadow-primary/20 disabled:opacity-50">
+                    {checkLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-5 h-5" /> : <Icon icon="solar:widget-add-bold" width="24" height="24" />}
                     Mettre en vente un article
                 </button>
+
             </div>
 
             <div className="w-full max-w-full px-1">
@@ -210,10 +212,7 @@ export default function Store() {
                         title="Aucun produit"
                         description="Il semble que vous n'ayez aucun produit en vente ou correspondant à votre recherche."
                         action={
-                            <button
-                                onClick={openCreateModal}
-                                className="flex items-center justify-center gap-2 text-primary font-black hover:underline"
-                            >
+                            <button onClick={openCreateModal} className="flex items-center justify-center gap-2 text-primary font-black hover:underline" >
                                 <Icon icon="solar:add-circle-bold" className="w-5 h-5" />
                                 Mettre en vente un article
                             </button>

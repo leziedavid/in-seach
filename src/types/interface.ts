@@ -26,7 +26,8 @@ export enum Role {
     CLIENT = 'CLIENT',
     PRESTATAIRE = 'PRESTATAIRE',
     ADMIN = 'ADMIN',
-    ENTREPRISE = 'ENTREPRISE'
+    ENTREPRISE = 'ENTREPRISE',
+    CHAUFFEUR = 'CHAUFFEUR'
 }
 
 export enum TransportType {
@@ -116,8 +117,14 @@ export interface User {
     fullName?: string;
     phone?: string;
     avatar?: string;
+    avatarUrl?: string; // Standardized field
     companyName?: string;
+    siegeSocial?: string;
+    boitePostale?: string;
+    logo?: string;
+    signature?: string;
     cni?: string;
+    cniUrl?: string; // Standardized field
     role: Role;
     isPremium: boolean;
     credits: number;
@@ -256,6 +263,7 @@ export interface UserLocation {
     city?: string | null;
     district?: string | null;
     street?: string | null;
+    subtitle?: string | null;
 }
 
 export interface ReverseGeocodeData {
@@ -293,11 +301,6 @@ export interface Address {
 // ===============================
 
 export interface UserProfile extends User {
-    fullName?: string;
-    phone?: string;
-    avatarUrl?: string;
-    cniUrl?: string;
-    companyName?: string;
     servicesCount?: number;
     annoncesCount?: number;
     bookingsCount?: number;
@@ -660,10 +663,17 @@ export interface Quote {
     description: string;
     volume?: number;
     weight?: number;
+    images?: string[];
     status: QuoteStatus;
     montantTransac?: number;
     senderId: string;
     receiverId?: string;
+    prestataireId?: string;
+    prestataire?: {
+        id: string;
+        fullName: string;
+        companyName?: string;
+    };
     sender?: {
         fullName: string;
         email: string;
@@ -684,6 +694,8 @@ export interface Delivery {
     actualDeparture?: string;
     actualArrival?: string;
     trackingEvents?: DeliveryTracking[];
+    drivers?: User[];
+    flotes?: Flote[];
     createdAt: string;
     updatedAt: string;
 }
@@ -695,6 +707,39 @@ export interface DeliveryTracking {
     location: string;
     note?: string;
     createdAt: string;
+}
+
+export enum FloteType {
+    VEHICULE = 'VEHICULE',
+    CAMION = 'CAMION',
+    AVION = 'AVION',
+    AUTRE = 'AUTRE'
+}
+
+export enum FloteStatus {
+    ACTIF = 'ACTIF',
+    INACTIF = 'INACTIF'
+}
+
+export interface Flote {
+    id: string;
+    name: string;
+    type: FloteType;
+    status: FloteStatus;
+    description?: string;
+    companyId: string;
+    marque?: string;
+    modele?: string;
+    immatriculation?: string;
+    capacite?: string;
+    typeCarburant?: string;
+    consommation?: string;
+    assurance?: string;
+    dateMiseEnCirculation?: string;
+    autonomie?: string;
+    compagnie?: string;
+    createdAt: string;
+    updatedAt: string;
 }
 
 export interface LocationLog {
@@ -738,4 +783,8 @@ export interface PushSubscriptionRequest {
             auth: string;
         };
     };
+}
+
+export interface LogisticsClient extends User {
+    companyId?: string;
 }

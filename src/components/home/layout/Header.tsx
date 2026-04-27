@@ -15,8 +15,7 @@ import CartDetailModal from "@/components/products/CartDetailModal";
 import { useNotification } from "@/components/toast/NotificationProvider";
 
 const NAVIGATION_TABS = [
-  { key: "accueil", label: "Accueil", icon: "ic:twotone-home-max", path: "/" },
-  { key: "solutions", label: "Solutions", icon: "solar:lightbulb-bold-duotone", path: "/solutions" },
+    { key: "accueil", label: "Accueil", icon: "ic:twotone-home-max", path: "/" },
 ];
 
 export default function Header() {
@@ -123,10 +122,10 @@ export default function Header() {
 
     return (
 
-        <header className="fixed left-1/2 -translate-x-1/2 z-50 bottom-4 w-[95%] max-w-[700px] md:top-4 md:bottom-auto md:w-2xl md:max-w-none bg-background/60 backdrop-blur-xl border border-border rounded-full shadow-2xl px-2 py-1.5 md:px-4 md:py-2 flex items-center justify-between md:justify-start md:gap-8 transition-all duration-300">
+        <header className="fixed left-1/2 -translate-x-1/2 z-50 bottom-4 w-[95%] max-w-[800px] md:top-6 md:bottom-auto md:w-fit bg-white/70 dark:bg-zinc-900/70 backdrop-blur-lg border border-white/40 dark:border-white/10 rounded-full shadow-lg px-3 py-2 md:px-6 md:py-2 flex items-center justify-between md:justify-start md:gap-4 transition-all duration-300">
 
             {/* User Section - Flat on mobile */}
-            <div className="contents md:flex md:items-center md:gap-2">
+            <div className="contents md:flex md:items-center md:gap-4">
                 <div className="w-10 h-10 md:w-9 md:h-9 bg-primary/20 rounded-full flex items-center justify-center overflow-hidden relative border border-border shrink-0">
                     {images.map((img, index) => (
                         <Image key={img} src={img} alt="Avatar" width={36} height={36} className={`object-cover w-full h-full absolute top-0 left-0 transition-opacity duration-500 ease-in-out ${index === currentImageIndex ? "opacity-100" : "opacity-0"}`} />
@@ -140,7 +139,7 @@ export default function Header() {
             </div>
 
             {/* Navigation Tabs - Flat on mobile */}
-            <nav className="contents md:flex md:items-center md:gap-2">
+            <nav className="contents md:flex md:items-center md:gap-4">
                 {NAVIGATION_TABS.map((tab) => {
                     const active = isTabActive(tab.path);
                     const isProtected = protectedPaths.includes(tab.path);
@@ -165,7 +164,7 @@ export default function Header() {
             </nav>
 
             {/* Actions Section - Flat on mobile */}
-            <div className="contents md:flex md:items-center md:gap-2">
+            <div className="contents md:flex md:items-center md:gap-4">
 
                 <button onClick={() => setIsCartModalOpen(true)} className="relative bg-primary p-1.5 md:p-2 rounded-full transition hover:scale-105 active:scale-95 flex items-center justify-center" >
                     <Icon icon="solar:cart-bold" className="text-white w-4 h-4 md:w-5 md:h-5" />
@@ -197,10 +196,7 @@ export default function Header() {
 
             </div>
 
-            <CartDetailModal
-                isOpen={isCartModalOpen}
-                onClose={() => setIsCartModalOpen(false)}
-            />
+            <CartDetailModal isOpen={isCartModalOpen} onClose={() => setIsCartModalOpen(false)} />
 
         </header>
 

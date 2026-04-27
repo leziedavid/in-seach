@@ -9,6 +9,7 @@ import { Jost } from "next/font/google"
 
 import { ThemeProvider } from "@/components/theme-provider";
 import { NotificationProvider } from "@/components/toast/NotificationProvider";
+import { WebPushManager } from "@/components/toast/webPush";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import InstallPWA from "@/components/pwa/InstallPWA";
 import BackgroundDecoration from "@/components/layout/BackgroundDecoration";
@@ -28,8 +29,17 @@ const jost = Jost({
 })
 
 export const metadata: Metadata = {
-  title: "Nexxa - L'écosystème tout-en-un pour vos services, vos biens et vos échanges globaux",
-  description: "Simplifiez votre quotidien avec Nexxa : services à la demande, marketplace sécurisée et solutions logistiques internationales.",
+  title: "Djamko - L'écosystème tout-en-un pour vos services, vos biens et vos échanges globaux",
+  description: "Simplifiez votre quotidien avec Djamko : services à la demande, marketplace sécurisée et solutions logistiques internationales.",
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon.png", type: "image/png" },
+    ],
+    apple: [
+      { url: "/favicon.png" },
+    ],
+  },
 };
 
 export default function RootLayout({ children, }: Readonly<{ children: React.ReactNode; }>) {
@@ -42,17 +52,19 @@ export default function RootLayout({ children, }: Readonly<{ children: React.Rea
         <meta name="theme-color" content="#b07b5e" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="Nexxa" />
+        <meta name="apple-mobile-web-app-title" content="Djamko" />
       </head>
       {/* <body className={inter.className}> */}
       <body className={`${jost.variable} font-sans antialiased`}>
+        <BackgroundDecoration />
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange >
           <NotificationProvider>
+            <WebPushManager />
 
             <QueryProvider>
               <SocketProvider>
                 <CartProvider>
-                  {/* <BackgroundDecoration /> */}
+
                   <ClientLayout>
                     {children}
                   </ClientLayout>
@@ -63,16 +75,16 @@ export default function RootLayout({ children, }: Readonly<{ children: React.Rea
           </NotificationProvider>
         </ThemeProvider>
 
-        {/* PWA Service Worker Registration */}
+        {/* PWA & Firebase Messaging Service Worker Registration */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
               if ('serviceWorker' in navigator) {
                 window.addEventListener('load', function() {
-                  navigator.serviceWorker.register('/sw.js').then(function(registration) {
-                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                  navigator.serviceWorker.register('/firebase-messaging-sw.js').then(function(registration) {
+                    console.log('Firebase ServiceWorker registration successful with scope: ', registration.scope);
                   }, function(err) {
-                    console.log('ServiceWorker registration failed: ', err);
+                    console.log('Firebase ServiceWorker registration failed: ', err);
                   });
                 });
               }

@@ -6,6 +6,8 @@ import Image from "next/image";
 import { Modal } from "../modal/MotionModal";
 import AvatarUploadForm from "./AvatarUploadForm";
 import CNIUploadForm from "./CNIUploadForm";
+import LogoUploadForm from "./LogoUploadForm";
+import SignatureUploadForm from "./SignatureUploadForm";
 import { Skeleton } from "../ui/skeleton";
 import { getMe, updateUserProfile, testWebPushNotification, testWebSocketNotification } from "@/api/api";
 import { UserProfile, SubscriptionPlan, SubscriptionStatus } from "@/types/interface";
@@ -15,13 +17,15 @@ import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
+import { Switch } from "../ui/switch";
 import { useNotifications } from "@/hooks/useNotifications";
 
 export default function AccountSettings() {
+
     const { permission, subscribe, unsubscribe, loading, isNotificationsEnabled } = useNotifications();
-    
+
     // Simplification : on utilise directement isNotificationsEnabled calculé par le hook
-    
+
     const handleToggleNotifications = async () => {
         if (isNotificationsEnabled) {
             await unsubscribe();
@@ -77,6 +81,8 @@ export default function AccountSettings() {
         email: "",
         phone: "",
         companyName: "",
+        siegeSocial: "",
+        boitePostale: "",
         password: "",
         confirmPassword: ""
     });
@@ -86,7 +92,7 @@ export default function AccountSettings() {
 
     // Modal states
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [modalType, setModalType] = useState<'avatar' | 'cni' | null>(null);
+    const [modalType, setModalType] = useState<'avatar' | 'cni' | 'LOGO_ENTREPRISE' | 'SIGNATURE_NUMERIQUE' | null>(null);
 
     const fetchUserData = async () => {
         setIsLoading(true);
@@ -100,15 +106,15 @@ export default function AccountSettings() {
                     email: userData.email || "",
                     phone: userData.phone || "",
                     companyName: userData.companyName || "",
+                    siegeSocial: userData.siegeSocial || "",
+                    boitePostale: userData.boitePostale || "",
                     password: "",
                     confirmPassword: ""
                 });
             }
         } catch (error) {
-
             console.error("Error fetching user data:", error);
             toast.error("Impossible de charger vos informations");
-
         } finally {
             setIsLoading(false);
         }
@@ -118,7 +124,7 @@ export default function AccountSettings() {
         (async () => await fetchUserData())();
     }, []);
 
-    const handleOpenModal = (type: 'avatar' | 'cni') => {
+    const handleOpenModal = (type: 'avatar' | 'cni' | 'LOGO_ENTREPRISE' | 'SIGNATURE_NUMERIQUE') => {
         setModalType(type);
         setIsModalOpen(true);
     };
@@ -126,16 +132,10 @@ export default function AccountSettings() {
     const handleAvatarSubmit = async (file: File) => {
         setIsSubmitting(true);
         try {
-            // NOTE: Logic for file upload to be implemented in backend
-            // Simulating update for UI feedback
-            const reader = new FileReader();
-            reader.onload = (e) => { setUser(prev => prev ? ({ ...prev, avatarUrl: e.target?.result as string }) : null); };
-            reader.readAsDataURL(file);
-            await new Promise(resolve => setTimeout(resolve, 1000));
             handleSaveProfile('avatar', file);
             setIsModalOpen(false);
         } catch (error) {
-            console.error("Error fetching user data:", error);
+            console.error("Error uploading avatar:", error);
         } finally {
             setIsSubmitting(false);
         }
@@ -144,19 +144,34 @@ export default function AccountSettings() {
     const handleCNISubmit = async (file: File) => {
         setIsSubmitting(true);
         try {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                setUser(prev => prev ? ({ ...prev, cniUrl: e.target?.result as string }) : null);
-            };
-            reader.readAsDataURL(file);
-
-            await new Promise(resolve => setTimeout(resolve, 1000));
             handleSaveProfile('cni', file);
-
             setIsModalOpen(false);
-
         } catch (error) {
-            console.error("Error fetching user data:", error);
+            console.error("Error uploading CNI:", error);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleLogoSubmit = async (file: File) => {
+        setIsSubmitting(true);
+        try {
+            handleSaveProfile('LOGO_ENTREPRISE', file);
+            setIsModalOpen(false);
+        } catch (error) {
+            console.error("Error uploading logo:", error);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleSignatureSubmit = async (file: File) => {
+        setIsSubmitting(true);
+        try {
+            handleSaveProfile('SIGNATURE_NUMERIQUE', file);
+            setIsModalOpen(false);
+        } catch (error) {
+            console.error("Error uploading signature:", error);
         } finally {
             setIsSubmitting(false);
         }
@@ -169,7 +184,7 @@ export default function AccountSettings() {
         ));
     };
 
-    const handleSaveProfile = async (type?: 'avatar' | 'cni' | null, file?: File) => {
+    const handleSaveProfile = async (type?: 'avatar' | 'cni' | 'LOGO_ENTREPRISE' | 'SIGNATURE_NUMERIQUE' | null, file?: File) => {
 
         setIsSubmitting(true);
         try {
@@ -186,7 +201,7 @@ export default function AccountSettings() {
 
                 if (response?.statusCode === 200 || response?.statusCode === 201) {
                     toast.success("Upload réussi");
-                    setUser(response.data);
+                    await fetchUserData();
                 } else {
                     toast.error("Erreur lors de l'upload");
                 }
@@ -202,6 +217,8 @@ export default function AccountSettings() {
             if (formData.email) payload.email = formData.email;
             if (formData.phone) payload.phone = formData.phone;
             if (formData.companyName) payload.companyName = formData.companyName;
+            if (formData.siegeSocial) payload.siegeSocial = formData.siegeSocial;
+            if (formData.boitePostale) payload.boitePostale = formData.boitePostale;
 
             if (Object.keys(payload).length === 0) {
                 toast.info("Aucune modification détectée");
@@ -212,7 +229,7 @@ export default function AccountSettings() {
 
             if (response?.statusCode === 200 || response?.statusCode === 201) {
                 toast.success("Profil mis à jour");
-                setUser(response.data);
+                await fetchUserData();
             } else {
                 toast.error("Une erreur est survenue");
             }
@@ -292,6 +309,38 @@ export default function AccountSettings() {
                     <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/5 transition-all" />
                 </div>
 
+                {/* CARD 3: LOGO */}
+                <div onClick={() => handleOpenModal('LOGO_ENTREPRISE')} className="group relative bg-card h-48 rounded-lg border border-border shadow-sm hover:shadow-xl transition-all cursor-pointer overflow-hidden" >
+                    <div className="absolute inset-0 flex flex-col items-center justify-center space-y-3 z-10 px-6">
+                        {user?.logo ? (
+                            <div className="relative w-full h-24 overflow-hidden ">
+                                <Image src={user.logo} alt="Logo" fill className="object-contain group-hover:scale-105 transition-transform duration-500" unoptimized />
+                            </div>
+                        ) : (
+                            <div className="w-16 h-16 rounded-xl bg-muted flex items-center justify-center border-2 border-dashed border-border group-hover:border-primary/50 transition-colors">
+                                <Icon icon="solar:globus-bold-duotone" className="w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors" />
+                            </div>
+                        )}
+                        <span className="text-xs font-black uppercase tracking-wider text-muted-foreground group-hover:text-primary transition-colors">Logo Entreprise</span>
+                    </div>
+                </div>
+
+                {/* CARD 4: SIGNATURE */}
+                <div onClick={() => handleOpenModal('SIGNATURE_NUMERIQUE')} className="group relative bg-card h-48 rounded-lg border border-border shadow-sm hover:shadow-xl transition-all cursor-pointer overflow-hidden" >
+                    <div className="absolute inset-0 flex flex-col items-center justify-center space-y-3 z-10 px-6">
+                        {user?.signature ? (
+                            <div className="relative w-full h-24 overflow-hidden ">
+                                <Image src={user.signature} alt="Signature" fill className="object-contain group-hover:scale-105 transition-transform duration-500" unoptimized />
+                            </div>
+                        ) : (
+                            <div className="w-16 h-16 rounded-xl bg-muted flex items-center justify-center border-2 border-dashed border-border group-hover:border-primary/50 transition-colors">
+                                <Icon icon="solar:pen-new-square-bold-duotone" className="w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors" />
+                            </div>
+                        )}
+                        <span className="text-xs font-black uppercase tracking-wider text-muted-foreground group-hover:text-primary transition-colors">Signature Numérique</span>
+                    </div>
+                </div>
+
             </div>
 
             {/* PERSO INFO FORM */}
@@ -350,6 +399,32 @@ export default function AccountSettings() {
                             />
                         </div>
                     </div>
+
+                    <div className="space-y-2">
+                        <label className="text-xs font-black text-muted-foreground uppercase tracking-widest ml-1">Siége Social</label>
+                        <div className="relative group">
+                            <Icon icon="solar:map-point-bold-duotone" className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors w-5 h-5" />
+                            <input name="siegeSocial"
+                                value={formData.siegeSocial}
+                                onChange={handleInputChange}
+                                className="w-full border border-border bg-muted/50 rounded-xl p-4 pl-12 text-sm font-bold text-foreground focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all"
+                                placeholder="Adresse du siège"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-xs font-black text-muted-foreground uppercase tracking-widest ml-1">Boîte Postale</label>
+                        <div className="relative group">
+                            <Icon icon="solar:letter-bold-duotone" className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors w-5 h-5" />
+                            <input name="boitePostale"
+                                value={formData.boitePostale}
+                                onChange={handleInputChange}
+                                className="w-full border border-border bg-muted/50 rounded-xl p-4 pl-12 text-sm font-bold text-foreground focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all"
+                                placeholder="BP 1234, Abidjan"
+                            />
+                        </div>
+                    </div>
                 </div>
 
                 <div className="pt-6 border-t border-border/50">
@@ -380,18 +455,12 @@ export default function AccountSettings() {
                         </div>
                     </div>
 
-                    <button 
-                        onClick={handleToggleNotifications} 
-                        disabled={loading} 
-                        className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all focus:outline-none ${isNotificationsEnabled ? 'bg-green-500 shadow-lg shadow-green-500/30' : 'bg-muted'} ${loading ? 'opacity-50 cursor-not-allowed' : 'active:scale-95'}`} 
-                    >
-                        <span className={`${isNotificationsEnabled ? 'translate-x-6' : 'translate-x-1'} inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform duration-200 ease-in-out`} />
+                    <div className="flex items-center gap-3">
                         {loading && (
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <Icon icon="solar:refresh-bold-duotone" className="w-4 h-4 text-white animate-spin opacity-40" />
-                            </div>
+                            <Icon icon="solar:refresh-bold-duotone" className="w-5 h-5 text-amber-600 animate-spin" />
                         )}
-                    </button>
+                        <Switch checked={isNotificationsEnabled} onCheckedChange={handleToggleNotifications} disabled={loading} className="data-[state=checked]:bg-green-500" />
+                    </div>
                 </div>
 
                 <div className="relative z-10 p-4 rounded-xl bg-amber-500/5 border border-amber-500/10">
@@ -417,11 +486,7 @@ export default function AccountSettings() {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-10">
-                    <button 
-                        onClick={handleTestPush}
-                        disabled={isTestingPush || !isNotificationsEnabled}
-                        className="flex items-center justify-center gap-3 px-6 py-4 rounded-2xl bg-muted border border-border hover:border-primary/50 hover:bg-primary/5 transition-all group disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
+                    <button onClick={handleTestPush} disabled={isTestingPush || !isNotificationsEnabled} className="flex items-center justify-center gap-3 px-6 py-4 rounded-2xl bg-muted border border-border hover:border-primary/50 hover:bg-primary/5 transition-all group disabled:opacity-50 disabled:cursor-not-allowed">
                         {isTestingPush ? (
                             <Icon icon="solar:refresh-bold-duotone" className="w-5 h-5 animate-spin text-primary" />
                         ) : (
@@ -433,11 +498,7 @@ export default function AccountSettings() {
                         </div>
                     </button>
 
-                    <button 
-                        onClick={handleTestSocket}
-                        disabled={isTestingSocket}
-                        className="flex items-center justify-center gap-3 px-6 py-4 rounded-2xl bg-muted border border-border hover:border-secondary/50 hover:bg-secondary/5 transition-all group disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
+                    <button onClick={handleTestSocket} disabled={isTestingSocket} className="flex items-center justify-center gap-3 px-6 py-4 rounded-2xl bg-muted border border-border hover:border-secondary/50 hover:bg-secondary/5 transition-all group disabled:opacity-50 disabled:cursor-not-allowed">
                         {isTestingSocket ? (
                             <Icon icon="solar:refresh-bold-duotone" className="w-5 h-5 animate-spin text-secondary" />
                         ) : (
@@ -567,6 +628,24 @@ export default function AccountSettings() {
                         <CNIUploadForm
                             currentCNI={user?.cniUrl}
                             onSubmit={handleCNISubmit}
+                            onClose={() => setIsModalOpen(false)}
+                            isSubmitting={isSubmitting}
+                        />
+                    )}
+
+                    {modalType === 'LOGO_ENTREPRISE' && (
+                        <LogoUploadForm
+                            currentLogo={user?.logo}
+                            onSubmit={handleLogoSubmit}
+                            onClose={() => setIsModalOpen(false)}
+                            isSubmitting={isSubmitting}
+                        />
+                    )}
+
+                    {modalType === 'SIGNATURE_NUMERIQUE' && (
+                        <SignatureUploadForm
+                            currentSignature={user?.signature}
+                            onSubmit={handleSignatureSubmit}
                             onClose={() => setIsModalOpen(false)}
                             isSubmitting={isSubmitting}
                         />

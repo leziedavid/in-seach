@@ -8,7 +8,6 @@ import ProductDetailModal from "./ProductDetailModal"
 import { useCart } from "@/components/providers/CartProvider"
 import { useNotification } from "@/components/toast/NotificationProvider"
 import Delete from "../logistics/Delete"
-
 import { Switch } from "../ui/switch"
 
 export default function ProductCard({
@@ -59,7 +58,7 @@ export default function ProductCard({
         <>
             <div onClick={() => setIsModalOpen(true)} className="group rounded-lg p-0 md:p-4 flex flex-col md:items-center text-left md:text-center bg-card w-full transition-all duration-300 cursor-pointer  border border-transparent ">
                 {/* Image - Scaling on hover */}
-                {/* <pre>{JSON.stringify(product.imageUrl, null, 2)}</pre> */}
+
                 <div className="relative w-full aspect-square mb-1.5 overflow-hidden rounded-lg md:rounded-2xl">
                     <Image src={product.imageUrl || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=2099&auto=format&fit=crop'}
                         alt={product.name}
@@ -105,11 +104,7 @@ export default function ProductCard({
 
                     {onEdit || onDelete ? (
                         <div className="flex items-center justify-center w-full gap-3">
-                            <Switch
-                                checked={product.isActive}
-                                onCheckedChange={handleToggle}
-                                onClick={(e) => e.stopPropagation()}
-                            />
+                            <Switch checked={product.isActive} onCheckedChange={handleToggle} onClick={(e) => e.stopPropagation()} />
                             <div className="flex items-center gap-2">
                                 {onEdit && (
                                     <button onClick={handleEdit} className="p-2 rounded-lg hover:bg-muted transition" title="Modifier" >
@@ -125,12 +120,14 @@ export default function ProductCard({
                         </div>
                     ) : (
                         <div className="flex justify-end w-full">
-                            <button onClick={handleAddToCart} className="bg-secondary text-white px-2 py-1 md:px-3 md:py-2 rounded-lg text-[10px] md:text-xs font-black hover:bg-primary transition-all active:scale-90 shadow-sm">
+                            <button onClick={handleAddToCart} className="flex items-center gap-1 md:gap-2 bg-secondary text-white px-2 py-1 md:px-3 md:py-2 rounded-full text-[10px] md:text-xs font-black hover:bg-primary transition-all active:scale-90 shadow-sm">
+                                <span className="whitespace-nowrap">Ajouter</span>
                                 <Icon icon="solar:cart-large-minimalistic-bold-duotone" className="w-4 h-4" />
                             </button>
                         </div>
                     )}
                 </div>
+
             </div>
 
 
@@ -141,7 +138,7 @@ export default function ProductCard({
                 onClose={() => setIsDeleteModalOpen(false)}
                 onConfirm={confirmDelete}
                 // ProductCard relies on the parent to handle the actual API call and loading state via onDelete
-                isDeleting={false} 
+                isDeleting={false}
             />
         </>
     )

@@ -3,14 +3,17 @@
 import React, { useEffect, useState } from "react";
 import { Icon } from "@iconify/react";
 import { Delivery, DeliveryStatus } from "@/types/interface";
-import { getDeliveries, getMyDeliveries } from "@/api/api";
+import { getDeliveries, getMyDeliveries, getDriverDeliveries, getDeliveryDocumentData } from "@/api/api";
 import { useNotification } from "../toast/NotificationProvider";
 import { Button } from "../ui/button";
 import { Modal } from "../modal/MotionModal";
 import TrackingCard from "./TrackingCard";
+import DeliveryAssignmentModal from "./DeliveryAssignmentModal";
+import DocumentPreviewModal from "./DocumentPreviewModal";
+import { useSubscriptionCheck } from "@/hooks/useSubscriptionCheck";
 
 interface DeliveriesListProps {
-    role: "CLIENT" | "ENTREPRISE";
+    role: "CLIENT" | "ENTREPRISE" | "CHAUFFEUR";
 }
 
 const STATUS_CONFIG: Record<DeliveryStatus, { label: string; color: string; icon: string }> = {
@@ -23,16 +26,26 @@ const STATUS_CONFIG: Record<DeliveryStatus, { label: string; color: string; icon
 };
 
 export default function DeliveriesList({ role }: DeliveriesListProps) {
+
     const [deliveries, setDeliveries] = useState<Delivery[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedDelivery, setSelectedDelivery] = useState<Delivery | null>(null);
     const [isTrackingModalOpen, setIsTrackingModalOpen] = useState(false);
+    const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+    const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false);
+    const [documentType, setDocumentType] = useState<'FACTURE' | 'BON_COMMANDE'>('FACTURE');
+    const [documentData, setDocumentData] = useState<any | null>(null);
+    const [loadingDocId, setLoadingDocId] = useState<string | null>(null);
+
     const { addNotification } = useNotification();
+    const { checkEligibility, loading: checkLoading } = useSubscriptionCheck();
+
 
     const fetchDeliveries = async () => {
         setLoading(true);
+
         try {
-            const res = role === "CLIENT" ? await getMyDeliveries() : await getDeliveries();
+            const res = role === "CLIENT" ? await getMyDeliveries() : role === "CHAUFFEUR" ? await getDriverDeliveries() : await getDeliveries();
             if (res.statusCode === 200) {
                 const data = res.data?.data || (Array.isArray(res.data) ? res.data : []);
                 setDeliveries(data);
@@ -49,6 +62,24 @@ export default function DeliveriesList({ role }: DeliveriesListProps) {
         fetchDeliveries();
     }, [role]);
 
+    const handleOpenDocument = async (id: string, type: 'FACTURE' | 'BON_COMMANDE') => {
+        setLoadingDocId(id + type);
+        setDocumentType(type);
+        try {
+            const res = await getDeliveryDocumentData(id);
+            if (res.statusCode === 200) {
+                setDocumentData(res.data);
+                setIsDocumentModalOpen(true);
+            } else {
+                addNotification("Erreur lors de la récupération des données", "error");
+            }
+        } catch (error) {
+            addNotification("Erreur serveur", "error");
+        } finally {
+            setLoadingDocId(null);
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center py-20 gap-4">
@@ -64,11 +95,15 @@ export default function DeliveriesList({ role }: DeliveriesListProps) {
                 deliveries.map((delivery) => {
                     const status = STATUS_CONFIG[delivery.status];
                     return (
+
                         <div key={delivery.id} className="bg-card hover:bg-muted/10 border border-border rounded-3xl p-5 transition-all group flex flex-col md:flex-row md:items-center justify-between gap-4">
+
                             <div className="flex items-center gap-4 flex-1">
+
                                 <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${status.color}`}>
                                     <Icon icon={status.icon} className="w-7 h-7" />
                                 </div>
+
                                 <div>
                                     <div className="flex items-center gap-2 mb-1">
                                         <h4 className="font-black text-foreground uppercase tracking-tight">Code: {delivery.trackingCode}</h4>
@@ -89,21 +124,51 @@ export default function DeliveriesList({ role }: DeliveriesListProps) {
                                         )}
                                     </div>
                                 </div>
+
                             </div>
 
-                            <div className="flex items-center gap-3 pl-0 md:pl-6 md:border-l border-border/50">
-                                <Button
-                                    className="rounded-xl h-10 bg-primary hover:bg-secondary text-white font-black text-xs gap-2 px-6 shadow-lg shadow-primary/20 transition-all active:scale-95"
-                                    onClick={() => {
-                                        setSelectedDelivery(delivery);
-                                        setIsTrackingModalOpen(true);
-                                    }}
-                                >
-                                    <Icon icon="solar:map-point-wave-bold-duotone" className="w-4 h-4" />
-                                    SUIVRE LE COLIS
+                            <div className="flex items-center gap-2 md:gap-3 pl-0 md:pl-6 md:border-l border-border/50">
+                                {/* les bouton d'action  */}
+                                <Button className="rounded-xl h-10 bg-primary hover:bg-secondary text-white font-black text-xs gap-2 px-3 md:px-6 shadow-lg shadow-primary/20 transition-all active:scale-95 disabled:opacity-50" disabled={checkLoading} onClick={async () => {
+                                    const canAction = await checkEligibility('LogisticService');
+                                    if (canAction) { setSelectedDelivery(delivery); setIsTrackingModalOpen(true); }
+                                }}>
+                                    {checkLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:map-point-wave-bold-duotone" className="w-4 h-4" />}
+                                    <span className="hidden md:inline">SUIVRE</span>
                                 </Button>
+
+                                <button onClick={() => handleOpenDocument(delivery.id, 'FACTURE')} disabled={loadingDocId === delivery.id + 'FACTURE'} className="h-10 px-3 md:px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-black text-[10px] flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50" title="Générer Facture" >
+                                    {loadingDocId === delivery.id + 'FACTURE' ? (
+                                        <Icon icon="solar:refresh-bold-duotone" className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                        <Icon icon="solar:bill-list-bold-duotone" className="w-4 h-4" />
+                                    )}
+                                    <span className="hidden md:inline">FACTURE</span>
+                                </button>
+
+                                <button onClick={() => handleOpenDocument(delivery.id, 'BON_COMMANDE')} disabled={loadingDocId === delivery.id + 'BON_COMMANDE'} className="h-10 px-3 md:px-4 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-900 font-black text-[10px] flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50" title="Générer Bon de Commande" >
+                                    {loadingDocId === delivery.id + 'BON_COMMANDE' ? (
+                                        <Icon icon="solar:refresh-bold-duotone" className="w-4 h-4 animate-spin text-primary" />
+                                    ) : (
+                                        <Icon icon="solar:clipboard-list-bold-duotone" className="w-4 h-4 text-primary" />
+                                    )}
+                                    <span className="hidden md:inline">BON CMD</span>
+                                </button>
+
+                                {role === "ENTREPRISE" && (
+                                    <button disabled={checkLoading} onClick={async () => {
+                                        const canAction = await checkEligibility('LogisticService'); // Or 'Delivery' depending on your config mapping
+                                        if (canAction) { setSelectedDelivery(delivery); setIsAssignModalOpen(true); }
+                                    }}
+                                        className="w-10 h-10 rounded-xl bg-primary/5 hover:bg-primary/10 text-primary flex items-center justify-center transition-all shadow-sm shrink-0 disabled:opacity-50" title="Affectations (Chauffeurs & Flotte)">
+                                        {checkLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-5 h-5" /> : <Icon icon="solar:user-speak-bold-duotone" className="w-5 h-5" />}
+                                    </button>
+                                )}
+
                             </div>
+
                         </div>
+
                     );
                 })
             ) : (
@@ -118,8 +183,11 @@ export default function DeliveriesList({ role }: DeliveriesListProps) {
 
             {/* Tracking Modal */}
             <Modal isOpen={isTrackingModalOpen} onClose={() => setIsTrackingModalOpen(false)}>
+
                 <div className="p-6">
+
                     <div className="flex items-center justify-between mb-8 pb-4 border-b border-border">
+
                         <h2 className="text-2xl font-black flex items-center gap-3">
                             <Icon icon="solar:map-point-wave-bold-duotone" className="text-primary w-7 h-7" />
                             Suivi de Livraison
@@ -129,13 +197,17 @@ export default function DeliveriesList({ role }: DeliveriesListProps) {
                         </button>
                     </div>
                     {selectedDelivery && (
-                        <TrackingCard
-                            delivery={selectedDelivery}
-                            isOwner={role === "ENTREPRISE"}
-                        />
+                        <TrackingCard delivery={selectedDelivery} isOwner={role === "ENTREPRISE" || role === "CHAUFFEUR"} />
                     )}
                 </div>
+
             </Modal>
+
+            {/* Assignment Modal */}
+            <DeliveryAssignmentModal isOpen={isAssignModalOpen} delivery={selectedDelivery} onClose={() => setIsAssignModalOpen(false)} onSuccess={() => fetchDeliveries()} />
+            {/* Document Preview Modal */}
+            <DocumentPreviewModal isOpen={isDocumentModalOpen} onClose={() => setIsDocumentModalOpen(false)} data={documentData} type={documentType} />
+
         </div>
     );
 }

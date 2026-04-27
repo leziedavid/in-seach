@@ -2,7 +2,6 @@
 
 import { Icon } from "@iconify/react";
 import { motion } from "framer-motion";
-import { ReactNode } from "react";
 
 interface FeatureCardProps {
   title: string;
@@ -18,55 +17,44 @@ export default function FeatureCard({
   title,
   description,
   utility,
-  examples,
   icon,
   iconColor = "text-primary",
   delay = 0,
-}: FeatureCardProps) {
+}: Omit<FeatureCardProps, "examples">) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      transition={{ duration: 0.5, delay }}
-      whileHover={{ y: -5 }}
-      className="group relative h-full bg-card/40 backdrop-blur-sm border border-border/50 hover:border-primary/30 rounded-3xl p-8 flex flex-col gap-6 shadow-sm hover:shadow-2xl transition-all overflow-hidden"
+      transition={{ duration: 0.6, delay }}
+      className="group relative h-full bg-white dark:bg-zinc-900/50 border border-border/40 hover:border-primary/40 rounded-[32px] p-10 flex flex-col gap-8 shadow-sm hover:shadow-[0_32px_64px_-12px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_32px_64px_-12px_rgba(0,0,0,0.4)] transition-all ease-out duration-500"
     >
       {/* Background soft glow on hover */}
-      <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
       
-      <div className="flex items-center gap-6">
-        <div className={`w-16 h-16 rounded-2xl bg-card border border-border/50 shadow-sm flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
-          <Icon icon={icon} width={32} height={32} className={`${iconColor}`} />
+      <div className="flex flex-col gap-6 relative z-10">
+        <div className={`w-16 h-16 rounded-2xl bg-muted/50 border border-border/20 flex items-center justify-center group-hover:scale-110 group-hover:bg-primary/5 transition-all duration-500`}>
+          <Icon icon={icon} width={34} height={34} className={`${iconColor}`} />
         </div>
-        <div>
-          <h4 className="text-xl font-bold text-foreground group-hover:text-primary transition-colors">{title}</h4>
-          <p className="text-sm text-muted-foreground line-clamp-1">{description}</p>
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-4 flex-grow">
-        <div className="space-y-1">
-          <span className="text-[10px] uppercase font-black tracking-widest text-primary/70">Utilité</span>
-          <p className="text-sm leading-relaxed text-muted-foreground">{utility}</p>
-        </div>
-
-        <div className="space-y-2">
-          <span className="text-[10px] uppercase font-black tracking-widest text-primary/70">Exemples d'usage</span>
-          <ul className="grid grid-cols-1 gap-2">
-            {examples.map((ex, i) => (
-              <li key={i} className="flex items-center gap-2 text-xs text-muted-foreground font-medium">
-                <Icon icon="solar:check-circle-bold" className="w-4 h-4 text-green-500/70" />
-                {ex}
-              </li>
-            ))}
-          </ul>
+        
+        <div className="space-y-4">
+          <h4 className="text-2xl font-bold text-foreground leading-tight">{title}</h4>
+          <p className="text-muted-foreground leading-relaxed font-medium">
+            {utility}
+          </p>
         </div>
       </div>
 
-      {/* Subtle bottom decoration */}
-      <div className="absolute bottom-0 right-0 p-4 opacity-5 pointer-events-none">
-         <Icon icon={icon} width={80} height={80} />
+      <div className="mt-auto relative z-10">
+        <div className="flex items-center gap-2 text-sm font-bold text-primary opacity-0 group-hover:opacity-100 -translate-x-4 group-hover:translate-x-0 transition-all duration-500">
+          <span>En savoir plus</span>
+          <Icon icon="solar:arrow-right-bold" className="w-4 h-4" />
+        </div>
+      </div>
+
+      {/* Subtle corner decoration */}
+      <div className="absolute top-6 right-6 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity duration-500 pointer-events-none">
+         <Icon icon={icon} width={120} height={120} />
       </div>
     </motion.div>
   );

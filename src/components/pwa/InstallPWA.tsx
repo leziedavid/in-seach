@@ -50,21 +50,18 @@ export default function InstallPWA() {
     return (
         <AnimatePresence>
             {show && (
-                <motion.div
-                    initial={{ opacity: 0, y: 100, scale: 0.9 }}
-                    animate={{
-                        opacity: 1,
-                        y: 0,
-                        scale: 1,
-                        transition: {
-                            type: "spring",
-                            stiffness: 260,
-                            damping: 20
-                        }
-                    }}
+                <motion.div initial={{ opacity: 0, y: 100, scale: 0.9 }} animate={{
+                    opacity: 1,
+                    y: 0,
+                    scale: 1,
+                    transition: {
+                        type: "spring",
+                        stiffness: 260,
+                        damping: 20
+                    }
+                }}
                     exit={{ opacity: 0, y: 50, scale: 0.9, transition: { duration: 0.2 } }}
-                    className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[92%] max-w-sm z-[100] p-6 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-2xl border border-white/20 dark:border-zinc-800/50 rounded-[40px] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] flex flex-col items-center"
-                >
+                    className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[92%] max-w-sm z-[100] p-6 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-2xl border border-white/20 dark:border-zinc-800/50 rounded-[40px] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] flex flex-col items-center">
                     <div className="flex flex-col items-center text-center gap-4">
                         <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary shadow-inner">
                             <Icon icon="solar:download-square-bold-duotone" className="w-10 h-10" />
@@ -87,30 +84,18 @@ export default function InstallPWA() {
                         )}
 
                         <div className="flex gap-3 w-full pt-2">
-                            <Button
-                                variant="outline"
-                                onClick={handleLater}
-                                className="flex-1 rounded-2xl font-bold py-6"
-                            >
+                            <Button variant="outline" onClick={handleLater} className="flex-1 rounded-2xl font-bold py-6">
                                 Plus tard
                             </Button>
                             {platform !== "ios" && (
-                                <Button
-                                    onClick={handleInstall}
-                                    className="flex-1 rounded-2xl font-black py-6 shadow-lg shadow-primary/20"
-                                >
+                                <Button onClick={handleInstall} className="flex-1 rounded-2xl font-black py-6 shadow-lg shadow-primary/20">
                                     Installer
                                 </Button>
                             )}
                         </div>
                     </div>
 
-                    <Button
-                        variant="ghost"
-                        size="icon-xs"
-                        onClick={handleLater}
-                        className="absolute top-4 right-4 text-muted-foreground hover:text-red-500"
-                    >
+                    <Button variant="ghost" size="icon-xs" onClick={handleLater} className="absolute top-4 right-4 text-muted-foreground hover:text-red-500">
                         <Icon icon="solar:close-bold" className="w-5 h-5" />
                     </Button>
                 </motion.div>

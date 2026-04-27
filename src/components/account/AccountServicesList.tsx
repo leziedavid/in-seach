@@ -16,16 +16,7 @@ interface AccountServicesListProps {
 export default function AccountServicesList({ data, page, limit, total, totalPages, loading, onPageChange, onSuccess }: AccountServicesListProps) {
     return (
         <div className="w-full mx-auto py-4">
-            <ServicesCard
-                data={data}
-                page={page}
-                limit={limit}
-                total={total}
-                totalPages={totalPages}
-                loading={loading}
-                onPageChange={onPageChange}
-                onSuccess={onSuccess}
-            />
+            <ServicesCard data={data} page={page} limit={limit} total={total} totalPages={totalPages} loading={loading} onPageChange={onPageChange} onSuccess={onSuccess} />
         </div>
     );
 }

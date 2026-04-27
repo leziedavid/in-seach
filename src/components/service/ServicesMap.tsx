@@ -125,12 +125,17 @@ export default function ServicesMap({ services, userLocation, onSelectService }:
 
     // Filter services with valid location and calculate distances
     const servicesWithDistance = useMemo(() => {
+        // First filter valid services
+        const validServices = services.filter(s => s.latitude && s.longitude);
+        
+        // Then ensure uniqueness by ID
+        const uniqueServices = Array.from(new Map(validServices.map(s => [s.id, s])).values());
+
         if (!userLocation?.lat || !userLocation?.lng) {
-            return services.filter(s => s.latitude && s.longitude).map(s => ({ ...s, distance: null }));
+            return uniqueServices.map(s => ({ ...s, distance: null }));
         }
 
-        return services
-            .filter(s => s.latitude && s.longitude)
+        return uniqueServices
             .map(s => ({
                 ...s,
                 distance: calculateDistance(

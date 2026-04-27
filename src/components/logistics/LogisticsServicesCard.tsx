@@ -6,6 +6,7 @@ import Image from "next/image";
 import { LogisticService, TransportType } from "@/types/interface";
 import { Switch } from "../ui/switch";
 import LogisticsServiceDetailModal from "./LogisticsServiceDetailModal";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 
 interface LogisticsServicesCardProps {
     service: LogisticService;
@@ -29,6 +30,7 @@ const TRANSPORT_TYPE_LABELS: Record<TransportType, { label: string; icon: string
 export default function LogisticsServicesCard({ service, isOwner = false, onEdit, onDelete, onToggleStatus, onRequestQuote, isUpdating = false }: LogisticsServicesCardProps) {
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
     const transportInfo = TRANSPORT_TYPE_LABELS[service.transportType] || TRANSPORT_TYPE_LABELS[TransportType.MARITIME];
+    const { withAuth } = useRequireAuth();
 
     const handleEdit = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -58,10 +60,13 @@ export default function LogisticsServicesCard({ service, isOwner = false, onEdit
                         <Icon icon={transportInfo.icon} className="w-2 h-2 md:w-3 md:h-3" />
                         {transportInfo.label}
                     </div>
+
+
                 </div>
 
                 {/* Content Section */}
                 <div className="px-0.5 pb-0 md:px-0 md:pb-0 w-full">
+
                     <h3 className="text-xs md:text-base font-black text-foreground mb-1 line-clamp-2 md:line-clamp-1 group-hover:text-primary transition-colors w-full text-left leading-tight">
                         {service.label}
                     </h3>
@@ -80,12 +85,7 @@ export default function LogisticsServicesCard({ service, isOwner = false, onEdit
 
                     {isOwner ? (
                         <div className="flex items-center justify-center w-full gap-3">
-                            <Switch
-                                checked={service.isActive}
-                                onCheckedChange={(val) => onToggleStatus?.(service.id, val)}
-                                disabled={isUpdating}
-                                onClick={(e) => e.stopPropagation()}
-                            />
+                            <Switch checked={service.isActive} onCheckedChange={(val) => onToggleStatus?.(service.id, val)} disabled={isUpdating} onClick={(e) => e.stopPropagation()} />
                             <div className="flex items-center gap-2">
                                 <button onClick={handleEdit} className="p-2 rounded-lg hover:bg-muted transition" title="Modifier" >
                                     <Icon icon="solar:pen-new-square-bold-duotone" width={18} height={18} />
@@ -96,11 +96,12 @@ export default function LogisticsServicesCard({ service, isOwner = false, onEdit
                             </div>
                         </div>
                     ) : (
-                        <div className="flex justify-end w-full">
-                            <button onClick={handleQuoteRequest} className="bg-secondary text-white px-2 py-1 md:px-3 md:py-2 rounded-lg text-[10px] md:text-xs font-black hover:bg-primary transition-all active:scale-90 shadow-sm flex items-center gap-1.5 whitespace-nowrap">
+                        <div className="flex justify-center w-full">
+                            <button onClick={() => withAuth(() => handleQuoteRequest)} className="flex items-center gap-1 md:gap-2 bg-secondary text-white px-2 py-1 md:px-3 md:py-2 rounded-full text-[10px] md:text-xs font-black hover:bg-primary transition-all active:scale-90 shadow-sm">
+                                <span className="whitespace-nowrap">demander un devis</span>
                                 <Icon icon="solar:document-bold-duotone" className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                                <span className="hidden sm:inline">Devis</span>
                             </button>
+
                         </div>
                     )}
                 </div>

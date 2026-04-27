@@ -1,137 +1,112 @@
 import { useEffect, useState, useCallback } from 'react';
-import { subscribePush, unsubscribePush } from '@/api/api';
 import { getUserId } from '@/lib/auth';
-
-const VAPID_PUBLIC_KEY = 'BGKUqRQ2ZOlg2TlsWu9t8L2Od0vhLohkLi1kZoj8A0c48G-ZKKCGZNPoBEQocPCZo-8BNX6w9TQpMah3ds4Eun8';
+import { notificationService } from '@/services/notification.service';
+import { useNotification as useToast } from '@/components/toast/NotificationProvider';
+import { getPushSubscriptions, unsubscribePush } from '@/api/api';
 
 export const useNotifications = () => {
   const userId = getUserId();
+  const { addNotification } = useToast();
   const [permission, setPermission] = useState<NotificationPermission>('default');
-  const [subscription, setSubscription] = useState<PushSubscription | null>(null);
+  const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isNotificationsEnabled, setIsNotificationsEnabled] = useState(false);
 
-  // Initialisation : Vérifier la permission et l'abonnement existant
+  // Initialisation : Vérifier la permission et l'état côté backend
   useEffect(() => {
+
     const checkStatus = async () => {
-      if (typeof window !== 'undefined' && 'Notification' in window && 'serviceWorker' in navigator) {
+      if (typeof window === 'undefined') return;
+
+      if ('Notification' in window) {
         setPermission(Notification.permission);
-        
+      }
+
+      if (userId) {
         try {
-          const registration = await navigator.serviceWorker.ready;
-          const sub = await registration.pushManager.getSubscription();
-          setSubscription(sub);
+          // Vérifier si une subscription active existe sur le backend
+          const res = await getPushSubscriptions(userId);
+          if (res.statusCode === 200 && res.data && res.data.length > 0) {
+            const activeSub = res.data.find(sub => sub.isActive);
+            setIsNotificationsEnabled(!!activeSub);
+            if (activeSub) setToken(activeSub.endpoint);
+          }
         } catch (error) {
-          console.error('Error checking push subscription:', error);
+          console.error('Error checking notification status:', error);
         }
       }
       setLoading(false);
     };
 
     checkStatus();
-  }, []);
+  }, [userId]);
 
-  const urlBase64ToUint8Array = (base64String: string) => {
-    const padding = '='.repeat((4 - base64String.length % 4) % 4);
-    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-    const rawData = window.atob(base64);
-    const outputArray = new Uint8Array(rawData.length);
-    for (let i = 0; i < rawData.length; ++i) {
-      outputArray[i] = rawData.charCodeAt(i);
-    }
-    return outputArray;
-  };
+  // Listen for foreground messages logic moved to WebPushManager for better UI/UX
 
-  const registerServiceWorker = async () => {
-    if ('serviceWorker' in navigator) {
-      const registration = await navigator.serviceWorker.register('/sw.js');
-      return registration;
-    }
-    throw new Error('Service Worker not supported');
-  };
 
   const requestPermission = async () => {
-    if (typeof window !== 'undefined' && 'Notification' in window) {
-      const result = await Notification.requestPermission();
-      setPermission(result);
-      return result;
-    }
-    return 'default';
+
+    const result = await notificationService.requestPermission();
+    setPermission(result);
+    return result;
   };
 
   const subscribe = async () => {
+
     if (!userId) {
-        console.error("User not authenticated");
-        return;
+      console.error("User not authenticated");
+      return false;
     }
+
     setLoading(true);
+
     try {
-      const registration = await registerServiceWorker();
-      
-      // Demander la permission explicitement
-      const result = await requestPermission();
-      
-      if (result !== 'granted') {
-          throw new Error('Permission not granted for notifications');
+      const fcmToken = await notificationService.subscribeUser(userId);
+      if (fcmToken) {
+        setToken(fcmToken);
+        setIsNotificationsEnabled(true);
+        return true;
       }
-
-      const pushSubscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
-      });
-
-      const subJSON = pushSubscription.toJSON();
-      await subscribePush(userId, {
-        endpoint: subJSON.endpoint,
-        keys: {
-          p256dh: subJSON.keys?.p256dh,
-          auth: subJSON.keys?.auth
-        }
-      });
-
-      setSubscription(pushSubscription);
-      return true;
+      return false;
     } catch (error) {
-      console.error('Failed to subscribe to push notifications', error);
+      console.error('Failed to subscribe to FCM', error);
       return false;
     } finally {
       setLoading(false);
     }
+
   };
 
   const unsubscribe = async () => {
-    setLoading(true);
-    try {
-      let currentSub = subscription;
-      
-      // Si l'état local est vide, on essaie de le récupérer depuis le navigateur
-      if (!currentSub && 'serviceWorker' in navigator) {
-        const registration = await navigator.serviceWorker.ready;
-        currentSub = await registration.pushManager.getSubscription();
-      }
 
-      if (currentSub) {
-        await currentSub.unsubscribe();
-        await unsubscribePush(currentSub.endpoint);
-        setSubscription(null);
+    if (!userId || !token) return false;
+    setLoading(true);
+
+    try {
+      // Désactiver la subscription sur le backend
+      const res = await unsubscribePush(token);
+
+      if (res.statusCode === 200 || res.statusCode === 201) {
+        setToken(null);
+        setIsNotificationsEnabled(false);
+        return true;
       }
-      return true;
+      return false;
+
     } catch (error) {
+
       console.error('Failed to unsubscribe', error);
       return false;
+
     } finally {
       setLoading(false);
     }
+
   };
 
-  return {
-    permission,
-    subscription,
-    loading,
-    subscribe,
-    unsubscribe,
-    requestPermission,
-    isNotificationsEnabled: !!subscription && permission === 'granted'
-  };
+  return { permission, token, loading, subscribe, unsubscribe, requestPermission, isNotificationsEnabled };
+
 };
+
 
 

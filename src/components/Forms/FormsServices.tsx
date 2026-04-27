@@ -7,15 +7,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Image from "next/image";
 import { getForSelectCategories } from "@/api/api";
-import { Select2 } from "./Select2"; // Import du composant Select2
+import { Select2 } from "./Select2";
 import { Category, ServiceStatus, ServiceType, UserLocation } from "@/types/interface";
 import { useUserLocation } from "@/utils/location";
 import RichTextEditor from "../rich-text-editor";
 
-// Schéma de validation Zod basé sur le DTO
 const serviceSchema = z.object({
     title: z.string().min(3, "Le titre doit contenir au moins 3 caractères").max(100, "Le titre est trop long"),
-    description: z.string().min(10, "La description doit contenir au moins 10 caractères").max(1000, "Description trop longue"),
+    description: z.string().min(10, "La description doit contenir au moins 10 caractères").max(2000, "Description trop longue"),
     type: z.nativeEnum(ServiceType),
     status: z.nativeEnum(ServiceStatus),
     price: z.number().positive("Le prix doit être positif").optional(),
@@ -25,15 +24,7 @@ const serviceSchema = z.object({
     latitude: z.number({ message: "La localisation est obligatoire" }).refine(val => val !== 0, "Veuillez renseigner votre position"),
     longitude: z.number({ message: "La localisation est obligatoire" }).refine(val => val !== 0, "Veuillez renseigner votre position"),
     categoryIds: z.array(z.string().uuid("Veuillez sélectionner une catégorie")).min(1, "Veuillez sélectionner au moins une catégorie"),
-    images: z.array(z.instanceof(File))
-        .refine((files) =>
-            files.every(file => ['image/png', 'image/jpeg', 'image/jpg'].includes(file.type)),
-            { message: 'Les fichiers doivent être des images PNG ou JPEG.' }
-        )
-        .refine((files) =>
-            files.every(file => file.size <= 5 * 1024 * 1024),
-            { message: 'Chaque fichier ne doit pas dépasser 5 Mo.' }
-        )
+    images: z.array(z.instanceof(File)).optional(),
 });
 
 export type ServiceFormData = z.infer<typeof serviceSchema>;
@@ -46,6 +37,20 @@ interface FormsServicesProps {
     isOpen: boolean;
     onClose: () => void;
 }
+
+const SERVICE_TYPE_OPTIONS = [
+    { id: ServiceType.DEPANNAGE, label: "🔧 DÉPANNAGE" },
+    { id: ServiceType.VENTE, label: "🛒 VENTE" },
+    { id: ServiceType.LOCATION, label: "📦 LOCATION" },
+    { id: ServiceType.INSTALLATION, label: "⚙️ INSTALLATION" },
+    { id: ServiceType.CONSEIL, label: "💡 CONSEIL" },
+];
+
+const SERVICE_STATUS_OPTIONS = [
+    { id: ServiceStatus.AVAILABLE, label: "✅ DISPONIBLE" },
+    { id: ServiceStatus.UNAVAILABLE, label: "❌ INDISPONIBLE" },
+    { id: ServiceStatus.PENDING, label: "⏳ EN ATTENTE" },
+];
 
 export default function FormsServices({ initialData, onSubmit, isSubmitting = false, isEditMode = false, isOpen, onClose }: FormsServicesProps) {
     const { getUserLocation } = useUserLocation();
@@ -61,30 +66,11 @@ export default function FormsServices({ initialData, onSubmit, isSubmitting = fa
     const [tagInput, setTagInput] = useState("");
     const [locationLoading, setLocationLoading] = useState(false);
     const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>(
-        initialData?.categoryIds || 
-        initialData?.categories?.map((c) => c.id) || 
+        initialData?.categoryIds ||
+        initialData?.categories?.map((c) => c.id) ||
         ((initialData as any)?.categoryId ? [(initialData as any).categoryId] : [])
     );
     const [address, setAddress] = useState<string>("");
-    const [location, setLocation] = useState<UserLocation | null>(null);
-
-    // Track the last auto-filled title to distinguish between auto-updates and manual edits
-    const autoTitleRef = React.useRef<string | null>(null);
-
-    const SERVICE_TYPE_OPTIONS = [
-        { id: ServiceType.DEPANNAGE, label: "🔧 Dépannage" },
-        { id: ServiceType.VENTE, label: "🛒 Vente" },
-        { id: ServiceType.LOCATION, label: "📦 Location" },
-        { id: ServiceType.INSTALLATION, label: "⚙️ Installation" },
-        { id: ServiceType.CONSEIL, label: "💡 Conseil" },
-    ];
-
-    const SERVICE_STATUS_OPTIONS = [
-        { id: ServiceStatus.AVAILABLE, label: "✅ Disponible" },
-        { id: ServiceStatus.UNAVAILABLE, label: "❌ Indisponible" },
-        { id: ServiceStatus.PENDING, label: "⏳ En attente" },
-    ];
-
 
     const { register, handleSubmit, setValue, watch, control, formState: { errors }, reset } = useForm<ServiceFormData>({
         resolver: zodResolver(serviceSchema),
@@ -99,19 +85,16 @@ export default function FormsServices({ initialData, onSubmit, isSubmitting = fa
             tags: initialData?.tags || [],
             latitude: initialData?.latitude || undefined,
             longitude: initialData?.longitude || undefined,
-            categoryIds: initialData?.categoryIds || initialData?.categories?.map((c) => c.id) || ((initialData as any)?.categoryId ? [(initialData as any).categoryId] : []),
-            images: [],
+            categoryIds: initialData?.categoryIds || initialData?.categories?.map((c) => c.id) || [],
         }
     });
 
-    // Charger les catégories
     useEffect(() => {
         const fetchCategories = async () => {
             setIsLoadingCategories(true);
             try {
                 const response = await getForSelectCategories();
-                const categoriesData = response?.data || [];
-                setCategories(categoriesData);
+                setCategories(response?.data || []);
             } catch (error) {
                 console.error("Erreur chargement catégories:", error);
             } finally {
@@ -121,41 +104,16 @@ export default function FormsServices({ initialData, onSubmit, isSubmitting = fa
         fetchCategories();
     }, []);
 
-    // Mettre à jour categoryIds dans le formulaire quand selectedCategoryIds change
-    // Et pré-remplir le titre lors de la création
     useEffect(() => {
-        if (selectedCategoryIds && selectedCategoryIds.length > 0) {
-            setValue("categoryIds", selectedCategoryIds, { shouldValidate: true });
+        setValue("categoryIds", selectedCategoryIds, { shouldValidate: true });
+    }, [selectedCategoryIds, setValue]);
 
-            if (!isEditMode) {
-                // On prend la première catégorie sélectionnée pour le titre automatique
-                const selectedCategory = categories.find(cat => cat.id === selectedCategoryIds[0]);
-                if (selectedCategory) {
-                    const currentTitle = watch("title");
-                    // On met à jour le titre uniquement s'il est vide ou s'il correspond au dernier titre auto-généré
-                    if (!currentTitle || currentTitle === autoTitleRef.current) {
-                        setValue("title", selectedCategory.label, { shouldValidate: true });
-                        autoTitleRef.current = selectedCategory.label;
-                    }
-                }
-            }
-        } else {
-            setValue("categoryIds", [], { shouldValidate: true });
-        }
-    }, [selectedCategoryIds, setValue, categories, isEditMode, watch]);
-
-    // Gestion des images - Upload
     const handleImageUpload = (files: FileList) => {
         const newFiles = Array.from(files);
-        const totalImages = existingImageUrls.length + images.length;
-        if (totalImages + newFiles.length > 8) {
-            alert("Vous ne pouvez pas ajouter plus de 8 images au total");
+        if (existingImageUrls.length + images.length + newFiles.length > 8) {
             return;
         }
-
         setImages(prev => [...prev, ...newFiles]);
-
-        // Créer les prévisualisations
         newFiles.forEach(file => {
             const reader = new FileReader();
             reader.onload = (e) => {
@@ -165,7 +123,6 @@ export default function FormsServices({ initialData, onSubmit, isSubmitting = fa
         });
     };
 
-    // Supprimer une image
     const removeImage = (index: number, isExisting: boolean) => {
         if (isExisting) {
             setExistingImageUrls(prev => prev.filter((_, i) => i !== index));
@@ -175,17 +132,6 @@ export default function FormsServices({ initialData, onSubmit, isSubmitting = fa
         }
     };
 
-    // Définir comme image principale
-    const setAsMainImage = (index: number, isExisting: boolean) => {
-        if (isExisting) {
-            setExistingImageUrls(prev => prev.map((img, i) => ({
-                ...img,
-                isMain: i === index
-            })));
-        }
-    };
-
-    // Gestion des tags
     const addTag = () => {
         if (tagInput.trim()) {
             const currentTags = watch("tags") || [];
@@ -201,13 +147,11 @@ export default function FormsServices({ initialData, onSubmit, isSubmitting = fa
         setValue("tags", currentTags.filter((tag: string) => tag !== tagToRemove));
     };
 
-    // Géolocalisation
     const getCurrentLocation = async () => {
         setLocationLoading(true);
         try {
             const loc = await getUserLocation();
             if (loc && loc.lat !== null && loc.lng !== null) {
-                setLocation(loc);
                 setValue("latitude", loc.lat);
                 setValue("longitude", loc.lng);
                 setAddress(`${loc.city || ""}, ${loc.country || ""}`);
@@ -219,450 +163,169 @@ export default function FormsServices({ initialData, onSubmit, isSubmitting = fa
         }
     };
 
-
-    // Submit handler - prépare FormData pour l'envoi
     const onFormSubmit = async (formData: ServiceFormData) => {
         const submitData = new FormData();
-
-        // Ajouter les champs texte
         Object.entries(formData).forEach(([key, value]) => {
             if (value !== undefined && value !== null && key !== 'images' && key !== 'tags' && key !== 'categoryIds') {
-                if (typeof value === 'boolean') {
-                    submitData.append(key, String(value));
-                } else if (typeof value === 'number') {
-                    submitData.append(key, value.toString());
-                } else {
-                    submitData.append(key, value as string);
-                }
+                submitData.append(key, value.toString());
             }
         });
-
-        // Append categoryIds individually
-        if (formData.categoryIds && Array.isArray(formData.categoryIds)) {
-            formData.categoryIds.forEach(id => submitData.append('categoryIds', id));
-        }
-
-        // Append tags individually
-        if (formData.tags && Array.isArray(formData.tags)) {
-            formData.tags.forEach(tag => submitData.append('tags', tag));
-        }
-
-        // Ajouter les nouvelles images
+        if (formData.categoryIds) formData.categoryIds.forEach(id => submitData.append('categoryIds', id));
+        if (formData.tags) formData.tags.forEach(tag => submitData.append('tags', tag));
         images.forEach((image) => { submitData.append('files', image); });
-
-        // Ajouter les URLs des images existantes à conserver
-        // if (existingImageUrls.length > 0) {
-        //     submitData.append('existingImageUrls', JSON.stringify(
-        //         existingImageUrls.map(img => img.url)
-        //     ));
-        // }
-
         await onSubmit(submitData);
     };
 
-    const watchTags = watch("tags") || [];
-    const totalImages = existingImageUrls.length + images.length;
-
     return (
-        <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-8">
-            <div className="px-4 space-y-8">
+        <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-6 flex flex-col h-full">
+            <div className="flex-1 overflow-y-auto px-1 space-y-6 pb-20 scrollbar-hide">
 
-                {/* Images Section - Selon votre modèle */}
-                <div className="bg-card rounded-xl border border-border p-2">
-                    <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                            <Icon icon="solar:upload-bold-duotone" className="w-5 h-5" />
-                            Images du service
-                            {!isEditMode && <span className="text-red-500">*</span>}
+                {/* Images Section */}
+                <div className="bg-card rounded-[2rem] border border-border p-6 ">
+                    <div className="flex items-center justify-between mb-6">
+                        <h3 className="text-sm font-black text-foreground uppercase tracking-tight flex items-center gap-2">
+                            <Icon icon="solar:gallery-bold-duotone" className="w-5 h-5 text-primary" />
+                            Photos du Service
                         </h3>
-                        <span className="text-sm text-muted-foreground">
-                            {totalImages}/8 images
-                        </span>
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{existingImageUrls.length + images.length}/8</span>
                     </div>
-
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-4">
-                        {/* Upload Button */}
-                        <label className={`relative h-32 rounded-lg border-2 border-dashed ${totalImages >= 8 ? 'opacity-50 cursor-not-allowed' : 'border-border hover:border-primary cursor-pointer'} transition-colors flex flex-col items-center justify-center bg-muted`}>
-                            <Icon icon="solar:upload-bold-duotone" className="w-8 h-8 text-muted-foreground mb-2" />
-                            <span className="text-xs text-muted-foreground">Ajouter une image</span>
-                            <span className="text-xs text-muted-foreground/60 mt-1">JPG, PNG</span>
-                            <input type="file" accept="image/*" onChange={(e) => e.target.files && handleImageUpload(e.target.files)} disabled={totalImages >= 8} multiple className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed" />
+                    <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-4">
+                        <label className={`h-24 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center bg-muted/30 transition-colors ${(existingImageUrls.length + images.length) >= 8 ? 'opacity-50 cursor-not-allowed' : 'border-border hover:border-primary cursor-pointer border-primary/20'}`}>
+                            <Icon icon="solar:camera-add-bold-duotone" className="w-6 h-6 text-muted-foreground" />
+                            <span className="text-[10px] font-black text-muted-foreground mt-1 uppercase">Ajouter</span>
+                            <input type="file" accept="image/*" onChange={(e) => e.target.files && handleImageUpload(e.target.files)} multiple disabled={(existingImageUrls.length + images.length) >= 8} className="hidden" />
                         </label>
-
-                        {/* Images existantes */}
-                        {existingImageUrls.map((image, index) => (
-                            <div key={`existing-${index}`} className="relative h-32 rounded-lg overflow-hidden group">
-                                <Image
-                                    src={(image.url && image.url !== "") ? image.url : 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop'}
-                                    alt={`Image existante ${index + 1}`}
-                                    fill
-                                    className="object-cover"
-                                    sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
-                                    unoptimized
-                                />
-                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                                    <button
-                                        type="button"
-                                        onClick={() => setAsMainImage(index, true)}
-                                        className="bg-blue-500 text-white p-1.5 rounded-full hover:bg-blue-600 transition-colors"
-                                        title="Définir comme image principale"
-                                    >
-                                        <Icon icon="solar:star-bold-duotone" className="w-4 h-4" />
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => removeImage(index, true)}
-                                        className="bg-red-500 text-white p-1.5 rounded-full hover:bg-red-600 transition-colors"
-                                        title="Supprimer"
-                                    >
-                                        <Icon icon="solar:close-circle-bold-duotone" className="w-4 h-4" />
-                                    </button>
-                                </div>
-                                {image.isMain ? (
-                                    <div className="absolute top-2 left-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
-                                        <Icon icon="solar:star-bold-duotone" className="w-3 h-3 fill-white" />
-                                        Principale
-                                    </div>
-                                ) : index === 0 && existingImageUrls.length > 0 && !existingImageUrls.some(img => img.isMain) ? (
-                                    <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs p-2 truncate">
-                                        Image {index + 1}
-                                    </div>
-                                ) : null}
-                            </div>
-                        ))}
-
-                        {/* Nouvelles images */}
-                        {imagePreviews.map((preview, index) => (
-                            <div key={`new-${index}`} className="relative h-32 rounded-lg overflow-hidden group">
-                                <Image
-                                    src={(preview && preview !== "") ? preview : 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop'}
-                                    alt={`Nouvelle image ${index + 1}`}
-                                    fill
-                                    className="object-cover"
-                                    sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
-                                    unoptimized
-                                />
+                        {existingImageUrls.map((img, i) => (
+                            <div key={`exist-${i}`} className="relative h-24 rounded-2xl overflow-hidden group shadow-md">
+                                <Image src={img.url} alt="Service" fill className="object-cover" unoptimized />
                                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                    <button
-                                        type="button"
-                                        onClick={() => removeImage(index, false)}
-                                        className="bg-red-500 text-white p-1.5 rounded-full hover:bg-red-600 transition-colors"
-                                        title="Supprimer"
-                                    >
-                                        <Icon icon="solar:close-circle-bold-duotone" className="w-4 h-4" />
+                                    <button type="button" onClick={() => removeImage(i, true)} className="bg-red-500 text-white rounded-xl p-2">
+                                        <Icon icon="solar:trash-bin-trash-bold" className="w-4 h-4" />
                                     </button>
                                 </div>
-                                <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs p-2">
-                                    Nouvelle image {index + 1}
+                            </div>
+                        ))}
+                        {imagePreviews.map((preview, i) => (
+                            <div key={`new-${i}`} className="relative h-24 rounded-2xl overflow-hidden group border-2 border-primary/30 shadow-md">
+                                <Image src={preview} alt="New" fill className="object-cover" unoptimized />
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                    <button type="button" onClick={() => removeImage(i, false)} className="bg-red-500 text-white rounded-xl p-2">
+                                        <Icon icon="solar:trash-bin-trash-bold" className="w-4 h-4" />
+                                    </button>
                                 </div>
                             </div>
                         ))}
                     </div>
-
-                    {errors.images && (
-                        <p className="text-red-500 text-sm mt-2">{errors.images.message}</p>
-                    )}
-                    {!isEditMode && totalImages === 0 && (
-                        <p className="text-sm text-primary mt-2 flex items-center gap-1">
-                            <Icon icon="solar:danger-bold-duotone" className="w-4 h-4" />
-                            * Au moins une image est requise lors de la création
-                        </p>
-                    )}
                 </div>
 
-                {/* Informations principales */}
-                <div className="bg-card rounded-xl border border-border p-2 space-y-5">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center">
-                            <Icon icon="solar:stars-bold-duotone" className="text-secondary w-5 h-5" />
+                {/* Info Section */}
+                <div className="bg-card rounded-[2rem] border border-border p-6  space-y-5">
+                    <div className="flex items-center gap-3 mb-2">
+                        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                            <Icon icon="solar:info-square-bold-duotone" className="w-5 h-5 text-primary" />
                         </div>
-                        <h3 className="text-lg font-black text-foreground">Informations générales</h3>
+                        <h3 className="text-sm font-black text-foreground uppercase tracking-tight">Configuration</h3>
                     </div>
 
-                    {/* Catégorie avec Select2 */}
-                    <div className="bg-card rounded-xl border border-border p-2 space-y-4">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center">
-                                <Icon icon="solar:tag-bold-duotone" className="text-purple-600 dark:text-purple-400 w-5 h-5" />
-                            </div>
-                            <div>
-                                <h3 className="text-lg font-black text-foreground">Catégorie</h3>
-                                <p className="text-xs text-muted-foreground">Sélectionnez la catégorie principale</p>
-                            </div>
-                        </div>
-
-
-                        {isLoadingCategories ? (
-                            <div className="flex items-center justify-center py-8">
-                                <Icon icon="solar:refresh-bold-duotone" className="w-6 h-6 animate-spin text-primary" />
-                            </div>
-                        ) : (
-                            <Select2<Category>
-                                options={categories}
-                                labelExtractor={(cat) => cat.label}
-                                valueExtractor={(cat) => cat.id}
-                                placeholder="Choisir des catégories..."
-                                mode="multiple"
-                                selectedItem={selectedCategoryIds}
-                                onSelectionChange={(v) => setSelectedCategoryIds(v as string[])}
-                            />
-                        )}
-
-                        {errors.categoryIds && (
-                            <p className="text-xs text-red-500 font-medium flex items-center gap-1 mt-2">
-                                <Icon icon="solar:danger-bold-duotone" className="w-3 h-3" />
-                                {errors.categoryIds.message}
-                            </p>
-                        )}
-                    </div>
-
-
-                    {/* Titre */}
                     <div className="space-y-1">
-                        <label className="text-xs font-black text-foreground flex items-center gap-2">
-                            Titre du service
-                            <span className="text-red-500">*</span>
-                        </label>
-
-                        <input type="text"  {...register("title")} placeholder="ex: Plomberie - Intervention rapide"
-                            className={`w-full px-3 py-2 rounded-sm border ${errors.title ? 'border-red-500 bg-destructive/10' : 'border-border'}
-                            bg-muted outline-none focus:border-primary transition-all text-sm font-medium text-foreground`}
-                            inputMode={'text'}
-                            style={{ fontSize: '16px' }}
-                            suppressHydrationWarning
-                        />
-
-                        {!isEditMode && (
-                            <p className="text-[11px] text-primary/80 font-medium mt-1.5 flex items-start gap-1.5 px-0.5 leading-relaxed">
-                                <Icon icon="solar:info-circle-bold-duotone" className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-                                <span>Laisser le titre par défaut (nom de la catégorie) permet à votre service d'être mieux référencé et trouvé plus facilement.</span>
-                            </p>
-                        )}
-
-                        {errors.title && (
-                            <p className="text-xs text-red-500 font-medium flex items-center gap-1 mt-1">
-                                <Icon icon="solar:danger-bold-duotone" className="w-3 h-3" />
-                                {errors.title.message}
-                            </p>
-                        )}
-                    </div>
-
-                    {/* Prix et réduction */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                        {/* Prix */}
-                        <div className="space-y-1">
-                            <label className="text-xs font-black text-foreground flex items-center gap-1">
-                                <Icon icon="solar:wad-of-money-bold-duotone" className="w-3 h-3" />
-                                Prix (CFA) à partie de ...
-                            </label>
-
-                            <div className="relative">
-                                <input type="number"  {...register("price", { valueAsNumber: true })} placeholder="5000"
-                                    className="w-full px-3 py-2 pl-9 rounded-sm border border-border bg-muted outline-none focus:border-primary transition-all text-sm font-medium text-foreground"
-                                    inputMode={'numeric'}
-                                    style={{ fontSize: '16px' }}
-                                    suppressHydrationWarning
-                                />
-                                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                                    <Icon icon="solar:wad-of-money-bold-duotone" className="w-3.5 h-3.5" />
-                                </div>
-                            </div>
-                        </div>
-
-
-                        {/* Réduction */}
-                        <div className="space-y-1">
-                            <label className="text-xs font-black text-foreground flex items-center gap-1">
-                                <Icon icon="solar:sale-bold-duotone" className="w-3 h-3" />
-                                Réduction (%)
-                            </label>
-
-                            <input type="number" {...register("reduction", { valueAsNumber: true })}
-                                placeholder="10"
-                                className="w-full px-3 py-2 rounded-sm border border-border bg-muted outline-none focus:border-primary transition-all text-sm font-medium text-foreground"
-                                inputMode={'numeric'}
-                                style={{ fontSize: '16px' }}
-                                suppressHydrationWarning
-                            />
-                        </div>
-
-
-                        {/* Frais Estimatif */}
-                        <div className="space-y-1">
-                            <label className="text-xs font-black text-foreground flex items-center gap-1">
-                                <Icon icon="solar:wad-of-money-bold-duotone" className="w-3 h-3" />
-                                Frais  de service (TP) estimatif (CFA)
-                            </label>
-
-                            <div className="relative">
-                                <input type="number" {...register("frais", { valueAsNumber: true })} placeholder="4500"
-                                    className="w-full px-3 py-2 pl-9 rounded-sm border border-border bg-muted outline-none focus:border-primary transition-all text-sm font-medium text-foreground"
-                                    inputMode={'numeric'}
-                                    style={{ fontSize: '16px' }}
-                                    suppressHydrationWarning
-                                />
-                                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                                    <Icon icon="solar:wad-of-money-bold-duotone" className="w-3.5 h-3.5" />
-                                </div>
-                            </div>
-
-                            {errors.frais && <p className="text-xs text-red-500 mt-1">{errors.frais.message}</p>}
-                        </div>
-
+                        <label className="text-[10px] font-black text-muted-foreground uppercase ml-1">Titre du service</label>
+                        <input {...register("title")} placeholder="Ex: Maintenance Climatisation" className="w-full h-12 px-4 rounded-xl border border-border bg-muted/30 outline-none focus:border-primary transition-all font-bold text-sm" />
+                        {errors.title && <p className="text-red-500 text-[10px] font-bold mt-1 uppercase">{errors.title.message}</p>}
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <label className="text-xs font-black text-foreground">Type de service</label>
-                            <Select2<{ id: ServiceType; label: string }>
-                                options={SERVICE_TYPE_OPTIONS}
-                                labelExtractor={(o) => o.label}
-                                valueExtractor={(o) => o.id}
-                                placeholder="Type de service"
-                                mode="single"
-                                selectedItem={watch("type")}
-                                onSelectionChange={(v) => setValue("type", v as ServiceType)}
-                            />
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-black text-muted-foreground uppercase ml-1">Type de service</label>
+                            <Select2 options={SERVICE_TYPE_OPTIONS} labelExtractor={(o) => o.label} valueExtractor={(o) => o.id} selectedItem={watch("type")} onSelectionChange={(v) => setValue("type", v as ServiceType)} placeholder="Choisir le type..." />
                         </div>
-
-                        <div className="space-y-2">
-                            <label className="text-xs font-black text-foreground">Statut</label>
-                            <Select2<{ id: ServiceStatus; label: string }>
-                                options={SERVICE_STATUS_OPTIONS}
-                                labelExtractor={(o) => o.label}
-                                valueExtractor={(o) => o.id}
-                                placeholder="Statut"
-                                mode="single"
-                                selectedItem={watch("status")}
-                                onSelectionChange={(v) => setValue("status", v as ServiceStatus)}
-                            />
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-black text-muted-foreground uppercase ml-1">Statut</label>
+                            <Select2 options={SERVICE_STATUS_OPTIONS} labelExtractor={(o) => o.label} valueExtractor={(o) => o.id} selectedItem={watch("status")} onSelectionChange={(v) => setValue("status", v as ServiceStatus)} placeholder="Statut..." />
                         </div>
                     </div>
 
+                    <div className="space-y-1">
+                        <label className="text-[10px] font-black text-muted-foreground uppercase ml-1">Catégorie</label>
+                        <Select2 options={categories} labelExtractor={(cat) => cat.label} valueExtractor={(cat) => cat.id} placeholder="Choisir des catégories..." mode="multiple" selectedItem={selectedCategoryIds} onSelectionChange={(v) => setSelectedCategoryIds(v as string[])} />
+                        {errors.categoryIds && <p className="text-red-500 text-[10px] font-bold mt-1 uppercase">{errors.categoryIds.message}</p>}
+                    </div>
                 </div>
 
-                {/* Tags */}
-                <div className="bg-card rounded-xl border border-border p-2 space-y-4">
+                {/* Price Section */}
+                <div className="bg-card rounded-[2rem] border border-border p-6  space-y-5">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
-                            <Icon icon="solar:tag-bold-duotone" className="text-blue-600 dark:text-blue-400 w-5 h-5" />
+                        <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+                            <Icon icon="solar:tag-price-bold-duotone" className="text-emerald-600 w-5 h-5" />
                         </div>
-                        <div>
-                            <h3 className="text-lg font-black text-foreground">Tags</h3>
-                            <p className="text-xs text-muted-foreground">Mots-clés pour améliorer la recherche</p>
+                        <h3 className="text-sm font-black text-foreground uppercase tracking-tight">Tarification</h3>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-black text-muted-foreground uppercase ml-1">Prix de base (FCFA)</label>
+                            <input type="number" {...register("price", { valueAsNumber: true })} placeholder="0" className="w-full h-12 px-4 rounded-xl border border-border bg-muted/30 outline-none focus:border-primary transition-all font-bold text-sm" />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-black text-muted-foreground uppercase ml-1">Frais TP (FCFA)</label>
+                            <input type="number" {...register("frais", { valueAsNumber: true })} placeholder="0" className="w-full h-12 px-4 rounded-xl border border-border bg-muted/30 outline-none focus:border-primary transition-all font-bold text-sm" />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-black text-muted-foreground uppercase ml-1">Réduction (%)</label>
+                            <input type="number" {...register("reduction", { valueAsNumber: true })} placeholder="0" className="w-full h-12 px-4 rounded-xl border border-border bg-muted/30 outline-none focus:border-primary transition-all font-bold text-sm" />
                         </div>
                     </div>
-
-
-                    <div className="flex flex-wrap gap-2 mb-3">
-                        {watchTags.map((tag: string, index: number) => (
-                            <span key={index} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-muted rounded-sm text-xs font-bold text-muted-foreground" >
-                                #{tag}
-                                <button type="button" onClick={() => removeTag(tag)} className="hover:text-destructive transition-colors"  >
-                                    <Icon icon="solar:close-circle-bold-duotone" className="w-3.5 h-3.5" />
-                                </button>
-                            </span>
-                        ))}
-                    </div>
-
-
-                    <div className="flex gap-2">
-                        <input type="text" value={tagInput} onChange={(e) => setTagInput(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
-                            placeholder="Ajouter un tag (ex: urgent, premium...)"
-                            className="flex-1 px-3 py-2 rounded-sm border border-border bg-muted outline-none focus:border-primary transition-all text-sm font-medium text-foreground"
-                            inputMode={'text'}
-                            style={{ fontSize: '16px' }}
-                            suppressHydrationWarning
-                        />
-                        <button type="button" onClick={addTag} aria-label="Ajouter" className="px-5 bg-primary text-white rounded-sm text-sm font-black hover:bg-secondary transition-all active:scale-95 flex items-center justify-center gap-2">
-                            <Icon icon="solar:plus-circle-bold-duotone" className="w-4.5 h-4.5" />
-                            <span>Ajouter</span>
-                        </button>
-                    </div>
-
                 </div>
 
-                {/* Localisation */}
-                <div className="bg-card rounded-xl border border-border p-2 ">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                                <Icon icon="solar:map-point-bold-duotone" className="w-5 h-5" />
-                            </div>
-                            <h3 className="text-lg font-black text-foreground">Localisation</h3>
+                {/* Location & Tags */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-card rounded-[2rem] border border-border p-6  space-y-4">
+                        <h3 className="text-xs font-black text-muted-foreground uppercase tracking-tight flex items-center justify-between">
+                            Localisation
+                            <button type="button" onClick={getCurrentLocation} className="text-primary hover:underline">{locationLoading ? '...' : 'Utiliser GPS'}</button>
+                        </h3>
+                        <div className="flex items-center gap-2 text-sm font-bold text-foreground">
+                            <Icon icon="solar:map-point-bold-duotone" className="text-primary w-5 h-5" />
+                            {address || "Non renseignée"}
                         </div>
-
-                        <button type="button" onClick={getCurrentLocation} disabled={locationLoading} className="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-lg text-sm font-black hover:bg-primary/20 transition-all active:scale-95">
-                            {locationLoading ? <Icon icon="solar:refresh-bold-duotone" className="w-3.5 h-3.5 animate-spin" /> : <Icon icon="solar:map-point-bold-duotone" className="w-3.5 h-3.5" />}
-                            Utiliser ma position
-                        </button>
-
+                        {(errors.latitude || errors.longitude) && <p className="text-red-500 text-[10px] font-bold uppercase">Position requise</p>}
                     </div>
-                    {address && <p className="text-xs text-muted-foreground font-bold ml-1">{address}</p>}
-                    {(errors.latitude || errors.longitude) && (
-                        <p className="text-xs text-red-500 font-medium flex items-center gap-1 mt-2 ml-1">
-                            <Icon icon="solar:danger-bold-duotone" className="w-3 h-3" />
-                            {errors.latitude?.message || errors.longitude?.message}
-                        </p>
-                    )}
+
+                    <div className="bg-card rounded-[2rem] border border-border p-6  space-y-4">
+                        <h3 className="text-xs font-black text-muted-foreground uppercase tracking-tight">Mots-clés / Tags</h3>
+                        <div className="flex gap-2">
+                            <input value={tagInput} onChange={(e) => setTagInput(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())} placeholder="Nouveau tag..." className="flex-1 h-10 px-3 rounded-xl border border-border bg-muted/30 text-xs font-bold outline-none" />
+                            <button type="button" onClick={addTag} className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center"><Icon icon="solar:add-circle-bold" /></button>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                            {(watch("tags") || []).map((tag: string) => (
+                                <span key={tag} className="px-2 py-1 bg-primary/10 text-primary text-[10px] font-bold rounded-lg flex items-center gap-1">
+                                    {tag}
+                                    <Icon icon="solar:close-circle-bold" className="cursor-pointer" onClick={() => removeTag(tag)} />
+                                </span>
+                            ))}
+                        </div>
+                    </div>
                 </div>
 
-                {/* message d'info pour dire a l'utilisateur que la localisation es obligatoire pour que son service soit visible par les autres utilisateurs */}
-                <div className="bg-card">
-                    <p className="text-xs text-red-500 font-bold ml-1">La localisation est obligatoire pour que votre service soit visible par les autres utilisateurs</p>
-                </div>
-
-
-                <div className="bg-card">
-                    <div>
-                        <label className="text-xs font-black text-foreground flex items-center gap-2">
-                            Description détaillée
-                            <span className="text-red-500">*</span>
-                        </label>
-
-                        <Controller name="description" control={control} render={({ field }: { field: any }) => (<RichTextEditor content={field.value || ""} onChange={field.onChange} editable={true} />)} />
-                        {errors.description && (
-                            <p className="text-red-500 text-sm mt-1">{errors.description.message}</p>
-                        )}
+                {/* Description Section */}
+                <div className="bg-card rounded-[2rem] border border-border p-6  space-y-4">
+                    <h3 className="text-sm font-black text-foreground uppercase tracking-tight">Description détaillée</h3>
+                    <div className="border border-border rounded-2xl overflow-hidden min-h-[200px]">
+                        <Controller name="description" control={control} render={({ field }) => (
+                            <RichTextEditor content={field.value} onChange={field.onChange} editable={true} />
+                        )} />
                     </div>
                 </div>
             </div>
-            {/* Bouton de soumission */}
 
-            <div className="sticky bottom-0 bg-gradient-to-t from-background via-background to-background/95 p-2 md:p-6  mt-8 h-full">
-                <div className="flex items-center justify-end gap-4">
-                    {/* add onClose button */}
-                    <button type="button" onClick={onClose} className="bg-red-500 flex items-center justify-center w-12 h-12 sm:w-auto sm:h-auto px-0 sm:px-6 py-3 rounded-xl border-2 border-border text-muted-foreground hover:bg-red-600 transition-all active:scale-95" title="Fermer" >
-                        <Icon icon="solar:close-circle-bold-duotone" className="w-5 h-5 sm:hidden text-white" /> {/* Icône visible sur mobile */}
-                        <span className="hidden sm:inline font-black text-sm text-white">Fermer</span> {/* Texte visible sur sm+ */}
-                    </button>
-
-                    {/* Bouton Réinitialiser avec icône */}
-                    <button type="button" onClick={() => reset()} className="flex items-center justify-center w-12 h-12 sm:w-auto sm:h-auto px-0 sm:px-6 py-3 rounded-xl border-2 border-border text-muted-foreground hover:bg-muted transition-all active:scale-95" title="Réinitialiser" >
-                        <Icon icon="solar:refresh-bold-duotone" className="w-5 h-5 sm:hidden" /> {/* Icône visible sur mobile */}
-                        <span className="hidden sm:inline font-black text-sm">Réinitialiser</span> {/* Texte visible sur sm+ */}
-                    </button>
-
-                    {/* Bouton Soumettre */}
-                    <button type="submit" disabled={isSubmitting || (!isEditMode && totalImages === 0)} className="flex items-center justify-center gap-2 sm:gap-3 px-6 py-3 bg-primary text-white rounded-xl text-sm font-black hover:bg-secondary transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 shadow-lg shadow-primary/25" >
-                        {isSubmitting ? (
-                            <>
-                                <Icon icon="solar:refresh-bold-duotone" className="w-4.5 h-4.5 animate-spin" />
-                                Enregistrement...
-                            </>
-                        ) : (
-                            <>
-                                <Icon icon="solar:check-circle-bold-duotone" className="w-4.5 h-4.5" />
-                                {isEditMode ? 'Mettre à jour' : 'Publier le service'}
-                            </>
-                        )}
-                    </button>
-
-                </div>
+            {/* Actions */}
+            <div className="sticky bottom-0 p-6 bg-card border-t border-border flex flex-col md:flex-row gap-3 z-10">
+                <button type="button" onClick={onClose} className="px-6 py-3 rounded-2xl border border-border text-xs font-bold hover:bg-muted transition-all uppercase tracking-wider h-12 flex-1">
+                    Annuler
+                </button>
+                <button type="submit" disabled={isSubmitting} className="bg-primary text-white px-8 py-3 rounded-2xl text-xs font-black hover:bg-secondary transition-all shadow-xl shadow-primary/20 h-12 flex-[2] flex items-center justify-center gap-2 uppercase tracking-widest">
+                    {isSubmitting ? <Icon icon="solar:refresh-bold-duotone" className="animate-spin" /> : <><Icon icon="solar:check-circle-bold" /> {isEditMode ? 'Mettre à jour' : 'Publier le service'}</>}
+                </button>
             </div>
-
         </form>
     );
-
 }

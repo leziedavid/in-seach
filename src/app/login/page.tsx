@@ -55,22 +55,25 @@ export default function LoginPage() {
             if (res.statusCode === 200 || res.statusCode === 201) {
                 setToken(res.data.accessToken);
 
-                // Track location on login
-                try {
-                    const location = await getUserLocation();
+                // Track location on login (background / non-blocking)
+                getUserLocation().then(location => {
                     if (location && location.lat && location.lng) {
-                        await upsertLocationLog({
+                        upsertLocationLog({
                             lat: location.lat,
                             lng: location.lng,
                             context: 'login'
-                        });
+                        }).catch(e => console.error("Background location logging failed:", e));
                     }
-                } catch (trackErr) {
-                    console.error("Failed to track location on login:", trackErr);
-                }
+                }).catch(e => console.error("Background geolocation failed:", e));
 
                 if (res.data.role === Role.ADMIN) {
                     router.push('/admin');
+                } else if (res.data.role === Role.PRESTATAIRE) {
+                    router.push('/akwaba');
+                } else if (res.data.role === Role.ENTREPRISE) {
+                    router.push('/akwaba');
+                } else if (res.data.role === Role.CHAUFFEUR) {
+                    router.push('/akwaba');
                 } else {
                     router.push('/');
                 }

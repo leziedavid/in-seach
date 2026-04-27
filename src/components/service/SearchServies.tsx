@@ -63,7 +63,11 @@ export default function SearchServies() {
 
             if (res.statusCode === 200 && res.data) {
                 const newServices = res.data.data;
-                setServices(prev => isNewSearch ? newServices : [...prev, ...newServices]);
+                setServices(prev => {
+                    const combined = isNewSearch ? newServices : [...prev, ...newServices];
+                    // Ensure uniqueness by ID
+                    return Array.from(new Map(combined.map(s => [s.id, s])).values());
+                });
                 setHasMore(pageNum < res.data.totalPages);
                 setTotal(res.data.total);
             } else {
@@ -249,8 +253,9 @@ export default function SearchServies() {
                                                             {service.price} <span className="text-[9px] font-bold text-muted-foreground">CFA</span>
                                                         </p>
                                                     </div>
-                                                    <button onClick={() => withAuth(() => setSelectedService(service))} className="bg-secondary text-white px-2 py-1 md:px-3 md:py-2 rounded-full md:rounded-full text-[10px] md:text-xs font-black hover:bg-primary transition-all active:scale-90 shadow-sm"  >
-                                                        <Icon icon="solar:check-circle-bold-duotone" className="w-4 h-4" />
+                                                    <button onClick={() => withAuth(() => setSelectedService(service))} className="flex items-center gap-1 md:gap-2 bg-secondary text-white px-2 py-1 md:px-3 md:py-2 rounded-full text-[10px] md:text-xs font-black hover:bg-primary transition-all active:scale-90 shadow-sm" >
+                                                        <span className="whitespace-nowrap">Consulter</span>
+                                                        <Icon icon="solar:check-circle-bold-duotone" className="w-3 h-3 md:w-4 md:h-4" />
                                                     </button>
                                                 </div>
                                             </div>

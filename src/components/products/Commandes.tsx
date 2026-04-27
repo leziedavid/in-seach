@@ -25,16 +25,8 @@ interface CommandesProps {
     onSuccess?: () => void;
 }
 
-export default function Commandes({
-    data: propData,
-    page: propPage,
-    limit: propLimit = 6,
-    total: propTotal,
-    totalPages: propTotalPages,
-    loading: propLoading,
-    onPageChange,
-    onSuccess
-}: CommandesProps) {
+export default function Commandes({ data: propData, page: propPage, limit: propLimit = 6, total: propTotal, totalPages: propTotalPages, loading: propLoading, onPageChange, onSuccess }: CommandesProps) {
+
     const [internalPage, setInternalPage] = useState(1);
     const page = propPage ?? internalPage;
     const limit = propLimit;

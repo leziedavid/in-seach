@@ -143,11 +143,7 @@ export default function TrackingCard({ delivery, isOwner = false }: TrackingCard
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black text-muted-foreground uppercase tracking-tighter">Statut de la livraison</label>
-                                    <select
-                                        className="w-full bg-muted border border-border rounded-xl px-4 py-2.5 text-xs font-bold focus:ring-1 focus:ring-primary outline-none uppercase tracking-tighter"
-                                        value={newEvent.status}
-                                        onChange={(e) => setNewEvent({ ...newEvent, status: e.target.value as DeliveryStatus })}
-                                    >
+                                    <select className="w-full bg-muted border border-border rounded-xl px-4 py-2.5 text-xs font-bold focus:ring-1 focus:ring-primary outline-none uppercase tracking-tighter" value={newEvent.status} onChange={(e) => setNewEvent({ ...newEvent, status: e.target.value as DeliveryStatus })}>
                                         {Object.values(DeliveryStatus).map(s => (
                                             <option key={s} value={s}>{STATUS_STYLING[s].label}</option>
                                         ))}
@@ -155,32 +151,15 @@ export default function TrackingCard({ delivery, isOwner = false }: TrackingCard
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black text-muted-foreground uppercase tracking-tighter">Lieu actuel</label>
-                                    <input
-                                        type="text"
-                                        placeholder="Ex: Port de San Pedro, Côte d'Ivoire"
-                                        className="w-full bg-muted border border-border rounded-xl px-4 py-2.5 text-xs font-bold focus:ring-1 focus:ring-primary outline-none"
-                                        value={newEvent.location}
-                                        onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })}
-                                        required
-                                    />
+                                    <input type="text" placeholder="Ex: Port de San Pedro, Côte d'Ivoire" className="w-full bg-muted border border-border rounded-xl px-4 py-2.5 text-xs font-bold focus:ring-1 focus:ring-primary outline-none" value={newEvent.location} onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })} required />
                                 </div>
                             </div>
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black text-muted-foreground uppercase tracking-tighter">Note / Commentaire (Optionnel)</label>
-                                <textarea
-                                    className="w-full bg-muted border border-border rounded-xl px-4 py-2.5 text-xs font-bold focus:ring-1 focus:ring-primary outline-none resize-none"
-                                    rows={2}
-                                    placeholder="Ex: Marchandises en cours de dédouanement..."
-                                    value={newEvent.note}
-                                    onChange={(e) => setNewEvent({ ...newEvent, note: e.target.value })}
-                                />
+                                <textarea className="w-full bg-muted border border-border rounded-xl px-4 py-2.5 text-xs font-bold focus:ring-1 focus:ring-primary outline-none resize-none" rows={2} placeholder="Ex: Marchandises en cours de dédouanement..." value={newEvent.note} onChange={(e) => setNewEvent({ ...newEvent, note: e.target.value })} />
                             </div>
                             <div className="flex justify-end pt-2">
-                                <Button
-                                    type="submit"
-                                    disabled={isAdding || !newEvent.location}
-                                    className="rounded-2xl h-10 bg-primary hover:bg-secondary text-white font-black text-xs gap-2 px-8 shadow-lg shadow-primary/20 active:scale-95 transition-all"
-                                >
+                                <Button type="submit" disabled={isAdding || !newEvent.location} className="rounded-2xl h-10 bg-primary hover:bg-secondary text-white font-black text-xs gap-2 px-8 shadow-lg shadow-primary/20 active:scale-95 transition-all">
                                     {isAdding ? <Icon icon="solar:refresh-bold-duotone" className="w-4 h-4 animate-spin" /> : <Icon icon="solar:plus-circle-bold-duotone" className="w-4 h-4" />}
                                     METTRE À JOUR LE SUIVI
                                 </Button>

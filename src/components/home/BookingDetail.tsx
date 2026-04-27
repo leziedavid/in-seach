@@ -265,22 +265,16 @@ export default function BookingDetailModal({ isOpen, onClose, booking, onEditRdv
                                                 {currentTab === "Validation" && (
                                                     <div className="space-y-6">
                                                         {/* Digital Pass Card */}
-                                                        <div className="relative bg-muted/30 rounded-[2.5rem] p-8 flex flex-col items-center text-center overflow-hidden border border-border">
+                                                        <div className="relative bg-muted/30 rounded-[2.5rem] p-8 flex flex-col items-center text-center overflow-hidden ">
                                                             {/* Decorative Pass Notch */}
                                                             <div className="absolute top-0 w-20 h-6 bg-card rounded-b-3xl -mt-0.5 border-x border-b border-border" />
-                                                            
+
                                                             <div className="relative mt-4">
                                                                 {/* Glowing background */}
                                                                 <div className="absolute inset-0 bg-primary/20 blur-[50px] rounded-full" />
-                                                                
+
                                                                 <div className="relative p-5 bg-white rounded-3xl border border-border">
-                                                                    <QRCodeSVG 
-                                                                        value={role === "CLIENT" ? booking.userQrCode || "" : booking.prestaQrCode || ""} 
-                                                                        size={160} 
-                                                                        level="H" 
-                                                                        includeMargin={false}
-                                                                        className="rounded-lg"
-                                                                    />
+                                                                    <QRCodeSVG value={role === "CLIENT" ? booking.userQrCode || "" : booking.prestaQrCode || ""} size={160} level="H" includeMargin={false} className="rounded-lg" />
                                                                     <div className="absolute -top-3 -right-3 w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center border-2 border-white transform rotate-12">
                                                                         <Icon icon="solar:ticket-bold-duotone" width={20} />
                                                                     </div>
@@ -290,15 +284,15 @@ export default function BookingDetailModal({ isOpen, onClose, booking, onEditRdv
                                                             <div className="mt-8 space-y-2">
                                                                 <h4 className="text-xl font-black text-foreground">Pass Digital</h4>
                                                                 <p className="text-sm font-bold text-foreground/40 max-w-[240px] leading-relaxed">
-                                                                    {role === "CLIENT" 
-                                                                        ? "Présentez ce code au prestataire pour confirmer le démarrage de la prestation." 
+                                                                    {role === "CLIENT"
+                                                                        ? "Présentez ce code au prestataire pour confirmer le démarrage de la prestation."
                                                                         : "Scannez le code QR du client pour valider sa présence."}
                                                                 </p>
                                                             </div>
 
                                                             <div className="w-full h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent my-6" />
 
-                                                            <button 
+                                                            <button
                                                                 onClick={() => setIsCameraOpen(true)}
                                                                 className="flex items-center gap-3 px-8 py-4 bg-primary text-white rounded-2xl font-black text-sm active:scale-95 transition-all hover:bg-secondary"
                                                             >

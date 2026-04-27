@@ -2,7 +2,9 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { Icon } from '@iconify/react';
+import FloteManager from '@/components/logistics/FloteManager';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import Sidebar, { TabType } from './Sidebar';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
@@ -28,26 +30,6 @@ import QuoteRequestModal from '@/components/logistics/QuoteRequestModal';
 import ApiDocumentation from '@/components/account/ApiDocumentation';
 import { Modal } from '@/components/modal/MotionModal';
 
-type TabType =
-    'Calendrier' |
-    'Services' |
-    'Rendez-vous' |
-    'Rendez-vous-annonces' |
-    'Annonces' |
-    'Historique-rdv' |
-    'Boutique' |
-    'Commandes' |
-    'Historique-commandes' |
-    'Paramètres' |
-    'Tarifs' |
-    'Services-logistiques' |
-    'Mes-devis' |
-    'Mes-livraisons' |
-    'Mes-services-logistiques' |
-    'Devis-recus' |
-    'Livraisons' |
-    'Documentation-API'
-    ;
 
 export default function Page() {
     const router = useRouter();
@@ -108,6 +90,7 @@ export default function Page() {
         if (userRole) {
             if (userRole === Role.CLIENT) setActiveTab('Rendez-vous');
             else if (userRole === Role.ENTREPRISE) setActiveTab('Mes-services-logistiques');
+            else if (userRole === Role.CHAUFFEUR) setActiveTab('Livraisons-chauffeur');
             else setActiveTab('Calendrier');
         }
     }, [userRole]);
@@ -181,35 +164,8 @@ export default function Page() {
         }
     }, [data, activeTab, limit]);
 
-    const allMenus: { label: string; icon: React.ReactNode; key: TabType; roles: Role[] }[] = [
-        { label: 'Calendrier', icon: <Icon icon="solar:calendar-date-bold-duotone" width={18} />, key: 'Calendrier', roles: [Role.PRESTATAIRE, Role.ADMIN, Role.CLIENT] },
-        { label: 'Mes Services', icon: <Icon icon="solar:box-bold-duotone" width={18} />, key: 'Services', roles: [Role.PRESTATAIRE, Role.ADMIN] },
-        { label: 'Mes Annonces', icon: <Icon icon="solar:eye-bold-duotone" width={18} />, key: 'Annonces', roles: [Role.PRESTATAIRE, Role.ADMIN] },
-        { label: 'RDV Services', icon: <Icon icon="solar:clipboard-list-bold-duotone" width={18} />, key: 'Rendez-vous', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ADMIN] },
-        { label: 'RDV Annonces', icon: <Icon icon="solar:clipboard-check-bold-duotone" width={18} />, key: 'Rendez-vous-annonces', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ADMIN] },
-        { label: 'Historique RDV', icon: <Icon icon="solar:history-bold-duotone" width={18} />, key: 'Historique-rdv', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ADMIN] },
-        { label: 'Boutique', icon: <Icon icon="solar:history-bold-duotone" width={18} />, key: 'Boutique', roles: [Role.CLIENT, Role.ADMIN, Role.PRESTATAIRE] },
-        { label: 'Commandes', icon: <Icon icon="solar:history-bold-duotone" width={18} />, key: 'Commandes', roles: [Role.CLIENT, Role.ADMIN, Role.PRESTATAIRE] },
-        { label: 'Historique-commandes', icon: <Icon icon="solar:history-bold-duotone" width={18} />, key: 'Historique-commandes', roles: [Role.CLIENT, Role.ADMIN, Role.PRESTATAIRE] },
-        { label: 'Services logistiques', icon: <Icon icon="solar:delivery-bold-duotone" width={18} />, key: 'Services-logistiques', roles: [Role.CLIENT, Role.ADMIN] },
-        { label: 'Mes devis', icon: <Icon icon="solar:chat-round-money-bold-duotone" width={18} />, key: 'Mes-devis', roles: [Role.CLIENT, Role.ADMIN] },
-        { label: 'Mes livraisons', icon: <Icon icon="solar:map-point-wave-bold-duotone" width={18} />, key: 'Mes-livraisons', roles: [Role.CLIENT, Role.ADMIN] },
-        { label: 'Mes services', icon: <Icon icon="solar:box-bold-duotone" width={18} />, key: 'Mes-services-logistiques', roles: [Role.ENTREPRISE, Role.ADMIN] },
-        { label: 'Devis reçus', icon: <Icon icon="solar:chat-round-money-bold-duotone" width={18} />, key: 'Devis-recus', roles: [Role.ENTREPRISE, Role.ADMIN] },
-        { label: 'Livraisons', icon: <Icon icon="solar:delivery-bold-duotone" width={18} />, key: 'Livraisons', roles: [Role.ENTREPRISE, Role.ADMIN] },
-        // pricing
-        { label: 'Tarifs', icon: <Icon icon="solar:bill-list-bold-duotone" width={18} />, key: 'Tarifs', roles: [Role.ENTREPRISE, Role.ADMIN, Role.PRESTATAIRE, Role.CLIENT] },
-        { label: 'Documentation API', icon: <Icon icon="solar:document-bold-duotone" width={18} />, key: 'Documentation-API', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ADMIN, Role.ENTREPRISE] },
-        { label: 'Paramètres', icon: <Icon icon="solar:settings-bold-duotone" width={18} />, key: 'Paramètres', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ADMIN, Role.ENTREPRISE] }
-    ];
-
-    const menu = useMemo(() => {
-        if (!userRole) return [];
-        return allMenus.filter(item => item.roles.includes(userRole));
-    }, [userRole]);
-
     if (!isMounted) {
-        return <div className="min-h-screen bg-background" />; // Simple placeholder to avoid mismatch
+        return <div className="min-h-screen bg-background" />;
     }
 
     const handleTabChange = (tab: TabType) => {
@@ -218,7 +174,7 @@ export default function Page() {
             return;
         }
         setActiveTab(tab);
-        setPage(1); // Reset page on tab change
+        setPage(1);
     };
 
     const handleLogout = () => {
@@ -226,246 +182,82 @@ export default function Page() {
         router.push('/login');
     };
 
-    return (
+    // Component Mapping for Content
+    const renderContent = () => {
+        switch (activeTab) {
 
+            case 'Calendrier':
+                return <BookingCalendar />;
+
+            case 'Services':
+                return (
+                    <AccountServicesList data={tabData.items as Service[]} page={page} limit={limit} total={tabData.total} totalPages={tabData.totalPages} loading={isLoading} onPageChange={setPage} onSuccess={() => { void refetch(); }} />
+                );
+            case 'Annonces':
+                return (
+                    <AccountAnnonces data={tabData.items as Annonce[]} page={page} limit={limit} total={tabData.total} totalPages={tabData.totalPages} loading={isLoading} onPageChange={setPage} onSuccess={() => { void refetch(); }} />
+                );
+            case 'Rendez-vous':
+                return (
+                    <AccountBookings type="active" data={tabData.items as Booking[]} page={page} limit={limit} total={tabData.total} totalPages={tabData.totalPages} loading={isLoading} onPageChange={setPage} onSuccess={() => { void refetch(); }} />
+                );
+            case 'Rendez-vous-annonces':
+                return (
+                    <AnnoncesBookings type="active" data={tabData.items as Booking[]} page={page} limit={limit} total={tabData.total} totalPages={tabData.totalPages} loading={isLoading} onPageChange={setPage} onSuccess={() => { void refetch(); }} />
+                );
+            case 'Historique-rdv':
+                return (
+                    <HistoriqueRdv type="history" data={tabData.items as Booking[]} page={page} limit={limit} total={tabData.total} totalPages={tabData.totalPages} loading={isLoading} onPageChange={setPage} onSuccess={() => { void refetch(); }} />
+                );
+            case 'Historique-commandes':
+                return <HistoriqueCommandes />;
+            case 'Boutique':
+                return <Store />;
+            case 'Commandes':
+                return <Commandes onSuccess={() => { void refetch(); }} />;
+            case 'Services-logistiques':
+                return (<LogisticsServicesList mode="marketplace" onRequestQuote={(service) => { setSelectedServiceForQuote(service); setIsQuoteModalOpen(true); }} />);
+            case 'Mes-services-logistiques':
+                return <LogisticsServicesList mode="management" />;
+            case 'Mes-devis':
+                return <QuotesList role="CLIENT" />;
+            case 'Devis-recus':
+                return <QuotesList role="ENTREPRISE" />;
+            case 'Mes-livraisons':
+                return <DeliveriesList role="CLIENT" />;
+            case 'Livraisons':
+                return <DeliveriesList role="ENTREPRISE" />;
+            case 'Livraisons-chauffeur':
+                return <DeliveriesList role="CHAUFFEUR" />;
+            case 'Ma-flotte':
+                return <FloteManager />;
+            case 'Paramètres':
+                return <AccountSettings />;
+            case 'Documentation-API':
+                return <ApiDocumentation />;
+            default:
+                return null;
+        }
+    };
+
+    return (
         <div className="min-h-screen">
 
-            {/* Container centré */}
             <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-6 px-4 py-10">
 
-                {/* ================= DESKTOP SIDEBAR ================= */}
-                <aside className="hidden md:block md:col-span-4 lg:col-span-3">
-                    <div className="bg-card/50 backdrop-blur-xl rounded-3xl shadow-xl border border-border p-6 sticky top-24">
+                {/* SIDEBAR (Desktop & Mobile) */}
+                <Sidebar activeTab={activeTab} onTabChange={handleTabChange} user={data?.user} onLogout={handleLogout} />
 
-                        {/* Profil */}
-                        <div className="flex flex-col items-center mb-8">
-                            {/* <div className="w-20 h-20 rounded-full border-4 border-primary flex items-center justify-center text-2xl font-bold text-primary bg-primary/5">
-                                {data?.user?.fullName?.charAt(0) || 'P'}
-                            </div> */}
-
-                            <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-white shadow-xl shrink-0">
-                                <Image src={data?.user?.avatar || "/avatars/user2.png?q=80&w=200&auto=format&fit=crop"} fill className="object-cover" alt="Provider" unoptimized />
-                            </div>
-
-                            <p className="font-bold mt-3 text-foreground">{data?.user?.fullName || 'Mon compte'}</p>
-                            <p className="text-sm text-muted-foreground">
-                                {data?.user?.role === Role.PRESTATAIRE ? 'Prestataire' :
-                                    data?.user?.role === Role.ENTREPRISE ? 'Entreprise Logistique' : 'Client'}
-                            </p>
-
-                            {data?.totalGain !== undefined && (
-                                <div className="mt-4 bg-primary/10 px-4 py-2 rounded-xl text-center border border-primary/20">
-                                    <p className="text-primary font-black">{data.totalGain.toLocaleString()} FCFA</p>
-                                    <p className="text-[10px] text-primary/70 uppercase font-bold">Total Gains</p>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Menu */}
-                        <div className="space-y-2">
-                            {menu.map((item) => {
-                                const isActive = activeTab === item.key;
-                                return (
-                                    <button key={item.key} onClick={() => handleTabChange(item.key as TabType)} className={`w-full flex items-center gap-3 p-3 rounded-xl text-sm transition-all duration-300  ${isActive ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-[1.02]' : 'hover:bg-muted text-muted-foreground hover:text-foreground'}`} >
-                                        {item.icon}
-                                        {item.label}
-                                    </button>
-                                );
-                            })}
-                        </div>
-
-                        {/* Logout Desktop */}
-                        <div className="mt-8 pt-6 border-t border-border">
-                            <button onClick={handleLogout} className="w-full flex items-center gap-3 p-3 rounded-xl text-sm text-red-500 hover:bg-red-50 transition-all duration-300">
-                                <Icon icon="solar:logout-bold-duotone" width={18} />
-                                Déconnexion
-                            </button>
-                        </div>
-                    </div>
-                </aside>
-
-
-                {/* ================= CONTENT ================= */}
+                {/* CONTENT AREA */}
                 <main className="md:col-span-8 lg:col-span-9 p-2">
-
-
-                    {activeTab === 'Calendrier' && (
-                        <BookingCalendar />
-                    )}
-
-                    {activeTab === 'Services' && (
-                        <AccountServicesList
-                            data={tabData.items as Service[]}
-                            page={page}
-                            limit={limit}
-                            total={tabData.total}
-                            totalPages={tabData.totalPages}
-                            loading={isLoading}
-                            onPageChange={setPage}
-                            onSuccess={() => { void refetch(); }}
-                        />
-                    )}
-                    {activeTab === 'Annonces' && (
-                        <AccountAnnonces
-                            data={tabData.items as Annonce[]}
-                            page={page}
-                            limit={limit}
-                            total={tabData.total}
-                            totalPages={tabData.totalPages}
-                            loading={isLoading}
-                            onPageChange={setPage}
-                            onSuccess={() => { void refetch(); }}
-                        />
-                    )}
-                    {activeTab === 'Rendez-vous' && (
-                        <AccountBookings
-                            type="active"
-                            data={tabData.items as Booking[]}
-                            page={page}
-                            limit={limit}
-                            total={tabData.total}
-                            totalPages={tabData.totalPages}
-                            loading={isLoading}
-                            onPageChange={setPage}
-                            onSuccess={() => { void refetch(); }}
-                        />
-                    )}
-
-                    {activeTab === 'Rendez-vous-annonces' && (
-                        <AnnoncesBookings
-                            type="active"
-                            data={tabData.items as Booking[]}
-                            page={page}
-                            limit={limit}
-                            total={tabData.total}
-                            totalPages={tabData.totalPages}
-                            loading={isLoading}
-                            onPageChange={setPage}
-                            onSuccess={() => { void refetch(); }}
-                        />
-                    )}
-
-                    {activeTab === 'Historique-rdv' && (
-                        <HistoriqueRdv
-                            type="history"
-                            data={tabData.items as Booking[]}
-                            page={page}
-                            limit={limit}
-                            total={tabData.total}
-                            totalPages={tabData.totalPages}
-                            loading={isLoading}
-                            onPageChange={setPage}
-                            onSuccess={() => { void refetch(); }}
-                        />
-                    )}
-
-                    {activeTab === 'Historique-commandes' && (
-                        <HistoriqueCommandes />
-                    )}
-
-                    {activeTab === 'Boutique' && (
-                        <Store />
-                    )}
-                    {activeTab === 'Commandes' && (
-                        <Commandes onSuccess={() => { void refetch(); }} />
-                    )}
-
-                    {/* Logistics Tabs */}
-                    {activeTab === 'Services-logistiques' && (
-                        <LogisticsServicesList mode="marketplace" onRequestQuote={(service) => { setSelectedServiceForQuote(service); setIsQuoteModalOpen(true); }} />
-                    )}
-
-                    {activeTab === 'Mes-services-logistiques' && (
-                        <LogisticsServicesList mode="management" />
-                    )}
-
-                    {activeTab === 'Mes-devis' && (
-                        <QuotesList role="CLIENT" />
-                    )}
-
-                    {activeTab === 'Devis-recus' && (
-                        <QuotesList role="ENTREPRISE" />
-                    )}
-
-                    {activeTab === 'Mes-livraisons' && (
-                        <DeliveriesList role="CLIENT" />
-                    )}
-
-                    {activeTab === 'Livraisons' && (
-                        <DeliveriesList role="ENTREPRISE" />
-                    )}
-
-                    {activeTab === 'Paramètres' && <AccountSettings />}
-
-                    {activeTab === 'Documentation-API' && <ApiDocumentation />}
-
+                    {renderContent()}
                 </main>
-
             </div>
 
-            {/* Quote Request Modal for Marketplace */}
-            <Modal isOpen={isQuoteModalOpen} onClose={() => setIsQuoteModalOpen(false)}>
-                {selectedServiceForQuote && (
-                    <QuoteRequestModal
-                        service={selectedServiceForQuote}
-                        isOpen={isQuoteModalOpen}
-                        onClose={() => setIsQuoteModalOpen(false)}
-                        onSuccess={() => {
-                            setActiveTab('Mes-devis');
-                        }}
-                    />
-                )}
-            </Modal>
 
-            {/* ================= MOBILE FLOATING BUTTON ================= */}
-            <div className="md:hidden fixed bottom-20 left-6 z-80">
-
-                <Sheet open={open} onOpenChange={setOpen}>
-                    <SheetTrigger asChild>
-                        <Button size="icon" className="rounded-full h-14 w-14 bg-primary text-primary-foreground shadow-xl shadow-primary/30 hover:scale-110 active:scale-95 transition-all" >
-                            <Image src="/menu.svg" alt="Menu" width={26} height={26} className="brightness-0 invert dark:brightness-100 dark:invert-0" />
-                        </Button>
-                    </SheetTrigger>
-
-                    {/* Drawer mobile */}
-                    <SheetContent side="bottom" className="rounded-t-3xl p-6 max-h-[90vh] overflow-y-auto">
-                        <SheetHeader className="sr-only">
-                            <SheetTitle>Mon Espace</SheetTitle>
-                            <SheetDescription>Menu de navigation de votre compte</SheetDescription>
-                        </SheetHeader>
-
-                        <div className="flex flex-col items-center mb-6">
-                            <div className="w-16 h-16 rounded-full border-2 border-primary flex items-center justify-center text-lg font-bold text-primary bg-primary/5">
-                                {data?.user?.fullName?.charAt(0) || 'P'}
-                            </div>
-                            <p className="mt-2 font-semibold text-foreground">Mon compte</p>
-                        </div>
-
-                        <div className="space-y-3">
-                            <div className="grid grid-cols-1 gap-3">
-                                {menu.map((item) => (
-                                    <button key={item.key} onClick={() => { handleTabChange(item.key as TabType); setOpen(false); }} className={`w-full flex items-center gap-3 p-4 rounded-xl text-sm transition-all ${activeTab === item.key ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`} >
-                                        {item.icon}
-                                        {item.label}
-                                    </button>
-                                ))}
-                            </div>
-
-                            <div className="pt-2 border-t border-border mt-2">
-                                <button onClick={handleLogout} className="w-full flex items-center gap-3 p-4 rounded-xl text-sm text-red-500 bg-red-50/50 hover:bg-red-50 transition-all font-bold" >
-                                    <Icon icon="solar:logout-bold-duotone" width={18} />
-                                    Déconnexion
-                                </button>
-                            </div>
-                        </div>
-
-                    </SheetContent>
-                </Sheet>
-
-            </div>
 
             {/* Blocking Location Loading Overlay */}
-            {isLocationLoading && !locationError && (
+            {/* {isLocationLoading && !locationError && (
                 <div className="fixed inset-0 z-[999] bg-background/80 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center space-y-6">
                     <div className="relative">
                         <div className="w-20 h-20 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
@@ -480,10 +272,10 @@ export default function Page() {
                         </p>
                     </div>
                 </div>
-            )}
+            )} */}
 
             {/* Blocking Location Error Overlay */}
-            {locationError && (
+            {/* {locationError && (
                 <div className="fixed inset-0 z-[999] bg-background/80 backdrop-blur-md flex items-center justify-center p-6">
                     <div className="bg-card border border-border p-8 rounded-3xl shadow-2xl max-w-sm w-full text-center space-y-6">
                         <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto text-red-500">
@@ -505,9 +297,16 @@ export default function Page() {
                         </Button>
                     </div>
                 </div>
-            )}
+            )} */}
+
+            {/* Global Modals */}
+            <Modal isOpen={isQuoteModalOpen} onClose={() => setIsQuoteModalOpen(false)}>
+                {selectedServiceForQuote && (
+                    <QuoteRequestModal service={selectedServiceForQuote} isOpen={isQuoteModalOpen} onClose={() => setIsQuoteModalOpen(false)} onSuccess={() => { setActiveTab('Mes-devis'); }} />
+                )}
+            </Modal>
+
+
         </div>
-
     );
-
 }

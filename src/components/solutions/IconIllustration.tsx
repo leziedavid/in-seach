@@ -18,29 +18,36 @@ export default function IconIllustration({
 }: IconIllustrationProps) {
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.8, rotate: -10 }}
+      initial={{ opacity: 0, scale: 0.9, rotate: -5 }}
       whileInView={{ opacity: 1, scale: 1, rotate: 0 }}
-      transition={{ type: "spring", stiffness: 100, damping: 10 }}
-      whileHover={{ scale: 1.1, rotate: 5 }}
+      transition={{ type: "spring", stiffness: 80, damping: 15 }}
+      whileHover={{ scale: 1.05, rotate: 2 }}
       className={`relative flex items-center justify-center ${className}`}
     >
-      {/* Background Glow */}
+      {/* Dynamic Background Glow - more sophisticated multi-layered */}
       <div 
-        className={`absolute inset-0 blur-3xl opacity-20 bg-current transition-all duration-500`}
+        className={`absolute inset-0 blur-[100px] opacity-20 bg-current transition-all duration-700`}
+        style={{ color: color.startsWith("text-") ? undefined : color }}
+      />
+      <div 
+        className={`absolute inset-0 blur-[40px] opacity-30 bg-current transition-all duration-700 scale-75 animate-pulse`}
         style={{ color: color.startsWith("text-") ? undefined : color }}
       />
       
-      {/* Glassmorphic Container */}
-      <div className="relative z-10 p-6 rounded-3xl bg-white/10 dark:bg-black/10 backdrop-blur-md border border-white/20 dark:border-white/5 shadow-2xl overflow-hidden group">
+      {/* Premium Glassmorphic Container */}
+      <div className="relative z-10 p-12 rounded-[48px] bg-white/40 dark:bg-zinc-900/40 backdrop-blur-3xl border border-white/40 dark:border-white/10 shadow-[0_40px_80px_-15px_rgba(0,0,0,0.1)] dark:shadow-[0_40px_80px_-15px_rgba(0,0,0,0.5)] overflow-hidden group">
         <Icon 
           icon={icon} 
           width={size} 
           height={size} 
-          className={`${color} transition-all duration-500 group-hover:scale-110`}
+          className={`${color} transition-all duration-700 group-hover:scale-110 drop-shadow-2xl`}
         />
         
-        {/* Shine effect */}
-        <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+        {/* Animated Shine effect */}
+        <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out" />
+        
+        {/* Subtle inner border for premium feel */}
+        <div className="absolute inset-0 rounded-[48px] border-2 border-white/10 dark:border-white/5 pointer-events-none" />
       </div>
     </motion.div>
   );

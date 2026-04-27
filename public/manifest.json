@@ -1,23 +1,23 @@
 {
-    "name": "ServiceMarket",
-    "short_name": "ServiceMarket",
-    "description": "Trouvez un expert près de chez vous en quelques clics.",
+    "name": "Djamko",
+    "short_name": "Djamko",
+    "description": "L'écosystème tout-en-un pour vos services, vos biens et vos échanges globaux.",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#ffffff",
     "theme_color": "#b07b5e",
     "icons": [
         {
-            "src": "/next.svg",
-            "sizes": "192x192",
+            "src": "/favicon.svg",
+            "sizes": "any",
             "type": "image/svg+xml",
             "purpose": "any maskable"
         },
         {
-            "src": "/next.svg",
-            "sizes": "512x512",
-            "type": "image/svg+xml",
-            "purpose": "any maskable"
+            "src": "/favicon.png",
+            "sizes": "56x56",
+            "type": "image/png",
+            "purpose": "any"
         }
     ]
 }
