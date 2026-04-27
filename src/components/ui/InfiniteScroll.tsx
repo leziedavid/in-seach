@@ -10,9 +10,10 @@ interface InfiniteScrollProps {
     children: React.ReactNode;
     endMessage?: string;
     className?: string;
+    itemCount?: number;
 }
 
-export default function InfiniteScroll({ loadMore, hasMore, isLoading, children, endMessage = "Vous avez tout vu !", className = "" }: InfiniteScrollProps) {
+export default function InfiniteScroll({ loadMore, hasMore, isLoading, children, endMessage = "Vous avez tout vu !", className = "", itemCount = 0 }: InfiniteScrollProps) {
     const observerTarget = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -41,27 +42,27 @@ export default function InfiniteScroll({ loadMore, hasMore, isLoading, children,
             {children}
 
             {/* Target element for intersection observer */}
-            <div ref={observerTarget} className="h-4 w-full" />
+            <div ref={observerTarget} className="h-2 w-full" />
 
             {/* Loading & End State UI */}
-            <div className="flex flex-col items-center justify-center py-8 w-full">
+            <div className="flex flex-col items-center justify-center py-4 w-full">
                 {isLoading && (
                     <div className="flex flex-col items-center gap-3 animate-in fade-in duration-500">
                         <div className="relative">
                             <div className="w-10 h-10 border-4 border-primary/20 rounded-full" />
                             <Loader2 className="w-10 h-10 animate-spin text-primary absolute top-0 left-0" />
                         </div>
-                        <p className="text-sm font-medium text-slate-400 italic">Chargement des pépites...</p>
+                        <p className="text-sm font-medium text-slate-400 italic">Chargement...</p>
                     </div>
                 )}
 
-                {!hasMore && !isLoading && (
+                {!hasMore && !isLoading && itemCount > 0 && (
                     <div className="flex flex-col items-center gap-2 animate-in slide-in-from-bottom-4 duration-700">
-                        <div className="h-px w-12 bg-slate-200 mb-2" />
-                        <p className="text-sm font-black text-slate-300 uppercase tracking-widest">{endMessage}</p>
-                        <div className="flex gap-1 mt-1">
+                        <div className="h-px w-10 bg-slate-200 mb-1" />
+                        <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">{endMessage}</p>
+                        <div className="flex gap-1 mt-0.5">
                             {[1, 2, 3].map(i => (
-                                <div key={i} className="w-1.5 h-1.5 rounded-full bg-primary/20" />
+                                <div key={i} className="w-1 h-1 rounded-full bg-primary/20" />
                             ))}
                         </div>
                     </div>

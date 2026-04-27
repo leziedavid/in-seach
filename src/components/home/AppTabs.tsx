@@ -85,7 +85,7 @@ export default function AppTabs() {
     }, [active])
 
     return (
-        <div className="flex flex-col items-center w-full px-0 sm:px-4 py-4 sm:py-8">
+        <div className="flex flex-col items-center w-full px-0 sm:px-4 py-2 sm:py-4">
 
             {/* TABS RESPONSIVE AVEC SCROLL + CENTRÉ */}
             <div ref={scrollContainerRef} className="w-full overflow-x-auto scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -149,7 +149,7 @@ export default function AppTabs() {
 
 
             {/* CONTENT */}
-            <div className="mt-4 sm:mt-6 w-full flex flex-col items-center stagger-parent">
+            <div className="mt-2 sm:mt-4 w-full flex flex-col items-center stagger-parent">
                 {active === "search" && (
                     <div className="w-full flex flex-col items-center px-0 sm:px-0 stagger-item">
                         <SearchServies />

@@ -161,14 +161,14 @@ export default function SearchAnnonces() {
 
             {/* Résultats de recherche */}
             {/* {isSearching && ( */}
-            <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-2">
-                <div className="flex items-center justify-start md:justify-center w-full px-2 md:px-0 mb-6">
+            <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-1">
+                <div className="flex items-center justify-start md:justify-center w-full px-2 md:px-0 mb-4">
                     <h3 className="text-xl md:text-2xl font-black text-foreground italic text-left md:text-center">
                         {loading && annonces.length === 0 ? 'Recherche en cours...' : ``}
                     </h3>
                 </div>
 
-                <InfiniteScroll loadMore={() => setPage(prev => prev + 1)} hasMore={hasMore} isLoading={loading} className="w-full px-2 md:px-0" >
+                <InfiniteScroll loadMore={() => setPage(prev => prev + 1)} hasMore={hasMore} isLoading={loading} className="w-full px-2 md:px-0" itemCount={annonces.length} >
                     {annonces.length > 0 ? (
                         <div className="grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-6 stagger-parent">
                             {annonces.map((annonce: Annonce) => (

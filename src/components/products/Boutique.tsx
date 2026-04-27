@@ -129,8 +129,8 @@ export default function ProductsPage() {
             </div>
 
             {/* Results count header */}
-            <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-2">
-                <div className="flex items-center justify-start md:justify-center w-full px-2 md:px-0 mb-6">
+            <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-1">
+                <div className="flex items-center justify-start md:justify-center w-full px-2 md:px-0 mb-4">
                     <h3 className="text-xl md:text-2xl font-black text-foreground italic text-left md:text-center">
                         {loading && products.length === 0 ? 'Chargement...' : products.length === 0 ? ' ' : `${total} résultat${total > 1 ? 's' : ''}`}
                     </h3>
@@ -148,12 +148,15 @@ export default function ProductsPage() {
                 )}
 
                 {/* Loading State / Trigger */}
-                <div ref={loaderRef} className="w-full flex justify-center py-8">
+                <div ref={loaderRef} className="w-full flex justify-center py-4">
                     {loading && (<Icon icon="eos-icons:loading" className="w-8 h-8 text-primary animate-spin" />)}
                     {!hasMore && products.length > 0 && total > ITEMS_PER_PAGE && (
-                        <p className="text-muted-foreground text-sm font-medium italic">
-                            Fin des résultats
-                        </p>
+                        <div className="flex flex-col items-center gap-2 animate-in slide-in-from-bottom-4 duration-700">
+                            <div className="h-px w-10 bg-slate-200 mb-1" />
+                            <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest italic">
+                                Fin des résultats
+                            </p>
+                        </div>
                     )}
                 </div>
             </div>

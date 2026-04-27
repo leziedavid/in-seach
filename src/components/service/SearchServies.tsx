@@ -195,8 +195,8 @@ export default function SearchServies() {
 
             {/* Dynamic Results or Initial Steps */}
             {isSearching && (
-                <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-2">
-                    <div className="flex items-center justify-start md:justify-center w-full px-4 md:px-0 mb-6">
+                <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-1">
+                    <div className="flex items-center justify-start md:justify-center w-full px-4 md:px-0 mb-4">
                         <h3 className="text-xl md:text-2xl font-black text-foreground italic text-left md:text-center">
                             {isAiLoading ? 'Analyses en cours...' : aiSearchEmpty ? '' : ``}
                         </h3>
@@ -218,12 +218,12 @@ export default function SearchServies() {
                     </div>
 
                     {viewMode === 'map' && displayedServices.length > 0 ? (
-                        <div className="w-full stagger-item mb-8">
+                        <div className="w-full stagger-item mb-4">
                             <ServicesMap services={displayedServices} userLocation={userLocation} onSelectService={(service) => withAuth(() => setSelectedService(service))} />
                         </div>
                     ) : (
 
-                        <InfiniteScroll loadMore={() => setPage(prev => prev + 1)} hasMore={hasMore && aiResults.length === 0} isLoading={loading} className="w-full px-0 md:px-0"  >
+                        <InfiniteScroll loadMore={() => setPage(prev => prev + 1)} hasMore={hasMore && aiResults.length === 0} isLoading={loading} className="w-full px-0 md:px-0" itemCount={displayedServices.length} >
                             {displayedServices.length > 0 ? (
                                 <div className="grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-6">
                                     {/* ... rest of the grid ... */}
