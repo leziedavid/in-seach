@@ -1,7 +1,7 @@
 "use client"
 
+import FooterInstallButton from "@/components/pwa/FooterInstallButton"
 import Image from "next/image"
-
 import Link from "next/link"
 
 const socialLinks = [
@@ -19,12 +19,16 @@ export default function SocialFollow() {
                         Suivez-nous maintenant !
                     </h3>
 
-                    <div className="flex flex-row gap-2 flex-wrap justify-center">
-                        {socialLinks.map((link) => (
-                            <a key={link.href} href={link.href} target="_blank" rel="noopener noreferrer" className="transition-transform transform hover:scale-110"  >
-                                <Image src={link.src} alt={link.alt} width={30} height={30} className="object-contain" />
-                            </a>
-                        ))}
+                    <div className="flex flex-row items-center gap-4 flex-wrap justify-center">
+                        <div className="flex flex-row gap-2">
+                            {socialLinks.map((link) => (
+                                <a key={link.href} href={link.href} target="_blank" rel="noopener noreferrer" className="transition-transform transform hover:scale-110"  >
+                                    <Image src={link.src} alt={link.alt} width={30} height={30} className="object-contain" />
+                                </a>
+                            ))}
+                        </div>
+
+                        <FooterInstallButton />
                     </div>
 
                     {/* Footer petit */}

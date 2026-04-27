@@ -13,6 +13,7 @@ import { useSocket } from "@/components/providers/SocketProvider";
 import { useCart } from "@/components/providers/CartProvider";
 import CartDetailModal from "@/components/products/CartDetailModal";
 import { useNotification } from "@/components/toast/NotificationProvider";
+import { motion, AnimatePresence } from "framer-motion";
 
 const NAVIGATION_TABS = [
     { key: "accueil", label: "Accueil", icon: "ic:twotone-home-max", path: "/" },
@@ -20,6 +21,7 @@ const NAVIGATION_TABS = [
 
 export default function Header() {
     const pathname = usePathname();
+    const [mounted, setMounted] = useState(false);
 
     /* ------------------------- EXTRA FUNCTIONALITIES ADDED ------------------------- */
     const [gain, setGain] = useState(10000000);
@@ -29,6 +31,7 @@ export default function Header() {
     const { socket } = useSocket();
     const { totalItems } = useCart();
     const [isCartModalOpen, setIsCartModalOpen] = useState(false);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
     const { addNotification } = useNotification();
     const router = useRouter();
 
@@ -51,6 +54,10 @@ export default function Header() {
         "/avatars/user4.png",
     ];
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     // 🔄 ANIMATION AVATAR
     useEffect(() => {
@@ -121,80 +128,118 @@ export default function Header() {
     };
 
     return (
-
-        <header className="fixed left-1/2 -translate-x-1/2 z-50 bottom-4 w-[95%] max-w-[800px] md:top-6 md:bottom-auto md:w-fit bg-white/70 dark:bg-zinc-900/70 backdrop-blur-lg border border-white/40 dark:border-white/10 rounded-full shadow-lg px-3 py-2 md:px-6 md:py-2 flex items-center justify-between md:justify-start md:gap-4 transition-all duration-300">
+        <header className={`fixed left-4 z-50 bottom-4 ${isMenuOpen ? "w-[92%]" : "w-fit"} max-w-[800px] md:top-6 md:bottom-auto md:left-1/2 md:-translate-x-1/2 md:w-fit md:px-6 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-lg border border-white/40 dark:border-white/10 rounded-full shadow-lg px-2 py-2 flex items-center justify-start gap-1 md:gap-4 transition-all duration-500 ease-in-out`}>
 
             {/* User Section - Flat on mobile */}
-            <div className="contents md:flex md:items-center md:gap-4">
-                <div className="w-10 h-10 md:w-9 md:h-9 bg-primary/20 rounded-full flex items-center justify-center overflow-hidden relative border border-border shrink-0">
-                    {images.map((img, index) => (
-                        <Image key={img} src={img} alt="Avatar" width={36} height={36} className={`object-cover w-full h-full absolute top-0 left-0 transition-opacity duration-500 ease-in-out ${index === currentImageIndex ? "opacity-100" : "opacity-0"}`} />
-                    ))}
-                </div>
+            <div className="flex items-center gap-1 md:gap-4 shrink-0">
+                <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="relative group transition-transform active:scale-95" >
+                    <div className="w-12 h-12 md:w-9 md:h-9 bg-primary/20 rounded-full flex items-center justify-center overflow-hidden relative border-2 border-primary/10 group-hover:border-primary/30 transition-all shrink-0">
+                        {images.map((img, index) => (
+                            <Image key={img} src={img} alt="Avatar" width={48} height={48} className={`object-cover w-full h-full absolute top-0 left-0 transition-opacity duration-500 ease-in-out ${index === currentImageIndex ? "opacity-100" : "opacity-0"}`} />
+                        ))}
+                    </div>
 
-                <div className="hidden lg:block shrink-0 ml-2">
-                    <p className="text-[10px] text-muted-foreground leading-tight">Salut, 👋</p>
-                    <p className="font-semibold text-foreground text-xs">{userName || "TDLLEZIE"}</p>
-                </div>
-            </div>
+                    {/* Floating Arrow (Mobile Only UI Indicator) */}
+                    <motion.div animate={{ rotate: isMenuOpen ? 180 : 0, x: isMenuOpen ? 0 : [0, 3, 0] }}
+                        transition={{ rotate: { duration: 0.4 }, x: { repeat: Infinity, duration: 1.5, ease: "easeInOut" } }}
+                        className="absolute -right-1 -bottom-1 md:hidden w-5 h-5 bg-primary rounded-full flex items-center justify-center border-2 border-white dark:border-zinc-900 shadow-lg z-20"  >
+                        <Icon icon="solar:alt-arrow-right-bold-duotone" className="w-3 h-3 text-white" />
+                    </motion.div>
+                </button>
 
-            {/* Navigation Tabs - Flat on mobile */}
-            <nav className="contents md:flex md:items-center md:gap-4">
-                {NAVIGATION_TABS.map((tab) => {
-                    const active = isTabActive(tab.path);
-                    const isProtected = protectedPaths.includes(tab.path);
-
-                    if (isProtected) {
-                        return (
-                            <button key={tab.key} onClick={() => handleProtectedNavigation(tab.path)} className={`flex items-center gap-2 text-xs font-medium transition-all px-2 md:px-2.5 py-1.5 rounded-full ${active ? "text-primary-foreground bg-primary shadow-md shadow-primary/10" : "text-muted-foreground hover:text-foreground hover:bg-muted/50"}`}
-                                title={tab.label} >
-                                <Icon icon={tab.icon} className="w-7 h-7 md:w-5 md:h-5" />
-                                <span className="hidden md:inline">{tab.label}</span>
-                            </button>
-                        );
-                    }
-
-                    return (
-                        <Link key={tab.key} href={tab.path} className={`flex items-center gap-2 text-xs font-medium transition-all px-2 md:px-2.5 py-1.5 rounded-full ${active ? "text-primary-foreground bg-primary shadow-md shadow-primary/10" : "text-muted-foreground hover:text-foreground hover:bg-muted/50"}`} title={tab.label} >
-                            <Icon icon={tab.icon} className="w-7 h-7 md:w-5 md:h-5" />
-                            <span className="hidden md:inline">{tab.label}</span>
-                        </Link>
-                    );
-                })}
-            </nav>
-
-            {/* Actions Section - Flat on mobile */}
-            <div className="contents md:flex md:items-center md:gap-4">
-
-                <button onClick={() => setIsCartModalOpen(true)} className="relative bg-primary p-1.5 md:p-2 rounded-full transition hover:scale-105 active:scale-95 flex items-center justify-center" >
-                    <Icon icon="solar:cart-bold" className="text-white w-4 h-4 md:w-5 md:h-5" />
-                    {totalItems > 0 && (
-                        <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-1 py-0.5 text-[8px] font-bold text-white bg-red-500 rounded-full border border-background">
-                            {totalItems}
+                <div className={`${isMenuOpen ? "block" : "hidden"} md:block shrink-0 ml-1`}>
+                    <p className="text-[10px] text-muted-foreground leading-tight">
+                        <span className="hidden md:inline">Salut, </span>👋
+                    </p>
+                    <p className="font-bold text-foreground text-[10px] sm:text-xs uppercase md:normal-case">
+                        {/* Mobile: Initiales | Desktop: Nom complet */}
+                        <span className="md:hidden">
+                            {userName ? userName.substring(0, 2).toUpperCase() : "EX"}
                         </span>
-                    )}
-                </button>
-
-                {/* <pre> {userId}</pre> */}
-                <QrCodeLogo user={userId} />
-
-                <button onClick={() => handleProtectedNavigation("/chat-ia")} className="relative bg-primary p-1.5 md:p-2 rounded-full transition hover:scale-105 active:scale-95 flex items-center justify-center">
-                    <Icon icon="solar:bell-bing-bold-duotone" className="text-white w-4 h-4 md:w-5 md:h-5" />
-                    {unreadMessages > 0 && (
-                        <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-1 py-0.5 text-[8px] font-bold text-white bg-red-500 rounded-full border border-background">  {unreadMessages}  </span>
-                    )}
-                </button>
-
-                <button onClick={() => handleProtectedNavigation("/akwaba")} className="relative bg-primary p-1.5 md:p-2 rounded-full transition hover:scale-105 active:scale-95 flex items-center justify-center">
-                    <Icon icon="solar:user-bold" className="text-white w-4 h-4 md:w-5 md:h-5" />
-                    {/* <span className="text-xs sm:text-sm hidden md:block font-medium text-white">
-                        Mon espace
-                    </span> */}
-                </button>
-
-                <ThemeToggle />
+                        <span className="hidden md:inline">
+                            {userName ? (userName.length > 12 ? userName.substring(0, 10) + '..' : userName) : "EXPLORE"}
+                        </span>
+                    </p>
+                </div>
 
             </div>
+
+            {/* Content Wrapper for Animation */}
+            <AnimatePresence mode="wait">
+                {mounted && (isMenuOpen || window.innerWidth >= 768) && (
+                    <motion.div
+                        key="menu-content"
+                        initial={{ opacity: 0, x: -20, width: 0 }}
+                        animate={{
+                            opacity: 1,
+                            x: 0,
+                            width: "auto",
+                            transition: {
+                                type: "spring",
+                                stiffness: 300,
+                                damping: 30,
+                                staggerChildren: 0.05
+                            }
+                        }}
+                        exit={{ opacity: 0, x: -20, width: 0 }}
+                        className="flex items-center justify-start md:justify-start w-full md:w-auto gap-4 md:gap-4 overflow-hidden"  >
+                        {/* Navigation Tabs */}
+                        <nav className="flex items-center gap-3 md:gap-4">
+                            {NAVIGATION_TABS.map((tab) => {
+                                const active = isTabActive(tab.path);
+                                const isProtected = protectedPaths.includes(tab.path);
+
+                                const commonClasses = `flex items-center gap-2 text-xs font-black transition-all px-2.5 py-1.5 rounded-full ${active ? "text-primary-foreground bg-primary shadow-md shadow-primary/20" : "text-muted-foreground hover:text-foreground hover:bg-muted/50"}`;
+
+                                if (isProtected) {
+                                    return (
+                                        <button key={tab.key} onClick={() => handleProtectedNavigation(tab.path)} className={commonClasses} title={tab.label} >
+                                            <Icon icon={tab.icon} className="w-6 h-6 md:w-5 md:h-5" />
+                                            <span className="hidden sm:inline">{tab.label}</span>
+                                        </button>
+                                    );
+                                }
+
+                                return (
+                                    <Link key={tab.key} href={tab.path} className={commonClasses} title={tab.label} >
+                                        <Icon icon={tab.icon} className="w-6 h-6 md:w-5 md:h-5" />
+                                        <span className="hidden sm:inline">{tab.label}</span>
+                                    </Link>
+                                );
+                            })}
+                        </nav>
+
+                        <div className="w-px h-6 bg-border/40 shrink-0 hidden md:block" />
+
+                        {/* Actions Section */}
+                        <div className="flex items-center gap-3 md:gap-4 ml-2 md:ml-0">
+                            <button onClick={() => setIsCartModalOpen(true)} className="relative bg-primary p-2 rounded-full transition hover:scale-110 active:scale-95 flex items-center justify-center hover:rotate-6" >
+                                <Icon icon="solar:cart-bold" className="text-white w-4 h-4 md:w-5 md:h-5" />
+                                {totalItems > 0 && (
+                                    <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-1.5 py-0.5 text-[8px] font-black text-white bg-red-500 rounded-full border-2 border-white dark:border-zinc-900">
+                                        {totalItems}
+                                    </span>
+                                )}
+                            </button>
+
+                            <QrCodeLogo user={userId} />
+
+                            <button onClick={() => handleProtectedNavigation("/chat-ia")} className="relative bg-primary p-2 rounded-full transition hover:scale-110 active:scale-95 flex items-center justify-center hover:-rotate-6">
+                                <Icon icon="solar:bell-bing-bold-duotone" className="text-white w-4 h-4 md:w-5 md:h-5" />
+                                {unreadMessages > 0 && (
+                                    <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-1.5 py-0.5 text-[8px] font-black text-white bg-red-500 rounded-full border-2 border-white dark:border-zinc-900">  {unreadMessages}  </span>
+                                )}
+                            </button>
+
+                            <button onClick={() => handleProtectedNavigation("/akwaba")} className="relative bg-primary p-2 rounded-full transition hover:scale-110 active:scale-95 flex items-center justify-center">
+                                <Icon icon="solar:user-bold" className="text-white w-4 h-4 md:w-5 md:h-5" />
+                            </button>
+
+                            <ThemeToggle />
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             <CartDetailModal isOpen={isCartModalOpen} onClose={() => setIsCartModalOpen(false)} />
 

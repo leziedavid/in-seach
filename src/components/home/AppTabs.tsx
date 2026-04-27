@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import SearchAnnonces from "../service/SearchAnnonces"
 import Boutique from "../products/Boutique"
 import LogisticsServicesList from "../logistics/LogisticsServicesList"
-import { HistoryIcon, AccountIcon, SearchIcon, LogisticsIcon } from "./TabIcons"
+import { OpportunitiesIcon, BoutiqueIcon, SearchIcon, LogisticsIcon } from "./TabIcons"
 import Info from "./Info"
 import SearchServies from "../service/SearchServies"
 import QuoteRequestModal from "../logistics/QuoteRequestModal"
@@ -27,7 +27,7 @@ const tabs = [
     {
         id: "annonces",
         label: "Opportunités",
-        Icon: HistoryIcon,
+        Icon: OpportunitiesIcon,
         info: {
             title: "Marketplace d'Opportunités",
             description: "Vendez, achetez ou dénichez des pépites locales. Une interface intuitive pour donner une seconde vie à vos biens en toute sécurité."
@@ -36,7 +36,7 @@ const tabs = [
     {
         id: "boutique",
         label: "Boutique",
-        Icon: AccountIcon,
+        Icon: BoutiqueIcon,
         info: {
             title: "Shopping Premium",
             description: "Découvrez une sélection exclusive de produits. Une expérience d'achat fluide pensée pour votre confort et votre sécurité."
@@ -96,20 +96,34 @@ export default function AppTabs() {
                         const IconComponent = tab.Icon
 
                         return (
-                            <button key={tab.id} ref={isActive ? activeTabRef : null} onClick={() => handleTabClick(tab.id)} onMouseEnter={() => handleTabClick(tab.id)} className="relative flex flex-col items-center shrink-0 group py-2 px-1" >
+                            <button
+                                key={tab.id}
+                                ref={isActive ? activeTabRef : null}
+                                onClick={() => handleTabClick(tab.id)}
+                                onMouseEnter={() => handleTabClick(tab.id)}
+                                className="relative flex flex-col items-center shrink-0 group py-2"
+                            >
                                 {/* Active Indicator (Sliding Background) */}
                                 {isActive && (
-                                    <motion.div layoutId="activeTabBackground" className="absolute inset-0 bg-primary/5 rounded-2xl z-0" transition={{ type: "spring", bounce: 0.2, duration: 0.6 }} />
+                                    <motion.div
+                                        layoutId="activeTabBackground"
+                                        className="absolute inset-0 bg-primary/5 rounded-3xl z-0"
+                                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                                    />
                                 )}
 
-                                 {/* Cercle */}
-                                <div className={`relative z-10 w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 flex items-center justify-center rounded-full border transition-all duration-300 ${isActive ? "bg-primary border-primary shadow-lg" : "bg-card/50 border-border/50 hover:border-sidebar-primary"} `}  >
+                                {/* Cercle - Augmenté pour mobile (w-16) et web (sm-w-18) */}
+                                <div className={`relative z-10 w-16 h-16 sm:w-18 sm:h-18 md:w-20 md:h-20 flex items-center justify-center rounded-[2rem] border transition-all duration-300 ${isActive
+                                    ? "bg-primary border-primary shadow-[0_10px_25px_-5px_rgba(var(--primary-rgb),0.4)] scale-105"
+                                    : "bg-card/50 border-border/40 hover:border-sidebar-primary hover:bg-card"
+                                    } `}
+                                >
                                     <IconComponent active={isActive} />
                                 </div>
 
-                                 {/* Label */}
-                                <span className={`text-[10px] sm:text-xs mt-2 whitespace-nowrap transition-colors duration-300 font-medium ${tab.label === "" ? "hidden sm:block" : ""} ${isActive ? "text-primary" : "text-muted-foreground group-hover:text-primary"} `}  >
-                                    {tab.label || "Recherche"}
+                                {/* Label - Optionnel, caché sur mobile si vide */}
+                                <span className={`text-[10px] sm:text-xs mt-3 whitespace-nowrap transition-colors duration-300 font-black uppercase tracking-tighter ${tab.id === "search" ? "hidden sm:block" : ""} ${isActive ? "text-primary" : "text-muted-foreground group-hover:text-primary"} `}  >
+                                    {tab.label || "Expertise"}
                                 </span>
                             </button>
                         )

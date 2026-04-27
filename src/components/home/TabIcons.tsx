@@ -3,43 +3,41 @@ import { Icon } from "@iconify/react"
 
 type IconProps = {
     active?: boolean
+    className?: string
 }
 
 // Icône blanche quand active, bleu/gris sinon
 export const strokeColor = (active?: boolean) => (active ? "#ffffff" : "#94a3b8")
 
-export function ServicesIcon({ active }: IconProps) {
+// Taille par défaut augmentée : mobile (30px) -> desktop (32px)
+const defaultSizeClasses = "w-[30px] h-[30px] sm:w-[32px] sm:h-[32px] md:w-[34px] md:h-[34px]"
+
+export function SearchIcon({ active, className }: IconProps) {
     return (
-        <Icon icon="solar:shop-bold-duotone" className="w-[26px] h-[26px]" style={{ color: strokeColor(active) }} />
+        <Icon icon="solar:magnifer-bold-duotone" className={`${defaultSizeClasses} ${className}`} style={{ color: strokeColor(active) }} />
     )
 }
 
-export function OrdersIcon({ active }: IconProps) {
+// Pour "Opportunités" : Utilisation d'un éclair ou d'une étoile montante
+export function OpportunitiesIcon({ active, className }: IconProps) {
     return (
-        <Icon icon="solar:clipboard-list-bold-duotone" className="w-[26px] h-[26px]" style={{ color: strokeColor(active) }} />
+        <Icon icon="solar:lightbulb-bolt-bold-duotone" className={`${defaultSizeClasses} ${className}`} style={{ color: strokeColor(active) }} />
     )
 }
 
-export function HistoryIcon({ active }: IconProps) {
+// Pour "Boutique" : Utilisation d'un sac de shopping ou shop
+export function BoutiqueIcon({ active, className }: IconProps) {
     return (
-        <Icon icon="solar:history-bold-duotone" className="w-[26px] h-[26px]" style={{ color: strokeColor(active) }} />
+        <Icon icon="solar:bag-heart-bold-duotone" className={`${defaultSizeClasses} ${className}`} style={{ color: strokeColor(active) }} />
     )
 }
 
-export function AccountIcon({ active }: IconProps) {
+export function LogisticsIcon({ active, className }: IconProps) {
     return (
-        <Icon icon="solar:user-circle-bold-duotone" className="w-[26px] h-[26px]" style={{ color: strokeColor(active) }} />
+        <Icon icon="solar:delivery-bold-duotone" className={`${defaultSizeClasses} ${className}`} style={{ color: strokeColor(active) }} />
     )
 }
 
-export function SearchIcon({ active }: IconProps) {
-    return (
-        <Icon icon="solar:magnifer-bold-duotone" className="w-[26px] h-[26px]" style={{ color: strokeColor(active) }} />
-    )
-}
-
-export function LogisticsIcon({ active }: IconProps) {
-    return (
-        <Icon icon="solar:delivery-bold-duotone" className="w-[26px] h-[26px]" style={{ color: strokeColor(active) }} />
-    )
-}
+// Anciens exports pour compatibilité au cas où
+export const HistoryIcon = OpportunitiesIcon;
+export const AccountIcon = BoutiqueIcon;
