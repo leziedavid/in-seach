@@ -66,9 +66,33 @@ interface SidebarProps {
     onLogout: () => void;
 }
 
+const LOGISTICS_KEYS: TabType[] = [
+    'Services-logistiques',
+    'Mes-devis',
+    'Mes-livraisons',
+    'Mes-services-logistiques',
+    'Devis-recus',
+    'Livraisons',
+    'Livraisons-chauffeur',
+    'Ma-flotte'
+];
+
 export default function Sidebar({ activeTab, onTabChange, user, onLogout }: SidebarProps) {
     const userRole = user?.role as Role;
-    const menu = TABS_CONFIG.filter(item => item.roles.includes(userRole));
+
+    // Base menu filtered by role
+    const baseMenu = TABS_CONFIG.filter(item => item.roles.includes(userRole));
+
+    // Intelligent reordering: Logistics first for CHAUFFEUR and ENTREPRISE
+    const menu = React.useMemo(() => {
+        if (userRole === Role.CHAUFFEUR || userRole === Role.ENTREPRISE) {
+            const logisticsItems = baseMenu.filter(item => LOGISTICS_KEYS.includes(item.key));
+            const otherItems = baseMenu.filter(item => !LOGISTICS_KEYS.includes(item.key));
+            return [...logisticsItems, ...otherItems];
+        }
+        return baseMenu;
+    }, [baseMenu, userRole]);
+
     const [open, setOpen] = React.useState(false);
 
     const renderMenuItem = (item: TabConfig) => {
@@ -81,20 +105,57 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
         );
     };
 
+    const MenuSkeleton = ({ count }: { count: number }) => (
+        <div className="space-y-2">
+            {Array.from({ length: count }).map((_, i) => (
+                <div key={i} className="w-full flex items-center gap-4 p-3.5 rounded-xl bg-muted/40 relative overflow-hidden border border-border/5">
+                    {/* Icon Placeholder */}
+                    <div className="w-6 h-6 rounded-lg bg-muted/80 shrink-0" />
+
+                    {/* Text Placeholder with variable width for realism */}
+                    <div className={`h-3 bg-muted/80 rounded-full ${i % 3 === 0 ? 'w-32' : i % 3 === 1 ? 'w-24' : 'w-28'}`} />
+
+                    {/* Premium Shimmer effect */}
+                    <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                </div>
+            ))}
+        </div>
+    );
+
+    const isLoading = !user;
+    const skeletonCount = userRole ? TABS_CONFIG.filter(item => item.roles.includes(userRole)).length : 6;
+
     return (
         <>
+            <style jsx global>{`
+                @keyframes shimmer {
+                    100% { transform: translateX(100%); }
+                }
+            `}</style>
+
             {/* DESKTOP SIDEBAR */}
             <aside className="hidden md:block md:col-span-4 lg:col-span-3">
                 <div className="bg-card/50 backdrop-blur-xl rounded-3xl shadow-xl border border-border p-6 sticky top-24">
                     {/* Profil */}
                     <div className="flex flex-col items-center mb-8">
-                        <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-white shadow-xl shrink-0">
-                            <Image src={user?.avatar || "/avatars/user2.png"} fill className="object-cover" alt="User Avatar" unoptimized />
+                        <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-white shadow-xl shrink-0 bg-muted/30">
+                            {user && <Image src={user?.avatar || "/avatars/user2.png"} fill className="object-cover" alt="User Avatar" unoptimized />}
                         </div>
-                        <p className="font-bold mt-3 text-center text-foreground">{user?.fullName || "Mon compte"}</p>
-                        <p className="text-sm text-muted-foreground">
-                            {userRole === Role.PRESTATAIRE ? "Prestataire" : userRole === Role.ENTREPRISE ? "Entreprise Logistique" : userRole === Role.CHAUFFEUR ? "Chauffeur" : "Client"}
-                        </p>
+                        <div className="flex flex-col items-center mt-3 gap-1">
+                            {isLoading ? (
+                                <>
+                                    <div className="h-4 w-28 bg-muted/50 rounded-full animate-pulse" />
+                                    <div className="h-3 w-20 bg-muted/40 rounded-full animate-pulse" />
+                                </>
+                            ) : (
+                                <>
+                                    <p className="font-bold text-center text-foreground">{user?.fullName || "Mon compte"}</p>
+                                    <p className="text-sm text-muted-foreground">
+                                        {userRole === Role.PRESTATAIRE ? "Prestataire" : userRole === Role.ENTREPRISE ? "Entreprise Logistique" : userRole === Role.CHAUFFEUR ? "Chauffeur" : "Client"}
+                                    </p>
+                                </>
+                            )}
+                        </div>
 
                         {user?.totalGain !== undefined && (
                             <div className="mt-4 bg-primary/10 px-4 py-2 rounded-xl text-center border border-primary/20">
@@ -106,7 +167,7 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
 
                     {/* Menu */}
                     <div className="space-y-2">
-                        {menu.map(renderMenuItem)}
+                        {isLoading ? <MenuSkeleton count={skeletonCount} /> : menu.map(renderMenuItem)}
                     </div>
 
                     {/* Logout */}
@@ -143,7 +204,7 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
 
                         <div className="space-y-3">
                             <div className="grid grid-cols-1 gap-3">
-                                {menu.map(renderMenuItem)}
+                                {isLoading ? <MenuSkeleton count={skeletonCount} /> : menu.map(renderMenuItem)}
                             </div>
 
                             <div className="pt-2 border-t border-border mt-2">
