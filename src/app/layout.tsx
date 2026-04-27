@@ -29,8 +29,47 @@ const jost = Jost({
 })
 
 export const metadata: Metadata = {
-  title: "Djamko - L'écosystème tout-en-un pour vos services, vos biens et vos échanges globaux",
+  title: {
+    default: "Djamko - L'écosystème tout-en-un pour vos services",
+    template: "%s | Djamko"
+  },
   description: "Simplifiez votre quotidien avec Djamko : services à la demande, marketplace sécurisée et solutions logistiques internationales.",
+  keywords: ["logistique", "marketplace", "services", "Djamko", "Afrique", "livraison", "commerce en ligne"],
+  authors: [{ name: "Djamko Team" }],
+  creator: "Djamko",
+  publisher: "Djamko",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  metadataBase: new URL("https://www.djamko.com/"), // À remplacer par l'URL de production en déploiement
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "Djamko - Services, Biens et Logistique Globale",
+    description: "L'écosystème tout-en-un pour simplifier vos échanges globaux.",
+    url: "/",
+    siteName: "Djamko",
+    images: [
+      {
+        url: "/logo.png",
+        width: 1200,
+        height: 630,
+        alt: "Aperçu de la plateforme Djamko",
+      },
+    ],
+    locale: "fr_FR",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Djamko - L'écosystème tout-en-un",
+    description: "Simplifiez votre quotidien avec nos solutions de services et logistique.",
+    images: ["/logo.png"],
+    creator: "@djamko",
+  },
   icons: {
     icon: [
       { url: "/favicon.svg", type: "image/svg+xml" },
@@ -40,20 +79,25 @@ export const metadata: Metadata = {
       { url: "/favicon.png" },
     ],
   },
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Djamko",
+  },
+};
+
+export const viewport = {
+  themeColor: "#b07b5e",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
 };
 
 export default function RootLayout({ children, }: Readonly<{ children: React.ReactNode; }>) {
   return (
     <html lang="fr" suppressHydrationWarning>
-
-
-      <head>
-        <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#b07b5e" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="Djamko" />
-      </head>
+      <head />
       {/* <body className={inter.className}> */}
       <body className={`${jost.variable} font-sans antialiased`}>
         <BackgroundDecoration />
