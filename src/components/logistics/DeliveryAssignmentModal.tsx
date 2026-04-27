@@ -19,7 +19,7 @@ export default function DeliveryAssignmentModal({ isOpen, delivery, onClose, onS
     const [isLoading, setIsLoading] = useState(false);
     const [fleetOptions, setFleetOptions] = useState<any[]>([]);
     const [driverOptions, setDriverOptions] = useState<any[]>([]);
-    
+
     const [selectedFlotes, setSelectedFlotes] = useState<string[]>([]);
     const [selectedDrivers, setSelectedDrivers] = useState<string[]>([]);
 
@@ -38,10 +38,10 @@ export default function DeliveryAssignmentModal({ isOpen, delivery, onClose, onS
                 getCompanyClients({ page: 1, limit: 100 })
             ]);
 
-            setFleetOptions(fleet.map((f: any) => ({
+            setFleetOptions(fleet.data?.map((f: any) => ({
                 id: f.id,
                 label: `${f.name} (${f.immatriculation || f.type})`.toUpperCase()
-            })));
+            })) || []);
 
             const drivers = clients.data?.data?.filter((c: any) => c.role === 'CHAUFFEUR') || [];
             setDriverOptions(drivers.map((d: any) => ({
@@ -138,18 +138,10 @@ export default function DeliveryAssignmentModal({ isOpen, delivery, onClose, onS
                         </div>
 
                         <div className="sticky bottom-0 p-6 bg-card border-t border-border flex flex-col md:flex-row gap-3">
-                            <button
-                                type="button"
-                                onClick={onClose}
-                                className="px-6 py-3 rounded-2xl border border-border text-xs font-bold hover:bg-muted transition-all uppercase tracking-wider flex-1 h-12"
-                            >
+                            <button type="button" onClick={onClose} className="px-6 py-3 rounded-2xl border border-border text-xs font-bold hover:bg-muted transition-all uppercase tracking-wider flex-1 h-12">
                                 Revenir
                             </button>
-                            <button
-                                type="submit"
-                                disabled={isLoading}
-                                className="bg-primary text-white px-8 py-3 rounded-2xl text-xs font-black hover:bg-secondary transition-all active:scale-95 disabled:opacity-50 shadow-xl shadow-primary/20 flex items-center justify-center gap-2 uppercase tracking-widest flex-[2] h-12"
-                            >
+                            <button type="submit" disabled={isLoading} className="bg-primary text-white px-8 py-3 rounded-2xl text-xs font-black hover:bg-secondary transition-all active:scale-95 disabled:opacity-50 shadow-xl shadow-primary/20 flex items-center justify-center gap-2 uppercase tracking-widest flex-[2] h-12">
                                 {isLoading ? (
                                     <Icon icon="solar:refresh-bold-duotone" className="w-5 h-5 animate-spin" />
                                 ) : (
