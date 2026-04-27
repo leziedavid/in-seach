@@ -43,7 +43,7 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL("https://www.djamko.com/"), // À remplacer par l'URL de production en déploiement
+  metadataBase: new URL("https://www.djamko.com"), // À remplacer par l'URL de production en déploiement
   alternates: {
     canonical: "/",
   },
@@ -54,10 +54,10 @@ export const metadata: Metadata = {
     siteName: "Djamko",
     images: [
       {
-        url: "/logo.png",
+        url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Aperçu de la plateforme Djamko",
+        alt: "Djamko - Plateforme de Services et Logistique",
       },
     ],
     locale: "fr_FR",
@@ -67,13 +67,13 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Djamko - L'écosystème tout-en-un",
     description: "Simplifiez votre quotidien avec nos solutions de services et logistique.",
-    images: ["/logo.png"],
+    images: ["/og-image.png"],
     creator: "@djamko",
   },
   icons: {
     icon: [
-      { url: "/favicon.svg", type: "image/svg+xml" },
       { url: "/favicon.png", type: "image/png" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
     ],
     apple: [
       { url: "/favicon.png" },
