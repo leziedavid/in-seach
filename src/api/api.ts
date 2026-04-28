@@ -434,6 +434,21 @@ export const getAnnonces = async (params: { page?: number; limit?: number; query
     return await response.json();
 };
 
+export const getForSelectRealEstateOptions = async (): Promise<BaseResponse<any[]>> => {
+    const response = await fetch(`${getBaseUrl()}/real-estate-option/select`);
+    return await response.json();
+};
+
+export const getForSelectVehicleTypes = async (): Promise<BaseResponse<any[]>> => {
+    const response = await fetch(`${getBaseUrl()}/vehicle-type/select`);
+    return await response.json();
+};
+
+export const getForSelectEquipmentNames = async (): Promise<BaseResponse<any[]>> => {
+    const response = await fetch(`${getBaseUrl()}/equipment-names/select`);
+    return await response.json();
+};
+
 export const getAnnonceById = async (id: string): Promise<BaseResponse<any>> => {
     const response = await fetch(`${getBaseUrl()}/annonces/${id}`);
     return await response.json();
@@ -467,6 +482,91 @@ export const handleToggleAnnonceActive = async (id: string, value: boolean): Pro
         method: 'PATCH',
         body: JSON.stringify({ value }),
     });
+    return await response.json();
+};
+
+/* =======================================================
+   ADMIN - REFERENCE DATA API
+======================================================= */
+
+// Equipment Names
+export const adminGetEquipmentNames = async (): Promise<BaseResponse<any[]>> => {
+    const response = await secureFetch(`${getBaseUrl()}/equipment-names`, { method: 'GET' });
+    return await response.json();
+};
+
+export const adminCreateEquipmentName = async (data: { name: string }): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/equipment-names`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const adminUpdateEquipmentName = async (id: string, data: { name: string }): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/equipment-names/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const adminDeleteEquipmentName = async (id: string): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/equipment-names/${id}`, { method: 'DELETE' });
+    return await response.json();
+};
+
+// Vehicle Types (CRUD already exists in backend controller, adding frontend)
+export const adminGetVehicleTypes = async (): Promise<BaseResponse<any[]>> => {
+    const response = await secureFetch(`${getBaseUrl()}/vehicle-types`, { method: 'GET' });
+    return await response.json();
+};
+
+export const adminCreateVehicleType = async (data: { name: string }): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/vehicle-types`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const adminUpdateVehicleType = async (id: string, data: { name: string }): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/vehicle-types/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const adminDeleteVehicleType = async (id: string): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/vehicle-types/${id}`, { method: 'DELETE' });
+    return await response.json();
+};
+
+// Technical Sheet Defaults (NEWly created backend)
+export const adminGetTechnicalSheetDefaults = async (): Promise<BaseResponse<any[]>> => {
+    const response = await secureFetch(`${getBaseUrl()}/technical-sheet-default`, { method: 'GET' });
+    return await response.json();
+};
+
+export const adminCreateTechnicalSheetDefault = async (data: { key: string; category?: string }): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/technical-sheet-default`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const adminUpdateTechnicalSheetDefault = async (id: string, data: { key?: string; category?: string }): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/technical-sheet-default/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const adminDeleteTechnicalSheetDefault = async (id: string): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/technical-sheet-default/${id}`, { method: 'DELETE' });
     return await response.json();
 };
 
@@ -1592,6 +1692,13 @@ export const runSeed = async (tables: string[]): Promise<BaseResponse<{ success:
     const response = await secureFetch(`${getBaseUrl()}/admin/seed/run`, {
         method: 'POST',
         body: JSON.stringify({ tables }),
+    });
+    return await response.json();
+};
+
+export const runFullSeed = async (): Promise<BaseResponse<string[]>> => {
+    const response = await secureFetch(`${getBaseUrl()}/admin/seed/full`, {
+        method: 'POST',
     });
     return await response.json();
 };

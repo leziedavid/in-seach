@@ -47,9 +47,9 @@ export const NotificationPermissionModal = () => {
                     {/* Compact iOS Style Modal */}
                     <motion.div
                         initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                        animate={{ 
-                            opacity: 1, 
-                            scale: 1, 
+                        animate={{
+                            opacity: 1,
+                            scale: 1,
                             y: 0,
                             transition: { type: "spring", damping: 25, stiffness: 400 }
                         }}
@@ -57,7 +57,7 @@ export const NotificationPermissionModal = () => {
                         className="relative w-full max-w-[320px] bg-white dark:bg-zinc-900 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)] border border-white/20 dark:border-zinc-800/50 overflow-hidden"
                     >
                         <div className="p-6 pt-8 flex flex-col items-center text-center">
-                            
+
                             {/* Modern Notification Icon */}
                             <div className="relative mb-6">
                                 <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full animate-pulse" />
@@ -69,23 +69,17 @@ export const NotificationPermissionModal = () => {
                             <h3 className="text-xl font-black text-zinc-900 dark:text-white mb-2 tracking-tight">
                                 Notifications
                             </h3>
-                            
+
                             <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-8 px-4 font-bold leading-relaxed">
                                 Restez informé de vos commandes, livraisons et actualités en temps réel.
                             </p>
 
                             {/* Buttons on one line */}
                             <div className="flex w-full gap-3">
-                                <button
-                                    onClick={handleDecline}
-                                    className="flex-1 py-3 px-4 bg-muted text-muted-foreground hover:text-foreground rounded-xl font-bold text-xs transition-all active:scale-[0.95]"
-                                >
+                                <button onClick={handleDecline} className="flex-1 py-3 px-4 bg-muted text-muted-foreground hover:text-foreground rounded-xl font-bold text-xs transition-all active:scale-[0.95]">
                                     Refuser
                                 </button>
-                                <button
-                                    onClick={handleAccept}
-                                    className="flex-1 py-3 px-4 bg-primary text-white rounded-xl font-black text-xs shadow-lg shadow-primary/20 transition-all active:scale-[0.95]"
-                                >
+                                <button onClick={handleAccept} className="flex-1 py-3 px-4 bg-primary text-white rounded-xl font-black text-xs shadow-lg shadow-primary/20 transition-all active:scale-[0.95]">
                                     Autoriser
                                 </button>
                             </div>

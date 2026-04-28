@@ -106,28 +106,14 @@ export default function AppTabs() {
                         const IconComponent = tab.Icon
 
                         return (
-                            <button
-                                key={tab.id}
-                                ref={isActive ? activeTabRef : null}
-                                onClick={() => handleTabClick(tab.id)}
-                                onMouseEnter={() => handleTabClick(tab.id)}
-                                className="relative flex flex-col items-center shrink-0 group py-2"
-                            >
+                            <button key={tab.id} ref={isActive ? activeTabRef : null} onClick={() => handleTabClick(tab.id)} onMouseEnter={() => handleTabClick(tab.id)} className="relative flex flex-col items-center shrink-0 group py-2" >
                                 {/* Active Indicator (Sliding Background) */}
                                 {isActive && (
-                                    <motion.div
-                                        layoutId="activeTabBackground"
-                                        className="absolute inset-0 bg-primary/5 rounded-3xl z-0"
-                                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                                    />
+                                    <motion.div layoutId="activeTabBackground" className="absolute inset-0 bg-primary/5 rounded-3xl z-0" transition={{ type: "spring", bounce: 0.2, duration: 0.6 }} />
                                 )}
 
                                 {/* Cercle - Augmenté pour mobile (w-16) et web (sm-w-18) */}
-                                <div className={`relative z-10 w-16 h-16 sm:w-18 sm:h-18 md:w-20 md:h-20 flex items-center justify-center rounded-[2rem] border transition-all duration-300 ${isActive
-                                    ? "bg-primary border-primary shadow-[0_10px_25px_-5px_rgba(var(--primary-rgb),0.4)] scale-105"
-                                    : "bg-card/50 border-border/40 hover:border-sidebar-primary hover:bg-card"
-                                    } `}
-                                >
+                                <div className={`relative z-10 w-16 h-16 sm:w-18 sm:h-18 md:w-20 md:h-20 flex items-center justify-center rounded-[2rem] border transition-all duration-300 ${isActive ? "bg-primary border-primary shadow-[0_10px_25px_-5px_rgba(var(--primary-rgb),0.4)] scale-105" : "bg-card/50 border-border/40 hover:border-sidebar-primary hover:bg-card"} `} >
                                     <IconComponent active={isActive} />
                                 </div>
 
@@ -152,10 +138,7 @@ export default function AppTabs() {
 
             {/* INFO COMPONENT */}
             <Info isOpen={showInfo}
-                onClose={() => {
-                    setShowInfo(false)
-                    localStorage.setItem("infoClosed", "true")
-                }}
+                onClose={() => { setShowInfo(false); localStorage.setItem("infoClosed", "true") }}
                 title={tabs.find(t => t.id === active)?.info.title || ""}
                 description={tabs.find(t => t.id === active)?.info.description || ""}
             />

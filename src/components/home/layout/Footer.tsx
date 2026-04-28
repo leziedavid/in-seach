@@ -44,8 +44,12 @@ export default function SocialFollow() {
                                 Conditions Générales d'Utilisation
                             </Link>
                             <span className="text-gray-300">|</span>
-                            <Link href="/privacy-policy" className="hover:text-primary transition-colors underline-offset-2 hover:underline">
+                             <Link href="/privacy-policy" className="hover:text-primary transition-colors underline-offset-2 hover:underline">
                                 Politique de confidentialité
+                            </Link>
+                            <span className="text-gray-300">|</span>
+                            <Link href="/cookies" className="hover:text-primary transition-colors underline-offset-2 hover:underline">
+                                Politique Cookies
                             </Link>
                         </div>
                         <div className="text-gray-400">

@@ -92,6 +92,11 @@ export default function AnnoncesCard({
         categories: annonce.categories || [],
         imageUrls: annonce.images || [],
         files: annonce.images || [],
+        technicalSheets: annonce.technicalSheets || [],
+        equipments: annonce.equipments || [],
+        realEstateOptionId: annonce.realEstateOptionId,
+        vehicleTypeId: annonce.vehicleTypeId,
+        images: [], // File[] type expected
     })
 
     const handleAction = (action: string, row: Annonce) => {
@@ -243,13 +248,7 @@ export default function AnnoncesCard({
                                     <div key={annonce.id} className="group rounded-lg p-0 md:p-4 flex flex-col md:items-center text-left md:text-center transition-all w-full">
 
                                         <div className="relative w-full aspect-square mb-1.5 overflow-hidden rounded-lg md:rounded-2xl">
-                                            <Image
-                                                src={(annonce.images?.[0] && annonce.images?.[0] !== "") ? annonce.images[0] : (annonce.imageUrls?.[0] && annonce.imageUrls?.[0] !== "") ? annonce.imageUrls[0] : 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop'}
-                                                alt={annonce.title}
-                                                fill
-                                                unoptimized
-                                                className="object-cover group-hover:scale-110 transition-transform duration-500"
-                                            />
+                                            <Image src={(annonce.images?.[0] && annonce.images?.[0] !== "") ? annonce.images[0] : (annonce.imageUrls?.[0] && annonce.imageUrls?.[0] !== "") ? annonce.imageUrls[0] : 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop'} alt={annonce.title} fill unoptimized className="object-cover group-hover:scale-110 transition-transform duration-500" />
                                             <div className="absolute top-2 left-2 bg-background/80 backdrop-blur-sm px-2 py-0.5 rounded-full text-[9px] font-black text-foreground shadow-sm uppercase">
                                                 {annonce.categorie?.label || 'Annonce'}
                                             </div>

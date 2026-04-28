@@ -123,7 +123,9 @@ export default function SearchAnnonces() {
 
     return (
         <div className="flex flex-col items-center w-full max-w-7xl mx-auto px-4 py-2">
+
             {/* Search Input - Centered */}
+
             <form onSubmit={handleSearch} className="flex flex-col md:flex-row items-center justify-center gap-4 w-full max-w-2xl mb-2">
                 <div className="flex items-center w-full bg-card border border-primary rounded-xl px-4 py-2 shadow-sm hover:border-secondary transition-colors">
                     <Icon icon="solar:map-point-bold-duotone" className="w-4 h-4 text-muted-foreground mr-2 flex-shrink-0" />
@@ -224,17 +226,10 @@ export default function SearchAnnonces() {
             {/* )} */}
 
             {/* Modal de réservation */}
-            <AnnonceModal
-                isOpen={!!selectedAnnonce}
-                onClose={() => setSelectedAnnonce(null)}
-                annonce={selectedAnnonce}
-            />
+            <AnnonceModal isOpen={!!selectedAnnonce} onClose={() => setSelectedAnnonce(null)} annonce={selectedAnnonce} />
 
-            <VoiceSearchModal
-                isOpen={isVoiceModalOpen}
-                onClose={() => setIsVoiceModalOpen(false)}
-                onResult={handleVoiceResult}
-            />
+            <VoiceSearchModal isOpen={isVoiceModalOpen} onClose={() => setIsVoiceModalOpen(false)} onResult={handleVoiceResult} />
+
         </div>
     );
 }

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Database, Play, Trash2, CheckCircle2, AlertCircle, Info, Layers, Loader2 } from 'lucide-react';
-import { getSeedConfig, runSeed, clearDatabase, SeedTableConfig } from '@/api/api';
+import { getSeedConfig, runSeed, runFullSeed, clearDatabase, SeedTableConfig } from '@/api/api';
 import { useNotification } from '@/components/toast/NotificationProvider';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -67,6 +67,27 @@ export default function SeedAdminManager() {
         }
     };
 
+    const handleFullSeed = async () => {
+        if (!confirm("Voulez-vous migrer TOUTES les données de test ? Cela peut prendre quelques instants.")) return;
+
+        setLoading(true);
+        setLogs(prev => [...prev, `🔥 Lancement du SEED COMPLET : ${new Date().toLocaleTimeString()}`]);
+        try {
+            const res = await runFullSeed();
+            if (res.statusCode === 200) {
+                setLogs(prev => [...prev, ...(res.data || []), "✅ Migration complète terminée."]);
+                addNotification("Toutes les données ont été migrées", "success");
+            } else {
+                addNotification("Erreur lors de la migration complète", "error");
+            }
+        } catch (error: any) {
+            setLogs(prev => [...prev, `❌ ERREUR: ${error.message}`]);
+            addNotification("Erreur système lors de la migration", "error");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleClearDb = async () => {
         if (!confirm("ATTENTION: Cela va supprimer TOUTES les données de test. Êtes-vous sûr ?")) return;
 
@@ -86,7 +107,7 @@ export default function SeedAdminManager() {
 
     return (
         <Card className="rounded-lg border-border/50 shadow-xs overflow-hidden h-full flex flex-col">
-            <CardHeader className="p-8 pb-4 bg-muted/20 border-b border-border/30 flex flex-row items-center justify-between">
+            <CardHeader className="p-8 pb-4 bg-muted/20 border-b border-border/30 flex flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                     <div className="p-2.5 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-600">
                         <Database className="w-5 h-5" />
@@ -96,15 +117,27 @@ export default function SeedAdminManager() {
                         <CardDescription className="text-xs font-medium">Contrôlez les données initiales et les jeux de tests.</CardDescription>
                     </div>
                 </div>
-                <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={fetchConfig}
-                    disabled={isRefreshing}
-                    className="rounded-lg font-bold"
-                >
-                    {isRefreshing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Layers className="w-4 h-4" />}
-                </Button>
+                <div className="flex items-center gap-2">
+                    <Button
+                        variant="default"
+                        size="sm"
+                        onClick={handleFullSeed}
+                        disabled={loading}
+                        className="rounded-lg font-bold bg-emerald-600 hover:bg-emerald-700 text-white border-none shadow-md shadow-emerald-500/20"
+                    >
+                        <Play className="w-4 h-4 fill-current mr-2" />
+                        Migrer toutes les données
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={fetchConfig}
+                        disabled={isRefreshing}
+                        className="rounded-lg font-bold"
+                    >
+                        {isRefreshing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Layers className="w-4 h-4" />}
+                    </Button>
+                </div>
             </CardHeader>
 
             <CardContent className="p-8 space-y-6 flex-1 overflow-hidden flex flex-col">

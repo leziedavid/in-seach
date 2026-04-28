@@ -359,12 +359,36 @@ export interface CategorieAnnonce {
     };
 }
 
+export interface TechnicalSheet {
+    key: string;
+    value: string;
+    category?: string;
+}
+
+export interface Equipment {
+    name: string;
+    isAvailable: boolean;
+}
+
+export interface RealEstateOption {
+    id: string;
+    name: string;
+}
+
+export interface VehicleType {
+    id: string;
+    name: string;
+}
+
 export interface Annonce {
     id: string;
     title: string;
     code: string;
     description: string;
+    companyName?: string;
     price?: number;
+    startDate?: string;
+    endDate?: string;
     options?: string[];
     imageUrls: string[];
     images?: string[];
@@ -379,6 +403,12 @@ export interface Annonce {
     type?: TypeAnnonce;
     categorie?: CategorieAnnonce;
     categories?: CategorieAnnonce[];
+    technicalSheets?: TechnicalSheet[];
+    equipments?: Equipment[];
+    realEstateOptionId?: string;
+    vehicleTypeId?: string;
+    realEstateOption?: RealEstateOption;
+    vehicleType?: VehicleType;
     ville?: string;
     createdAt: string;
     updatedAt: string;
