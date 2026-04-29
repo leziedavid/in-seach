@@ -223,49 +223,49 @@ export default function SearchServies() {
                         </div>
                     ) : (
 
-                        <InfiniteScroll loadMore={() => setPage(prev => prev + 1)} hasMore={hasMore && aiResults.length === 0} isLoading={loading} className="w-full px-0 md:px-0" itemCount={displayedServices.length} >
-                            {displayedServices.length > 0 ? (
-                                <div className="grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-6">
-                                    {/* ... rest of the grid ... */}
-                                    {displayedServices.map((service: any) => (
-                                        <div key={service.id} className="group rounded-lg p-0 md:p-4 flex flex-col md:items-center text-left md:text-center bg-card w-full transition-all duration-300">
-                                            {/* Image - Pleine largeur sans padding */}
-                                            <div className="relative w-full aspect-square mb-1.5 overflow-hidden rounded-lg md:rounded-2xl">
-                                                <Image src={(service.imageUrls && typeof service.imageUrls === 'string' && service.imageUrls !== "") ? service.imageUrls : (Array.isArray(service.images) && service.images[0]) || 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop'} alt={service.title} fill unoptimized className="object-cover group-hover:scale-110 transition-transform duration-500" />
-                                                <div className="absolute top-1 left-1 md:top-2 md:left-2 bg-black/70 md:bg-background/95 backdrop-blur-sm px-1.5 py-0.5 md:px-2 md:py-0.5 rounded-full text-[8px] md:text-[9px] font-black text-white md:text-foreground shadow-sm uppercase tracking-tighter">
-                                                    {service.categoryLabel || 'Expert'}
-                                                </div>
-                                            </div>
-
-                                            {/* Contenu - Padding minimal */}
-                                            <div className="px-0.5 pb-0 md:px-0 md:pb-0 w-full">
-                                                <h3 className="text-xs md:text-base font-black text-foreground mb-1 line-clamp-2 md:line-clamp-1 group-hover:text-primary transition-colors w-full text-left leading-tight">
-                                                    {service.title}
-                                                </h3>
-
-                                                <div className="flex items-center justify-start gap-1 text-primary mb-2 md:mb-4 md:justify-center">
-                                                    <Icon icon="solar:star-bold-duotone" className="w-2.5 h-2.5 fill-current md:w-3 md:h-3" />
-                                                    <span className="text-[9px] md:text-xs font-black tracking-tight">4.9 • <span className="text-muted-foreground">Pro</span></span>
-                                                </div>
-                                                <div className="w-full flex items-center justify-between mt-auto">
-                                                    <div className="text-left">
-                                                        <p className="text-secondary font-black text-sm md:text-lg">
-                                                            {service.price} <span className="text-[9px] font-bold text-muted-foreground">CFA</span>
-                                                        </p>
-                                                    </div>
-                                                    <button onClick={() => withAuth(() => setSelectedService(service))} className="flex items-center gap-1 md:gap-2 bg-secondary text-white px-2 py-1 md:px-3 md:py-2 rounded-full text-[10px] md:text-xs font-black hover:bg-primary transition-all active:scale-90 shadow-sm" >
-                                                        <span className="whitespace-nowrap">Consulter</span>
-                                                        <Icon icon="solar:check-circle-bold-duotone" className="w-3 h-3 md:w-4 md:h-4" />
-                                                    </button>
-                                                </div>
-                                            </div>
+                        <InfiniteScroll 
+                            items={displayedServices}
+                            loadMore={() => setPage(prev => prev + 1)} 
+                            hasMore={hasMore && aiResults.length === 0} 
+                            isLoading={loading} 
+                            skeletonType="service"
+                            skeletonCount={3}
+                            renderItem={(service: any) => (
+                                <div key={service.id} onClick={() => withAuth(() => setSelectedService(service))} className="group rounded-lg p-0 md:p-4 flex flex-col md:items-center text-left md:text-center bg-card w-full transition-all duration-300 cursor-pointer">
+                                    {/* Image */}
+                                    <div className="relative w-full aspect-square mb-1.5 overflow-hidden rounded-lg md:rounded-2xl">
+                                        <Image src={(service.imageUrls && typeof service.imageUrls === 'string' && service.imageUrls !== "") ? service.imageUrls : (Array.isArray(service.images) && service.images[0]) || 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop'} alt={service.title} fill unoptimized className="object-cover group-hover:scale-110 transition-transform duration-500" />
+                                        <div className="absolute top-1 left-1 md:top-2 md:left-2 bg-black/70 md:bg-background/95 backdrop-blur-sm px-1.5 py-0.5 md:px-2 md:py-0.5 rounded-full text-[8px] md:text-[9px] font-black text-white md:text-foreground shadow-sm uppercase tracking-tighter">
+                                            {service.categoryLabel || 'Expert'}
                                         </div>
-                                    ))}
+                                    </div>
+
+                                    {/* Contenu */}
+                                    <div className="px-0.5 pb-0 md:px-0 md:pb-0 w-full">
+                                        <h3 className="text-xs md:text-base font-black text-foreground mb-1 line-clamp-2 md:line-clamp-1 group-hover:text-primary transition-colors w-full text-left leading-tight">
+                                            {service.title}
+                                        </h3>
+
+                                        <div className="flex items-center justify-start gap-1 text-primary mb-2 md:mb-4 md:justify-center">
+                                            <Icon icon="solar:star-bold-duotone" className="w-2.5 h-2.5 fill-current md:w-3 md:h-3" />
+                                            <span className="text-[9px] md:text-xs font-black tracking-tight">4.9 • <span className="text-muted-foreground">Pro</span></span>
+                                        </div>
+                                        <div className="w-full flex items-center justify-between mt-auto">
+                                            <div className="text-left">
+                                                <p className="text-secondary font-black text-sm md:text-lg">
+                                                    {service.price} <span className="text-[9px] font-bold text-muted-foreground">CFA</span>
+                                                </p>
+                                            </div>
+                                            <button className="flex items-center gap-1 md:gap-2 bg-secondary text-white px-2 py-1 md:px-3 md:py-2 rounded-full text-[10px] md:text-xs font-black hover:bg-primary transition-all active:scale-90 shadow-sm" >
+                                                <span className="whitespace-nowrap">Consulter</span>
+                                                <Icon icon="solar:check-circle-bold-duotone" className="w-3 h-3 md:w-4 md:h-4" />
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
-                            ) : !loading && (
-                                <NotFound title="Aucun service trouvé" description={aiSearchEmpty ? aiMessage : "Désolé, nous n'avons trouvé aucun service correspondant à votre recherche."} icon="solar:ghost-bold-duotone" />
                             )}
-                        </InfiniteScroll>
+                            className="w-full"
+                        />
 
                     )}
                 </div>

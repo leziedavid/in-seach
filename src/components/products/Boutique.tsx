@@ -9,7 +9,9 @@ import { Icon } from "@iconify/react"
 import NotFound from "../shared/NotFound"
 import VoiceSearchModal from "../service/VoiceSearchModal"
 
-const ITEMS_PER_PAGE = 6
+import InfiniteScroll from "../ui/InfiniteScroll"
+
+const ITEMS_PER_PAGE = 10
 
 export default function ProductsPage() {
     const [search, setSearch] = useState("")
@@ -21,8 +23,6 @@ export default function ProductsPage() {
     const [loading, setLoading] = useState(false)
     const [total, setTotal] = useState(0)
     const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false)
-
-    const loaderRef = useRef<HTMLDivElement | null>(null)
 
     // Load Categories
     useEffect(() => {
@@ -41,13 +41,14 @@ export default function ProductsPage() {
 
     // Load Products
     const fetchProducts = useCallback(async (pageNum: number, isNewSearch: boolean) => {
-
         if (loading) return
         setLoading(true)
 
         try {
             const res = await getProducts({
-                page: pageNum, limit: ITEMS_PER_PAGE, query: search || undefined,
+                page: pageNum, 
+                limit: ITEMS_PER_PAGE, 
+                query: search || undefined,
                 categoryId: selectedCategory === "all" ? undefined : selectedCategory
             })
 
@@ -56,18 +57,23 @@ export default function ProductsPage() {
                 setProducts(prev => isNewSearch ? newProducts : [...prev, ...newProducts])
                 setHasMore(pageNum < res.data.totalPages)
                 setTotal(res.data.total)
-
             } else {
                 setHasMore(false)
             }
         } catch (error) {
             console.error("Error fetching products:", error)
             setHasMore(false)
-
         } finally {
             setLoading(false)
         }
     }, [search, selectedCategory])
+
+    // Load more when page changes (infinite scroll)
+    useEffect(() => {
+        if (page > 1) {
+            fetchProducts(page, false)
+        }
+    }, [page, fetchProducts])
 
     const handleVoiceResult = (text: string) => {
         setSearch(text)
@@ -79,42 +85,19 @@ export default function ProductsPage() {
         fetchProducts(1, true)
     }, [search, selectedCategory, fetchProducts])
 
-    // Load more when page changes (infinite scroll)
-    useEffect(() => {
-        if (page > 1) { fetchProducts(page, false) }
-    }, [page, fetchProducts])
-
-    // Infinite Scroll Observer
-    useEffect(() => {
-
-        const observer = new IntersectionObserver(
-            (entries) => { if (entries[0].isIntersecting && hasMore && !loading) { setPage(prev => prev + 1) } },
-            { threshold: 0.1 }
-        )
-
-        if (loaderRef.current) observer.observe(loaderRef.current)
-        return () => observer.disconnect()
-    }, [hasMore, loading])
-
     return (
         <div className="flex flex-col items-center w-full max-w-7xl mx-auto px-4 py-2">
-
             {/* Search Input */}
             <div className="flex flex-col md:flex-row items-center justify-center gap-4 w-full max-w-2xl mb-2">
-                <div className="flex items-center w-full bg-card border border-primary rounded-xl px-4 py-3 shadow-sm hover:border-secondary transition-colors">
+                <div className="flex items-center w-full bg-card border border-primary rounded-xl px-4 py-3 shadow-sm hover:border-secondary transition-colors focus-within:border-secondary">
                     <Icon icon="solar:magnifer-bold-duotone" className="w-4 h-4 text-muted-foreground mr-2 flex-shrink-0" />
-                    <input type="text" placeholder="Quel produit recherchez-vous ?" className="flex-1 bg-transparent text-foreground outline-none text-sm min-w-0 md:text-sm placeholder:text-muted-foreground" value={search} onChange={(e) => setSearch(e.target.value)} inputMode="text" style={{ fontSize: '16px' }} suppressHydrationWarning />
+                    <input type="text" placeholder="Quel produit recherchez-vous ?" className="flex-1 bg-transparent text-foreground outline-none text-sm min-w-0 placeholder:text-muted-foreground" value={search} onChange={(e) => setSearch(e.target.value)} />
                     {search && (
-                        <button
-                            type="button"
-                            onClick={() => setSearch("")}
-                            className="p-1 text-muted-foreground hover:text-primary transition-colors animate-in fade-in zoom-in duration-200"
-                            title="Effacer la recherche"
-                        >
+                        <button type="button" onClick={() => setSearch("")} className="p-1 text-muted-foreground hover:text-primary transition-colors">
                             <Icon icon="solar:close-circle-bold-duotone" className="w-5 h-5" />
                         </button>
                     )}
-                    <button type="button" onClick={() => setIsVoiceModalOpen(true)} className="p-1 text-muted-foreground hover:text-primary transition-colors hover:scale-110 active:scale-90" title="Recherche vocale" >
+                    <button type="button" onClick={() => setIsVoiceModalOpen(true)} className="p-1 text-muted-foreground hover:text-primary transition-colors hover:scale-110 active:scale-90">
                         <Icon icon="solar:microphone-bold-duotone" className="w-5 h-5" />
                     </button>
                 </div>
@@ -131,34 +114,23 @@ export default function ProductsPage() {
             {/* Results count header */}
             <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-1">
                 <div className="flex items-center justify-start md:justify-center w-full px-2 md:px-0 mb-4">
-                    <h3 className="text-xl md:text-2xl font-black text-foreground italic text-left md:text-center">
+                    <h3 className="text-xl md:text-2xl font-black text-foreground italic">
                         {loading && products.length === 0 ? 'Chargement...' : products.length === 0 ? ' ' : `${total} résultat${total > 1 ? 's' : ''}`}
                     </h3>
                 </div>
 
-                {/* PRODUCTS GRID */}
-                {products.length > 0 ? (
-                    <div className="grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-6">
-                        {products.map((product) => (
-                            <ProductCard key={product.id} product={product} />
-                        ))}
-                    </div>
-                ) : !loading && (
-                    <NotFound title="Aucun produit trouvé" description="Désolés, nous n'avons trouvé aucun article correspondant à cette catégorie ou recherche." icon="solar:shop-2-bold-duotone" />
-                )}
-
-                {/* Loading State / Trigger */}
-                <div ref={loaderRef} className="w-full flex justify-center py-4">
-                    {loading && (<Icon icon="eos-icons:loading" className="w-8 h-8 text-primary animate-spin" />)}
-                    {!hasMore && products.length > 0 && total > ITEMS_PER_PAGE && (
-                        <div className="flex flex-col items-center gap-2 animate-in slide-in-from-bottom-4 duration-700">
-                            <div className="h-px w-10 bg-slate-200 mb-1" />
-                            <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest italic">
-                                Fin des résultats
-                            </p>
-                        </div>
+                <InfiniteScroll
+                    items={products}
+                    hasMore={hasMore}
+                    isLoading={loading}
+                    loadMore={() => setPage(prev => prev + 1)}
+                    skeletonType="product"
+                    skeletonCount={3}
+                    renderItem={(product) => (
+                        <ProductCard key={product.id} product={product} />
                     )}
-                </div>
+                    className="w-full"
+                />
             </div>
 
             <VoiceSearchModal

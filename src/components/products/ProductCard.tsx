@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Image from "next/image"
 import { Icon } from "@iconify/react"
-import { Product } from "@/types/interface"
+import { Product, productConditionLabels } from "@/types/interface"
 import ProductDetailModal from "./ProductDetailModal"
 import { useCart } from "@/components/providers/CartProvider"
 import { useNotification } from "@/components/toast/NotificationProvider"
@@ -66,6 +66,9 @@ export default function ProductCard({
                         className="object-cover group-hover:scale-110 transition-transform duration-500" />
                     <div className="absolute top-1 left-1 md:top-2 md:left-2 bg-black/70 md:bg-background/95 backdrop-blur-sm px-1.5 py-0.5 md:px-2 md:py-0.5 rounded-full text-[8px] md:text-[9px] font-black text-white md:text-foreground uppercase tracking-tighter">
                         {product.category?.name || 'Produit'}
+                    </div>
+                    <div className="absolute bottom-1 left-1 md:bottom-2 md:left-2 bg-primary/80 backdrop-blur-sm px-1 md:px-2 py-0.5 rounded-md text-[7px] md:text-[8px] font-black text-white uppercase tracking-wider">
+                        {productConditionLabels[product.etat] || product.etat}
                     </div>
                     {product.discountPercent && (
                         <div className="absolute top-1 right-1 md:top-2 md:right-2 bg-red-500 text-white px-1.5 py-0.5 md:px-2 md:py-1 rounded-lg text-[8px] md:text-[10px] font-black animate-pulse shadow-lg">

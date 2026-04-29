@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Icon } from "@iconify/react";
 import Image from 'next/image';
-import { Product } from "@/types/interface";
+import { Product, productConditionLabels } from "@/types/interface";
 import { createPortal } from "react-dom";
 import { useCart } from "@/components/providers/CartProvider";
 import { useNotification } from "@/components/toast/NotificationProvider";
@@ -22,14 +22,27 @@ interface ProductDetailModalProps {
 export default function ProductDetailModal({ isOpen, onClose, product }: ProductDetailModalProps) {
     const [mounted, setMounted] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
+    const [isNegotiating, setIsNegotiating] = useState(false);
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const { addToCart } = useCart();
     const { addNotification } = useNotification();
     const router = useRouter();
-    const [isNegotiating, setIsNegotiating] = useState(false);
+
+    const imagesList = product?.images && product.images.length > 0 ? product.images : (product?.imageUrl ? [product.imageUrl] : []);
 
     useEffect(() => { setMounted(true); }, []);
 
     if (!product || !mounted) return null;
+
+    const nextImage = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setCurrentImageIndex((prev) => (prev + 1) % imagesList.length);
+    };
+
+    const prevImage = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setCurrentImageIndex((prev) => (prev - 1 + imagesList.length) % imagesList.length);
+    };
 
     const handleAddToCart = () => {
         addToCart(product);
@@ -97,21 +110,58 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                             </div>
 
                             <div className="flex-1 overflow-y-auto overflow-x-hidden hide-scrollbar">
-                                {/* Hero Image Section */}
+                                {/* Hero Image Section / Carousel */}
                                 <div className="relative aspect-[4/3] w-full bg-muted overflow-hidden group">
-                                    {product.imageUrl ? (
-                                        <Image src={product.imageUrl} fill className="object-cover" alt={product.name} priority />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-muted-foreground/20 bg-muted/50">
-                                            <Icon icon="solar:box-bold-duotone" width={80} />
-                                        </div>
+                                    <AnimatePresence mode="wait">
+                                        {imagesList.length > 0 ? (
+                                            <motion.div
+                                                key={currentImageIndex}
+                                                initial={{ opacity: 0, x: 20 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                exit={{ opacity: 0, x: -20 }}
+                                                transition={{ duration: 0.4, ease: "easeOut" }}
+                                                className="relative w-full h-full"
+                                            >
+                                                <Image src={imagesList[currentImageIndex]} fill className="object-cover" alt={`${product.name} - ${currentImageIndex + 1}`} priority />
+                                            </motion.div>
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-muted-foreground/20 bg-muted/50">
+                                                <Icon icon="solar:box-bold-duotone" width={80} />
+                                            </div>
+                                        )}
+                                    </AnimatePresence>
+
+                                    {/* Carousel Controls */}
+                                    {imagesList.length > 1 && (
+                                        <>
+                                            <div className="absolute inset-y-0 left-0 flex items-center pl-4 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                                <button onClick={prevImage} className="p-2 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-full text-white transition-all active:scale-90 border border-white/10">
+                                                    <Icon icon="solar:alt-arrow-left-bold" width={20} />
+                                                </button>
+                                            </div>
+                                            <div className="absolute inset-y-0 right-0 flex items-center pr-4 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                                <button onClick={nextImage} className="p-2 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-full text-white transition-all active:scale-90 border border-white/10">
+                                                    <Icon icon="solar:alt-arrow-right-bold" width={20} />
+                                                </button>
+                                            </div>
+                                            {/* Pagination Dots */}
+                                            <div className="absolute bottom-16 left-0 right-0 flex justify-center gap-2 z-10">
+                                                {imagesList.map((_, idx) => (
+                                                    <button
+                                                        key={idx}
+                                                        onClick={(e) => { e.stopPropagation(); setCurrentImageIndex(idx); }}
+                                                        className={`h-1.5 rounded-full transition-all duration-300 ${idx === currentImageIndex ? 'w-6 bg-white' : 'w-1.5 bg-white/40 hover:bg-white/60'}`}
+                                                    />
+                                                ))}
+                                            </div>
+                                        </>
                                     )}
 
                                     {/* Overlay Gradient */}
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20 pointer-events-none" />
 
-                                    {/* Floating Controls */}
-                                    <div className="absolute top-6 left-6 right-6 flex items-center justify-between pointer-events-none">
+                                    {/* Floating Top Controls */}
+                                    <div className="absolute top-6 left-6 right-6 flex items-center justify-between pointer-events-none z-10">
                                         <button onClick={onClose} className="p-3 bg-white/20 hover:bg-white/40 backdrop-blur-xl rounded-2xl text-white transition-all active:scale-90 pointer-events-auto border border-white/30 shadow-xl">
                                             <Icon icon="solar:alt-arrow-left-bold-duotone" width={24} />
                                         </button>
@@ -123,7 +173,7 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                                     </div>
 
                                     {/* Bottom Info Floating */}
-                                    <div className="absolute bottom-6 left-6 right-6 flex items-center justify-between">
+                                    <div className="absolute bottom-6 left-6 right-6 flex items-center justify-between z-10">
                                         <div className="space-y-1">
                                             <h2 className="text-white text-2xl font-black drop-shadow-lg leading-tight line-clamp-2">{product.name}</h2>
                                             <div className="flex items-center gap-2">
@@ -197,13 +247,20 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                                     </div>
 
                                     {/* Specs Grid */}
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                        <div className="p-5 bg-muted/30 rounded-3xl border border-border/50 group hover:bg-muted/50 transition-colors">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <Icon icon="solar:shield-check-bold-duotone" className="text-primary" />
+                                                <p className="text-[10px] font-black uppercase text-muted-foreground">État du produit</p>
+                                            </div>
+                                            <p className="text-sm font-black text-card-foreground">{productConditionLabels[product.etat] || product.etat}</p>
+                                        </div>
                                         <div className="p-5 bg-muted/30 rounded-3xl border border-border/50 group hover:bg-muted/50 transition-colors">
                                             <div className="flex items-center gap-2 mb-2">
                                                 <Icon icon="solar:minimalistic-magnifer-bold-duotone" className="text-primary" />
                                                 <p className="text-[10px] font-black uppercase text-muted-foreground">Référence SKU</p>
                                             </div>
-                                            <p className="text-sm font-black text-card-foreground">{product.sku || product.id.slice(0, 8).toUpperCase()}</p>
+                                            <p className="text-sm font-black text-card-foreground uppercase">{product.sku || product.id.slice(0, 8)}</p>
                                         </div>
                                         <div className="p-5 bg-muted/30 rounded-3xl border border-border/50 group hover:bg-muted/50 transition-colors">
                                             <div className="flex items-center gap-2 mb-2">

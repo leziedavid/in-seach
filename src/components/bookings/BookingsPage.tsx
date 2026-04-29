@@ -13,6 +13,7 @@ import { useNotification } from "../toast/NotificationProvider";
 import { getUserId, getUserRole } from "@/lib/auth";
 import { Role } from "@/types/interface";
 import { useRealTimeUpdate } from "@/hooks/useRealTimeUpdate";
+import { SectionHeader } from "../common/SectionHeader";
 
 interface BookingsPageProps {
     data?: Booking[];
@@ -141,13 +142,14 @@ export default function BookingsPage({
         setOpen(true);
     }
 
-    /* ================= RENDER ================= */
     return (
         <div className="w-full mx-auto py-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                <h1 className="text-xl sm:text-xl lg:text-2xl font-extrabold tracking-tight text-gray-900 ext-center">
-                    {bookingType === 'ANNONCE' ? 'Rendez-vous Annonces' : 'Rendez-vous Services'}
-                </h1>
+                <SectionHeader 
+                    title={bookingType === 'ANNONCE' ? 'Rendez-vous Annonces' : 'Rendez-vous Services'}
+                    subtitle="Gérez l'ensemble de vos rendez-vous et leur statut en un coup d'œil."
+                    className="!text-left"
+                />
 
                 {/* <pre>{JSON.stringify(userRole, null, 2)}</pre> */}
 

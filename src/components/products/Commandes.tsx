@@ -13,6 +13,7 @@ import { useNotification } from "../toast/NotificationProvider";
 import { Button } from "../ui/button";
 import { getUserId } from "@/lib/auth";
 import { useRealTimeUpdate } from "@/hooks/useRealTimeUpdate";
+import { SectionHeader } from "../common/SectionHeader";
 
 interface CommandesProps {
     data?: Order[];
@@ -128,10 +129,11 @@ export default function Commandes({ data: propData, page: propPage, limit: propL
     return (
         <div className="w-full mx-auto py-4">
 
-            <h1 className=" flex gap-2 text-xl sm:text-xl lg:text-2xl font-extrabold tracking-tight text-gray-900 ext-center">
-                <Icon icon="solar:history-bold-duotone" className="text-primary w-6 h-6" />
-                Mes Commandes
-            </h1>
+            <SectionHeader 
+                title="Mes Commandes" 
+                subtitle="Consultez et suivez l'historique de vos commandes passées et reçues."
+                className="mb-8"
+            />
 
             {/* TABS */}
             <div className="flex bg-muted/50 p-1 rounded-2xl mb-6 w-full max-w-md">

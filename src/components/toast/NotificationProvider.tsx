@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, ReactNode, useCallback, useMemo } from "react";
 import NotificationToast, { NotificationType } from "./NotificationToast";
 
 /* ================= CONTEXT TYPE ================= */
@@ -17,16 +17,23 @@ const NotificationContext = createContext<NotificationContextType>({
 /* ================= PROVIDER ================= */
 export function NotificationProvider({ children }: { children: ReactNode }) {
     const [notification, setNotification] = useState<{ message: string; type: NotificationType; } | null>(null);
-    const showNotification = (message: string, type: NotificationType = "info", duration = 4000) => {
+
+    const showNotification = useCallback((message: string, type: NotificationType = "info", duration = 4000) => {
         setNotification({ message, type });
         setTimeout(() => {
             setNotification(null);
         }, duration + 300);
-    };
+    }, []);
+
     const addNotification = showNotification;
 
+    const value = useMemo(() => ({
+        showNotification,
+        addNotification
+    }), [showNotification, addNotification]);
+
     return (
-        <NotificationContext.Provider value={{ showNotification, addNotification }}>
+        <NotificationContext.Provider value={value}>
             {children}
             {notification && (<NotificationToast message={notification.message} type={notification.type} onClose={() => setNotification(null)} />)}
         </NotificationContext.Provider>

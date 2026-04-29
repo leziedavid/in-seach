@@ -11,6 +11,7 @@ import { Button } from "../ui/button";
 import { Modal } from "../modal/MotionModal";
 import FormsLogistics from "./FormsLogistics";
 import { useSubscriptionCheck } from "@/hooks/useSubscriptionCheck";
+import { SectionHeader } from "../common/SectionHeader";
 import Delete from "./Delete";
 import NotFound from "../shared/NotFound";
 import VoiceSearchModal from "../service/VoiceSearchModal";
@@ -231,20 +232,13 @@ export default function LogisticsServicesList({ mode = "marketplace", onRequestQ
 
             {isManagement && (
                 <div className="w-full max-w-6xl mb-8">
-                    <div className="flex flex-col md:flex-row items-start md:items-center justify-between">
-                        <h2 className="text-2xl md:text-3xl font-bold text-foreground"> </h2>
+                    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                        <SectionHeader
+                            title="Mes Services Logistiques"
+                            subtitle="Gérez vos offres de transport et de logistique publiées sur la plateforme."
+                            className="!text-left"
+                        />
                         <div className="flex items-center gap-8">
-                            <div className="text-center md:text-left"></div>
-                            <div className="h-10 w-px bg-border" />
-                            <div className="text-center md:text-left">
-                                <p className="flex items-center gap-2 text-3xl md:text-4xl font-black text-secondary">
-                                    <span>{total}</span>
-                                    <Icon icon="solar:album-linear" className="w-8 h-8" />
-                                </p>
-                                <p className="text-sm text-muted-foreground font-medium">
-                                    Rendez-vous
-                                </p>
-                            </div>
                             <div className="flex justify-end mb-2">
                                 <Button onClick={() => openCreateModal()} className="w-full md:w-auto bg-primary text-white px-8 py-2 rounded-xl text-base font-black flex items-center justify-center gap-3 hover:bg-secondary transition-all shadow-xs active:scale-95 flex-shrink-0">
                                     Créer
@@ -264,32 +258,27 @@ export default function LogisticsServicesList({ mode = "marketplace", onRequestQ
                     </h3>
                 </div>
 
-                <InfiniteScroll loadMore={() => setPage(prev => prev + 1)} hasMore={hasMore} isLoading={loading} className="w-full px-0 md:px-0" itemCount={services.length} >
-                    {services.length > 0 ? (
-                        <div className="grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-6">
-                            {services.map((service) => (
-                                <LogisticsServicesCard
-                                    key={service.id}
-                                    service={service}
-                                    isOwner={isManagement}
-                                    onEdit={() => openEditModal(service)}
-                                    onDelete={handleDelete}
-                                    onToggleStatus={handleToggle}
-                                    onRequestQuote={onRequestQuote}
-                                    isUpdating={updatingId === service.id}
-                                />
-                            ))}
-                        </div>
-                    ) : !loading && !isInitialLoading && (
-                        <NotFound title="Aucun service disponible" description={searchTerm || filterTransport !== "ALL" ? "Désolé, nous n'avons trouvé aucun service correspondant à votre recherche ou à vos filtres." : isManagement ? "Vous n'avez pas encore créé de services logistiques." : "Aucun prestataire logistique n'est disponible pour le moment."} icon="solar:delivery-bold-duotone" action={isManagement && (
-                            <Button onClick={() => openCreateModal()} className="bg-primary/10 text-primary hover:bg-primary/20 border-none shadow-none font-black text-xs">
-                                <Icon icon="solar:add-circle-bold" className="mr-2 w-4 h-4" />
-                                Créer mon premier service
-                            </Button>
-                        )}
+                <InfiniteScroll 
+                    items={services}
+                    loadMore={() => setPage(prev => prev + 1)} 
+                    hasMore={hasMore} 
+                    isLoading={loading} 
+                    skeletonType="logistics"
+                    skeletonCount={3}
+                    renderItem={(service) => (
+                        <LogisticsServicesCard
+                            key={service.id}
+                            service={service}
+                            isOwner={isManagement}
+                            onEdit={() => openEditModal(service)}
+                            onDelete={handleDelete}
+                            onToggleStatus={handleToggle}
+                            onRequestQuote={onRequestQuote}
+                            isUpdating={updatingId === service.id}
                         />
                     )}
-                </InfiniteScroll>
+                    className="w-full"
+                />
 
                 {/* Edit Modal */}
                 <Modal isOpen={isEditModalOpen} onClose={() => { setIsEditModalOpen(false); setEditingService(null); }}>

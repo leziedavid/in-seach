@@ -14,6 +14,7 @@ import { useNotification } from "../toast/NotificationProvider"
 import { useSubscriptionCheck } from "@/hooks/useSubscriptionCheck"
 import Delete from "../logistics/Delete"
 import { deleteService as apiDeleteService } from "@/api/api"
+import { SectionHeader } from "../common/SectionHeader"
 
 /* =====================================================
    PAGE
@@ -265,18 +266,11 @@ export default function ServicesCard({ data: propData, page: propPage, limit: pr
                     </Button>
                 </div>
 
-                <div className="w-full max-w-full px-1">
-
-                    {/* Title */}
-                    <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-gray-900 ext-center">
-                        Boostez votre visibilité et revenus
-                    </h1>
-                    {/* Subtitle */}
-                    <p className="mt-3 text-sm  text-gray-600 leading-relaxed">
-                        Développez votre activité en ajoutant de nouveaux services afin d’améliorer votre visibilité et vos revenus.
-                    </p>
-
-                </div>
+                <SectionHeader 
+                    title="Boostez votre visibilité et revenus" 
+                    subtitle="Développez votre activité en ajoutant de nouveaux services afin d’améliorer votre visibilité et vos revenus."
+                    className="mb-8"
+                />
 
 
                 {!loading && listes.length > 0 && (

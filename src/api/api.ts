@@ -1594,7 +1594,7 @@ export const deleteLocationLog = async (id: string): Promise<BaseResponse<any>> 
 };
 
 // --- Clients (Logistics) ---
-export const getCompanyClients = async (params: { page?: number; limit?: number } = {}): Promise<BaseResponse<Pagination<LogisticsClient>>> => {
+export const getCompanyClients = async (params: { page?: number; limit?: number; type?: string } = {}): Promise<BaseResponse<Pagination<LogisticsClient>>> => {
     const queryString = toQueryString(params);
     const response = await secureFetch(`${getBaseUrl()}/logistics/clients?${queryString}`, {
         method: 'GET',

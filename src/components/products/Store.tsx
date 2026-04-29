@@ -11,18 +11,19 @@ import FormsProduit from "@/components/Forms/FormsProduit"
 import { useSubscriptionCheck } from "@/hooks/useSubscriptionCheck"
 import NotFound from "@/components/shared/NotFound"
 import VoiceSearchModal from "../service/VoiceSearchModal"
+import { SectionHeader } from "../common/SectionHeader"
 
-const ITEMS_PER_PAGE = 6
+import InfiniteScroll from "../ui/InfiniteScroll"
+
+const ITEMS_PER_PAGE = 10
 
 export default function Store() {
-
     const [search, setSearch] = useState("")
     const [products, setProducts] = useState<Product[]>([])
     const [page, setPage] = useState(1)
     const [hasMore, setHasMore] = useState(true)
     const [loading, setLoading] = useState(false)
     const [total, setTotal] = useState(0)
-    const loaderRef = useRef<HTMLDivElement | null>(null)
 
     // Product Management State
     const [isModalOpen, setIsModalOpen] = useState(false)
@@ -107,7 +108,10 @@ export default function Store() {
         setIsModalOpen(true)
     }
 
-    // Load Products
+    const handleVoiceResult = (text: string) => {
+        setSearch(text)
+    }
+
     const fetchProducts = useCallback(async (pageNum: number, isNewSearch: boolean) => {
         if (loading) return
         setLoading(true)
@@ -135,16 +139,6 @@ export default function Store() {
         }
     }, [search])
 
-    const handleVoiceResult = (text: string) => {
-        setSearch(text)
-    }
-
-    // Reset and fetch when filters change
-    useEffect(() => {
-        setPage(1)
-        fetchProducts(1, true)
-    }, [search, fetchProducts])
-
     // Load more when page changes (infinite scroll)
     useEffect(() => {
         if (page > 1) {
@@ -152,25 +146,16 @@ export default function Store() {
         }
     }, [page, fetchProducts])
 
-    // Infinite Scroll Observer
+    // Reset and fetch when filters change
     useEffect(() => {
-        const observer = new IntersectionObserver(
-            (entries) => { if (entries[0].isIntersecting && hasMore && !loading) { setPage(prev => prev + 1) } },
-            { threshold: 0.1 }
-        )
-
-        if (loaderRef.current) observer.observe(loaderRef.current)
-        return () => observer.disconnect()
-    }, [hasMore, loading])
-
-
+        setPage(1)
+        fetchProducts(1, true)
+    }, [search, fetchProducts])
 
     return (
         <div className="flex flex-col items-center w-full max-w-7xl mx-auto px-4 py-2">
-
             {/* Action Bar */}
             <div className="flex flex-col md:flex-row items-center justify-between gap-4 w-full max-w-4xl mb-6">
-
                 <div className="flex items-center w-full md:max-w-md bg-card border border-border rounded-xl px-4 py-2.5 shadow-sm focus-within:border-primary transition-all">
                     <Icon icon="solar:magnifer-bold-duotone" className="w-5 h-5 text-muted-foreground mr-3 flex-shrink-0" />
                     <input type="text" placeholder="Rechercher dans mes produits..." className="flex-1 bg-transparent text-foreground outline-none text-sm placeholder:text-muted-foreground" value={search} onChange={(e) => setSearch(e.target.value)} />
@@ -179,26 +164,18 @@ export default function Store() {
                     </button>
                 </div>
 
-                <button disabled={checkLoading} onClick={openCreateModal} className="w-full md:w-auto text-sm flex items-center justify-center gap-2 bg-primary text-white px-6 py-2.5 rounded-xl font-bold hover:bg-secondary transition-all active:scale-95  shadow-primary/20 disabled:opacity-50">
+                <button disabled={checkLoading} onClick={openCreateModal} className="w-full md:w-auto text-sm flex items-center justify-center gap-2 bg-primary text-white px-6 py-2.5 rounded-xl font-bold hover:bg-secondary transition-all active:scale-95 shadow-primary/20 disabled:opacity-50">
                     {checkLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-5 h-5" /> : <Icon icon="solar:widget-add-bold" width="24" height="24" />}
                     Mettre en vente un article
                 </button>
-
             </div>
 
-            <div className="w-full max-w-full px-1">
+            <SectionHeader 
+                title="Vendez ou revendez vos produits" 
+                subtitle="Dès aujourd’hui, mettez vos produits en vente en toute simplicité. Vous définissez le prix, les acheteurs viennent à vous."
+                className="mb-8"
+            />
 
-                {/* Title */}
-                <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-gray-900 ext-center">
-                    Vendez ou revendez vos produits
-                </h1>
-
-                {/* Subtitle */}
-                <p className="mt-3 text-sm  text-gray-600 leading-relaxed">Dès aujourd’hui, mettez vos produits en vente en toute simplicité. Vous définissez le prix, les acheteurs viennent à vous.                </p>
-
-            </div>
-
-            {/* Results count header */}
             <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-2">
                 <div className="flex items-center justify-between w-full px-2 md:px-0 mb-6 border-b border-border pb-4">
                     <h3 className="text-lg font-black text-foreground">
@@ -206,48 +183,24 @@ export default function Store() {
                     </h3>
                 </div>
 
-                {/* PRODUCTS GRID / NOT FOUND */}
-                {products.length === 0 && !loading ? (
-                    <NotFound
-                        title="Aucun produit"
-                        description="Il semble que vous n'ayez aucun produit en vente ou correspondant à votre recherche."
-                        action={
-                            <button onClick={openCreateModal} className="flex items-center justify-center gap-2 text-primary font-black hover:underline" >
-                                <Icon icon="solar:add-circle-bold" className="w-5 h-5" />
-                                Mettre en vente un article
-                            </button>
-                        }
-                    />
-                ) : (
-                    <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-6">
-                        {products.map((product) => (
-                            <ProductCard
-                                key={product.id}
-                                product={product}
-                                onEdit={openEditModal}
-                                onDelete={handleDeleteProduct}
-                                onStatusChange={handleToggleStatus}
-                            />
-                        ))}
-                    </div>
-                )}
-
-                {/* Loading State / Trigger */}
-                <div ref={loaderRef} className="w-full flex justify-center py-12">
-                    {loading && (
-                        <div className="flex flex-col items-center gap-2">
-                            <Icon icon="eos-icons:loading" className="w-8 h-8 text-primary animate-spin" />
-                            <span className="text-xs text-muted-foreground animate-pulse">Chargement de la suite...</span>
-                        </div>
+                <InfiniteScroll
+                    items={products}
+                    hasMore={hasMore}
+                    isLoading={loading}
+                    loadMore={() => setPage(prev => prev + 1)}
+                    skeletonType="product"
+                    skeletonCount={3}
+                    renderItem={(product) => (
+                        <ProductCard
+                            key={product.id}
+                            product={product}
+                            onEdit={openEditModal}
+                            onDelete={handleDeleteProduct}
+                            onStatusChange={handleToggleStatus}
+                        />
                     )}
-                    {!hasMore && products.length > 0 && (
-                        <div className="flex items-center gap-3 text-muted-foreground/40 italic">
-                            <div className="h-px w-8 bg-current opacity-20" />
-                            <span className="text-xs font-medium">Fin du catalogue</span>
-                            <div className="h-px w-8 bg-current opacity-20" />
-                        </div>
-                    )}
-                </div>
+                    className="w-full"
+                />
             </div>
 
             {/* Product Form Modal */}

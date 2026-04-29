@@ -11,6 +11,7 @@ import ReceiptModal, { ReceiptData } from "../shared/ReceiptModal";
 import { getMyBookings } from "@/api/api";
 import { useNotification } from "../toast/NotificationProvider";
 import BookingModal from "../home/BookingModal";
+import { SectionHeader } from "../common/SectionHeader";
 
 interface HistoriqueRdvProps {
     type: 'history';
@@ -124,11 +125,11 @@ export default function HistoriqueRdv({ data: propData, page: propPage, limit: p
     return (
         <div className="w-full mx-auto py-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-
-                <h1 className=" flex gap-2 text-xl sm:text-xl lg:text-2xl font-extrabold tracking-tight text-gray-900 ext-center">
-                    <Icon icon="solar:history-bold-duotone" className="text-primary w-6 h-6" />
-                    Historique des Rendez-vous
-                </h1>
+                <SectionHeader 
+                    title="Historique des Rendez-vous"
+                    subtitle="Consultez l'historique complet de vos prestations passées et archivées."
+                    className="!text-left"
+                />
 
                 {isPrestataire && !propData && (
                     <div className="flex bg-muted/30 p-1 rounded-xl border border-border w-fit">

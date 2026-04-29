@@ -5,6 +5,7 @@ import { Icon } from "@iconify/react";
 import { getFleet, deleteFleetItem, toggleFleetStatus } from "@/api/api";
 import { useNotification } from "../toast/NotificationProvider";
 import FloteFormModal from "./FloteFormModal";
+import { SectionHeader } from "../common/SectionHeader";
 
 export default function FloteManager() {
     const [fleet, setFleet] = useState<any[]>([]);
@@ -89,16 +90,10 @@ export default function FloteManager() {
     return (
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-card p-6 rounded-[2rem] border border-border shadow-sm">
-                <div>
-                    <h3 className="text-xl font-black text-foreground uppercase tracking-tight">Ma Flotte</h3>
-                    <p className="text-sm text-muted-foreground font-medium">Gérez vos véhicules, camions et autres engins logistiques</p>
-                </div>
-                <button
-                    onClick={handleAdd}
-                    className="w-full md:w-auto bg-primary text-white px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-primary/20 hover:scale-105 transition-all flex items-center justify-center gap-2"
-                >
+                <SectionHeader title="Ma Flotte" subtitle="Gérez vos véhicules, camions et autres engins logistiques" className="!text-left" />
+                <button onClick={handleAdd} className="w-full md:w-auto bg-primary text-white px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-primary/20 hover:scale-105 transition-all flex items-center justify-center gap-2">
                     <Icon icon="solar:add-circle-bold" className="w-4 h-4" />
-                    Ajouter un engin
+                    Ajouter
                 </button>
             </div>
 
@@ -137,7 +132,7 @@ export default function FloteManager() {
                                     </button>
                                 </div>
                             </div>
-                            
+
                             <div className="space-y-1 mb-4">
                                 <div className="flex items-center justify-between">
                                     <p className="text-sm font-black text-foreground uppercase truncate tracking-tight">{item.name}</p>
@@ -158,7 +153,7 @@ export default function FloteManager() {
                             </div>
 
                             <div className="flex items-center justify-between pt-4 border-t border-border/50">
-                                <button 
+                                <button
                                     onClick={() => handleToggleStatus(item.id)}
                                     className={`text-[9px] font-black uppercase tracking-widest ${item.status === 'ACTIF' ? 'text-red-500 hover:underline' : 'text-emerald-500 hover:underline'}`}
                                 >
@@ -172,7 +167,7 @@ export default function FloteManager() {
                     ))}
                 </div>
             )}
-            
+
             <FloteFormModal
                 isOpen={isModalOpen}
                 item={selectedItem}

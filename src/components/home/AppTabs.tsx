@@ -13,7 +13,6 @@ import { Modal } from "../modal/MotionModal"
 import { LogisticService } from "@/types/interface"
 
 
-
 const tabs = [
     {
         id: "search",

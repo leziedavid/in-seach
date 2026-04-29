@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import BookingDetailModal from "../home/BookingDetail";
 import BookingModal from "../home/BookingModal";
 import { motion, AnimatePresence } from "framer-motion";
+import { SectionHeader } from "../common/SectionHeader";
 import { createPortal } from "react-dom";
 
 const BookingCalendar: React.FC = () => {
@@ -237,6 +238,11 @@ const BookingCalendar: React.FC = () => {
     // ===============================
     return (
         <div className="w-full max-w-4xl mx-auto mt-4">
+            <SectionHeader 
+                title="Calendrier des Réservations"
+                subtitle="Visualisez et organisez vos rendez-vous sur une vue mensuelle interactive."
+                className="!text-left mb-8"
+            />
             {/* Filtre par intervalle de dates */}
             <div className="mb-4 flex items-center gap-2">
                 <Popover>

@@ -5,6 +5,7 @@ import { Icon } from '@iconify/react';
 import { Button } from '@/components/ui/button';
 import { getApiKeyAuth } from '@/lib/auth';
 import { getBaseUrl } from '@/api/api';
+import { SectionHeader } from '../common/SectionHeader';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, } from 'recharts';
 
 const ENDPOINTS = [
@@ -176,12 +177,11 @@ export default function ApiDocumentation() {
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-        <div>
-          <h2 className="text-3xl font-bold text-foreground mb-2">Documentation API</h2>
-          <p className="text-muted-foreground">
-            Intégrez vos données dans vos propres systèmes grâce à notre API publique sécurisée.
-          </p>
-        </div>
+        <SectionHeader 
+            title="Documentation API" 
+            subtitle="Intégrez vos données dans vos propres systèmes grâce à notre API publique sécurisée."
+            className="!text-left"
+        />
         <div className="flex bg-muted p-1 rounded-xl">
           <button
             onClick={() => setActiveTab('docs')}

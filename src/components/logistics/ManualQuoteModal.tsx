@@ -50,6 +50,7 @@ export default function ManualQuoteModal({ isOpen, onClose, onSuccess, initialDa
     const [searchLoading, setSearchLoading] = useState(false);
     const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
     const [clients, setClients] = useState<LogisticsClient[]>([]);
+    const [userType, setUserType] = useState<string>("all");
     const [services, setServices] = useState<LogisticService[]>([]);
     const [selectedClientId, setSelectedClientId] = useState<string>("");
     const [selectedServiceId, setSelectedServiceId] = useState<string>("");
@@ -62,29 +63,31 @@ export default function ManualQuoteModal({ isOpen, onClose, onSuccess, initialDa
     const [imagePreviews, setImagePreviews] = useState<string[]>([]);
     const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
 
+    const fetchData = React.useCallback(async () => {
+        const params: any = { limit: 100 };
+        if (userType !== "all") params.type = userType;
+
+        const [clientsRes, servicesRes, loc] = await Promise.all([
+            getCompanyClients(params),
+            getMyLogisticServices({ limit: 100 }),
+            getUserLocation()
+        ]);
+
+        if (clientsRes.statusCode === 200) {
+            setClients(clientsRes.data?.data || []);
+        }
+
+        if (servicesRes.statusCode === 200) {
+            setServices(servicesRes.data?.data || servicesRes.data || []);
+        }
+        if (loc) setUserLocation(loc);
+    }, [userType, getUserLocation]);
+
     useEffect(() => {
         if (isOpen) {
-            const fetchData = async () => {
-                const [clientsRes, servicesRes, loc] = await Promise.all([
-                    getCompanyClients({ limit: 100 }),
-                    getMyLogisticServices({ limit: 100 }),
-                    getUserLocation()
-                ]);
-
-                if (clientsRes.statusCode === 200) {
-                    setClients(clientsRes.data?.data || []);
-                }
-                console.log("clientsRes", clientsRes);
-
-                if (servicesRes.statusCode === 200) {
-                    setServices(servicesRes.data?.data || servicesRes.data || []);
-                }
-                console.log("servicesRes", servicesRes);
-                if (loc) setUserLocation(loc);
-            };
             fetchData();
         }
-    }, [isOpen]);
+    }, [isOpen, fetchData]);
 
     useEffect(() => {
         if (selectedClientId) setValue("clientId", selectedClientId, { shouldValidate: true });
@@ -174,7 +177,7 @@ export default function ManualQuoteModal({ isOpen, onClose, onSuccess, initialDa
             } finally {
                 setSearchLoading(false);
             }
-        }, 500);
+        }, 1000);
     };
 
     const selectSuggestion = (suggestion: any) => {
@@ -252,14 +255,28 @@ export default function ManualQuoteModal({ isOpen, onClose, onSuccess, initialDa
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-1">
-                                <label className="text-[10px] font-black text-muted-foreground uppercase ml-1">Sélectionner un Client</label>
+                                <div className="flex items-center justify-between mb-1">
+                                    <label className="text-[10px] font-black text-muted-foreground uppercase ml-1">Sélectionner un Client / Chauffeur</label>
+                                    <div className="flex items-center gap-1 bg-muted/40 p-1 rounded-lg">
+                                        {['all', 'client', 'chauffeur'].map((type) => (
+                                            <button
+                                                key={type}
+                                                type="button"
+                                                onClick={() => setUserType(type)}
+                                                className={`px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-tighter transition-all ${userType === type ? 'bg-primary text-white shadow-sm' : 'text-muted-foreground hover:bg-muted'}`}
+                                            >
+                                                {type === 'all' ? 'Tous' : type === 'client' ? 'Clients' : 'Chauffeurs'}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
                                 <Select2<LogisticsClient>
                                     options={clients}
-                                    labelExtractor={(c) => `${c.fullName} (${c.phone})`}
+                                    labelExtractor={(c) => `${c.fullName || 'Sans Nom'} (${c.phone || c.email})`}
                                     valueExtractor={(c) => c.id}
                                     selectedItem={selectedClientId}
                                     onSelectionChange={(val) => setSelectedClientId(val as string)}
-                                    placeholder="Chercher un client..."
+                                    placeholder={userType === 'all' ? "Chercher un utilisateur..." : userType === 'client' ? "Chercher un client..." : "Chercher un chauffeur..."}
                                 />
                                 {errors.clientId && <p className="text-[10px] text-red-500 font-bold ml-1 uppercase">{errors.clientId.message}</p>}
                             </div>

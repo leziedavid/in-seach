@@ -94,6 +94,16 @@ export default function AnnonceModal({ isOpen, onClose, annonce }: AnnonceModalP
         }
     };
 
+    const nextImage = (e?: React.MouseEvent) => {
+        e?.stopPropagation();
+        setActiveImageIndex((prev) => (prev + 1) % images.length);
+    };
+
+    const prevImage = (e?: React.MouseEvent) => {
+        e?.stopPropagation();
+        setActiveImageIndex((prev) => (prev - 1 + images.length) % images.length);
+    };
+
     const statusBadge = (status: string) => {
         const colors: Record<string, string> = {
             [AnnonceStatus.ACTIVE]: "bg-green-500/10 text-green-600 border-green-500/20",
@@ -132,33 +142,65 @@ export default function AnnonceModal({ isOpen, onClose, annonce }: AnnonceModalP
                                 initial={{ scale: 0.95, y: 20 }}
                                 animate={{ scale: 1, y: 0 }}
                             >
-                                {/* HEADER STICKY (Mobile) / Absolute (Desktop close) */}
-                                <div className="absolute top-4 right-4 z-[60] flex gap-2">
+                                {/* HEADER CLOSE BUTTON */}
+                                <div className="absolute top-4 right-4 z-[60]">
                                     <button onClick={onClose} className="p-3 bg-white/20 hover:bg-white/40 backdrop-blur-xl rounded-2xl text-white border border-white/20 transition-all active:scale-90 shadow-xl" >
                                         <Icon icon="solar:close-circle-bold-duotone" className="w-6 h-6" />
                                     </button>
                                 </div>
 
                                 <div className="flex-1 overflow-y-auto scrollbar-hide">
-                                    {/* ── GALLERY ────────────────────────────────────────── */}
-                                    <div className="relative w-full h-[40vh] md:h-[55vh] group">
+                                    {/* ── GALLERY SECTION ────────────────────────────────────────── */}
+                                    <div className="relative w-full h-[45vh] md:h-[60vh] group bg-muted overflow-hidden">
                                         <AnimatePresence mode="wait">
-                                            <motion.div key={activeImageIndex} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0">
+                                            <motion.div 
+                                                key={activeImageIndex} 
+                                                initial={{ opacity: 0, x: 20 }} 
+                                                animate={{ opacity: 1, x: 0 }} 
+                                                exit={{ opacity: 0, x: -20 }} 
+                                                transition={{ duration: 0.4 }}
+                                                className="absolute inset-0"
+                                            >
                                                 <Image src={images[activeImageIndex]} fill unoptimized className="object-cover" alt={annonce.title} priority />
                                             </motion.div>
                                         </AnimatePresence>
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                                        
+                                        {/* Overlays */}
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent pointer-events-none" />
 
-                                        {/* Gallery Stats */}
-                                        <div className="absolute bottom-6 left-6 right-6 flex items-end justify-between gap-4">
+                                        {/* Navigation Arrows */}
+                                        {images.length > 1 && (
+                                            <div className="absolute inset-x-4 top-1/2 -translate-y-1/2 flex justify-between items-center z-10 pointer-events-none">
+                                                <button 
+                                                    onClick={prevImage}
+                                                    className="p-4 bg-black/20 hover:bg-black/40 backdrop-blur-xl rounded-2xl text-white border border-white/10 transition-all active:scale-90 shadow-2xl pointer-events-auto opacity-0 group-hover:opacity-100 md:opacity-0"
+                                                >
+                                                    <Icon icon="solar:alt-arrow-left-bold-duotone" className="w-6 h-6" />
+                                                </button>
+                                                <button 
+                                                    onClick={nextImage}
+                                                    className="p-4 bg-black/20 hover:bg-black/40 backdrop-blur-xl rounded-2xl text-white border border-white/10 transition-all active:scale-90 shadow-2xl pointer-events-auto opacity-0 group-hover:opacity-100 md:opacity-0"
+                                                >
+                                                    <Icon icon="solar:alt-arrow-right-bold-duotone" className="w-6 h-6" />
+                                                </button>
+                                            </div>
+                                        )}
+
+                                        {/* Bottom Info Overlay */}
+                                        <div className="absolute bottom-6 left-6 right-6 flex items-end justify-between gap-4 pointer-events-none">
                                             <div className="flex-1">
                                                 <div className="flex items-center gap-2 mb-2">
                                                     {statusBadge(annonce.status)}
                                                     <span className="px-2 py-1 bg-white/20 backdrop-blur-md rounded-lg text-[9px] font-black text-white uppercase tracking-wider border border-white/10">
                                                         {annonce.categorie?.label || 'Annonce'}
                                                     </span>
+                                                    {images.length > 1 && (
+                                                        <span className="px-2 py-1 bg-primary/20 backdrop-blur-md rounded-lg text-[9px] font-black text-primary uppercase tracking-wider border border-primary/20">
+                                                            {activeImageIndex + 1} / {images.length}
+                                                        </span>
+                                                    )}
                                                 </div>
-                                                <h2 className="text-2xl md:text-4xl font-black text-white leading-tight drop-shadow-2xl">
+                                                <h2 className="text-2xl md:text-5xl font-black text-white leading-tight drop-shadow-2xl max-w-2xl">
                                                     {annonce.title}
                                                 </h2>
                                                 <div className="flex items-center gap-2 text-white/80 mt-2 text-xs font-bold">
@@ -168,18 +210,22 @@ export default function AnnonceModal({ isOpen, onClose, annonce }: AnnonceModalP
                                             </div>
 
                                             <div className="hidden md:flex flex-col items-end gap-3">
-                                                <div className="bg-white/10 backdrop-blur-2xl p-4 rounded-[2rem] border border-white/20 shadow-2xl text-right">
-                                                    <p className="text-3xl font-black text-white">{annonce.price?.toLocaleString()} <span className="text-sm font-bold opacity-60 uppercase">CFA</span></p>
+                                                <div className="bg-white/10 backdrop-blur-2xl p-5 rounded-[2rem] border border-white/20 shadow-2xl text-right">
+                                                    <p className="text-4xl font-black text-white">{annonce.price?.toLocaleString()} <span className="text-sm font-bold opacity-60 uppercase">CFA</span></p>
                                                     <p className="text-[10px] font-black text-primary uppercase tracking-widest mt-1">Prix Marketplace</p>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        {/* Image Pagination Dots */}
+                                        {/* Pagination Controls (Always visible on mobile) */}
                                         {images.length > 1 && (
-                                            <div className="absolute top-1/2 right-6 -translate-y-1/2 flex flex-col gap-2">
-                                                {images.slice(0, 6).map((_, idx) => (
-                                                    <button key={idx} onClick={() => setActiveImageIndex(idx)} className={`w-1.5 h-1.5 rounded-full transition-all ${activeImageIndex === idx ? "bg-primary h-6" : "bg-white/40 hover:bg-white"}`} />
+                                            <div className="absolute top-1/2 right-6 -translate-y-1/2 flex flex-col gap-2 z-20">
+                                                {images.slice(0, 8).map((_, idx) => (
+                                                    <button 
+                                                        key={idx} 
+                                                        onClick={() => setActiveImageIndex(idx)} 
+                                                        className={`w-1.5 rounded-full transition-all duration-500 ${activeImageIndex === idx ? "bg-primary h-8 ring-4 ring-primary/20" : "bg-white/30 hover:bg-white/60 h-1.5"}`} 
+                                                    />
                                                 ))}
                                             </div>
                                         )}

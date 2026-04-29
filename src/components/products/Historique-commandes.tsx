@@ -9,6 +9,7 @@ import { TablePagination } from "../table/Pagination";
 import OrderDetailModal from "./OrderDetailModal";
 import ReceiptModal, { ReceiptData } from "../shared/ReceiptModal";
 import { useRealTimeUpdate } from "@/hooks/useRealTimeUpdate";
+import { SectionHeader } from "../common/SectionHeader";
 
 export default function HistoriqueCommandes() {
     const [page, setPage] = useState(1);
@@ -130,10 +131,11 @@ export default function HistoriqueCommandes() {
 
     return (
         <div className="w-full mx-auto py-4">
-            <h1 className=" flex gap-2 text-xl sm:text-xl lg:text-2xl font-extrabold tracking-tight text-gray-900 ext-center">
-                <Icon icon="solar:history-bold-duotone" className="text-primary w-6 h-6" />
-                Historique des Commandes
-            </h1>
+            <SectionHeader 
+                title="Historique des Commandes" 
+                subtitle="Retrouvez ici tous les détails de vos transactions passées."
+                className="mb-8"
+            />
 
             {/* TABS */}
             <div className="flex bg-muted/50 p-1 rounded-2xl mb-6 w-full max-w-md">

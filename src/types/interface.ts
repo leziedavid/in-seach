@@ -509,6 +509,28 @@ export interface CategoryProd {
     name: string
 }
 
+export enum ProductCondition {
+    NEUF = 'NEUF',
+    COMME_NEUF = 'COMME_NEUF',
+    TRES_BON_ETAT = 'TRES_BON_ETAT',
+    BON_ETAT = 'BON_ETAT',
+    ETAT_CORRECT = 'ETAT_CORRECT',
+    OCCASION = 'OCCASION',
+    RECONDITIONNE = 'RECONDITIONNE',
+    POUR_PIECES = 'POUR_PIECES',
+}
+
+export const productConditionLabels: Record<ProductCondition, string> = {
+    [ProductCondition.NEUF]: "Neuf",
+    [ProductCondition.COMME_NEUF]: "Comme neuf",
+    [ProductCondition.TRES_BON_ETAT]: "Très bon état",
+    [ProductCondition.BON_ETAT]: "Bon état",
+    [ProductCondition.ETAT_CORRECT]: "État correct",
+    [ProductCondition.OCCASION]: "Occasion",
+    [ProductCondition.RECONDITIONNE]: "Reconditionné",
+    [ProductCondition.POUR_PIECES]: "Pour pièces",
+};
+
 export interface Product {
     id: string
     name: string
@@ -518,6 +540,7 @@ export interface Product {
     discountPercent?: number | null
     stock: number
     sku: string
+    etat: ProductCondition
     imageUrl?: string | null
     imageUrls?: string[]
     images?: string[]
@@ -603,6 +626,7 @@ export interface AdminProductUpdateDto {
     stock?: number;
     categoryId?: string;
     isActive?: boolean;
+    etat?: ProductCondition;
 }
 
 export interface AdminServiceUpdateDto {

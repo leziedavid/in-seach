@@ -20,6 +20,7 @@ import { fr } from "date-fns/locale";
 
 import { Switch } from "../ui/switch";
 import { useNotifications } from "@/hooks/useNotifications";
+import { SectionHeader } from "../common/SectionHeader";
 
 export default function AccountSettings() {
 
@@ -264,10 +265,11 @@ export default function AccountSettings() {
 
         <div className="max-w-4xl mx-auto space-y-8 pb-12">
 
-            <div className="flex flex-col gap-1">
-                <h1 className="text-2xl md:text-3xl font-black text-foreground tracking-tight">Paramètres du compte</h1>
-                <p className="text-muted-foreground text-sm font-medium">Gérez vos informations personnelles et vos documents</p>
-            </div>
+            <SectionHeader 
+                title="Paramètres du compte" 
+                subtitle="Gérez vos informations personnelles et vos documents"
+                className="!text-left"
+            />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* CARD 1: AVATAR */}

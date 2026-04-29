@@ -93,7 +93,7 @@ export default function FloteFormModal({ isOpen, item, onClose, onSuccess }: Flo
         setIsLoading(true);
 
         try {
-            const res = item 
+            const res = item
                 ? await updateFleetItem(item.id, formData)
                 : await createFleetItem(formData);
 
@@ -118,7 +118,7 @@ export default function FloteFormModal({ isOpen, item, onClose, onSuccess }: Flo
             <div className="bg-card border border-border w-2xl max-w-4xl rounded-[2.5rem] shadow-2xl overflow-visible animate-in zoom-in-95 duration-300">
                 <div className="p-8 space-y-6">
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2">
                             <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
                                 <Icon icon={item ? "solar:pen-bold" : "solar:add-circle-bold"} className="w-6 h-6 text-primary" />
                             </div>

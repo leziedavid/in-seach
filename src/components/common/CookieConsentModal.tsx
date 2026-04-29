@@ -35,20 +35,10 @@ export const CookieConsentModal = () => {
             {isVisible && (
                 <div className="fixed inset-0 z-[101] flex items-end sm:items-center justify-center p-6 sm:p-0">
                     {/* Backdrop */}
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        onClick={() => setIsVisible(false)}
-                        className="absolute inset-0 bg-black/10 dark:bg-black/40 backdrop-blur-sm"
-                    />
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsVisible(false)} className="absolute inset-0 bg-black/10 dark:bg-black/40 backdrop-blur-sm" />
 
                     {/* Compact iOS Style Modal */}
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95, y: 40 }}
-                        animate={{ opacity: 1, scale: 1, y: 0, transition: { type: "spring", damping: 25, stiffness: 400 } }}
-                        exit={{ opacity: 0, scale: 0.9, y: 20, transition: { duration: 0.15 } }}
-                        className="relative w-full max-w-[340px] bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.2)] border border-white/50 dark:border-zinc-800/50 overflow-hidden"  >
+                    <motion.div initial={{ opacity: 0, scale: 0.95, y: 40 }} animate={{ opacity: 1, scale: 1, y: 0, transition: { type: "spring", damping: 25, stiffness: 400 } }} exit={{ opacity: 0, scale: 0.9, y: 20, transition: { duration: 0.15 } }} className="relative w-full max-w-[340px] bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.2)] border border-white/50 dark:border-zinc-800/50 overflow-hidden"  >
                         <div className="p-8 flex flex-col items-center text-center">
 
                             {/* Cookie Icon */}

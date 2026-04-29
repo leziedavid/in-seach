@@ -104,7 +104,7 @@ export default function QuoteRequestModal({ service, isOpen, onClose, onSuccess 
             } finally {
                 setSearchLoading(false);
             }
-        }, 500);
+        }, 1000);
     };
 
     const selectSuggestion = (suggestion: any) => {

@@ -8,7 +8,7 @@ import { z } from "zod";
 import Image from "next/image";
 import { getProductCategories } from "@/api/api";
 import { Select2 } from "./Select2";
-import { CategoryProd, Product } from "@/types/interface";
+import { CategoryProd, Product, ProductCondition, productConditionLabels } from "@/types/interface";
 import RichTextEditor from "../rich-text-editor";
 
 const productSchema = z.object({
@@ -19,6 +19,7 @@ const productSchema = z.object({
     stock: z.number().int().min(0, "Le stock est requis").nonnegative("Le stock ne peut pas être négatif"),
     categoryId: z.string().uuid("Veuillez sélectionner une catégorie"),
     isActive: z.boolean(),
+    etat: z.nativeEnum(ProductCondition),
     images: z.array(z.instanceof(File)).optional()
 });
 
@@ -54,6 +55,7 @@ export default function FormsProduit({ initialData, onSubmit, isSubmitting = fal
             stock: initialData?.stock ?? 0,
             categoryId: initialData?.categoryId || "",
             isActive: initialData?.isActive ?? true,
+            etat: initialData?.etat || ProductCondition.NEUF,
             images: [],
         }
     });
@@ -175,6 +177,29 @@ export default function FormsProduit({ initialData, onSubmit, isSubmitting = fal
                         <label className="text-[10px] font-black text-muted-foreground uppercase ml-1">Catégorie</label>
                         <Select2 options={categories} labelExtractor={(c) => c.name} valueExtractor={(c) => c.id} placeholder="Choisir une catégorie..." mode="single" selectedItem={selectedCategoryId} onSelectionChange={setSelectedCategoryId} />
                         {errors.categoryId && <p className="text-red-500 text-[10px] font-bold mt-1 uppercase">{errors.categoryId.message}</p>}
+                    </div>
+
+                    <div className="space-y-1">
+                        <label className="text-[10px] font-black text-muted-foreground uppercase ml-1">État du produit</label>
+                        <Controller
+                            name="etat"
+                            control={control}
+                            render={({ field }) => (
+                                <Select2
+                                    options={Object.entries(productConditionLabels).map(([value, label]) => ({
+                                        value: value as ProductCondition,
+                                        label: label
+                                    }))}
+                                    labelExtractor={(o) => o.label}
+                                    valueExtractor={(o) => o.value}
+                                    placeholder="Choisir l'état..."
+                                    mode="single"
+                                    selectedItem={field.value}
+                                    onSelectionChange={field.onChange}
+                                />
+                            )}
+                        />
+                        {errors.etat && <p className="text-red-500 text-[10px] font-bold mt-1 uppercase">{errors.etat.message}</p>}
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

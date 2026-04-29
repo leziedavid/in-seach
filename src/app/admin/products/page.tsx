@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { useNotification } from '@/components/toast/NotificationProvider';
 import Image from 'next/image';
-import { Product, CategoryProd } from '@/types/interface';
+import { Product, CategoryProd, productConditionLabels } from '@/types/interface';
 import { Modal } from '@/components/modal/MotionModal';
 import FormsProduit from '@/components/Forms/FormsProduit';
 import CategoryProductForm from '@/components/Forms/CategoryProductForm';
@@ -234,6 +234,15 @@ export default function AdminProductsPage() {
                     : 'text-rose-600 border-rose-200 bg-rose-50'
                     }`}>
                     {row.original.isActive ? 'Actif' : 'Inactif'}
+                </Badge>
+            )
+        },
+        {
+            accessorKey: 'etat',
+            header: 'État',
+            cell: ({ row }) => (
+                <Badge variant="secondary" className="font-black text-[9px] uppercase tracking-widest bg-blue-50 text-blue-600 border-blue-200">
+                    {productConditionLabels[row.original.etat] || row.original.etat}
                 </Badge>
             )
         },

@@ -13,6 +13,7 @@ import { useNotification } from "../toast/NotificationProvider"
 import { Button } from "../ui/button"
 import { useSubscriptionCheck } from "@/hooks/useSubscriptionCheck"
 import Delete from "../logistics/Delete"
+import { SectionHeader } from "../common/SectionHeader"
 
 interface AnnoncesCardProps {
     data?: Annonce[];
@@ -217,17 +218,11 @@ export default function AnnoncesCard({
                     </Button>
                 </div>
 
-                <div className="w-full max-w-full px-1">
-
-                    {/* Title */}
-                    <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-gray-900 ext-center">
-                        Publiez toutes vos annonces
-                    </h1>
-                    {/* Subtitle */}
-                    <p className="mt-3 text-sm  text-gray-600 leading-relaxed">
-                        Vente de tickets, location, tourisme… publiez vos annonces, fixez vos prix et trouvez rapidement des clients.
-                    </p>
-                </div>
+                <SectionHeader 
+                    title="Publiez toutes vos annonces" 
+                    subtitle="Vente de tickets, location, tourisme… publiez vos annonces, fixez vos prix et trouvez rapidement des clients."
+                    className="mb-8"
+                />
 
                 <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-2">
                     <div className="flex items-center justify-between w-full px-2 md:px-0 mb-6 border-b border-border pb-4">

@@ -119,12 +119,7 @@ export default function AdminUsersPage() {
             header: 'Utilisateur',
             cell: ({ row }) => (
                 <div className="flex items-center gap-4">
-                    <div className={cn(
-                        "w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs border transition-colors",
-                        row.original.isSuspended
-                            ? "bg-rose-500/10 text-rose-600 border-rose-500/20"
-                            : "bg-primary/10 text-primary border-primary/20"
-                    )}>
+                    <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs border transition-colors", row.original.isSuspended ? "bg-rose-500/10 text-rose-600 border-rose-500/20" : "bg-primary/10 text-primary border-primary/20")}>
                         {row.original.fullName ? row.original.fullName[0].toUpperCase() : row.original.email[0].toUpperCase()}
                     </div>
                     <div>
@@ -228,43 +223,44 @@ export default function AdminUsersPage() {
                     <p className="text-muted-foreground font-medium">Gestion de la conformité, suspensions et récupérations de comptes.</p>
                 </div>
 
-                <div className="flex flex-col sm:flex-row items-center gap-4">
-                    <div className="relative w-full sm:w-64">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <form onSubmit={(e) => {
-                            e.preventDefault();
-                            if (searchPhone) {
-                                import('@/api/api').then(api => {
-                                    api.searchUserByPhoneAdmin(searchPhone).then(res => {
-                                        if (res.statusCode === 200 && res.data) {
-                                            setUsers([res.data]);
-                                            setTotal(1);
-                                        } else {
-                                            addNotification("Aucun utilisateur trouvé pour ce numéro", "info");
-                                        }
-                                    });
-                                });
-                            } else {
-                                fetchUsers();
-                            }
-                        }}>
-                            <input
-                                type="tel"
-                                placeholder="Rechercher par téléphone..."
-                                value={searchPhone}
-                                onChange={(e) => setSearchPhone(e.target.value)}
-                                className="w-full h-11 pl-10 pr-4 rounded-2xl bg-card border border-border/50 outline-none focus:border-primary text-xs font-bold transition-all"
-                            />
-                        </form>
-                    </div>
-
-                    <div className="flex flex-wrap gap-2">
-                        <TabButton mode="all" label="Tous" icon={Users} />
-                        <TabButton mode="suspended" label="Suspendus" icon={Ban} />
-                        <TabButton mode="recovery" label="Demandes" icon={RotateCcw} />
-                    </div>
-                </div>
             </header>
+
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+                <div className="relative w-full sm:w-64">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <form onSubmit={(e) => {
+                        e.preventDefault();
+                        if (searchPhone) {
+                            import('@/api/api').then(api => {
+                                api.searchUserByPhoneAdmin(searchPhone).then(res => {
+                                    if (res.statusCode === 200 && res.data) {
+                                        setUsers([res.data]);
+                                        setTotal(1);
+                                    } else {
+                                        addNotification("Aucun utilisateur trouvé pour ce numéro", "info");
+                                    }
+                                });
+                            });
+                        } else {
+                            fetchUsers();
+                        }
+                    }}>
+                        <input
+                            type="tel"
+                            placeholder="Rechercher par téléphone..."
+                            value={searchPhone}
+                            onChange={(e) => setSearchPhone(e.target.value)}
+                            className="w-full h-11 pl-10 pr-4 rounded-2xl bg-card border border-border/50 outline-none focus:border-primary text-xs font-bold transition-all"
+                        />
+                    </form>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                    <TabButton mode="all" label="Tous" icon={Users} />
+                    <TabButton mode="suspended" label="Suspendus" icon={Ban} />
+                    <TabButton mode="recovery" label="Demandes" icon={RotateCcw} />
+                </div>
+            </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-3">

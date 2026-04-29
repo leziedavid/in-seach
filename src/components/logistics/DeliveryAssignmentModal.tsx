@@ -33,18 +33,19 @@ export default function DeliveryAssignmentModal({ isOpen, delivery, onClose, onS
 
     const fetchOptions = async () => {
         try {
-            const [fleet, clients] = await Promise.all([
+            const [fleet, chauffeurs] = await Promise.all([
                 getActiveFleet(),
-                getCompanyClients({ page: 1, limit: 100 })
+                getCompanyClients({ page: 1, limit: 100, type: 'chauffeur' })
             ]);
 
-            setFleetOptions(fleet.data?.map((f: any) => ({
+            // getActiveFleet retourne directement le tableau (pas un objet BaseResponse)
+            const fleetArray = Array.isArray(fleet) ? fleet : (fleet as any)?.data || [];
+            setFleetOptions(fleetArray.map((f: any) => ({
                 id: f.id,
                 label: `${f.name} (${f.immatriculation || f.type})`.toUpperCase()
-            })) || []);
+            })));
 
-            const drivers = clients.data?.data?.filter((c: any) => c.role === 'CHAUFFEUR') || [];
-            setDriverOptions(drivers.map((d: any) => ({
+            setDriverOptions((chauffeurs.data?.data || []).map((d: any) => ({
                 id: d.id,
                 label: (d.fullName || d.phone).toUpperCase()
             })));
