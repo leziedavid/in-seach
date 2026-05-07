@@ -1,26 +1,15 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { 
-    adminGetProducts, 
-    adminDeleteProduct, 
-    adminUpdateProduct,
-    adminGetCategoriesProduct,
-    adminCreateCategoryProduct,
-    adminUpdateCategoryProduct,
-    adminDeleteCategoryProduct
-} from '@/api/api';
-import { 
-    ShoppingBag, Package, Trash2, Edit2, Box, Tag, 
-    Calendar, Plus, Layers, Grid
-} from 'lucide-react';
-import { useNotification } from '@/components/toast/NotificationProvider';
+import { adminGetProducts, adminDeleteProduct, adminUpdateProduct, adminGetCategoriesProduct, adminCreateCategoryProduct, adminUpdateCategoryProduct, adminDeleteCategoryProduct } from '@/api/api';
+import { ShoppingBag, Package, Trash2, Edit2, Box, Tag, Calendar, Plus, Layers, Grid } from 'lucide-react';
+import { useNotification } from '@/components/notifications/NotificationProvider';
 import Image from 'next/image';
 import { Product, CategoryProd, productConditionLabels } from '@/types/interface';
-import { Modal } from '@/components/modal/MotionModal';
-import FormsProduit from '@/components/Forms/FormsProduit';
-import CategoryProductForm from '@/components/Forms/CategoryProductForm';
-import { GenericTable } from '@/components/table/table';
+import { Modal } from '@/components/ui/MotionModal';
+import FormsProduit from '@/components/products/forms/FormsProduit';
+import CategoryProductForm from '@/components/products/forms/CategoryProductForm';
+import { GenericTable } from '@/components/ui/table/table';
 import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -39,11 +28,11 @@ export default function AdminProductsPage() {
     // Modal state for Products
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const [isProductModalOpen, setIsProductModalOpen] = useState(false);
-    
+
     // Modal state for Categories
     const [selectedCategory, setSelectedCategory] = useState<CategoryProd | null>(null);
     const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
-    
+
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
 
@@ -304,7 +293,7 @@ export default function AdminProductsPage() {
                     <h1 className="text-3xl font-black tracking-tight mb-1">Produits</h1>
                     <p className="text-muted-foreground font-medium text-sm">Gestion du catalogue, du stock et des catégories.</p>
                 </div>
-                
+
                 <div className="flex items-center gap-2 p-1 bg-muted rounded-xl">
                     <button
                         onClick={() => setActiveTab('products')}
@@ -336,7 +325,7 @@ export default function AdminProductsPage() {
                             Exporter CSV
                         </Button>
                     </div>
-                    
+
                     <div className="bg-card rounded-lg border border-border/50 shadow-xs overflow-hidden p-2">
                         <GenericTable
                             columns={productColumns}
@@ -377,7 +366,7 @@ export default function AdminProductsPage() {
                             totalItems={categories.length}
                             currentPage={1}
                             itemsPerPage={100}
-                            onPageChange={() => {}}
+                            onPageChange={() => { }}
                             searchKey="name"
                             actions={[
                                 { icon: Edit2, label: "Modifier", value: "edit" },

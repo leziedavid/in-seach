@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
 // Dynamic import for the map to avoid SSR issues
-const UserMap = dynamic(() => import('@/components/maps/UserMap'), {
+const UserMap = dynamic(() => import('@/components/ui/Maps'), {
   ssr: false,
   loading: () => (
     <div className="w-full h-full bg-muted animate-pulse flex items-center justify-center rounded-2xl">

@@ -27,7 +27,8 @@ export enum Role {
     PRESTATAIRE = 'PRESTATAIRE',
     ADMIN = 'ADMIN',
     ENTREPRISE = 'ENTREPRISE',
-    CHAUFFEUR = 'CHAUFFEUR'
+    CHAUFFEUR = 'CHAUFFEUR',
+    LIVREUR = 'LIVREUR'
 }
 
 export enum TransportType {
@@ -121,6 +122,8 @@ export interface User {
     companyName?: string;
     siegeSocial?: string;
     boitePostale?: string;
+    storeName?: string;
+    storeLogo?: string;
     logo?: string;
     signature?: string;
     cni?: string;
@@ -134,6 +137,19 @@ export interface User {
     createdAt: string;
     updatedAt: string;
 }
+
+export interface StoreUserInfo {
+    id: string;
+    email?: string;
+    fullName?: string;
+    phone?: string;
+    companyName?: string;
+    storeName?: string;
+    storeLogo?: string;
+    productCount?: number;
+}
+
+
 
 export interface SubscriptionPlan {
     id: string;
@@ -844,4 +860,112 @@ export interface PushSubscriptionRequest {
 
 export interface LogisticsClient extends User {
     companyId?: string;
+}
+
+export interface LogisticProvider {
+    id: string
+    fullName: string
+    email: string
+    phone: string
+    companyName: string
+    storeName: string
+    siegeSocial: string
+    isLogisticEnabled: boolean
+    logo: string | null
+    coverImage: string | null
+    logisticServices: LogisticService[]
+}
+
+export interface Video {
+    id: string;
+    title: string;
+    youtubeUrl: string;
+    thumbnail?: string;
+    createdAt: string;
+    updatedAt: string;
+}
+
+// ===============================
+// EASY DELIVERY
+// ===============================
+
+export enum EasyDeliveryStatus {
+    PENDING = 'PENDING',
+    ACCEPTED = 'ACCEPTED',
+    PICKED_UP = 'PICKED_UP',
+    IN_TRANSIT = 'IN_TRANSIT',
+    ARRIVED = 'ARRIVED',
+    DELIVERED = 'DELIVERED',
+    CANCELLED = 'CANCELLED',
+}
+
+export enum EasyDeliveryType {
+    PARTICULIER = 'PARTICULIER',
+    ENTREPRISE = 'ENTREPRISE',
+}
+
+export enum TypeEngin {
+    VELO = 'VELO',
+    VOITURE = 'VOITURE',
+    MOTO = 'MOTO',
+    CAMION = 'CAMION',
+}
+
+export interface EasyDelivery {
+    id: string;
+    userId: string;
+    user?: Partial<User>;
+    deliveryBasePrice?: number;
+    deliveryOvertPrice?: number;
+    companyName?: string;
+    type: EasyDeliveryType;
+    typeEngin?: TypeEngin;
+    deliveryLogo?: string;
+    isActive: boolean;
+    activeDeliveriesCount?: number;
+    historyDeliveries?: HistoryDelivery[];
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface HistoryDelivery {
+    id: string;
+    easyDeliveryId: string;
+    easyDelivery?: EasyDelivery;
+    orderId?: string;
+    currentLat?: number;
+    currentLng?: number;
+    lastLocationUpdateAt?: string;
+    pickupLat?: number;
+    pickupLng?: number;
+    dropoffLat?: number;
+    dropoffLng?: number;
+    routePolyline?: string;
+    status: EasyDeliveryStatus;
+    statusUpdatedAt?: string;
+    estimatedPickupTime?: string;
+    estimatedDeliveryTime?: string;
+    actualPickupTime?: string;
+    actualDeliveryTime?: string;
+    driverName?: string;
+    driverPhone?: string;
+    vehicleType?: string;
+    vehiclePlateNumber?: string;
+    deliveryNotes?: string;
+    recipientName?: string;
+    recipientPhone?: string;
+    deliveryPrice?: number;
+    paymentStatus?: PaymentStatus;
+    eta?: number | null;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface DriverStats {
+    total: number;
+    delivered: number;
+    cancelled: number;
+    pending: number;
+    successRate: number;
+    totalEarnings: number;
 }

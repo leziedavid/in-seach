@@ -1,5 +1,5 @@
 import Content from "@/components/home/Content";
-import { CookieConsentModal } from "@/components/common/CookieConsentModal";
+import { CookieConsentModal } from "@/components/modals/CookieConsentModal";
 
 export default function Page() {
   return (

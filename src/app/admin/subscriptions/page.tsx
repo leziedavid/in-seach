@@ -21,7 +21,7 @@ import {
     ShieldCheck, Users, Settings2, Layout, Database,
     Search, Calendar, Mail, Phone, ExternalLink, MoreVertical, Edit2
 } from 'lucide-react';
-import { useNotification } from '@/components/toast/NotificationProvider';
+import { useNotification } from '@/components/notifications/NotificationProvider';
 import { Switch } from '@/components/ui/switch';
 import {
     SubscriptionPlan,
@@ -29,10 +29,10 @@ import {
     PlanEntity,
     AdminUserSubscription
 } from '@/types/interface';
-import { Modal } from '@/components/modal/MotionModal';
-import FormsSubscriptionPlan from '@/components/Forms/FormsSubscriptionPlan';
+import { Modal } from '@/components/ui/MotionModal';
+import FormsSubscriptionPlan from '@/components/subscription/forms/FormsSubscriptionPlan';
 import { Icon } from '@iconify/react';
-import { GenericTable } from '@/components/table/table';
+import { GenericTable } from '@/components/ui/table/table';
 import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';

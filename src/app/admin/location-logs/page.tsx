@@ -3,9 +3,9 @@
 import React from 'react';
 import { getAllLocationLogs, deleteLocationLog } from '@/api/api';
 import { MapPin, Calendar, Map as MapIcon, Trash2, User as UserIcon, Search, Phone } from 'lucide-react';
-import { useNotification } from '@/components/toast/NotificationProvider';
+import { useNotification } from '@/components/notifications/NotificationProvider';
 import { LocationLog } from '@/types/interface';
-import { GenericTable } from '@/components/table/table';
+import { GenericTable } from '@/components/ui/table/table';
 import { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

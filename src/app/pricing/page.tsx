@@ -4,7 +4,7 @@ import React from 'react';
 import { Icon } from '@iconify/react';
 import { useQuery } from '@tanstack/react-query';
 import { getPlans } from '@/api/api';
-import SubscriptionPaymentModal from '@/components/subscription/SubscriptionPaymentModal';
+import SubscriptionPaymentModal from '@/components/subscription/modals/SubscriptionPaymentModal';
 import { SubscriptionPlan } from '@/types/interface';
 
 interface Feature {

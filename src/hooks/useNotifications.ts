@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { getUserId } from '@/lib/auth';
 import { notificationService } from '@/services/notification.service';
-import { useNotification as useToast } from '@/components/toast/NotificationProvider';
+import { useNotification as useToast } from '@/components/notifications/NotificationProvider';
 import { getPushSubscriptions, unsubscribePush } from '@/api/api';
 
 export const useNotifications = () => {

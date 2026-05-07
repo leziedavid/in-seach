@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { isSubscriptionSystemEnabled, getSubscriptionStatus } from '@/api/api';
-import { useNotification } from '@/components/toast/NotificationProvider';
+import { useNotification } from '@/components/notifications/NotificationProvider';
 import { useRouter } from 'next/navigation';
 
 export interface SubscriptionCheck {

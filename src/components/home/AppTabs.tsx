@@ -2,15 +2,13 @@
 
 import { useState, useRef, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import SearchAnnonces from "../service/SearchAnnonces"
-import Boutique from "../products/Boutique"
-import LogisticsServicesList from "../logistics/LogisticsServicesList"
-import { OpportunitiesIcon, BoutiqueIcon, SearchIcon, LogisticsIcon } from "./TabIcons"
+import SearchAnnonces from "@/components/annonces/sections/SearchAnnonces"
+import Boutique from "@/components/store/sections/Boutique"
+import { OpportunitiesIcon, BoutiqueIcon, SearchIcon, LogisticsIcon } from "@/components/layout/TabIcons"
 import Info from "./Info"
-import SearchServies from "../service/SearchServies"
-import QuoteRequestModal from "../logistics/QuoteRequestModal"
-import { Modal } from "../modal/MotionModal"
-import { LogisticService } from "@/types/interface"
+import SearchServies from "@/components/services/sections/SearchServies"
+import LogisticProvider from "@/components/logistics/sections/LogisticProvider"
+import { Modal } from "@/components/ui/MotionModal"
 
 
 const tabs = [
@@ -58,8 +56,6 @@ export default function AppTabs() {
     const [showInfo, setShowInfo] = useState(true)
     const scrollContainerRef = useRef<HTMLDivElement>(null)
     const activeTabRef = useRef<HTMLButtonElement>(null)
-    const [selectedServiceForQuote, setSelectedServiceForQuote] = useState<LogisticService | null>(null)
-    const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false)
 
     useEffect(() => {
         const isInfoClosed = localStorage.getItem("infoClosed") === "true"
@@ -76,11 +72,6 @@ export default function AppTabs() {
                 setShowInfo(true)
             }
         }
-    }
-
-    const openQuoteModal = (service: LogisticService) => {
-        setSelectedServiceForQuote(service)
-        setIsQuoteModalOpen(true)
     }
 
     // Scroll vers l'onglet actif au chargement et quand il change
@@ -165,22 +156,10 @@ export default function AppTabs() {
 
                 {active === "logistics" && (
                     <div className="w-full flex flex-col items-center px-0 sm:px-0 stagger-item">
-                        <LogisticsServicesList mode="marketplace" onRequestQuote={openQuoteModal} />
+                        <LogisticProvider />
                     </div>
                 )}
             </div>
-
-            {/* Quote Request Modal */}
-            <Modal isOpen={isQuoteModalOpen} onClose={() => setIsQuoteModalOpen(false)}>
-                {selectedServiceForQuote && (
-                    <QuoteRequestModal
-                        service={selectedServiceForQuote}
-                        isOpen={isQuoteModalOpen}
-                        onClose={() => setIsQuoteModalOpen(false)}
-                        onSuccess={() => { setIsQuoteModalOpen(false); }}
-                    />
-                )}
-            </Modal>
         </div>
     )
 }

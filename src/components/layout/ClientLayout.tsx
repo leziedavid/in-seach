@@ -4,7 +4,7 @@ import React from "react";
 import { usePathname } from "next/navigation";
 import ComingSoon from "@/components/home/ComingSoon";
 import PageTransition from "@/components/ui/PageTransition";
-import { NotificationPermissionModal } from "@/components/notifications/NotificationPermissionModal";
+import { NotificationPermissionModal } from "@/components/modals/NotificationPermissionModal";
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();

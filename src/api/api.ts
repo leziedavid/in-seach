@@ -1,5 +1,5 @@
 import { getCookie } from '@/lib/cookies';
-import { BaseResponse, Booking, Category, GlobalSearchResponse, Pagination, ReverseGeocodeData, Service, UserLocation, MySpaceResponse, Annonce, BookingsCalendar, Product, CategoryProd, Order, AdminQueryParams, AdminUserUpdateDto, AdminProductUpdateDto, AdminServiceUpdateDto, AdminAnnonceUpdateDto, AdminSubscriptionPlanDto, User, AdminLog, SubscriptionPlan, PlanEntity, AdminUserSubscription, Subscription, OrdersGroupedResponse, BookingsGroupedResponse, LogisticService, Quote, Delivery, DeliveryTracking, QuoteStatus, DeliveryStatus, TransportType, LocationLog, CategorieAnnonce, TypeAnnonce, LogisticsClient } from '@/types/interface';
+import { BaseResponse, Booking, Category, GlobalSearchResponse, Pagination, ReverseGeocodeData, Service, UserLocation, MySpaceResponse, Annonce, BookingsCalendar, Product, CategoryProd, Order, AdminQueryParams, AdminUserUpdateDto, AdminProductUpdateDto, AdminServiceUpdateDto, AdminAnnonceUpdateDto, AdminSubscriptionPlanDto, User, AdminLog, SubscriptionPlan, PlanEntity, AdminUserSubscription, Subscription, OrdersGroupedResponse, BookingsGroupedResponse, LogisticService, Quote, Delivery, DeliveryTracking, QuoteStatus, DeliveryStatus, TransportType, LocationLog, CategorieAnnonce, TypeAnnonce, LogisticsClient, Video, StoreUserInfo, EasyDelivery, HistoryDelivery, EasyDeliveryStatus, DriverStats } from '@/types/interface';
 
 export const getBaseUrl = (): string => {
     return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
@@ -131,8 +131,39 @@ export const getAllSearch = async (params: any): Promise<BaseResponse<MySpaceRes
 };
 
 
+// =====================
+// STORE
+// =====================
 
+export const updateStoreNameLogo = async (data: any): Promise<BaseResponse<any>> => {
+    const isFormData = data instanceof FormData;
+    const response = await secureFetch(`${getBaseUrl()}/users/update/store/name`, {
+        method: 'PATCH',
+        body: isFormData ? data : JSON.stringify(data),
+    });
+    return await response.json();
+};
 
+export const getStoreUserInfo = async (): Promise<BaseResponse<StoreUserInfo>> => {
+    const response = await secureFetch(`${getBaseUrl()}/users/get/store/info`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
+export const getPublicStoreInfo = async (storeName: string): Promise<BaseResponse<StoreUserInfo & { productCount: number }>> => {
+    const response = await fetch(`${getBaseUrl()}/users/store/${storeName}`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
+export const getPublicLogisticsInfo = async (companyName: string): Promise<BaseResponse<any>> => {
+    const response = await fetch(`${getBaseUrl()}/users/logistics/${companyName}`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
 
 // =====================
 // SERVICES
@@ -1040,7 +1071,7 @@ export const reconnectUser = async (userId: string): Promise<BaseResponse<any>> 
    PRODUCTS & ORDERS API
 ======================================================= */
 
-export const getProducts = async (params: { page?: number; limit?: number; query?: string; categoryId?: string }): Promise<BaseResponse<Pagination<Product>>> => {
+export const getProducts = async (params: { page?: number; limit?: number; query?: string; categoryId?: string; storeName?: string }): Promise<BaseResponse<Pagination<Product>>> => {
     const queryString = toQueryString(params);
     const response = await fetch(`${getBaseUrl()}/products?${queryString}`);
     return await response.json();
@@ -1362,11 +1393,18 @@ export const setSystemSubscriptionStatus = async (isEnabled: boolean): Promise<B
 ======================================================= */
 
 // --- Services ---
-export const getLogisticServices = async (params: { query?: string; transportType?: string; page?: number; limit?: number } = {}): Promise<BaseResponse<any>> => {
+export const getLogisticServices = async (params: { query?: string; transportType?: string; companyName?: string; page?: number; limit?: number } = {}): Promise<BaseResponse<any>> => {
     const queryString = toQueryString(params);
     const response = await fetch(`${getBaseUrl()}/logistics/services?${queryString}`);
     return await response.json();
 };
+
+export const findAllPrestataire = async (params: { query?: string; transportType?: string; page?: number; limit?: number } = {}): Promise<BaseResponse<any>> => {
+    const queryString = toQueryString(params);
+    const response = await fetch(`${getBaseUrl()}/logistics/services/search/company?${queryString}`);
+    return await response.json();
+};
+
 
 export const getMyLogisticServices = async (params: { query?: string; transportType?: string; page?: number; limit?: number } = {}): Promise<BaseResponse<any>> => {
     const queryString = toQueryString(params);
@@ -1717,3 +1755,175 @@ export const assignToDelivery = async (deliveryId: string, data: { floteIds?: st
     });
     return await response.json();
 };
+
+export const getVideos = async (): Promise<BaseResponse<Video[]>> => {
+    const response = await fetch(`${getBaseUrl()}/videos`);
+    return await response.json();
+};
+
+export const adminCreateVideo = async (data: any): Promise<BaseResponse<Video>> => {
+    const response = await secureFetch(`${getBaseUrl()}/videos`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const adminUpdateVideo = async (id: string, data: any): Promise<BaseResponse<Video>> => {
+    const response = await secureFetch(`${getBaseUrl()}/videos/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const adminDeleteVideo = async (id: string): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/videos/${id}`, {
+        method: 'DELETE',
+    });
+    return await response.json();
+};
+
+/* =======================================================
+   EASY DELIVERY API
+======================================================= */
+
+export const getMyDeliveryProfile = async (): Promise<BaseResponse<EasyDelivery>> => {
+    const response = await secureFetch(`${getBaseUrl()}/easy-delivery/profile`, { method: 'GET' });
+    return await response.json();
+};
+
+export const upsertDeliveryProfile = async (data: any): Promise<BaseResponse<EasyDelivery>> => {
+    const isFormData = data instanceof FormData;
+    const response = await secureFetch(`${getBaseUrl()}/easy-delivery/profile/upsert`, {
+        method: 'POST',
+        body: isFormData ? data : JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const updateDeliveryProfile = async (data: any): Promise<BaseResponse<EasyDelivery>> => {
+    const isFormData = data instanceof FormData;
+    const response = await secureFetch(`${getBaseUrl()}/easy-delivery/profile`, {
+        method: 'PATCH',
+        body: isFormData ? data : JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const getAvailableDrivers = async (params?: { page?: number; limit?: number }): Promise<BaseResponse<any>> => {
+    const queryString = toQueryString(params || {});
+    const response = await secureFetch(`${getBaseUrl()}/easy-delivery/drivers/available?${queryString}`, { method: 'GET' });
+    return await response.json();
+};
+
+export const assignOrderToDriver = async (data: {
+    driverId: string;
+    orderId?: string;
+    pickupLat?: number;
+    pickupLng?: number;
+    dropoffLat?: number;
+    dropoffLng?: number;
+    recipientName?: string;
+    recipientPhone?: string;
+    deliveryNotes?: string;
+    deliveryPrice?: number;
+}): Promise<BaseResponse<HistoryDelivery>> => {
+    const response = await secureFetch(`${getBaseUrl()}/easy-delivery/assign`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const unassignDriver = async (deliveryId: string): Promise<BaseResponse<HistoryDelivery>> => {
+    const response = await secureFetch(`${getBaseUrl()}/easy-delivery/unassign/${deliveryId}`, {
+        method: 'DELETE',
+    });
+    return await response.json();
+};
+
+export const getDriverHistory = async (params?: { page?: number; limit?: number; status?: 'active' | 'history' }): Promise<BaseResponse<any>> => {
+    const queryString = toQueryString(params || {});
+    const response = await secureFetch(`${getBaseUrl()}/easy-delivery/history?${queryString}`, { method: 'GET' });
+    return await response.json();
+};
+
+export const getDriverStats = async (): Promise<BaseResponse<DriverStats>> => {
+    const response = await secureFetch(`${getBaseUrl()}/easy-delivery/stats`, { method: 'GET' });
+    return await response.json();
+};
+
+export const updateEasyDeliveryLocation = async (deliveryId: string, data: { lat: number; lng: number }): Promise<BaseResponse<HistoryDelivery>> => {
+    const response = await secureFetch(`${getBaseUrl()}/easy-delivery/tracking/${deliveryId}/location`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const updateEasyDeliveryStatus = async (deliveryId: string, status: EasyDeliveryStatus): Promise<BaseResponse<HistoryDelivery>> => {
+    const response = await secureFetch(`${getBaseUrl()}/easy-delivery/tracking/${deliveryId}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status }),
+    });
+    return await response.json();
+};
+
+export const getLiveTracking = async (deliveryId: string): Promise<BaseResponse<HistoryDelivery>> => {
+    const response = await secureFetch(`${getBaseUrl()}/easy-delivery/tracking/${deliveryId}`, { method: 'GET' });
+    return await response.json();
+};
+
+export const getDeliveriesByOrder = async (orderId: string): Promise<BaseResponse<HistoryDelivery[]>> => {
+    const response = await secureFetch(`${getBaseUrl()}/easy-delivery/order/${orderId}`, { method: 'GET' });
+    return await response.json();
+};
+
+export const adminGetDeliveryProfiles = async (params?: { page?: number; limit?: number; search?: string }): Promise<BaseResponse<any>> => {
+    const queryString = toQueryString(params || {});
+    const response = await secureFetch(`${getBaseUrl()}/easy-delivery/admin/profiles?${queryString}`, { method: 'GET' });
+    return await response.json();
+};
+
+export const adminDeleteDeliveryProfile = async (id: string): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/easy-delivery/admin/profiles/${id}`, { method: 'DELETE' });
+    return await response.json();
+};
+
+export const adminUpsertDeliveryProfile = async (userId: string, data: FormData): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/easy-delivery/admin/profiles/${userId}`, {
+        method: 'POST',
+        body: data,
+    });
+    return await response.json();
+};
+
+// ===============================
+// ADMIN LOGISTICS
+// ===============================
+
+export const adminGetLogisticsServices = async (params?: any): Promise<BaseResponse<any>> => {
+    const queryString = toQueryString(params || {});
+    const response = await secureFetch(`${getBaseUrl()}/logistics/services?${queryString}`, { method: 'GET' });
+    return await response.json();
+};
+
+export const adminGetLogisticsQuotes = async (params?: any): Promise<BaseResponse<any>> => {
+    const queryString = toQueryString(params || {});
+    const response = await secureFetch(`${getBaseUrl()}/logistics/quotes/admin/all?${queryString}`, { method: 'GET' });
+    return await response.json();
+};
+
+export const adminGetLogisticsDeliveries = async (params?: any): Promise<BaseResponse<any>> => {
+    const queryString = toQueryString(params || {});
+    const response = await secureFetch(`${getBaseUrl()}/logistics/deliveries/admin/all?${queryString}`, { method: 'GET' });
+    return await response.json();
+};
+
+export const adminGetLogisticsFleet = async (params?: any): Promise<BaseResponse<any>> => {
+    const queryString = toQueryString(params || {});
+    const response = await secureFetch(`${getBaseUrl()}/logistics/fleet/admin/all?${queryString}`, { method: 'GET' });
+    return await response.json();
+};
+

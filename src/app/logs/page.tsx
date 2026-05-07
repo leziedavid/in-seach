@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { getAdminLogs, deleteAdminLogs } from '@/api/api';
 import { Log } from '@/types/interface';
 import { Terminal, RefreshCw, Trash2, Clock, Activity, Sparkles, Calendar as CalendarIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTheme } from 'next-themes';
-import { GenericTable, TableAction } from '@/components/table/table';
+import { GenericTable, TableAction } from '@/components/ui/table/table';
 import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
@@ -14,7 +14,7 @@ import { DateRange } from 'react-day-picker';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { DeleteConfirmation } from '@/components/ui/delete-confirmation';
-import { TablePagination } from '@/components/table/Pagination';
+import { TablePagination } from '@/components/ui/table/Pagination';
 
 export default function LogsPage() {
     const { theme } = useTheme();
@@ -37,6 +37,11 @@ export default function LogsPage() {
     const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [deleteLoading, setDeleteLoading] = useState(false);
+    // Ref pour éviter que selectedRows dans les handlers de colonnes ne force une recréation complète
+    const selectedRowsRef = useRef(selectedRows);
+    useEffect(() => {
+        selectedRowsRef.current = selectedRows;
+    }, [selectedRows]);
 
     useEffect(() => {
         setMounted(true);
@@ -129,7 +134,7 @@ export default function LogsPage() {
                         checked={row.getIsSelected()}
                         onChange={(e) => {
                             row.toggleSelected(!!e.target.checked);
-                            const newSelected = new Set(selectedRows);
+                            const newSelected = new Set(selectedRowsRef.current);
                             if (e.target.checked) {
                                 newSelected.add(date);
                             } else {
@@ -207,7 +212,7 @@ export default function LogsPage() {
                 </div>
             )
         }
-    ], [logs, selectedRows]);
+    ], [logs]); // selectedRows retiré : le handler utilise selectedRowsRef.current (valeur fraîche sans recréer les colonnes)
 
     if (!mounted) return null;
 

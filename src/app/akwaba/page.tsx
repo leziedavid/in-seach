@@ -1,34 +1,33 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { Icon } from '@iconify/react';
-import FloteManager from '@/components/logistics/FloteManager';
-import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+
+import FloteManager from '@/components/logistics/sections/FloteManager';
+import EasyDeliveryPage from '@/components/delivery/sections/EasyDeliveryPage';
 import Sidebar, { TabType } from './Sidebar';
-import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { getAllSearch, getMySpace, upsertLocationLog } from '@/api/api';
 import { useUserLocation } from '@/utils/location';
-import AccountServicesList from '@/components/account/AccountServicesList';
-import AccountAnnonces from '@/components/account/AccountAnnonces';
-import AccountBookings from '@/components/account/AccountBookings';
-import AnnoncesBookings from '@/components/account/AnnoncesBookings';
-import AccountSettings from '@/components/account/AccountSettings';
+import AccountServicesList from '@/components/profile/AccountServicesList';
+import AccountAnnonces from '@/components/profile/AccountAnnonces';
+import AccountBookings from '@/components/profile/AccountBookings';
+import AnnoncesBookings from '@/components/profile/AnnoncesBookings';
+import AccountSettings from '@/components/profile/AccountSettings';
 import { Service, Annonce, Booking, GlobalStats, Role } from '@/types/interface';
 import { getUserRole, logout } from '@/lib/auth';
-import BookingCalendar from '@/components/bookings/BookingCalendar';
+import BookingCalendar from '@/components/bookings/sections/BookingCalendar';
 import Image from "next/image";
-import Commandes from '@/components/products/Commandes';
-import Store from '@/components/products/Store';
-import HistoriqueCommandes from '@/components/products/Historique-commandes';
-import HistoriqueRdv from '@/components/bookings/Historique-rdv';
-import LogisticsServicesList from '@/components/logistics/LogisticsServicesList';
-import QuotesList from '@/components/logistics/QuotesList';
-import DeliveriesList from '@/components/logistics/DeliveriesList';
-import QuoteRequestModal from '@/components/logistics/QuoteRequestModal';
-import ApiDocumentation from '@/components/account/ApiDocumentation';
-import { Modal } from '@/components/modal/MotionModal';
+import Commandes from '@/components/orders/sections/Commandes';
+import Store from '@/components/store/sections/Store';
+import HistoriqueCommandes from '@/components/orders/sections/Historique-commandes';
+import HistoriqueRdv from '@/components/bookings/sections/Historique-rdv';
+import LogisticsServicesList from '@/components/logistics/sections/LogisticsServicesList';
+import QuotesList from '@/components/logistics/sections/QuotesList';
+import DeliveriesList from '@/components/logistics/sections/DeliveriesList';
+import QuoteRequestModal from '@/components/logistics/modals/QuoteRequestModal';
+import ApiDocumentation from '@/components/profile/ApiDocumentation';
+import { Modal } from '@/components/ui/MotionModal';
 
 
 export default function Page() {
@@ -91,6 +90,7 @@ export default function Page() {
             if (userRole === Role.CLIENT) setActiveTab('Rendez-vous');
             else if (userRole === Role.ENTREPRISE) setActiveTab('Mes-services-logistiques');
             else if (userRole === Role.CHAUFFEUR) setActiveTab('Livraisons-chauffeur');
+            else if (userRole === Role.LIVREUR) setActiveTab('Livreur-dashboard');
             else setActiveTab('Calendrier');
         }
     }, [userRole]);
@@ -235,6 +235,8 @@ export default function Page() {
                 return <AccountSettings />;
             case 'Documentation-API':
                 return <ApiDocumentation />;
+            case 'Livreur-dashboard':
+                return <EasyDeliveryPage />;
             default:
                 return null;
         }

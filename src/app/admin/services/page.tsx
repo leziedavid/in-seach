@@ -1,27 +1,24 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { 
-    adminGetServices, 
-    adminToggleServiceActive, 
-    adminDeleteService, 
+import {
+    adminGetServices,
+    adminToggleServiceActive,
+    adminDeleteService,
     adminUpdateService,
     adminGetCategories,
     adminCreateCategory,
     adminUpdateCategory,
     adminDeleteCategory
 } from '@/api/api';
-import { 
-    Briefcase, MapPin, Trash2, Edit2, Box, Tag, 
-    Calendar, Plus, Layers, Grid, Image as ImageIcon
-} from 'lucide-react';
-import { useNotification } from '@/components/toast/NotificationProvider';
+import { Briefcase, MapPin, Trash2, Edit2, Box, Tag, Calendar, Plus, Layers, Grid, Image as ImageIcon } from 'lucide-react';
+import { useNotification } from '@/components/notifications/NotificationProvider';
 import { Service, Category } from '@/types/interface';
-import FormsServices from '@/components/Forms/FormsServices';
-import CategoryServiceForm from '@/components/Forms/CategoryServiceForm';
+import FormsServices from '@/components/services/forms/FormsServices';
+import CategoryServiceForm from '@/components/services/forms/CategoryServiceForm';
 import Image from 'next/image';
-import { Modal } from '@/components/modal/MotionModal';
-import { GenericTable } from '@/components/table/table';
+import { Modal } from '@/components/ui/MotionModal';
+import { GenericTable } from '@/components/ui/table/table';
 import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -40,11 +37,11 @@ export default function AdminServicesPage() {
     // Modal state for Services
     const [selectedService, setSelectedService] = useState<Service | null>(null);
     const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
-    
+
     // Modal state for Categories
     const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
     const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
-    
+
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
 
@@ -305,7 +302,7 @@ export default function AdminServicesPage() {
                     <h1 className="text-3xl font-black tracking-tight mb-1">Services</h1>
                     <p className="text-muted-foreground font-medium text-sm">Gestion du catalogue de prestations et des catégories.</p>
                 </div>
-                
+
                 <div className="flex items-center gap-2 p-1 bg-muted rounded-xl">
                     <button
                         onClick={() => setActiveTab('services')}
@@ -375,7 +372,7 @@ export default function AdminServicesPage() {
                             totalItems={categories.length}
                             currentPage={1}
                             itemsPerPage={100}
-                            onPageChange={() => {}}
+                            onPageChange={() => { }}
                             searchKey="label"
                             actions={[
                                 { icon: Edit2, label: "Modifier", value: "edit" },

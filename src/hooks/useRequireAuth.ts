@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { isAuthenticated } from "@/lib/auth";
-import { useNotification } from "@/components/toast/NotificationProvider";
+import { useNotification } from "@/components/notifications/NotificationProvider";
 
 /**
  * Hook to handle actions that require authentication.

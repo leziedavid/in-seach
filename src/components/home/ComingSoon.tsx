@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import Header from "@/components/home/layout/Header";
-import Footer from "@/components/home/layout/Footer";
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
 import BackgroundDecoration from "@/components/layout/BackgroundDecoration";
 
 export default function ComingSoon({ children }: { children: React.ReactNode }) {

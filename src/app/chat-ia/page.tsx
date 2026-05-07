@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { getMe, verifyChatCode, createChatConversation, uploadChatFiles, getUserConversations, markChatAsRead } from '@/api/api';
 import { format, isToday, isYesterday } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { useNotification } from '@/components/toast/NotificationProvider';
+import { useNotification } from '@/components/notifications/NotificationProvider';
 import { io, Socket } from 'socket.io-client';
 import { getUserId, getToken } from '@/lib/auth';
 

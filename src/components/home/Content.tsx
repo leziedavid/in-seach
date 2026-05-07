@@ -1,8 +1,8 @@
 "use client";
 
 import AppTabs from "./AppTabs";
-import ThemeImage from "./ThemeImage";
-import Image from "next/image";
+import ThemeImage from "@/components/ui/ThemeImage";
+
 export default function Content() {
     return (
         <div className="flex flex-col items-center w-full">

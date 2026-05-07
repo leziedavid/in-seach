@@ -27,7 +27,8 @@ export type TabType =
     | "Livraisons"
     | "Livraisons-chauffeur"
     | "Documentation-API"
-    | "Ma-flotte";
+    | "Ma-flotte"
+    | "Livreur-dashboard";
 
 export interface TabConfig {
     key: TabType;
@@ -56,7 +57,8 @@ export const TABS_CONFIG: TabConfig[] = [
     { label: 'Ma flotte', icon: "solar:bus-bold-duotone", key: 'Ma-flotte', roles: [Role.ENTREPRISE, Role.ADMIN] },
     { label: 'Tarifs', icon: "solar:bill-list-bold-duotone", key: 'Tarifs', roles: [Role.ENTREPRISE, Role.ADMIN, Role.PRESTATAIRE, Role.CLIENT] },
     { label: 'Documentation API', icon: "solar:document-bold-duotone", key: 'Documentation-API', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ADMIN, Role.ENTREPRISE] },
-    { label: 'Paramètres', icon: "solar:settings-bold-duotone", key: 'Paramètres', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ADMIN, Role.ENTREPRISE, Role.CHAUFFEUR] }
+    { label: 'Paramètres', icon: "solar:settings-bold-duotone", key: 'Paramètres', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ADMIN, Role.ENTREPRISE, Role.CHAUFFEUR, Role.LIVREUR] },
+    { label: 'Mon Espace Livreur', icon: "solar:delivery-bold-duotone", key: 'Livreur-dashboard', roles: [Role.LIVREUR, Role.ADMIN] },
 ];
 
 interface SidebarProps {
@@ -74,7 +76,8 @@ const LOGISTICS_KEYS: TabType[] = [
     'Devis-recus',
     'Livraisons',
     'Livraisons-chauffeur',
-    'Ma-flotte'
+    'Ma-flotte',
+    'Livreur-dashboard',
 ];
 
 export default function Sidebar({ activeTab, onTabChange, user, onLogout }: SidebarProps) {
@@ -85,7 +88,7 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
 
     // Intelligent reordering: Logistics first for CHAUFFEUR and ENTREPRISE
     const menu = React.useMemo(() => {
-        if (userRole === Role.CHAUFFEUR || userRole === Role.ENTREPRISE) {
+        if (userRole === Role.CHAUFFEUR || userRole === Role.ENTREPRISE || userRole === Role.LIVREUR) {
             const logisticsItems = baseMenu.filter(item => LOGISTICS_KEYS.includes(item.key));
             const otherItems = baseMenu.filter(item => !LOGISTICS_KEYS.includes(item.key));
             return [...logisticsItems, ...otherItems];
@@ -135,7 +138,7 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
 
             {/* DESKTOP SIDEBAR */}
             <aside className="hidden md:block md:col-span-4 lg:col-span-3">
-                <div className="bg-card/50 backdrop-blur-xl rounded-3xl shadow-xl border border-border p-6 sticky top-24">
+                <div className="bg-card/50 backdrop-blur-xl rounded-3xl border border-border p-6 sticky top-24">
                     {/* Profil */}
                     <div className="flex flex-col items-center mb-8">
                         <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-white shadow-xl shrink-0 bg-muted/30">
@@ -151,7 +154,7 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
                                 <>
                                     <p className="font-bold text-center text-foreground">{user?.fullName || "Mon compte"}</p>
                                     <p className="text-sm text-muted-foreground">
-                                        {userRole === Role.PRESTATAIRE ? "Prestataire" : userRole === Role.ENTREPRISE ? "Entreprise Logistique" : userRole === Role.CHAUFFEUR ? "Chauffeur" : "Client"}
+                                        {userRole === Role.PRESTATAIRE ? "Prestataire" : userRole === Role.ENTREPRISE ? "Entreprise Logistique" : userRole === Role.CHAUFFEUR ? "Chauffeur" : userRole === Role.LIVREUR ? "Livreur EasyDelivery" : "Client"}
                                     </p>
                                 </>
                             )}

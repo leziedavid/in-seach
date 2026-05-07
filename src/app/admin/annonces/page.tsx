@@ -11,16 +11,16 @@ import {
 } from '@/api/api';
 
 import { Radio, MapPin, Trash2, Edit2, Plus, Layers, Tag as TagIcon, Box, Car, ShieldCheck, ClipboardList } from 'lucide-react';
-import { useNotification } from '@/components/toast/NotificationProvider';
+import { useNotification } from '@/components/notifications/NotificationProvider';
 import { Annonce, AnnonceStatus, CategorieAnnonce, TypeAnnonce } from '@/types/interface';
-import FormsAnnonce from '@/components/Forms/FormsAnnonce';
-import CategoryAnnonceForm from '@/components/Forms/CategoryAnnonceForm';
-import TypeAnnonceForm from '@/components/Forms/TypeAnnonceForm';
-import SimpleEntityForm from '@/components/Forms/SimpleEntityForm';
-import TechnicalSheetConfigForm from '@/components/Forms/TechnicalSheetConfigForm';
+import FormsAnnonce from '@/components/annonces/forms/FormsAnnonce';
+import CategoryAnnonceForm from '@/components/annonces/forms/CategoryAnnonceForm';
+import TypeAnnonceForm from '@/components/annonces/forms/TypeAnnonceForm';
+import SimpleEntityForm from '@/components/common/SimpleEntityForm';
+import TechnicalSheetConfigForm from '@/components/common/TechnicalSheetConfigForm';
 import Image from 'next/image';
-import { Modal } from '@/components/modal/MotionModal';
-import { GenericTable } from '@/components/table/table';
+import { Modal } from '@/components/ui/MotionModal';
+import { GenericTable } from '@/components/ui/table/table';
 import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';

@@ -4,14 +4,14 @@ import React from 'react';
 import { getAdminLogs, getAdminLogFiles, deleteAdminLogs, purgeAdminLogs } from '@/api/api';
 import { ColumnDef } from '@tanstack/react-table';
 import { Terminal, Search, Filter, Trash2, RefreshCw, FileText, AlertTriangle, Info, XCircle, Calendar, ShieldAlert } from 'lucide-react';
-import { useNotification } from '@/components/toast/NotificationProvider';
+import { useNotification } from '@/components/notifications/NotificationProvider';
 import { AdminLog } from '@/types/interface';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { GenericTable } from '@/components/table/table';
+import { GenericTable } from '@/components/ui/table/table';
 
 export default function AdminLogsPage() {
     const [logs, setLogs] = React.useState<AdminLog[]>([]);

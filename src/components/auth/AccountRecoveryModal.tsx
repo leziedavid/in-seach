@@ -1,3 +1,6 @@
+
+"use client"
+
 import React, { useState } from 'react';
 import { Icon } from '@iconify/react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -52,9 +55,9 @@ export const AccountRecoveryModal = ({ isOpen, onClose }: AccountRecoveryModalPr
                     {/* Compact iOS Style Modal */}
                     <motion.div
                         initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                        animate={{ 
-                            opacity: 1, 
-                            scale: 1, 
+                        animate={{
+                            opacity: 1,
+                            scale: 1,
                             y: 0,
                             transition: { type: "spring", damping: 25, stiffness: 400 }
                         }}
@@ -62,7 +65,7 @@ export const AccountRecoveryModal = ({ isOpen, onClose }: AccountRecoveryModalPr
                         className="relative w-full max-w-[340px] bg-white dark:bg-zinc-900 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)] border border-white/20 dark:border-zinc-800/50 overflow-hidden"
                     >
                         <div className="p-8 flex flex-col items-center text-center">
-                            
+
                             {/* Recovery Icon */}
                             <div className="relative mb-6">
                                 <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full animate-pulse" />
@@ -74,7 +77,7 @@ export const AccountRecoveryModal = ({ isOpen, onClose }: AccountRecoveryModalPr
                             <h3 className="text-2xl font-black text-zinc-900 dark:text-white mb-2 tracking-tight">
                                 Récupération
                             </h3>
-                            
+
                             <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-8 px-2 font-bold leading-relaxed">
                                 Votre compte a été suspendu ? Saisissez votre numéro de téléphone pour demander une réactivation.
                             </p>
@@ -82,7 +85,7 @@ export const AccountRecoveryModal = ({ isOpen, onClose }: AccountRecoveryModalPr
                             <form onSubmit={handleSubmit} className="w-full space-y-6">
                                 <div className="relative group">
                                     <Icon icon="solar:phone-bold-duotone" width={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-primary transition-colors" />
-                                    <input 
+                                    <input
                                         type="tel"
                                         value={phone}
                                         onChange={(e) => setPhone(e.target.value)}

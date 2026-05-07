@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { Icon } from "@iconify/react";
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -69,13 +69,18 @@ export default function InfiniteScroll<T extends { id: string | number }>({
     const bottomSentinelRef = useRef<HTMLDivElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const prevScrollTop = useRef(0);
+    // Ref pour éviter que loadMore instable (inline arrow) ne reconnecte l'observer à chaque render
+    const loadMoreRef = useRef(loadMore);
+    useEffect(() => {
+        loadMoreRef.current = loadMore;
+    }, [loadMore]);
 
     // Handle Infinite Scroll Down
     useEffect(() => {
         const observer = new IntersectionObserver(
             (entries) => {
                 if (entries[0].isIntersecting && hasMore && !isLoading) {
-                    loadMore();
+                    loadMoreRef.current();
                 }
             },
             { threshold: 0.1, rootMargin: '200px' }
@@ -83,7 +88,7 @@ export default function InfiniteScroll<T extends { id: string | number }>({
 
         if (bottomSentinelRef.current) observer.observe(bottomSentinelRef.current);
         return () => observer.disconnect();
-    }, [loadMore, hasMore, isLoading]);
+    }, [hasMore, isLoading]); // loadMore retiré : le ref garantit la valeur fraîche sans reconnexion
 
     // Handle Windowing memory management
     useEffect(() => {

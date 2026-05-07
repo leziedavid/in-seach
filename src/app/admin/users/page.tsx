@@ -3,14 +3,13 @@
 import React, { useState, useEffect } from 'react';
 import { getAllUsers, getSuspendedUsersAdmin, getRecoveryRequestsAdmin, suspendUserAdmin, reactivateUserAdmin, deleteUserAdmin, updateUser } from '@/api/api';
 import { Users, Shield, UserX, Mail, Phone, Calendar, Edit2, RotateCcw, Ban, Trash2, Search, AlertCircle } from 'lucide-react';
-import { useNotification } from '@/components/toast/NotificationProvider';
+import { useNotification } from '@/components/notifications/NotificationProvider';
 import { User, Role } from '@/types/interface';
-import { Modal } from '@/components/modal/MotionModal';
-import FormsUser from '@/components/Forms/FormsUser';
-import { GenericTable } from '@/components/table/table';
+import { Modal } from '@/components/ui/MotionModal';
+import FormsUser from '@/components/profile/forms/FormsUser';
+import { GenericTable } from '@/components/ui/table/table';
 import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 type ViewMode = 'all' | 'suspended' | 'recovery';

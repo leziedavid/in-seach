@@ -6,15 +6,21 @@ import { SocketProvider } from "@/components/providers/SocketProvider";
 import { CartProvider } from "@/components/providers/CartProvider";
 import ClientLayout from "@/components/layout/ClientLayout";
 import { Jost } from "next/font/google"
-
 import { ThemeProvider } from "@/components/theme-provider";
-import { NotificationProvider } from "@/components/toast/NotificationProvider";
-import { WebPushManager } from "@/components/toast/webPush";
+import { NotificationProvider } from "@/components/notifications/NotificationProvider";
+import { WebPushManager } from "@/components/notifications/webPush";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import InstallPWA from "@/components/pwa/InstallPWA";
 import BackgroundDecoration from "@/components/layout/BackgroundDecoration";
-
+import VideoModal from "@/components/modals/VideoModal";
 const inter = Inter({ subsets: ["latin"] });
+import { Montserrat } from 'next/font/google'
+
+const montserrat = Montserrat({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700'],
+  variable: '--font-montserrat', // optionnel (très utile)
+})
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-plus-jakarta",
@@ -100,7 +106,7 @@ export default function RootLayout({ children, }: Readonly<{ children: React.Rea
       <head />
       {/* <body className={inter.className}> */}
       <body className={`${jost.variable} font-sans antialiased`}>
-        <BackgroundDecoration />
+        {/* <BackgroundDecoration /> */}
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange >
           <NotificationProvider>
             <WebPushManager />
@@ -111,6 +117,7 @@ export default function RootLayout({ children, }: Readonly<{ children: React.Rea
 
                   <ClientLayout>
                     {children}
+                    <VideoModal />
                   </ClientLayout>
                 </CartProvider>
               </SocketProvider>

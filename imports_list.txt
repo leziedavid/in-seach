@@ -1,0 +1,194 @@
+src//app/location/page.tsx:import { Button } from '@/components/ui/button';
+src//app/location/page.tsx:const UserMap = dynamic(() => import('@/components/maps/UserMap'), {
+src//app/akwaba/Sidebar.tsx:import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+src//app/akwaba/Sidebar.tsx:import { Button } from "@/components/ui/button";
+src//app/akwaba/page.tsx:import FloteManager from '@/components/logistics/FloteManager';
+src//app/akwaba/page.tsx:import EasyDeliveryPage from '@/components/easy-delivery/EasyDeliveryPage';
+src//app/akwaba/page.tsx:import AccountServicesList from '@/components/account/AccountServicesList';
+src//app/akwaba/page.tsx:import AccountAnnonces from '@/components/account/AccountAnnonces';
+src//app/akwaba/page.tsx:import AccountBookings from '@/components/account/AccountBookings';
+src//app/akwaba/page.tsx:import AnnoncesBookings from '@/components/account/AnnoncesBookings';
+src//app/akwaba/page.tsx:import AccountSettings from '@/components/account/AccountSettings';
+src//app/akwaba/page.tsx:import BookingCalendar from '@/components/bookings/BookingCalendar';
+src//app/akwaba/page.tsx:import Commandes from '@/components/products/Commandes';
+src//app/akwaba/page.tsx:import Store from '@/components/products/Store';
+src//app/akwaba/page.tsx:import HistoriqueCommandes from '@/components/products/Historique-commandes';
+src//app/akwaba/page.tsx:import HistoriqueRdv from '@/components/bookings/Historique-rdv';
+src//app/akwaba/page.tsx:import LogisticsServicesList from '@/components/logistics/LogisticsServicesList';
+src//app/akwaba/page.tsx:import QuotesList from '@/components/logistics/QuotesList';
+src//app/akwaba/page.tsx:import DeliveriesList from '@/components/logistics/DeliveriesList';
+src//app/akwaba/page.tsx:import QuoteRequestModal from '@/components/logistics/QuoteRequestModal';
+src//app/akwaba/page.tsx:import ApiDocumentation from '@/components/account/ApiDocumentation';
+src//app/akwaba/page.tsx:import { Modal } from '@/components/modal/MotionModal';
+src//app/shop/[storeName]/page.tsx:import ProductCard from "@/components/products/ProductCard"
+src//app/shop/[storeName]/page.tsx:import VoiceSearchModal from "@/components/service/VoiceSearchModal"
+src//app/shop/[storeName]/page.tsx:import InfiniteScroll from "@/components/ui/InfiniteScroll"
+src//app/shop/[storeName]/page.tsx:import CategoryButton from "@/components/products/CategoryButton"
+src//app/admin/settings/page.tsx:import { useNotification } from '@/components/toast/NotificationProvider';
+src//app/admin/settings/page.tsx:import { Switch } from '@/components/ui/switch';
+src//app/admin/settings/page.tsx:import { Button } from '@/components/ui/button';
+src//app/admin/settings/page.tsx:import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+src//app/admin/settings/page.tsx:import SeedAdminManager from '@/components/admin/SeedAdminManager';
+src//app/admin/products/page.tsx:import { useNotification } from '@/components/toast/NotificationProvider';
+src//app/admin/products/page.tsx:import { Modal } from '@/components/modal/MotionModal';
+src//app/admin/products/page.tsx:import FormsProduit from '@/components/Forms/FormsProduit';
+src//app/admin/products/page.tsx:import CategoryProductForm from '@/components/Forms/CategoryProductForm';
+src//app/admin/products/page.tsx:import { GenericTable } from '@/components/table/table';
+src//app/admin/products/page.tsx:import { Badge } from '@/components/ui/badge';
+src//app/admin/products/page.tsx:import { Button } from '@/components/ui/button';
+src//app/admin/location-logs/page.tsx:import { useNotification } from '@/components/toast/NotificationProvider';
+src//app/admin/location-logs/page.tsx:import { GenericTable } from '@/components/table/table';
+src//app/admin/location-logs/page.tsx:import { Button } from '@/components/ui/button';
+src//app/admin/location-logs/page.tsx:import { Input } from '@/components/ui/input';
+src//app/admin/subscriptions/page.tsx:import { useNotification } from '@/components/toast/NotificationProvider';
+src//app/admin/subscriptions/page.tsx:import { Switch } from '@/components/ui/switch';
+src//app/admin/subscriptions/page.tsx:import { Modal } from '@/components/modal/MotionModal';
+src//app/admin/subscriptions/page.tsx:import FormsSubscriptionPlan from '@/components/Forms/FormsSubscriptionPlan';
+src//app/admin/subscriptions/page.tsx:import { GenericTable } from '@/components/table/table';
+src//app/admin/subscriptions/page.tsx:import { Badge } from '@/components/ui/badge';
+src//app/admin/subscriptions/page.tsx:import { Button } from '@/components/ui/button';
+src//app/admin/subscriptions/page.tsx:import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+src//app/admin/annonces/page.tsx:import { useNotification } from '@/components/toast/NotificationProvider';
+src//app/admin/annonces/page.tsx:import FormsAnnonce from '@/components/Forms/FormsAnnonce';
+src//app/admin/annonces/page.tsx:import CategoryAnnonceForm from '@/components/Forms/CategoryAnnonceForm';
+src//app/admin/annonces/page.tsx:import TypeAnnonceForm from '@/components/Forms/TypeAnnonceForm';
+src//app/admin/annonces/page.tsx:import SimpleEntityForm from '@/components/Forms/SimpleEntityForm';
+src//app/admin/annonces/page.tsx:import TechnicalSheetConfigForm from '@/components/Forms/TechnicalSheetConfigForm';
+src//app/admin/annonces/page.tsx:import { Modal } from '@/components/modal/MotionModal';
+src//app/admin/annonces/page.tsx:import { GenericTable } from '@/components/table/table';
+src//app/admin/annonces/page.tsx:import { Badge } from '@/components/ui/badge';
+src//app/admin/annonces/page.tsx:import { Button } from '@/components/ui/button';
+src//app/admin/logs/page.tsx:import { useNotification } from '@/components/toast/NotificationProvider';
+src//app/admin/logs/page.tsx:import { Badge } from '@/components/ui/badge';
+src//app/admin/logs/page.tsx:import { Button } from '@/components/ui/button';
+src//app/admin/logs/page.tsx:import { Card, CardContent } from '@/components/ui/card';
+src//app/admin/logs/page.tsx:import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+src//app/admin/logs/page.tsx:import { Input } from '@/components/ui/input';
+src//app/admin/logs/page.tsx:import { GenericTable } from '@/components/table/table';
+src//app/admin/easy-delivery/page.tsx:import { TablePagination } from "@/components/table/Pagination"
+src//app/admin/easy-delivery/page.tsx:import DeliverySettingsModal from "@/components/easy-delivery/DeliverySettings"
+src//app/admin/layout.tsx:import { ThemeToggle } from '@/components/theme-toggle';
+src//app/admin/users/page.tsx:import { useNotification } from '@/components/toast/NotificationProvider';
+src//app/admin/users/page.tsx:import { Modal } from '@/components/modal/MotionModal';
+src//app/admin/users/page.tsx:import FormsUser from '@/components/Forms/FormsUser';
+src//app/admin/users/page.tsx:import { GenericTable } from '@/components/table/table';
+src//app/admin/users/page.tsx:import { Badge } from '@/components/ui/badge';
+src//app/admin/page.tsx:import { useNotification } from '@/components/toast/NotificationProvider';
+src//app/admin/page.tsx:import { GenericTable } from '@/components/table/table';
+src//app/admin/page.tsx:import { Button } from '@/components/ui/button';
+src//app/admin/page.tsx:import { Badge } from '@/components/ui/badge';
+src//app/admin/logistics/page.tsx:import AdminLogisticsServices from "@/components/admin/logistics/AdminLogisticsServices"
+src//app/admin/logistics/page.tsx:import AdminLogisticsQuotes from "@/components/admin/logistics/AdminLogisticsQuotes"
+src//app/admin/logistics/page.tsx:import AdminLogisticsDeliveries from "@/components/admin/logistics/AdminLogisticsDeliveries"
+src//app/admin/logistics/page.tsx:import AdminLogisticsFleet from "@/components/admin/logistics/AdminLogisticsFleet"
+src//app/admin/services/page.tsx:import { useNotification } from '@/components/toast/NotificationProvider';
+src//app/admin/services/page.tsx:import FormsServices from '@/components/Forms/FormsServices';
+src//app/admin/services/page.tsx:import CategoryServiceForm from '@/components/Forms/CategoryServiceForm';
+src//app/admin/services/page.tsx:import { Modal } from '@/components/modal/MotionModal';
+src//app/admin/services/page.tsx:import { GenericTable } from '@/components/table/table';
+src//app/admin/services/page.tsx:import { Badge } from '@/components/ui/badge';
+src//app/admin/services/page.tsx:import { Button } from '@/components/ui/button';
+src//app/solutions/page.tsx:import IconIllustration from "@/components/solutions/IconIllustration";
+src//app/solutions/page.tsx:import FeatureCard from "@/components/solutions/FeatureCard";
+src//app/solutions/page.tsx:import SectionBlock from "@/components/solutions/SectionBlock";
+src//app/register/page.tsx:import { Switch } from '@/components/ui/switch';
+src//app/logs/page.tsx:import { GenericTable, TableAction } from '@/components/table/table';
+src//app/logs/page.tsx:import { Badge } from '@/components/ui/badge';
+src//app/logs/page.tsx:import { DateRangePicker } from '@/components/ui/date-range-picker';
+src//app/logs/page.tsx:import { Button } from '@/components/ui/button';
+src//app/logs/page.tsx:import { DeleteConfirmation } from '@/components/ui/delete-confirmation';
+src//app/logs/page.tsx:import { TablePagination } from '@/components/table/Pagination';
+src//app/chat-ia/page.tsx:import { useSocket } from '@/components/providers/SocketProvider';
+src//app/chat-ia/page.tsx:import { useNotification } from '@/components/toast/NotificationProvider';
+src//app/layout.tsx:import QueryProvider from "@/components/providers/QueryProvider";
+src//app/layout.tsx:import { SocketProvider } from "@/components/providers/SocketProvider";
+src//app/layout.tsx:import { CartProvider } from "@/components/providers/CartProvider";
+src//app/layout.tsx:import ClientLayout from "@/components/layout/ClientLayout";
+src//app/layout.tsx:import { ThemeProvider } from "@/components/theme-provider";
+src//app/layout.tsx:import { NotificationProvider } from "@/components/toast/NotificationProvider";
+src//app/layout.tsx:import { WebPushManager } from "@/components/toast/webPush";
+src//app/layout.tsx:import InstallPWA from "@/components/pwa/InstallPWA";
+src//app/layout.tsx:import BackgroundDecoration from "@/components/layout/BackgroundDecoration";
+src//app/layout.tsx:import VideoModal from "@/components/VideoModal";
+src//app/connect/[id]/page.tsx:import SimulationLoader from "@/components/home/SimulationLoader";
+src//app/page.tsx:import Content from "@/components/home/Content";
+src//app/page.tsx:import { CookieConsentModal } from "@/components/common/CookieConsentModal";
+src//app/pricing/page.tsx:import SubscriptionPaymentModal from '@/components/subscription/SubscriptionPaymentModal';
+src//app/logistics/[companyName]/page.tsx:import LogisticsServicesList from "@/components/logistics/LogisticsServicesList"
+src//app/logistics/[companyName]/page.tsx:import QuoteRequestModal from "@/components/logistics/QuoteRequestModal"
+src//app/logistics/[companyName]/page.tsx:import { Modal } from "@/components/modal/MotionModal"
+src//app/login/page.tsx:import { AccountRecoveryModal } from '@/components/auth/AccountRecoveryModal';
+src//utils/location.ts:import { useNotification } from "@/components/toast/NotificationProvider";
+src//components/ui/alert-dialog.tsx:import { Button } from "@/components/ui/button"
+src//components/ui/date-range-picker.tsx:import { Button } from "@/components/ui/button"
+src//components/ui/date-range-picker.tsx:import { Calendar } from "@/components/ui/calendar"
+src//components/ui/date-range-picker.tsx:import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+src//components/ui/delete-confirmation.tsx:import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, } from "@/components/ui/alert-dialog"
+src//components/ui/delete-confirmation.tsx:import { Button } from "@/components/ui/button"
+src//components/ui/calendar.tsx:import { Button, buttonVariants } from "@/components/ui/button"
+src//components/home/Info.tsx:import { Button } from "@/components/ui/button";
+src//components/home/ComingSoon.tsx:import Header from "@/components/home/layout/Header";
+src//components/home/ComingSoon.tsx:import Footer from "@/components/home/layout/Footer";
+src//components/home/ComingSoon.tsx:import BackgroundDecoration from "@/components/layout/BackgroundDecoration";
+src//components/home/AnnonceModal.tsx:import { useNotification } from "@/components/toast/NotificationProvider";
+src//components/products/cards/ProductCard.tsx:import { useCart } from "@/components/providers/CartProvider"
+src//components/products/cards/ProductCard.tsx:import { useNotification } from "@/components/toast/NotificationProvider"
+src//components/products/modals/ProductDetailModal.tsx:import { useCart } from "@/components/providers/CartProvider";
+src//components/products/modals/ProductDetailModal.tsx:import { useNotification } from "@/components/toast/NotificationProvider";
+src//components/bookings/ui/AccountBookingRowSkeleton.tsx:import { Skeleton } from "@/components/ui/skeleton";
+src//components/bookings/sections/BookingCalendar.tsx:import { Button } from "@/components/ui/button";
+src//components/bookings/sections/BookingCalendar.tsx:import { Calendar } from "@/components/ui/calendar";
+src//components/bookings/sections/BookingCalendar.tsx:import { Popover, PopoverContent, PopoverTrigger, } from "@/components/ui/popover";
+src//components/layout/Footer.tsx:import FooterInstallButton from "@/components/pwa/FooterInstallButton"
+src//components/layout/Header.tsx:import { ThemeToggle } from "@/components/theme-toggle";
+src//components/layout/Header.tsx:import { useSocket } from "@/components/providers/SocketProvider";
+src//components/layout/Header.tsx:import { useCart } from "@/components/providers/CartProvider";
+src//components/layout/Header.tsx:import CartDetailModal from "@/components/products/CartDetailModal";
+src//components/layout/Header.tsx:import { useNotification } from "@/components/toast/NotificationProvider";
+src//components/layout/ClientLayout.tsx:import ComingSoon from "@/components/home/ComingSoon";
+src//components/layout/ClientLayout.tsx:import PageTransition from "@/components/ui/PageTransition";
+src//components/layout/ClientLayout.tsx:import { NotificationPermissionModal } from "@/components/notifications/NotificationPermissionModal";
+src//components/providers/SocketProvider.tsx:import { useNotification } from '@/components/toast/NotificationProvider';
+src//components/dashboard/admin/SeedAdminManager.tsx:import { useNotification } from '@/components/toast/NotificationProvider';
+src//components/dashboard/admin/SeedAdminManager.tsx:import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+src//components/dashboard/admin/SeedAdminManager.tsx:import { Button } from '@/components/ui/button';
+src//components/dashboard/admin/SeedAdminManager.tsx:import { Badge } from '@/components/ui/badge';
+src//components/dashboard/admin/SeedAdminManager.tsx:import { Checkbox } from '@/components/ui/checkbox';
+src//components/dashboard/admin/SeedAdminManager.tsx:import { ScrollArea } from '@/components/ui/scroll-area';
+src//components/dashboard/admin/logistics/AdminLogisticsDeliveries.tsx:import { TablePagination } from "@/components/table/Pagination"
+src//components/dashboard/admin/logistics/AdminLogisticsFleet.tsx:import { TablePagination } from "@/components/table/Pagination"
+src//components/dashboard/admin/logistics/AdminLogisticsServices.tsx:import { TablePagination } from "@/components/table/Pagination"
+src//components/dashboard/admin/logistics/AdminLogisticsQuotes.tsx:import { TablePagination } from "@/components/table/Pagination"
+src//components/common/Share.tsx:import { useNotification } from "@/components/toast/NotificationProvider";
+src//components/profile/ApiDocumentation.tsx:import { Button } from '@/components/ui/button';
+src//components/table/Pagination.tsx:import { Button } from "@/components/ui/button"
+src//components/table/table.tsx:import { Switch } from "@/components/ui/switch"
+src//components/table/table.tsx:import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu"
+src//components/table/table.tsx:import { Button } from "@/components/ui/button"
+src//components/table/table.tsx:import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/components/ui/table"
+src//components/table/table.tsx:import { Input } from "@/components/ui/input"
+src//components/table/table.tsx:import { Skeleton } from "@/components/ui/skeleton"
+src//components/table/column.tsx:import { Badge } from "@/components/ui/badge"
+src//components/table/column.tsx:import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+src//components/table/column.tsx:import { Button } from "@/components/ui/button"
+src//components/rich-text-editor/menu-bar.tsx:import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+src//components/pwa/InstallPWA.tsx:import { Button } from "@/components/ui/button";
+src//components/delivery/sections/LiveTrackingView.tsx:import { Button } from "@/components/ui/button";
+src//components/delivery/sections/LiveTrackingView.tsx:import { useNotification } from "@/components/toast/NotificationProvider";
+src//components/delivery/sections/EasyDeliveryPage.tsx:import { SectionHeader } from "@/components/common/SectionHeader";
+src//components/delivery/sections/EasyDeliveryPage.tsx:import { useNotification } from "@/components/toast/NotificationProvider";
+src//components/delivery/sections/EasyDeliveryPage.tsx:import AccountBookingRowSkeleton from "@/components/bookings/AccountBookingRowSkeleton";
+src//components/delivery/sections/DeliverySettings.tsx:import { Button } from "@/components/ui/button"
+src//components/delivery/modals/DriverSelectorModal.tsx:import { Button } from "@/components/ui/button";
+src//components/delivery/modals/DriverSelectorModal.tsx:import { useNotification } from "@/components/toast/NotificationProvider";
+src//components/theme-toggle.tsx:import { Switch } from "@/components/ui/switch"
+src//components/logistics/modals/LogisticsServiceDetailModal.tsx:import { useNotification } from "@/components/toast/NotificationProvider";
+src//components/store/sections/Store.tsx:import { useNotification } from "@/components/toast/NotificationProvider"
+src//components/store/sections/Store.tsx:import { Modal } from "@/components/modal/MotionModal"
+src//components/store/sections/Store.tsx:import FormsProduit from "@/components/Forms/FormsProduit"
+src//components/store/sections/Store.tsx:import NotFound from "@/components/shared/NotFound"
+src//components/store/modals/CartDetailModal.tsx:import { useCart } from "@/components/providers/CartProvider";
+src//components/store/modals/CartDetailModal.tsx:import { useNotification } from "@/components/toast/NotificationProvider";
+src//hooks/useSubscriptionCheck.ts:import { useNotification } from '@/components/toast/NotificationProvider';
+src//hooks/useNotifications.ts:import { useNotification as useToast } from '@/components/toast/NotificationProvider';
+src//hooks/useRequireAuth.ts:import { useNotification } from "@/components/toast/NotificationProvider";

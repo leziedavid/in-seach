@@ -2,11 +2,11 @@
 
 import React from 'react';
 import { Settings, Save, Globe, Lock, Bell, Palette, Database, Code, Info, ShieldCheck, Zap, Activity } from 'lucide-react';
-import { useNotification } from '@/components/toast/NotificationProvider';
+import { useNotification } from '@/components/notifications/NotificationProvider';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import SeedAdminManager from '@/components/admin/SeedAdminManager';
+import SeedAdminManager from '@/components/dashboard/admin/SeedAdminManager';
 
 interface AdminSettings {
     maintenanceMode: boolean;

@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { reverseGeocode as apiReverseGeocode } from "@/api/api";
 import { UserLocation } from "@/types/interface";
-import { useNotification } from "@/components/toast/NotificationProvider";
+import { useNotification } from "@/components/notifications/NotificationProvider";
 
 // ─── Cache module-level (partagé entre toutes les instances du hook) ──────────
 // Durée de validité : 5 minutes. Evite N appels Nominatim pour un même rendu.
