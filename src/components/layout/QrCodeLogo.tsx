@@ -50,11 +50,11 @@ const QrCodeLogo: React.FC<QrCodeLogoProps> = ({ user }) => {
             {/* ICONES DU HAUT */}
             <div className="flex relative">
                 <div className="relative block cursor-pointer" onClick={handleOpenPopup} onMouseEnter={handleOpenPopup} onMouseLeave={handleClosePopup}  >
-                    <Image src="/icons/qr-code-ring.svg" alt="Scanner pour nous suivre" width={40} height={40} loading="lazy" />
+                    <Image src="/icons/qr-code-ring.svg" alt="Scanner pour nous suivre" width={40} height={40} priority />
                     {/* Petit QR (ne pas toucher) */}
                     <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
                         {qrCodeDataUrl ? (
-                            <Image src="/icons/qr-code.svg" alt="QR Code" width={25} height={25} loading="lazy" />
+                            <Image src="/icons/qr-code.svg" alt="QR Code" width={25} height={25} priority />
                         ) : (
                             <div className="w-[25px] h-[25px] bg-muted animate-pulse rounded"></div>
                         )}
@@ -77,21 +77,10 @@ const QrCodeLogo: React.FC<QrCodeLogoProps> = ({ user }) => {
                             {/* QR Code agrandi */}
                             <div className="flex justify-center mb-3">
                                 <div className="relative">
-                                    <Image
-                                        src="/icons/qr-code-ring.svg"
-                                        alt="QR Code Ring"
-                                        width={180}
-                                        height={180}
-                                    />
-
+                                    <Image src="/icons/qr-code-ring.svg" alt="QR Code Ring" width={180} height={180} />
                                     <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
                                         {qrCodeDataUrl ? (
-                                            <Image
-                                                src={qrCodeDataUrl}
-                                                alt="QR Code"
-                                                width={150}
-                                                height={150}
-                                            />
+                                            <Image src={qrCodeDataUrl} alt="QR Code" width={150} height={150} />
                                         ) : (
                                             <div className="w-[150px] h-[150px] bg-muted animate-pulse rounded"></div>
                                         )}

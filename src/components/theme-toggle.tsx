@@ -17,7 +17,7 @@ export function ThemeToggle() {
     if (!mounted) {
         return (
             <div className="flex items-center space-x-2" suppressHydrationWarning>
-                <Switch disabled aria-label="Toggle theme" suppressHydrationWarning />
+                <Switch checked={false} disabled aria-label="Toggle theme" suppressHydrationWarning />
                 <Icon icon="solar:sun-bold-duotone" className="h-5 w-5 text-muted-foreground" />
             </div>
         )

@@ -7,6 +7,7 @@ import CategoryButton from "@/components/products/sections/CategoryButton"
 import ProductCard from "@/components/products/cards/ProductCard"
 import { Icon } from "@iconify/react"
 import NotFound from "@/components/common/NotFound"
+import Loader from "@/components/common/Loader"
 import VoiceSearchModal from "@/components/services/sections/VoiceSearchModal"
 
 import InfiniteScroll from "@/components/ui/InfiniteScroll"
@@ -120,22 +121,36 @@ export default function ProductsPage() {
             <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-1">
                 <div className="flex items-center justify-start md:justify-center w-full px-2 md:px-0 mb-4">
                     <h3 className="text-xl md:text-2xl font-black text-foreground italic">
-                        {loading && products.length === 0 ? 'Chargement...' : products.length === 0 ? ' ' : `${total} résultat${total > 1 ? 's' : ''}`}
+                        {!loading && products.length > 0 ? `${total} résultat${total > 1 ? 's' : ''}` : ''}
                     </h3>
                 </div>
 
-                <InfiniteScroll
-                    items={products}
-                    hasMore={hasMore}
-                    isLoading={loading}
-                    loadMore={() => setPage(prev => prev + 1)}
-                    skeletonType="product"
-                    skeletonCount={3}
-                    renderItem={(product) => (
-                        <ProductCard key={product.id} product={product} />
-                    )}
-                    className="w-full"
-                />
+                {loading && products.length === 0 ? (
+                    <Loader
+                        title="Chargement des produits..."
+                        description="Nous préparons votre boutique, veuillez patienter."
+                        icon="solar:bag-4-bold-duotone"
+                    />
+                ) : !loading && products.length === 0 ? (
+                    <NotFound
+                        title="Aucun produit trouvé"
+                        description="Aucun produit ne correspond à votre recherche. Essayez d'autres mots-clés ou une autre catégorie."
+                        icon="solar:bag-4-bold-duotone"
+                    />
+                ) : (
+                    <InfiniteScroll
+                        items={products}
+                        hasMore={hasMore}
+                        isLoading={loading}
+                        loadMore={() => setPage(prev => prev + 1)}
+                        skeletonType="product"
+                        skeletonCount={3}
+                        renderItem={(product) => (
+                            <ProductCard key={product.id} product={product} />
+                        )}
+                        className="w-full"
+                    />
+                )}
             </div>
 
             <VoiceSearchModal

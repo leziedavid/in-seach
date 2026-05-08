@@ -13,6 +13,7 @@ import { useSubscriptionCheck } from "@/hooks/useSubscriptionCheck";
 import { SectionHeader } from "@/components/shared/SectionHeader";
 import Delete from "@/components/logistics/modals/Delete";
 import NotFound from "@/components/common/NotFound";
+import Loader from "@/components/common/Loader";
 import InfiniteScroll from "@/components/ui/InfiniteScroll";
 import dynamic from "next/dynamic";
 import Image from "next/image"
@@ -335,31 +336,45 @@ export default function LogisticsServicesList({ mode = "marketplace", companyNam
             <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-1">
                 <div className="flex items-center justify-start md:justify-center w-full px-2 md:px-0 mb-4">
                     <h3 className="text-xl md:text-2xl font-black text-foreground italic text-left md:text-center">
-                        {(loading || isInitialLoading) && services.length === 0 ? 'Chargement...' : services.length === 0 ? ' ' : `${total} résultat${total > 1 ? 's' : ''}`}
+                        {services.length > 0 ? `${total} résultat${total > 1 ? 's' : ''}` : ''}
                     </h3>
                 </div>
 
-                <InfiniteScroll
-                    items={services}
-                    loadMore={() => setPage(prev => prev + 1)}
-                    hasMore={hasMore}
-                    isLoading={loading}
-                    skeletonType="logistics"
-                    skeletonCount={3}
-                    renderItem={(service) => (
-                        <LogisticsServicesCard
-                            key={service.id}
-                            service={service}
-                            isOwner={isManagement}
-                            onEdit={() => openEditModal(service)}
-                            onDelete={handleDelete}
-                            onToggleStatus={handleToggle}
-                            onRequestQuote={onRequestQuote}
-                            isUpdating={updatingId === service.id}
-                        />
-                    )}
-                    className="w-full"
-                />
+                {(loading || isInitialLoading) && services.length === 0 ? (
+                    <Loader
+                        title={isManagement ? "Chargement de vos services..." : "Chargement des services..."}
+                        description={isManagement ? "Récupération de vos services logistiques en cours." : "Nous récupérons les services logistiques disponibles."}
+                        icon="solar:delivery-bold-duotone"
+                    />
+                ) : !loading && !isInitialLoading && services.length === 0 ? (
+                    <NotFound
+                        title={isManagement ? "Aucun service publié" : "Aucun service disponible"}
+                        description={isManagement ? "Vous n'avez pas encore publié de service logistique. Cliquez sur « Publier un service » pour commencer." : "Aucun service logistique ne correspond à votre recherche. Essayez d'autres mots-clés ou un autre type de transport."}
+                        icon="solar:delivery-bold-duotone"
+                    />
+                ) : (
+                    <InfiniteScroll
+                        items={services}
+                        loadMore={() => setPage(prev => prev + 1)}
+                        hasMore={hasMore}
+                        isLoading={loading}
+                        skeletonType="logistics"
+                        skeletonCount={3}
+                        renderItem={(service) => (
+                            <LogisticsServicesCard
+                                key={service.id}
+                                service={service}
+                                isOwner={isManagement}
+                                onEdit={() => openEditModal(service)}
+                                onDelete={handleDelete}
+                                onToggleStatus={handleToggle}
+                                onRequestQuote={onRequestQuote}
+                                isUpdating={updatingId === service.id}
+                            />
+                        )}
+                        className="w-full"
+                    />
+                )}
 
                 {/* Edit Modal */}
                 <Modal isOpen={isEditModalOpen} onClose={() => { setIsEditModalOpen(false); setEditingService(null); }}>

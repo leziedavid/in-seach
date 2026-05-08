@@ -8,6 +8,8 @@ import { Modal } from "@/components/ui/MotionModal"
 import { Icon } from "@iconify/react"
 import Image from "next/image"
 import dynamic from "next/dynamic"
+import NotFound from "@/components/common/NotFound"
+import Loader from "@/components/common/Loader"
 
 // Lazy-load : uniquement chargé quand l'utilisateur ouvre un devis
 const QuoteRequestModal = dynamic(() => import("@/components/logistics/modals/QuoteRequestModal"), { ssr: false })
@@ -47,6 +49,30 @@ export default function LogisticsCompanyPage(props: Props) {
     const openQuoteModal = (service: LogisticService) => {
         setSelectedServiceForQuote(service)
         setIsQuoteModalOpen(true)
+    }
+
+    if (loading) {
+        return (
+            <div className="flex flex-col items-center w-full max-w-7xl mx-auto px-4 py-8 md:py-12">
+                <Loader
+                    title="Chargement de l'entreprise..."
+                    description="Nous récupérons les informations de cette compagnie logistique, veuillez patienter."
+                    icon="solar:delivery-bold-duotone"
+                />
+            </div>
+        )
+    }
+
+    if (!companyInfo) {
+        return (
+            <div className="flex flex-col items-center w-full max-w-7xl mx-auto px-4 py-8 md:py-12">
+                <NotFound
+                    title="Entreprise introuvable"
+                    description="Cette compagnie logistique n'existe pas ou n'est plus disponible. Vérifiez l'URL ou explorez d'autres compagnies partenaires."
+                    icon="solar:delivery-bold-duotone"
+                />
+            </div>
+        )
     }
 
     return (

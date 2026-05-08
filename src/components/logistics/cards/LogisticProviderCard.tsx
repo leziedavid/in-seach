@@ -36,7 +36,6 @@ export default function LogisticProviderCard({ provider }: LogisticProviderCardP
                         {provider.logisticServices?.length || 0} Services
                     </div>
 
-
                 </div>
 
                 {/* Content Section */}
@@ -54,7 +53,6 @@ export default function LogisticProviderCard({ provider }: LogisticProviderCardP
                             </span>
                         </div>
                     )}
-
 
                     {/* Action Button */}
                     <div className="pt-3 w-full">

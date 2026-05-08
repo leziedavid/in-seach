@@ -7,6 +7,8 @@ import { findAllPrestataire } from "@/api/api";
 import LogisticProviderCard from "@/components/logistics/cards/LogisticProviderCard";
 import VoiceSearchModal from "@/components/services/sections/VoiceSearchModal";
 import InfiniteScroll from "@/components/ui/InfiniteScroll";
+import NotFound from "@/components/common/NotFound";
+import Loader from "@/components/common/Loader";
 
 const ITEMS_PER_PAGE = 8;
 
@@ -102,20 +104,34 @@ export default function LogisticProviderList() {
             <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-1">
                 <div className="flex items-center justify-start md:justify-center w-full px-2 md:px-0 mb-4">
                     <h3 className="text-xl md:text-2xl font-black text-foreground italic text-left md:text-center leading-tight">
-                        {(loading || isInitialLoading) && providers.length === 0 ? 'Chargement...' : providers.length === 0 ? 'Aucune compagnie trouvée' : `${total} compagnie${total > 1 ? 's' : ''} partenaire${total > 1 ? 's' : ''}`}
+                        {providers.length > 0 ? `${total} compagnie${total > 1 ? 's' : ''} partenaire${total > 1 ? 's' : ''}` : ''}
                     </h3>
                 </div>
 
-                <InfiniteScroll
-                    items={providers}
-                    loadMore={() => setPage(prev => prev + 1)}
-                    hasMore={hasMore}
-                    isLoading={loading}
-                    skeletonType="logistics"
-                    skeletonCount={4}
-                    renderItem={(provider) => (<LogisticProviderCard key={provider.id} provider={provider} />)}
-                    className="w-full"
-                />
+                {(loading || isInitialLoading) && providers.length === 0 ? (
+                    <Loader
+                        title="Chargement des compagnies..."
+                        description="Nous recherchons les compagnies logistiques partenaires disponibles."
+                        icon="solar:delivery-bold-duotone"
+                    />
+                ) : !loading && !isInitialLoading && providers.length === 0 ? (
+                    <NotFound
+                        title="Aucune compagnie trouvée"
+                        description="Aucune compagnie logistique ne correspond à votre recherche. Essayez d'autres mots-clés ou un autre type de transport."
+                        icon="solar:delivery-bold-duotone"
+                    />
+                ) : (
+                    <InfiniteScroll
+                        items={providers}
+                        loadMore={() => setPage(prev => prev + 1)}
+                        hasMore={hasMore}
+                        isLoading={loading}
+                        skeletonType="logistics"
+                        skeletonCount={4}
+                        renderItem={(provider) => (<LogisticProviderCard key={provider.id} provider={provider} />)}
+                        className="w-full"
+                    />
+                )}
             </div>
 
             <VoiceSearchModal

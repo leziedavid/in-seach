@@ -10,6 +10,8 @@ import AnnonceModal from "../../home/AnnonceModal";
 import InfiniteScroll from "@/components/ui/InfiniteScroll";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import VoiceSearchModal from "@/components/services/sections/VoiceSearchModal";
+import NotFound from "@/components/common/NotFound";
+import Loader from "@/components/common/Loader";
 
 export default function SearchAnnonces() {
     const { withAuth } = useRequireAuth();
@@ -169,61 +171,75 @@ export default function SearchAnnonces() {
             <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-1">
                 <div className="flex items-center justify-start md:justify-center w-full px-2 md:px-0 mb-4">
                     <h3 className="text-xl md:text-2xl font-black text-foreground italic text-left md:text-center">
-                        {loading && annonces.length === 0 ? 'Recherche en cours...' : ``}
+                        {''}
                     </h3>
                 </div>
 
-                <InfiniteScroll 
-                    items={annonces}
-                    loadMore={() => setPage(prev => prev + 1)} 
-                    hasMore={hasMore} 
-                    isLoading={loading} 
-                    skeletonType="annonce"
-                    skeletonCount={3}
-                    renderItem={(annonce: Annonce) => (
-                        <div key={annonce.id} onClick={() => withAuth(() => setSelectedAnnonce(annonce))} className="group rounded-lg p-0 md:p-4 flex flex-col md:items-center text-left md:text-center bg-card w-full transition-all duration-300 cursor-pointer stagger-item">
-                            {/* Image */}
-                            <div className="relative w-full aspect-square mb-1.5 overflow-hidden rounded-lg md:rounded-2xl">
-                                <Image src={(annonce.images?.[0] && typeof annonce.images?.[0] === 'string') ? annonce.images[0] : (Array.isArray(annonce.images) && (annonce.images[0] as any)?.fileUrl) || 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop'} alt={annonce.title} fill unoptimized className="object-cover group-hover:scale-110 transition-transform duration-500" />
-                                {annonce.categorie && (
-                                    <div className="absolute top-1 left-1 md:top-2 md:left-2 bg-black/70 md:bg-background/95 backdrop-blur-sm px-1.5 py-0.5 md:px-2 md:py-0.5 rounded-full text-[8px] md:text-[9px] font-black text-white md:text-foreground shadow-sm uppercase tracking-tighter">
-                                        {annonce.categorie.label}
-                                    </div>
-                                )}
-                            </div>
+                {loading && annonces.length === 0 ? (
+                    <Loader
+                        title="Recherche d'annonces..."
+                        description="Nous recherchons les annonces correspondant à vos critères."
+                        icon="solar:tag-bold-duotone"
+                    />
+                ) : !loading && annonces.length === 0 ? (
+                    <NotFound
+                        title="Aucune annonce trouvée"
+                        description="Aucune annonce ne correspond à votre recherche. Essayez d'autres mots-clés ou une localisation différente."
+                        icon="solar:tag-bold-duotone"
+                    />
+                ) : (
+                    <InfiniteScroll
+                        items={annonces}
+                        loadMore={() => setPage(prev => prev + 1)}
+                        hasMore={hasMore}
+                        isLoading={loading}
+                        skeletonType="annonce"
+                        skeletonCount={3}
+                        renderItem={(annonce: Annonce) => (
+                            <div key={annonce.id} onClick={() => withAuth(() => setSelectedAnnonce(annonce))} className="group rounded-lg p-0 md:p-4 flex flex-col md:items-center text-left md:text-center bg-card w-full transition-all duration-300 cursor-pointer stagger-item">
+                                {/* Image */}
+                                <div className="relative w-full aspect-square mb-1.5 overflow-hidden rounded-lg md:rounded-2xl">
+                                    <Image src={(annonce.images?.[0] && typeof annonce.images?.[0] === 'string') ? annonce.images[0] : (Array.isArray(annonce.images) && (annonce.images[0] as any)?.fileUrl) || 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop'} alt={annonce.title} fill unoptimized className="object-cover group-hover:scale-110 transition-transform duration-500" />
+                                    {annonce.categorie && (
+                                        <div className="absolute top-1 left-1 md:top-2 md:left-2 bg-black/70 md:bg-background/95 backdrop-blur-sm px-1.5 py-0.5 md:px-2 md:py-0.5 rounded-full text-[8px] md:text-[9px] font-black text-white md:text-foreground shadow-sm uppercase tracking-tighter">
+                                            {annonce.categorie.label}
+                                        </div>
+                                    )}
+                                </div>
 
-                            {/* Contenu */}
-                            <div className="px-0.5 pb-0 md:px-0 md:pb-0 w-full">
-                                <h3 className="text-xs md:text-base font-black text-foreground mb-1 line-clamp-2 md:line-clamp-1 group-hover:text-primary transition-colors w-full text-left leading-tight">
-                                    {annonce.title}
-                                </h3>
+                                {/* Contenu */}
+                                <div className="px-0.5 pb-0 md:px-0 md:pb-0 w-full">
+                                    <h3 className="text-xs md:text-base font-black text-foreground mb-1 line-clamp-2 md:line-clamp-1 group-hover:text-primary transition-colors w-full text-left leading-tight">
+                                        {annonce.title}
+                                    </h3>
 
-                                <div className="flex items-center justify-start gap-1 text-primary mb-2 md:mb-4 md:justify-center">
-                                    <Icon icon="solar:star-bold-duotone" className="w-2.5 h-2.5 fill-current md:w-3 md:h-3" />
-                                    <span className="text-[9px] md:text-xs font-black tracking-tight">
-                                        4.9 • <span className="text-muted-foreground">
-                                            {annonce.type?.label || 'Annonce'}
+                                    <div className="flex items-center justify-start gap-1 text-primary mb-2 md:mb-4 md:justify-center">
+                                        <Icon icon="solar:star-bold-duotone" className="w-2.5 h-2.5 fill-current md:w-3 md:h-3" />
+                                        <span className="text-[9px] md:text-xs font-black tracking-tight">
+                                            4.9 • <span className="text-muted-foreground">
+                                                {annonce.type?.label || 'Annonce'}
+                                            </span>
                                         </span>
-                                    </span>
-                                </div>
-
-                                <div className="w-full flex items-center justify-between mt-auto">
-                                    <div className="text-left">
-                                        <p className="text-secondary font-black text-sm md:text-lg">
-                                            {annonce.price?.toLocaleString() || '0'} <span className="text-[9px] font-bold text-muted-foreground">CFA</span>
-                                        </p>
                                     </div>
 
-                                    <button className="flex items-center gap-1 md:gap-2 bg-secondary text-white px-2 py-1 md:px-3 md:py-2 rounded-full text-[10px] md:text-xs font-black hover:bg-primary transition-all active:scale-90 shadow-sm">
-                                        <span className="whitespace-nowrap">Consulter</span>
-                                        <Icon icon="solar:check-circle-bold-duotone" className="w-3 h-3 md:w-4 md:h-4" />
-                                    </button>
+                                    <div className="w-full flex items-center justify-between mt-auto">
+                                        <div className="text-left">
+                                            <p className="text-secondary font-black text-sm md:text-lg">
+                                                {annonce.price?.toLocaleString() || '0'} <span className="text-[9px] font-bold text-muted-foreground">CFA</span>
+                                            </p>
+                                        </div>
+
+                                        <button className="flex items-center gap-1 md:gap-2 bg-secondary text-white px-2 py-1 md:px-3 md:py-2 rounded-full text-[10px] md:text-xs font-black hover:bg-primary transition-all active:scale-90 shadow-sm">
+                                            <span className="whitespace-nowrap">Consulter</span>
+                                            <Icon icon="solar:check-circle-bold-duotone" className="w-3 h-3 md:w-4 md:h-4" />
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    )}
-                    className="w-full"
-                />
+                        )}
+                        className="w-full"
+                    />
+                )}
             </div>
             {/* )} */}
 

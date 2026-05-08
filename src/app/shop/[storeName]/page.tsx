@@ -10,6 +10,8 @@ import InfiniteScroll from "@/components/ui/InfiniteScroll"
 import CategoryButton from "@/components/products/sections/CategoryButton"
 import { Icon } from "@iconify/react"
 import Image from "next/image"
+import NotFound from "@/components/common/NotFound"
+import Loader from "@/components/common/Loader"
 
 type Props = { params: Promise<{ storeName: string }> }
 
@@ -28,6 +30,7 @@ export default function StorePage(props: Props) {
     const [total, setTotal] = useState(0)
     const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false)
     const [publicStore, setPublicStore] = useState<(StoreUserInfo) | null>(null)
+    const [storeLoading, setStoreLoading] = useState(true)
 
     // 🔥 fonction pour nettoyer le slug → remettre les espaces
 
@@ -43,6 +46,8 @@ export default function StorePage(props: Props) {
             }
         } catch (error) {
             console.error("Error fetching public store info:", error)
+        } finally {
+            setStoreLoading(false)
         }
     }, [storeName])
 
@@ -114,6 +119,30 @@ export default function StorePage(props: Props) {
     }, [search, selectedCategory, fetchProducts, storeName])
 
 
+    if (storeLoading) {
+        return (
+            <div className="flex flex-col items-center w-full max-w-7xl mx-auto px-4 py-8 md:py-12">
+                <Loader
+                    title="Chargement de la boutique..."
+                    description="Nous récupérons les informations de cette boutique, veuillez patienter."
+                    icon="solar:shop-bold-duotone"
+                />
+            </div>
+        )
+    }
+
+    if (!publicStore) {
+        return (
+            <div className="flex flex-col items-center w-full max-w-7xl mx-auto px-4 py-8 md:py-12">
+                <NotFound
+                    title="Boutique introuvable"
+                    description="Cette boutique n'existe pas ou n'est plus disponible. Vérifiez l'URL ou explorez d'autres boutiques sur la plateforme."
+                    icon="solar:shop-bold-duotone"
+                />
+            </div>
+        )
+    }
+
     return (
         <div className="flex flex-col items-center w-full max-w-7xl mx-auto px-4 py-8 md:py-12">
             {/* Store Header */}
@@ -173,22 +202,36 @@ export default function StorePage(props: Props) {
             <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-1">
                 <div className="flex items-center justify-start md:justify-center w-full px-2 md:px-0 mb-4">
                     <h3 className="text-xl md:text-2xl font-black text-foreground italic">
-                        {loading && products.length === 0 ? 'Chargement...' : products.length === 0 ? ' ' : `${total} résultat${total > 1 ? 's' : ''}`}
+                        {!loading && products.length > 0 ? `${total} résultat${total > 1 ? 's' : ''}` : ''}
                     </h3>
                 </div>
 
-                <InfiniteScroll
-                    items={products}
-                    hasMore={hasMore}
-                    isLoading={loading}
-                    loadMore={() => setPage(prev => prev + 1)}
-                    skeletonType="product"
-                    skeletonCount={3}
-                    renderItem={(product) => (
-                        <ProductCard key={product.id} product={product} />
-                    )}
-                    className="w-full"
-                />
+                {loading && products.length === 0 ? (
+                    <Loader
+                        title="Chargement des produits..."
+                        description="Nous préparons les produits de cette boutique, veuillez patienter."
+                        icon="solar:bag-4-bold-duotone"
+                    />
+                ) : !loading && products.length === 0 ? (
+                    <NotFound
+                        title="Aucun produit disponible"
+                        description={search || selectedCategory !== "all" ? "Aucun produit ne correspond à votre recherche. Essayez d'autres mots-clés ou une autre catégorie." : "Cette boutique n'a pas encore de produits disponibles."}
+                        icon="solar:bag-4-bold-duotone"
+                    />
+                ) : (
+                    <InfiniteScroll
+                        items={products}
+                        hasMore={hasMore}
+                        isLoading={loading}
+                        loadMore={() => setPage(prev => prev + 1)}
+                        skeletonType="product"
+                        skeletonCount={3}
+                        renderItem={(product) => (
+                            <ProductCard key={product.id} product={product} />
+                        )}
+                        className="w-full"
+                    />
+                )}
             </div>
 
             <VoiceSearchModal
