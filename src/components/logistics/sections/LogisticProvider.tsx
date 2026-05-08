@@ -79,16 +79,7 @@ export default function LogisticProviderList() {
             <div className="flex flex-col md:flex-row items-center justify-center gap-4 w-full max-w-2xl mb-2">
                 <div className="flex items-center w-full bg-card border border-primary rounded-xl px-4 py-3 shadow-sm hover:border-secondary transition-colors">
                     <Icon icon="solar:magnifer-bold-duotone" className="w-4 h-4 text-muted-foreground mr-2 flex-shrink-0" />
-                    <input 
-                        type="text" 
-                        placeholder="Rechercher une compagnie logistique..." 
-                        className="flex-1 bg-transparent text-foreground outline-none text-sm min-w-0 md:text-sm placeholder:text-muted-foreground" 
-                        value={searchTerm} 
-                        onChange={(e) => setSearchTerm(e.target.value)} 
-                        inputMode="text" 
-                        style={{ fontSize: '16px' }} 
-                        suppressHydrationWarning 
-                    />
+                    <input type="text" placeholder="Rechercher une compagnie logistique..." className="flex-1 bg-transparent text-foreground outline-none text-sm min-w-0 md:text-sm placeholder:text-muted-foreground" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} inputMode="text" style={{ fontSize: '16px' }} suppressHydrationWarning />
                     <button type="button" onClick={() => setIsVoiceModalOpen(true)} className="p-1 text-muted-foreground hover:text-primary transition-colors hover:scale-110 active:scale-90" title="Recherche vocale" >
                         <Icon icon="solar:microphone-bold-duotone" className="w-5 h-5" />
                     </button>
@@ -122,12 +113,7 @@ export default function LogisticProviderList() {
                     isLoading={loading}
                     skeletonType="logistics"
                     skeletonCount={4}
-                    renderItem={(provider) => (
-                        <LogisticProviderCard
-                            key={provider.id}
-                            provider={provider}
-                        />
-                    )}
+                    renderItem={(provider) => (<LogisticProviderCard key={provider.id} provider={provider} />)}
                     className="w-full"
                 />
             </div>

@@ -165,6 +165,13 @@ export const getPublicLogisticsInfo = async (companyName: string): Promise<BaseR
     return await response.json();
 };
 
+export const getLogisticInfoDatas = async (): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/users/get/logistic/info/datas`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
 // =====================
 // SERVICES
 // =====================

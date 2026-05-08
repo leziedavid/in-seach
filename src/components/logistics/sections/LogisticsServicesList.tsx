@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import { Icon } from "@iconify/react";
-import { LogisticService, TransportType } from "@/types/interface";
+import { LogisticProvider, LogisticService, TransportType } from "@/types/interface";
 import { getLogisticServices, getMyLogisticServices, createLogisticService, updateLogisticService, deleteLogisticService, patchLogisticServiceStatus, findAllPrestataire } from "@/api/api";
 import LogisticsServicesCard from "@/components/logistics/cards/LogisticsServicesCard";
 import { useNotification } from "@/components/notifications/NotificationProvider";
@@ -15,6 +15,7 @@ import Delete from "@/components/logistics/modals/Delete";
 import NotFound from "@/components/common/NotFound";
 import InfiniteScroll from "@/components/ui/InfiniteScroll";
 import dynamic from "next/dynamic";
+import Image from "next/image"
 
 // Lazy-load des composants lourds non nécessaires au premier rendu
 const FormsLogistics = dynamic(() => import("@/components/logistics/forms/FormsLogistics"), { ssr: false });
@@ -51,6 +52,8 @@ export default function LogisticsServicesList({ mode = "marketplace", companyNam
     const { addNotification } = useNotification();
 
     const { checkEligibility, loading: checkLoading } = useSubscriptionCheck()
+    const [providerInfo, setProviderInfo] = useState<LogisticProvider | null>(null)
+    const [copied, setCopied] = useState(false);
 
     const openEditModal = (service: LogisticService) => {
         setEditingService(service);
@@ -60,6 +63,25 @@ export default function LogisticsServicesList({ mode = "marketplace", companyNam
     const isManagement = mode === "management";
     const pathname = usePathname();
     const isAkwaba = pathname === "/akwaba";
+
+
+    const slugify = (name: string) => {
+        return name
+            .trim()
+            .replace(/\s+/g, "-")        // remplace les espaces par -
+            .replace(/[^\w\-]+/g, "")    // supprime les caractères spéciaux
+    }
+
+    const handleCopy = async (url: string) => {
+        try {
+            await navigator.clipboard.writeText(url);
+            setCopied(true);
+            addNotification("Lien copié !", "success");
+            setTimeout(() => setCopied(false), 2000);
+        } catch (err) {
+            addNotification("Erreur lors de la copie", "error");
+        }
+    };
 
     const fetchServices = useCallback(async (pageNum: number, isNewSearch: boolean) => {
         if (loadingRef.current && !isNewSearch) return;
@@ -244,23 +266,69 @@ export default function LogisticsServicesList({ mode = "marketplace", companyNam
 
 
             {isManagement && (
-                <div className="w-full max-w-6xl mb-8">
-                    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                        <SectionHeader
-                            title="Mes Services Logistiques"
-                            subtitle="Gérez vos offres de transport et de logistique publiées sur la plateforme."
-                            className="!text-left"
-                        />
-                        <div className="flex items-center gap-8">
-                            <div className="flex justify-end mb-2">
-                                <Button onClick={() => openCreateModal()} className="w-full md:w-auto bg-primary text-white px-8 py-2 rounded-xl text-base font-black flex items-center justify-center gap-3 hover:bg-secondary transition-all shadow-xs active:scale-95 flex-shrink-0 uppercase">
-                                    Publier un service
-                                    <Icon icon="solar:plus-circle-bold-duotone" className="w-5 h-5" />
-                                </Button>
+                <>
+                    <div className="w-full max-w-6xl mb-8">
+                        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                            <SectionHeader
+                                title="Mes Services Logistiques"
+                                subtitle="Gérez vos offres de transport et de logistique publiées sur la plateforme."
+                                className="!text-left"
+                            />
+                            <div className="flex items-center gap-8">
+                                <div className="flex justify-end mb-2">
+                                    <Button onClick={() => openCreateModal()} className="w-full md:w-auto bg-primary text-white px-8 py-2 rounded-xl text-base font-black flex items-center justify-center gap-3 hover:bg-secondary transition-all shadow-xs active:scale-95 flex-shrink-0 uppercase">
+                                        Publier un service
+                                        <Icon icon="solar:plus-circle-bold-duotone" className="w-5 h-5" />
+                                    </Button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+
+                    <div className="w-full max-w-4xl mx-auto mb-2 px-0 md:px-4">
+                        <div className="group bg-card border-b p-6  flex items-center justify-between gap-6">
+
+                            <div className="flex items-center gap-4 md:gap-6">
+                                <div className="relative w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/10 overflow-hidden shrink-0">
+                                    {providerInfo?.logo ? (
+                                        <Image src={providerInfo.logo} alt={providerInfo.companyName || "Boutique"} fill className="object-cover" unoptimized />
+                                    ) : (
+                                        <Icon icon="solar:shop-bold-duotone" className="w-8 h-8 md:w-10 md:h-10 text-primary" />
+                                    )}
+                                </div>
+
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-1">Ma plateforme de transport </p>
+                                    <h3 className="text-xl md:text-2xl font-black text-foreground uppercase tracking-tight leading-none truncate max-w-[150px] md:max-w-md">
+                                        {providerInfo?.companyName || "Ma plateforme de transport"}
+                                    </h3>
+                                    <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-4">
+                                        <p className="text-[10px] text-muted-foreground font-bold flex items-center gap-2 uppercase tracking-widest">
+                                            <Icon icon="solar:user-bold-duotone" className="w-3 h-3 text-primary" />
+                                            {providerInfo?.fullName || "Gérant"}
+                                        </p>
+                                        {providerInfo?.phone && (
+                                            <p className="text-[10px] text-muted-foreground font-bold flex items-center gap-2 uppercase tracking-widest">
+                                                <Icon icon="solar:phone-bold-duotone" className="w-3 h-3 text-primary" />
+                                                {providerInfo.phone}
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                                <button onClick={() => handleCopy(`${process.env.NEXT_PUBLIC_BASE_URL}/shop/${slugify(providerInfo?.companyName || "")}`)} className="w-8 h-8 md:w-10 md:h-10 rounded-2xl bg-muted flex items-center justify-center hover:bg-primary/20 hover:text-primary transition-all active:scale-90 shrink-0">
+                                    {copied ? <Icon icon="solar:check-circle-bold-duotone" className="w-5 h-5 md:w-6 md:h-6" /> : <Icon icon="solar:share-bold-duotone" className="w-5 h-5 md:w-6 md:h-6" />}
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </>
+
             )}
 
             {/* Results count header */}
