@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button"
 import { useSubscriptionCheck } from "@/hooks/useSubscriptionCheck"
 import Delete from "@/components/logistics/modals/Delete"
 import { SectionHeader } from "@/components/shared/SectionHeader"
+import ViewToggle, { ViewMode } from "@/components/shared/ViewToggle"
 
 interface AnnoncesCardProps {
     data?: Annonce[];
@@ -51,6 +52,7 @@ export default function AnnoncesCard({
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
     const [annonceToDelete, setAnnonceToDelete] = useState<Annonce | null>(null)
     const [isDeleting, setIsDeleting] = useState(false)
+    const [viewMode, setViewMode] = useState<ViewMode>("grid")
 
     const loading = propLoading ?? internalLoading;
     const listes = propData ?? internalListes;
@@ -230,6 +232,9 @@ export default function AnnoncesCard({
                         <h3 className="text-lg font-black text-foreground">
                             {loading && listes.length === 0 ? 'Chargement...' : listes.length === 0 ? 'Mes Annonces' : `Mes Annonces (${total})`}
                         </h3>
+                        {listes.length > 0 && (
+                            <ViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />
+                        )}
                     </div>
                 </div>
 
@@ -239,35 +244,47 @@ export default function AnnoncesCard({
                 {!loading && listes.length > 0 && (
                     <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-2">
                         <div className="w-full px-2 md:px-0">
-                            <div className="grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-6">
+                            <div className={viewMode === 'grid' ? "grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-6" : "grid grid-cols-1 gap-4"}>
                                 {paginatedData.map((annonce: Annonce) => (
-                                    <div key={annonce.id} className="group rounded-lg p-0 md:p-4 flex flex-col md:items-center text-left md:text-center transition-all w-full">
+                                    <div key={annonce.id} 
+                                        className={`group rounded-xl transition-all duration-300 bg-card border border-border/40 hover:border-primary/30 overflow-hidden ${
+                                            viewMode === 'grid' 
+                                            ? "p-0 md:p-4 flex flex-col md:items-center text-left md:text-center" 
+                                            : "p-2 md:p-4 flex flex-row items-center gap-4 text-left"
+                                        }`}>
 
-                                        <div className="relative w-full aspect-square mb-1.5 overflow-hidden rounded-lg md:rounded-2xl">
+                                        <div className={`relative overflow-hidden rounded-lg md:rounded-2xl shrink-0 ${
+                                            viewMode === 'grid' ? "w-full aspect-square mb-1.5" : "w-24 h-24 md:w-32 md:h-32"
+                                        }`}>
                                             <Image src={(annonce.images?.[0] && annonce.images?.[0] !== "") ? annonce.images[0] : (annonce.imageUrls?.[0] && annonce.imageUrls?.[0] !== "") ? annonce.imageUrls[0] : 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop'} alt={annonce.title} fill unoptimized className="object-cover group-hover:scale-110 transition-transform duration-500" />
-                                            <div className="absolute top-2 left-2 bg-background/80 backdrop-blur-sm px-2 py-0.5 rounded-full text-[9px] font-black text-foreground shadow-sm uppercase">
+                                            <div className={`absolute bg-background/80 backdrop-blur-sm px-2 py-0.5 rounded-full text-[9px] font-black text-foreground shadow-sm uppercase ${
+                                                viewMode === 'grid' ? "top-2 left-2" : "top-1 left-1"
+                                            }`}>
                                                 {annonce.categorie?.label || 'Annonce'}
                                             </div>
                                         </div>
 
-                                        <div className="px-0.5 w-full">
-                                            <h3 className="text-xs md:text-base font-black text-foreground mb-1 line-clamp-2 md:line-clamp-1 group-hover:text-primary transition-colors text-left leading-tight">
+                                        <div className={`flex flex-col flex-1 min-w-0 ${viewMode === 'grid' ? "px-0.5 w-full" : "h-full justify-center"}`}>
+                                            <h3 className={`font-black text-foreground mb-1 group-hover:text-primary transition-colors leading-tight truncate ${
+                                                viewMode === 'grid' ? "text-xs md:text-base line-clamp-2 md:line-clamp-1 text-left" : "text-sm md:text-lg"
+                                            }`}>
                                                 {annonce.title}
                                             </h3>
 
-
-                                            <div className="flex items-center justify-start gap-1 text-primary mb-2 md:mb-4 md:justify-center">
+                                            <div className={`flex items-center gap-1 text-primary ${
+                                                viewMode === 'grid' ? "justify-start md:justify-center mb-2 md:mb-4" : "justify-start mb-1 md:mb-2"
+                                            }`}>
                                                 <Icon icon="solar:star-bold-duotone" className="w-3 h-3 md:w-4 md:h-4 text-primary" />
                                                 <span className="text-[9px] md:text-xs font-black tracking-tight">{annonce.type?.label || 'Vente'}</span>
                                             </div>
 
-                                            <div className="text-left mb-3">
-                                                <p className="text-secondary font-black text-sm md:text-base">
+                                            <div className={`text-left ${viewMode === 'grid' ? "mb-3" : "mb-1"}`}>
+                                                <p className={`text-secondary font-black ${viewMode === 'grid' ? "text-sm md:text-base" : "text-base md:text-xl"}`}>
                                                     {annonce.price ? `${annonce.price.toLocaleString()} FCFA` : "0 FCFA"}
                                                 </p>
                                             </div>
 
-                                            <div className="flex items-center justify-center w-full gap-3">
+                                            <div className={`flex items-center w-full gap-3 ${viewMode === 'grid' ? "justify-center" : "justify-end mt-auto"}`}>
                                                 <Switch checked={annonce.status === "ACTIVE"} onCheckedChange={(value) => handleToggleActiv(annonce, value)} />
                                                 <div className="flex items-center gap-2">
                                                     <button onClick={() => handleAction("edit", annonce)} className="p-2 rounded-lg hover:bg-muted transition">
@@ -280,7 +297,6 @@ export default function AnnoncesCard({
                                                         <Icon icon="solar:trash-bin-trash-bold-duotone" width={18} height={18} />
                                                     </button>
                                                 </div>
-
                                             </div>
                                         </div>
                                     </div>

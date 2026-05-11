@@ -9,6 +9,7 @@ import VoiceSearchModal from "@/components/services/sections/VoiceSearchModal";
 import InfiniteScroll from "@/components/ui/InfiniteScroll";
 import NotFound from "@/components/common/NotFound";
 import Loader from "@/components/common/Loader";
+import ViewToggle, { ViewMode } from "@/components/shared/ViewToggle";
 
 const ITEMS_PER_PAGE = 8;
 
@@ -22,6 +23,7 @@ export default function LogisticProviderList() {
     const [hasMore, setHasMore] = useState(true);
     const [total, setTotal] = useState(0);
     const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
+    const [viewMode, setViewMode] = useState<ViewMode>("grid");
 
     const fetchProviders = useCallback(async (pageNum: number, isNewSearch: boolean) => {
         if (loading && !isNewSearch) return;
@@ -102,10 +104,13 @@ export default function LogisticProviderList() {
 
             {/* Results count header */}
             <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-1">
-                <div className="flex items-center justify-start md:justify-center w-full px-2 md:px-0 mb-4">
+                <div className="flex items-center justify-between w-full px-2 md:px-0 mb-4">
                     <h3 className="text-xl md:text-2xl font-black text-foreground italic text-left md:text-center leading-tight">
                         {providers.length > 0 ? `${total} compagnie${total > 1 ? 's' : ''} partenaire${total > 1 ? 's' : ''}` : ''}
                     </h3>
+                    {providers.length > 0 && (
+                        <ViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />
+                    )}
                 </div>
 
                 {(loading || isInitialLoading) && providers.length === 0 ? (
@@ -128,8 +133,8 @@ export default function LogisticProviderList() {
                         isLoading={loading}
                         skeletonType="logistics"
                         skeletonCount={4}
-                        renderItem={(provider) => (<LogisticProviderCard key={provider.id} provider={provider} />)}
-                        className="w-full"
+                        gridClassName={viewMode === 'grid' ? "grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-6" : "grid grid-cols-1 gap-4"}
+                        renderItem={(provider) => (<LogisticProviderCard key={provider.id} provider={provider} viewMode={viewMode} />)}
                     />
                 )}
             </div>

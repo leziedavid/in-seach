@@ -135,7 +135,7 @@ export default function Header() {
                 <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="relative group transition-transform active:scale-95" >
                     <div className="w-12 h-12 md:w-9 md:h-9 bg-primary/20 rounded-full flex items-center justify-center overflow-hidden relative border-2 border-primary/10 group-hover:border-primary/30 transition-all shrink-0">
                         {images.map((img, index) => (
-                            <Image key={img} src={img} alt="Avatar" width={48} height={48} priority={index === 0} className={`object-cover w-full h-full absolute top-0 left-0 transition-opacity duration-500 ease-in-out ${index === currentImageIndex ? "opacity-100" : "opacity-0"}`} />
+                            <Image key={img} src={img} alt="Avatar" width={48} height={48} priority={index === 0} className={`object-cover w-full h-full absolute top-0 left-0 transition-opacity duration-500 ease-in-out ${index === currentImageIndex ? "opacity-100" : "opacity-0"}`} style={{ width: 'auto', height: 'auto' }} />
                         ))}
                     </div>
 

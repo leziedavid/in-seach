@@ -188,7 +188,7 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
                 <Sheet open={open} onOpenChange={setOpen}>
                     <SheetTrigger asChild>
                         <Button size="icon" className="rounded-full h-14 w-14 bg-primary text-primary-foreground shadow-xl shadow-primary/30 hover:scale-110 active:scale-95 transition-all">
-                            <Image src="/service.svg" alt="Menu" width={32} height={32} className="brightness-0 invert dark:brightness-100 dark:invert-0" />
+                            <Image src="/service.svg" alt="Menu" width={32} height={32} className="brightness-0 invert dark:brightness-100 dark:invert-0" style={{ height: 'auto' }} />
                         </Button>
                     </SheetTrigger>
 

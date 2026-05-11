@@ -17,6 +17,7 @@ import Loader from "@/components/common/Loader";
 import InfiniteScroll from "@/components/ui/InfiniteScroll";
 import dynamic from "next/dynamic";
 import Image from "next/image"
+import ViewToggle, { ViewMode } from "@/components/shared/ViewToggle";
 
 // Lazy-load des composants lourds non nécessaires au premier rendu
 const FormsLogistics = dynamic(() => import("@/components/logistics/forms/FormsLogistics"), { ssr: false });
@@ -50,6 +51,7 @@ export default function LogisticsServicesList({ mode = "marketplace", companyNam
     const [serviceToDelete, setServiceToDelete] = useState<string | null>(null);
     const [updatingId, setUpdatingId] = useState<string | null>(null);
     const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
+    const [viewMode, setViewMode] = useState<ViewMode>("grid");
     const { addNotification } = useNotification();
 
     const { checkEligibility, loading: checkLoading } = useSubscriptionCheck()
@@ -334,10 +336,13 @@ export default function LogisticsServicesList({ mode = "marketplace", companyNam
 
             {/* Results count header */}
             <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-1">
-                <div className="flex items-center justify-start md:justify-center w-full px-2 md:px-0 mb-4">
-                    <h3 className="text-xl md:text-2xl font-black text-foreground italic text-left md:text-center">
+                <div className="flex items-center justify-between w-full px-2 md:px-0 mb-4">
+                    <h3 className="text-xl md:text-2xl font-black text-foreground italic text-left md:text-center leading-tight">
                         {services.length > 0 ? `${total} résultat${total > 1 ? 's' : ''}` : ''}
                     </h3>
+                    {services.length > 0 && (
+                        <ViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />
+                    )}
                 </div>
 
                 {(loading || isInitialLoading) && services.length === 0 ? (
@@ -360,6 +365,7 @@ export default function LogisticsServicesList({ mode = "marketplace", companyNam
                         isLoading={loading}
                         skeletonType="logistics"
                         skeletonCount={3}
+                        gridClassName={viewMode === 'grid' ? "grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6" : "grid grid-cols-1 gap-4"}
                         renderItem={(service) => (
                             <LogisticsServicesCard
                                 key={service.id}
@@ -370,6 +376,7 @@ export default function LogisticsServicesList({ mode = "marketplace", companyNam
                                 onToggleStatus={handleToggle}
                                 onRequestQuote={onRequestQuote}
                                 isUpdating={updatingId === service.id}
+                                viewMode={viewMode}
                             />
                         )}
                         className="w-full"

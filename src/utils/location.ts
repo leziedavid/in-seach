@@ -73,13 +73,13 @@ export const useUserLocation = () => {
 
                         resolve(location);
                     } catch (err) {
-                        console.error("Impossible de recuperer l'adresse :", err);
+                        // console.error("Impossible de recuperer l'adresse :", err);
                         showNotification("Impossible de recuperer votre adresse. Veuillez reessayer.", "error");
                         resolve(null);
                     }
                 },
                 (error) => {
-                    console.error("Erreur geolocalisation :", error);
+                    // console.error("Erreur geolocalisation :", error);
                     showNotification("Impossible d'obtenir votre position. Veuillez autoriser la geolocalisation.", "warning");
                     resolve(null);
                 },

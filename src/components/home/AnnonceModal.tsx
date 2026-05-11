@@ -83,13 +83,13 @@ export default function AnnonceModal({ isOpen, onClose, annonce }: AnnonceModalP
                                 <div className="flex-1 overflow-y-auto">
                                     <div className="grid md:grid-cols-2 gap-0 md:gap-x-6 md:[grid-template-areas:'gallery_top''bottom_top'] md:[grid-template-columns:1fr_1fr] md:[grid-template-rows:auto_1fr]">
                                         {/* Left Column: Gallery Section */}
-                                        <div className="md:[grid-area:gallery] bg-muted/20 md:h-full">
+                                        <div className="md:[grid-area:gallery]md:h-full">
                                             <div className="relative aspect-square w-full overflow-hidden group bg-muted/40">
 
                                                 <AnimatePresence mode="wait">
                                                     <motion.div key={activeImageIndex} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }} className="absolute inset-0" >
                                                         {/* Blurred Ambient Background */}
-                                                        <Image src={images[activeImageIndex]} fill unoptimized className="object-cover blur-3xl opacity-40 scale-110" alt="" aria-hidden="true" />
+                                                        {/* <Image src={images[activeImageIndex]} fill unoptimized className="object-cover blur-3xl opacity-40 scale-110" alt="" aria-hidden="true" /> */}
                                                         {/* Main Content Image */}
                                                         <Image src={images[activeImageIndex]} fill unoptimized className="object-contain relative z-10 p-4" alt={annonce.title} priority />
                                                     </motion.div>
