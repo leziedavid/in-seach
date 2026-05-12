@@ -104,12 +104,11 @@ export const fakeAnnonces: Annonce[] = [
 
 
 export const categories: CategoryProd[] = [
-
-    { id: "mode", name: "Mode" },
-    { id: "parfum", name: "Parfums" },
-    { id: "gaming", name: "Gaming" },
-    { id: "accessoire", name: "Accessoires" },
-    { id: "chaussure", name: "Chaussures" },
+    { id: "mode", name: "Mode", status: true },
+    { id: "parfum", name: "Parfums", status: true },
+    { id: "gaming", name: "Gaming", status: true },
+    { id: "accessoire", name: "Accessoires", status: true },
+    { id: "chaussure", name: "Chaussures", status: true },
 ]
 
 const now = new Date().toISOString()
