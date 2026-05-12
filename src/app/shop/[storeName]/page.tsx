@@ -9,6 +9,7 @@ import VoiceSearchModal from "@/components/services/sections/VoiceSearchModal"
 import InfiniteScroll from "@/components/ui/InfiniteScroll"
 import CategoryButton from "@/components/products/sections/CategoryButton"
 import { Icon } from "@iconify/react"
+import CategoryFilter from "@/components/ui/CategoryFilter"
 import Image from "next/image"
 import NotFound from "@/components/common/NotFound"
 import Loader from "@/components/common/Loader"
@@ -22,6 +23,7 @@ export default function StorePage(props: Props) {
     const [store, setStore] = useState<any>(null)
     const [search, setSearch] = useState("")
     const [selectedCategory, setSelectedCategory] = useState("all")
+    const [selectedSubCategory, setSelectedSubCategory] = useState("all")
     const [products, setProducts] = useState<Product[]>([])
     const [categories, setCategories] = useState<CategoryProd[]>([])
     const [page, setPage] = useState(1)
@@ -82,6 +84,7 @@ export default function StorePage(props: Props) {
                 limit: ITEMS_PER_PAGE,
                 query: search || undefined,
                 categoryId: selectedCategory === "all" ? undefined : selectedCategory,
+                subCategoryId: selectedSubCategory === "all" ? undefined : selectedSubCategory,
                 storeName: cleanStoreName(storeName) || undefined,
             })
 
@@ -99,7 +102,7 @@ export default function StorePage(props: Props) {
         } finally {
             setLoading(false)
         }
-    }, [search, selectedCategory])
+    }, [search, selectedCategory, selectedSubCategory, storeName])
 
     // Load more when page changes (infinite scroll)
     useEffect(() => {
@@ -116,7 +119,7 @@ export default function StorePage(props: Props) {
     useEffect(() => {
         setPage(1)
         fetchProducts(1, true)
-    }, [search, selectedCategory, fetchProducts, storeName])
+    }, [search, selectedCategory, selectedSubCategory, fetchProducts, storeName])
 
 
     if (storeLoading) {
@@ -190,12 +193,26 @@ export default function StorePage(props: Props) {
                 </div>
             </div>
 
-            {/* CATEGORIES SCROLL */}
-            <div className="flex gap-3 overflow-x-auto pb-2 mb-6 scrollbar-hide w-full justify-start md:justify-center">
-                <CategoryButton label="Tous" active={selectedCategory === "all"} onClick={() => setSelectedCategory("all")} />
-                {categories.map((cat) => (
-                    <CategoryButton key={cat.id} label={cat.name} active={selectedCategory === cat.id} onClick={() => setSelectedCategory(cat.id)} />
-                ))}
+            {/* CATEGORIES & SUB-CATEGORIES FILTERS */}
+            <div className="w-full max-w-3xl mx-auto mb-6">
+                <CategoryFilter
+                    categories={[
+                        { id: "all", name: "Tous" },
+                        ...categories.map(cat => ({ 
+                            id: cat.id, 
+                            name: cat.name,
+                            subCategories: cat.subCategories
+                        }))
+                    ]}
+                    selectedCategoryId={selectedCategory}
+                    selectedSubCategoryId={selectedSubCategory}
+                    onCategoryChange={(id) => {
+                        setSelectedCategory(id);
+                        setSelectedSubCategory("all");
+                    }}
+                    onSubCategoryChange={setSelectedSubCategory}
+                    hasSubCategories={true}
+                />
             </div>
 
             {/* Results count header */}

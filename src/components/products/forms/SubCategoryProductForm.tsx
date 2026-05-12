@@ -2,25 +2,28 @@
 
 import React, { useState } from "react";
 import { Icon } from "@iconify/react";
-import { CategoryProd } from "@/types/interface";
+import { CategoryProd, SubCategoryProd } from "@/types/interface";
 import { Switch } from "@/components/ui/switch";
 
-interface CategoryProductFormProps {
-    initialData?: CategoryProd;
-    onSubmit: (data: { name: string; status: boolean }) => void | Promise<void>;
+interface SubCategoryProductFormProps {
+    initialData?: SubCategoryProd;
+    categories: CategoryProd[];
+    onSubmit: (data: any) => void | Promise<void>;
     isSubmitting: boolean;
     isEditing?: boolean;
     onClose: () => void;
 }
 
-export default function CategoryProductForm({
+export default function SubCategoryProductForm({
     initialData,
+    categories,
     onSubmit,
     isSubmitting,
     isEditing = false,
     onClose,
-}: CategoryProductFormProps) {
+}: SubCategoryProductFormProps) {
     const [name, setName] = useState(initialData?.name || "");
+    const [categoryId, setCategoryId] = useState(initialData?.categoryId || "");
     const [status, setStatus] = useState(initialData?.status ?? true);
     const [error, setError] = useState("");
 
@@ -30,19 +33,48 @@ export default function CategoryProductForm({
             setError("Le nom doit contenir au moins 2 caractères");
             return;
         }
+        if (!categoryId) {
+            setError("Veuillez sélectionner une catégorie parente");
+            return;
+        }
         setError("");
-        await onSubmit({ name: name.trim(), status });
+        
+        // Generate slug from name
+        const slug = name.trim().toLowerCase()
+            .replace(/[^\w ]+/g, '')
+            .replace(/ +/g, '-');
+
+        await onSubmit({ 
+            name: name.trim(), 
+            categoryId, 
+            status,
+            slug
+        });
     };
 
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-1">
-                <label className="text-xs font-bold">Nom de la catégorie *</label>
+                <label className="text-xs font-bold">Catégorie parente *</label>
+                <select
+                    value={categoryId}
+                    onChange={e => { setCategoryId(e.target.value); setError(""); }}
+                    className="w-full px-3 py-2 rounded-lg border border-border bg-muted text-sm outline-none focus:border-primary transition-all font-medium appearance-none"
+                >
+                    <option value="">Sélectionner une catégorie</option>
+                    {categories.map(cat => (
+                        <option key={cat.id} value={cat.id}>{cat.name}</option>
+                    ))}
+                </select>
+            </div>
+
+            <div className="space-y-1">
+                <label className="text-xs font-bold">Nom de la sous-catégorie *</label>
                 <input
                     value={name}
                     onChange={e => { setName(e.target.value); setError(""); }}
                     className="w-full px-3 py-2 rounded-lg border border-border bg-muted text-sm outline-none focus:border-primary transition-all font-medium"
-                    placeholder="ex: Électronique, Vêtements..."
+                    placeholder="ex: Smartphones, Pantalons..."
                     autoFocus
                 />
                 {error && <p className="text-[10px] text-red-500 font-bold">{error}</p>}
@@ -50,9 +82,9 @@ export default function CategoryProductForm({
 
             <div className="flex items-center justify-between p-3 bg-muted/50 rounded-xl border border-border/50">
                 <div className="space-y-0.5">
-                    <div className="text-xs font-bold">Statut de la catégorie</div>
+                    <div className="text-xs font-bold">Statut de la sous-catégorie</div>
                     <div className="text-[10px] text-muted-foreground font-medium italic">
-                        {status ? "Visible par les utilisateurs" : "Masquée pour le moment"}
+                        {status ? "Visible par les utilisateurs" : "Masqué pour le moment"}
                     </div>
                 </div>
                 <Switch
@@ -79,7 +111,7 @@ export default function CategoryProductForm({
                         ? <Icon icon="solar:refresh-bold-duotone" className="w-4 h-4 animate-spin" />
                         : <Icon icon="solar:check-circle-bold" className="w-4 h-4" />
                     }
-                    {isEditing ? "Mettre à jour" : "Créer la catégorie"}
+                    {isEditing ? "Mettre à jour" : "Créer la sous-catégorie"}
                 </button>
             </div>
         </form>

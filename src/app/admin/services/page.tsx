@@ -374,6 +374,8 @@ export default function AdminServicesPage() {
                             itemsPerPage={100}
                             onPageChange={() => { }}
                             searchKey="label"
+                            enableSwitch={true}
+                            getActive={() => true} // Categories don't have a status field in interface Category yet, but let's see
                             actions={[
                                 { icon: Edit2, label: "Modifier", value: "edit" },
                                 { icon: Trash2, label: "Supprimer", value: "delete", variant: "destructive" }

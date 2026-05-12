@@ -246,34 +246,20 @@ export default function AnnoncesCard({
                         <div className="w-full px-2 md:px-0">
                             <div className={viewMode === 'grid' ? "grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-6" : "grid grid-cols-1 gap-4"}>
                                 {paginatedData.map((annonce: Annonce) => (
-                                    <div key={annonce.id} 
-                                        className={`group rounded-xl transition-all duration-300 bg-card border border-border/40 hover:border-primary/30 overflow-hidden ${
-                                            viewMode === 'grid' 
-                                            ? "p-0 md:p-4 flex flex-col md:items-center text-left md:text-center" 
-                                            : "p-2 md:p-4 flex flex-row items-center gap-4 text-left"
-                                        }`}>
-
-                                        <div className={`relative overflow-hidden rounded-lg md:rounded-2xl shrink-0 ${
-                                            viewMode === 'grid' ? "w-full aspect-square mb-1.5" : "w-24 h-24 md:w-32 md:h-32"
-                                        }`}>
+                                    <div key={annonce.id} className={`group rounded-xl transition-all duration-300 bg-card border border-border/40 hover:border-primary/30 overflow-hidden ${viewMode === 'grid' ? "p-0 md:p-4 flex flex-col md:items-center text-left md:text-center" : "p-2 md:p-4 flex flex-row items-center gap-4 text-left"}`}>
+                                        <div className={`relative overflow-hidden rounded-lg md:rounded-2xl shrink-0 ${viewMode === 'grid' ? "w-full aspect-square mb-1.5" : "w-24 h-24 md:w-32 md:h-32"}`}>
                                             <Image src={(annonce.images?.[0] && annonce.images?.[0] !== "") ? annonce.images[0] : (annonce.imageUrls?.[0] && annonce.imageUrls?.[0] !== "") ? annonce.imageUrls[0] : 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop'} alt={annonce.title} fill unoptimized className="object-cover group-hover:scale-110 transition-transform duration-500" />
-                                            <div className={`absolute bg-background/80 backdrop-blur-sm px-2 py-0.5 rounded-full text-[9px] font-black text-foreground shadow-sm uppercase ${
-                                                viewMode === 'grid' ? "top-2 left-2" : "top-1 left-1"
-                                            }`}>
+                                            <div className={`absolute bg-background/80 backdrop-blur-sm px-2 py-0.5 rounded-full text-[9px] font-black text-foreground shadow-sm uppercase ${viewMode === 'grid' ? "top-2 left-2" : "top-1 left-1"}`}>
                                                 {annonce.categorie?.label || 'Annonce'}
                                             </div>
                                         </div>
 
                                         <div className={`flex flex-col flex-1 min-w-0 ${viewMode === 'grid' ? "px-0.5 w-full" : "h-full justify-center"}`}>
-                                            <h3 className={`font-black text-foreground mb-1 group-hover:text-primary transition-colors leading-tight truncate ${
-                                                viewMode === 'grid' ? "text-xs md:text-base line-clamp-2 md:line-clamp-1 text-left" : "text-sm md:text-lg"
-                                            }`}>
+                                            <h3 className={`font-black text-foreground mb-1 group-hover:text-primary transition-colors leading-tight truncate ${viewMode === 'grid' ? "text-xs md:text-base line-clamp-2 md:line-clamp-1 text-left" : "text-sm md:text-lg"}`}>
                                                 {annonce.title}
                                             </h3>
 
-                                            <div className={`flex items-center gap-1 text-primary ${
-                                                viewMode === 'grid' ? "justify-start md:justify-center mb-2 md:mb-4" : "justify-start mb-1 md:mb-2"
-                                            }`}>
+                                            <div className={`flex items-center gap-1 text-primary ${viewMode === 'grid' ? "justify-start md:justify-center mb-2 md:mb-4" : "justify-start mb-1 md:mb-2"}`}>
                                                 <Icon icon="solar:star-bold-duotone" className="w-3 h-3 md:w-4 md:h-4 text-primary" />
                                                 <span className="text-[9px] md:text-xs font-black tracking-tight">{annonce.type?.label || 'Vente'}</span>
                                             </div>

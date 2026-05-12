@@ -1,5 +1,5 @@
 import { getCookie } from '@/lib/cookies';
-import { BaseResponse, Booking, Category, GlobalSearchResponse, Pagination, ReverseGeocodeData, Service, UserLocation, MySpaceResponse, Annonce, BookingsCalendar, Product, CategoryProd, Order, AdminQueryParams, AdminUserUpdateDto, AdminProductUpdateDto, AdminServiceUpdateDto, AdminAnnonceUpdateDto, AdminSubscriptionPlanDto, User, AdminLog, SubscriptionPlan, PlanEntity, AdminUserSubscription, Subscription, OrdersGroupedResponse, BookingsGroupedResponse, LogisticService, Quote, Delivery, DeliveryTracking, QuoteStatus, DeliveryStatus, TransportType, LocationLog, CategorieAnnonce, TypeAnnonce, LogisticsClient, Video, StoreUserInfo, EasyDelivery, HistoryDelivery, EasyDeliveryStatus, DriverStats } from '@/types/interface';
+import { BaseResponse, Booking, Category, GlobalSearchResponse, Pagination, ReverseGeocodeData, Service, UserLocation, MySpaceResponse, Annonce, BookingsCalendar, Product, CategoryProd, Order, AdminQueryParams, AdminUserUpdateDto, AdminProductUpdateDto, AdminServiceUpdateDto, AdminAnnonceUpdateDto, AdminSubscriptionPlanDto, User, AdminLog, SubscriptionPlan, PlanEntity, AdminUserSubscription, Subscription, OrdersGroupedResponse, BookingsGroupedResponse, LogisticService, Quote, Delivery, DeliveryTracking, QuoteStatus, DeliveryStatus, TransportType, LocationLog, CategorieAnnonce, TypeAnnonce, LogisticsClient, Video, StoreUserInfo, EasyDelivery, HistoryDelivery, EasyDeliveryStatus, DriverStats, SubCategoryProd, Slider } from '@/types/interface';
 
 export const getBaseUrl = (): string => {
     return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
@@ -638,8 +638,8 @@ export const suspendMe = async (): Promise<BaseResponse<any>> => {
 
 export const updateUserProfile = async (data: any): Promise<BaseResponse<any>> => {
     const isFormData = data instanceof FormData;
-    // const url = isFormData ? `${getBaseUrl()}/users/profile/avatar` : `${getBaseUrl()}/users/profile`;
-    const response = await secureFetch(`${getBaseUrl()}/users/profile/avatar`, {
+    const url = isFormData ? `${getBaseUrl()}/users/profile/avatar` : `${getBaseUrl()}/users/profile`;
+    const response = await secureFetch(url, {
         method: 'PATCH',
         body: isFormData ? data : JSON.stringify(data),
     });
@@ -1078,7 +1078,7 @@ export const reconnectUser = async (userId: string): Promise<BaseResponse<any>> 
    PRODUCTS & ORDERS API
 ======================================================= */
 
-export const getProducts = async (params: { page?: number; limit?: number; query?: string; categoryId?: string; storeName?: string }): Promise<BaseResponse<Pagination<Product>>> => {
+export const getProducts = async (params: { page?: number; limit?: number; query?: string; categoryId?: string; subCategoryId?: string; storeName?: string }): Promise<BaseResponse<Pagination<Product>>> => {
     const queryString = toQueryString(params);
     const response = await fetch(`${getBaseUrl()}/products?${queryString}`);
     return await response.json();
@@ -1097,8 +1097,8 @@ export const getProductById = async (id: string): Promise<BaseResponse<Product>>
     return await response.json();
 };
 
-export const getProductCategories = async (): Promise<BaseResponse<CategoryProd[]>> => {
-    const response = await fetch(`${getBaseUrl()}/products/categories`);
+export const getProductCategories = async (onlyActive: boolean = true): Promise<BaseResponse<CategoryProd[]>> => {
+    const response = await fetch(`${getBaseUrl()}/products/categories?onlyActive=${onlyActive}`);
     return await response.json();
 };
 
@@ -1230,6 +1230,63 @@ export const adminUpdateCategoryProduct = async (id: string, data: { name: strin
 export const adminDeleteCategoryProduct = async (id: string): Promise<BaseResponse<any>> => {
     const response = await secureFetch(`${getBaseUrl()}/category-products/${id}`, {
         method: 'DELETE',
+    });
+    return await response.json();
+};
+
+export const adminToggleCategoryProductStatus = async (id: string, status: boolean): Promise<BaseResponse<CategoryProd>> => {
+    const response = await secureFetch(`${getBaseUrl()}/category-products/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status }),
+    });
+    return await response.json();
+};
+
+// ADMIN - SUB-CATEGORY PRODUCTS
+export const adminGetSubCategoriesProduct = async (): Promise<BaseResponse<SubCategoryProd[]>> => {
+    const res = await adminGetCategoriesProduct();
+    if (res.statusCode === 200 && res.data) {
+        const allSubCategories = res.data.flatMap(cat => cat.subCategories || []);
+        return { ...res, data: allSubCategories };
+    }
+    return res as any;
+};
+
+export const adminCreateSubCategoryProduct = async (data: any): Promise<BaseResponse<SubCategoryProd>> => {
+    const response = await secureFetch(`${getBaseUrl()}/category-products/sub-categories`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const adminUpdateSubCategoryProduct = async (id: string, data: any): Promise<BaseResponse<SubCategoryProd>> => {
+    const response = await secureFetch(`${getBaseUrl()}/category-products/sub-categories/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const adminDeleteSubCategoryProduct = async (id: string): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/category-products/sub-categories/${id}`, {
+        method: 'DELETE',
+    });
+    return await response.json();
+};
+
+export const adminToggleSubCategoryProductStatus = async (id: string, status: boolean): Promise<BaseResponse<SubCategoryProd>> => {
+    const response = await secureFetch(`${getBaseUrl()}/category-products/sub-categories/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status }),
+    });
+    return await response.json();
+};
+
+export const adminToggleProductStatus = async (id: string, isActive: boolean): Promise<BaseResponse<Product>> => {
+    const response = await secureFetch(`${getBaseUrl()}/products/${id}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ isActive }),
     });
     return await response.json();
 };
@@ -1931,6 +1988,60 @@ export const adminGetLogisticsDeliveries = async (params?: any): Promise<BaseRes
 export const adminGetLogisticsFleet = async (params?: any): Promise<BaseResponse<any>> => {
     const queryString = toQueryString(params || {});
     const response = await secureFetch(`${getBaseUrl()}/logistics/fleet/admin/all?${queryString}`, { method: 'GET' });
+    return await response.json();
+};
+
+/* =======================================================
+   SLIDERS API
+======================================================= */
+export const getSliders = async (): Promise<BaseResponse<Slider[]>> => {
+    const response = await fetch(`${getBaseUrl()}/sliders`);
+    return await response.json();
+};
+
+export const getSlidersAdmin = async (): Promise<BaseResponse<Slider[]>> => {
+    const response = await secureFetch(`${getBaseUrl()}/sliders/admin`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
+export const createSlider = async (formData: FormData): Promise<BaseResponse<Slider>> => {
+    const response = await secureFetch(`${getBaseUrl()}/sliders`, {
+        method: 'POST',
+        body: formData,
+    });
+    return await response.json();
+};
+
+export const updateSlider = async (id: string, formData: FormData): Promise<BaseResponse<Slider>> => {
+    const response = await secureFetch(`${getBaseUrl()}/sliders/${id}`, {
+        method: 'PATCH',
+        body: formData,
+    });
+    return await response.json();
+};
+
+export const deleteSlider = async (id: string): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/sliders/${id}`, {
+        method: 'DELETE',
+    });
+    return await response.json();
+};
+
+export const toggleSliderStatus = async (id: string, value: boolean): Promise<BaseResponse<Slider>> => {
+    const response = await secureFetch(`${getBaseUrl()}/sliders/${id}/toggle-status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ value }),
+    });
+    return await response.json();
+};
+
+export const toggleSliderActive = async (id: string, value: boolean): Promise<BaseResponse<Slider>> => {
+    const response = await secureFetch(`${getBaseUrl()}/sliders/${id}/toggle-active`, {
+        method: 'PATCH',
+        body: JSON.stringify({ value }),
+    });
     return await response.json();
 };
 

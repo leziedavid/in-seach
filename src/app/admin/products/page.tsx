@@ -1,25 +1,27 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { adminGetProducts, adminDeleteProduct, adminUpdateProduct, adminGetCategoriesProduct, adminCreateCategoryProduct, adminUpdateCategoryProduct, adminDeleteCategoryProduct } from '@/api/api';
-import { ShoppingBag, Package, Trash2, Edit2, Box, Tag, Calendar, Plus, Layers, Grid } from 'lucide-react';
+import { adminGetProducts, adminDeleteProduct, adminUpdateProduct, adminGetCategoriesProduct, adminCreateCategoryProduct, adminUpdateCategoryProduct, adminDeleteCategoryProduct, adminGetSubCategoriesProduct, adminCreateSubCategoryProduct, adminUpdateSubCategoryProduct, adminDeleteSubCategoryProduct, adminToggleProductStatus, adminToggleCategoryProductStatus, adminToggleSubCategoryProductStatus } from '@/api/api';
+import { ShoppingBag, Package, Trash2, Edit2, Box, Tag, Calendar, Plus, Layers, Grid, ListTree } from 'lucide-react';
 import { useNotification } from '@/components/notifications/NotificationProvider';
 import Image from 'next/image';
-import { Product, CategoryProd, productConditionLabels } from '@/types/interface';
+import { Product, CategoryProd, SubCategoryProd, productConditionLabels } from '@/types/interface';
 import { Modal } from '@/components/ui/MotionModal';
 import FormsProduit from '@/components/products/forms/FormsProduit';
 import CategoryProductForm from '@/components/products/forms/CategoryProductForm';
+import SubCategoryProductForm from '@/components/products/forms/SubCategoryProductForm';
 import { GenericTable } from '@/components/ui/table/table';
 import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
-type TabType = 'products' | 'categories';
+type TabType = 'products' | 'categories' | 'sub-categories';
 
 export default function AdminProductsPage() {
     const [activeTab, setActiveTab] = useState<TabType>('products');
     const [products, setProducts] = useState<Product[]>([]);
     const [categories, setCategories] = useState<CategoryProd[]>([]);
+    const [subCategories, setSubCategories] = useState<SubCategoryProd[]>([]);
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(1);
     const [total, setTotal] = useState(0);
@@ -32,6 +34,10 @@ export default function AdminProductsPage() {
     // Modal state for Categories
     const [selectedCategory, setSelectedCategory] = useState<CategoryProd | null>(null);
     const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+
+    // Modal state for Sub-categories
+    const [selectedSubCategory, setSelectedSubCategory] = useState<SubCategoryProd | null>(null);
+    const [isSubCategoryModalOpen, setIsSubCategoryModalOpen] = useState(false);
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
@@ -65,11 +71,27 @@ export default function AdminProductsPage() {
         }
     };
 
+    const fetchSubCategories = async () => {
+        setLoading(true);
+        try {
+            const res = await adminGetSubCategoriesProduct();
+            if (res.statusCode === 200 && res.data) {
+                setSubCategories(res.data);
+            }
+        } catch (error) {
+            addNotification("Erreur lors du chargement des sous-catégories", "error");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
         if (activeTab === 'products') {
             fetchProducts(page);
-        } else {
+        } else if (activeTab === 'categories') {
             fetchCategories();
+        } else {
+            fetchSubCategories();
         }
     }, [page, activeTab]);
 
@@ -110,6 +132,18 @@ export default function AdminProductsPage() {
         }
     };
 
+    const handleToggleProduct = async (product: Product, value: boolean) => {
+        try {
+            const res = await adminToggleProductStatus(product.id, value);
+            if (res.statusCode === 200) {
+                addNotification("Statut du produit mis à jour", "success");
+                fetchProducts(page);
+            }
+        } catch (error) {
+            addNotification("Erreur lors de la modification du statut", "error");
+        }
+    };
+
     // --- Category Handlers ---
     const handleCreateCategoryClick = () => {
         setSelectedCategory(null);
@@ -123,7 +157,19 @@ export default function AdminProductsPage() {
         setIsCategoryModalOpen(true);
     };
 
-    const handleCategorySubmit = async (data: { name: string }) => {
+    const handleToggleCategory = async (category: CategoryProd, value: boolean) => {
+        try {
+            const res = await adminToggleCategoryProductStatus(category.id, value);
+            if (res.statusCode === 200) {
+                addNotification("Statut de la catégorie mis à jour", "success");
+                fetchCategories();
+            }
+        } catch (error) {
+            addNotification("Erreur lors de la modification du statut", "error");
+        }
+    };
+
+    const handleCategorySubmit = async (data: { name: string; status: boolean }) => {
         setIsSubmitting(true);
         try {
             let res;
@@ -156,6 +202,68 @@ export default function AdminProductsPage() {
         } catch (error) {
             const msg = (error as any)?.message || "Erreur lors de la suppression. Vérifiez si des produits y sont liés.";
             addNotification(msg, "error");
+        }
+    };
+
+    // --- Sub-category Handlers ---
+    const handleCreateSubCategoryClick = () => {
+        setSelectedSubCategory(null);
+        setIsEditing(false);
+        setIsSubCategoryModalOpen(true);
+    };
+
+    const handleEditSubCategoryClick = (subCategory: SubCategoryProd) => {
+        setSelectedSubCategory(subCategory);
+        setIsEditing(true);
+        setIsSubCategoryModalOpen(true);
+    };
+
+    const handleSubCategorySubmit = async (data: any) => {
+        setIsSubmitting(true);
+        try {
+            let res;
+            if (isEditing && selectedSubCategory) {
+                res = await adminUpdateSubCategoryProduct(selectedSubCategory.id, data);
+            } else {
+                res = await adminCreateSubCategoryProduct(data);
+            }
+
+            if (res.statusCode === 200 || res.statusCode === 201) {
+                addNotification(isEditing ? "Sous-catégorie mise à jour" : "Sous-catégorie créée", "success");
+                setIsSubCategoryModalOpen(false);
+                fetchSubCategories();
+            }
+        } catch (error) {
+            const msg = (error as any)?.response?.data?.message || "Erreur lors de l'enregistrement de la sous-catégorie";
+            addNotification(msg, "error");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleDeleteSubCategory = async (subCategory: SubCategoryProd) => {
+        if (!confirm(`Voulez-vous vraiment supprimer la sous-catégorie "${subCategory.name}" ?`)) return;
+        try {
+            const res = await adminDeleteSubCategoryProduct(subCategory.id);
+            if (res.statusCode === 200) {
+                addNotification("Sous-catégorie supprimée", "success");
+                fetchSubCategories();
+            }
+        } catch (error) {
+            const msg = (error as any)?.message || "Erreur lors de la suppression. Vérifiez si des produits y sont liés.";
+            addNotification(msg, "error");
+        }
+    };
+
+    const handleToggleSubCategory = async (subCategory: SubCategoryProd, value: boolean) => {
+        try {
+            const res = await adminToggleSubCategoryProductStatus(subCategory.id, value);
+            if (res.statusCode === 200) {
+                addNotification("Statut de la sous-catégorie mis à jour", "success");
+                fetchSubCategories();
+            }
+        } catch (error) {
+            addNotification("Erreur lors de la modification du statut", "error");
         }
     };
 
@@ -276,13 +384,47 @@ export default function AdminProductsPage() {
             )
         },
         {
-            accessorKey: 'id',
-            header: 'ID Technique',
+            accessorKey: 'subCategories',
+            header: 'Sous-catégories',
             cell: ({ row }) => (
-                <span className="text-[10px] font-mono text-muted-foreground bg-muted px-2 py-1 rounded">
-                    {row.original.id}
-                </span>
+                <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="px-2 py-0.5 rounded-full text-[10px] font-black">
+                        {row.original.subCategories?.length || 0} items
+                    </Badge>
+                </div>
             )
+        }
+    ];
+
+    const subCategoryColumns: ColumnDef<SubCategoryProd>[] = [
+        {
+            accessorKey: 'name',
+            header: 'Sous-catégorie',
+            cell: ({ row }) => (
+                <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-600 border border-blue-500/20">
+                        <ListTree className="w-5 h-5" />
+                    </div>
+                    <div>
+                        <div className="font-black text-sm">{row.original.name}</div>
+                        <div className="text-muted-foreground text-[10px] font-mono">{row.original.slug}</div>
+                    </div>
+                </div>
+            )
+        },
+        {
+            accessorKey: 'categoryId',
+            header: 'Parent',
+            cell: ({ row }) => {
+                const parent = categories.find(c => c.id === row.original.categoryId);
+                return (
+                    <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-[10px] font-bold border-primary/30 text-primary">
+                            {parent?.name || "Général"}
+                        </Badge>
+                    </div>
+                );
+            }
         }
     ];
 
@@ -295,19 +437,17 @@ export default function AdminProductsPage() {
                 </div>
 
                 <div className="flex items-center gap-2 p-1 bg-muted rounded-xl">
-                    <button
-                        onClick={() => setActiveTab('products')}
-                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${activeTab === 'products' ? 'bg-card shadow-xs text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
-                    >
+                    <button onClick={() => setActiveTab('products')} className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${activeTab === 'products' ? 'bg-card shadow-xs text-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
                         <ShoppingBag className="w-3.5 h-3.5" />
                         Articles
                     </button>
-                    <button
-                        onClick={() => setActiveTab('categories')}
-                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${activeTab === 'categories' ? 'bg-card shadow-xs text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
-                    >
+                    <button onClick={() => setActiveTab('categories')} className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${activeTab === 'categories' ? 'bg-card shadow-xs text-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
                         <Layers className="w-3.5 h-3.5" />
                         Catégories
+                    </button>
+                    <button onClick={() => setActiveTab('sub-categories')} className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${activeTab === 'sub-categories' ? 'bg-card shadow-xs text-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
+                        <ListTree className="w-3.5 h-3.5" />
+                        Sous-catégories
                     </button>
                 </div>
             </header>
@@ -336,6 +476,9 @@ export default function AdminProductsPage() {
                             itemsPerPage={10}
                             onPageChange={setPage}
                             searchKey="name"
+                            enableSwitch={true}
+                            getActive={(row) => row.isActive}
+                            onToggleActive={handleToggleProduct}
                             actions={[
                                 { icon: Edit2, label: "Modifier", value: "edit" },
                                 { icon: Trash2, label: "Supprimer", value: "delete", variant: "destructive" }
@@ -368,6 +511,9 @@ export default function AdminProductsPage() {
                             itemsPerPage={100}
                             onPageChange={() => { }}
                             searchKey="name"
+                            enableSwitch={true}
+                            getActive={(row) => row.status}
+                            onToggleActive={handleToggleCategory}
                             actions={[
                                 { icon: Edit2, label: "Modifier", value: "edit" },
                                 { icon: Trash2, label: "Supprimer", value: "delete", variant: "destructive" }
@@ -377,6 +523,41 @@ export default function AdminProductsPage() {
                                 if (action === "delete") handleDeleteCategory(row);
                             }}
                             emptyMessage="Aucune catégorie définie."
+                        />
+                    </div>
+                </div>
+            )}
+
+            {activeTab === 'sub-categories' && (
+                <div className="animate-in slide-in-from-bottom-2 duration-500 space-y-4">
+                    <div className="flex justify-end">
+                        <Button onClick={handleCreateSubCategoryClick} className="rounded-xl font-bold gap-2">
+                            <Plus className="w-4 h-4" /> Nouvelle Sous-catégorie
+                        </Button>
+                    </div>
+
+                    <div className="bg-card rounded-lg border border-border/50 shadow-xs overflow-hidden p-2">
+                        <GenericTable
+                            columns={subCategoryColumns}
+                            data={subCategories}
+                            loading={loading}
+                            totalItems={subCategories.length}
+                            currentPage={1}
+                            itemsPerPage={100}
+                            onPageChange={() => { }}
+                            searchKey="name"
+                            enableSwitch={true}
+                            getActive={(row) => row.status}
+                            onToggleActive={handleToggleSubCategory}
+                            actions={[
+                                { icon: Edit2, label: "Modifier", value: "edit" },
+                                { icon: Trash2, label: "Supprimer", value: "delete", variant: "destructive" }
+                            ]}
+                            onAction={(action, row) => {
+                                if (action === "edit") handleEditSubCategoryClick(row);
+                                if (action === "delete") handleDeleteSubCategory(row);
+                            }}
+                            emptyMessage="Aucune sous-catégorie définie."
                         />
                     </div>
                 </div>
@@ -417,6 +598,25 @@ export default function AdminProductsPage() {
                         isSubmitting={isSubmitting}
                         isEditing={isEditing}
                         onClose={() => setIsCategoryModalOpen(false)}
+                    />
+                </div>
+            </Modal>
+
+            {/* MODAL: SOUS-CATEGORIE */}
+            <Modal
+                isOpen={isSubCategoryModalOpen}
+                onClose={() => setIsSubCategoryModalOpen(false)}
+            >
+                <div className="p-6">
+                    <h2 className="text-xl font-black mb-1">{isEditing ? 'Éditer la sous-catégorie' : 'Nouvelle sous-catégorie'}</h2>
+                    <p className="text-muted-foreground mb-6 text-sm font-medium tracking-tight">Associez-la à une catégorie parente pour une meilleure organisation.</p>
+                    <SubCategoryProductForm
+                        initialData={selectedSubCategory || undefined}
+                        categories={categories}
+                        onSubmit={handleSubCategorySubmit}
+                        isSubmitting={isSubmitting}
+                        isEditing={isEditing}
+                        onClose={() => setIsSubCategoryModalOpen(false)}
                     />
                 </div>
             </Modal>

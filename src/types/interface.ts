@@ -523,6 +523,17 @@ export interface LogsResponse {
 export interface CategoryProd {
     id: string
     name: string
+    status: boolean
+    subCategories?: SubCategoryProd[]
+}
+
+export interface SubCategoryProd {
+    id: string
+    name: string
+    slug: string
+    image?: string
+    status: boolean
+    categoryId: string
 }
 
 export enum ProductCondition {
@@ -563,8 +574,10 @@ export interface Product {
     files?: FileManager[]
     isActive: boolean
     categoryId: string
+    subCategoryId?: string | null
     userId: string
     category: CategoryProd
+    subCategory?: SubCategoryProd | null
     user?: Partial<User>
     createdAt: string
     updatedAt: string
@@ -968,4 +981,15 @@ export interface DriverStats {
     pending: number;
     successRate: number;
     totalEarnings: number;
+}
+
+export interface Slider {
+    id: string;
+    title: string;
+    description?: string;
+    status: boolean;
+    isActive: boolean;
+    file?: FileManager;
+    createdAt: string;
+    updatedAt: string;
 }

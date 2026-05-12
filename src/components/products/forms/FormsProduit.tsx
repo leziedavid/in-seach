@@ -4,7 +4,9 @@ import React, { useState, useEffect } from "react";
 import { Icon } from "@iconify/react";
 import Image from "next/image";
 import { getProductCategories } from "@/api/api";
-import { Product, CategoryProd, ProductCondition, productConditionLabels } from "@/types/interface";
+import { Select2 } from "@/components/ui/Select2";
+import RichTextEditor from "@/components/ui/editor";
+import { Product, CategoryProd, ProductCondition, productConditionLabels, SubCategoryProd } from "@/types/interface";
 
 interface FormsProduitProps {
     initialData?: Product;
@@ -30,7 +32,9 @@ export default function FormsProduit({
     const [stock, setStock] = useState<string>(initialData?.stock?.toString() || "");
     const [sku, setSku] = useState(initialData?.sku || "");
     const [etat, setEtat] = useState<ProductCondition>(initialData?.etat || ProductCondition.NEUF);
-    const [categoryId, setCategoryId] = useState(initialData?.categoryId || "");
+    const [categoryId, setCategoryId] = useState<string | null>(initialData?.categoryId || null);
+    const [subCategoryId, setSubCategoryId] = useState<string | null>(initialData?.subCategoryId || null);
+    const selectedCategory = React.useMemo(() => categories.find(c => c.id === categoryId), [categories, categoryId]);
     const [images, setImages] = useState<File[]>([]);
     const [imagePreviews, setImagePreviews] = useState<string[]>(
         initialData?.files?.map(f => f.fileUrl) ||
@@ -41,10 +45,40 @@ export default function FormsProduit({
     const [errors, setErrors] = useState<Record<string, string>>({});
 
     useEffect(() => {
+        let isMounted = true;
         getProductCategories().then(res => {
-            if (res.statusCode === 200 && res.data) setCategories(res.data);
-        }).catch(() => {});
-    }, []);
+            if (isMounted && res.statusCode === 200 && res.data) {
+                setCategories(res.data);
+                // Si on a des données initiales, on s'assure que la sous-catégorie est bien synchronisée
+                // une fois que les catégories (et donc leurs sous-catégories) sont chargées.
+                if (initialData?.subCategoryId) {
+                    setSubCategoryId(initialData.subCategoryId);
+                }
+            }
+        }).catch(() => { });
+        return () => { isMounted = false; };
+    }, [initialData]);
+
+    // Sync state with initialData for edit mode
+    useEffect(() => {
+        if (initialData) {
+            setName(initialData.name || "");
+            setDescription(initialData.description || "");
+            setPrice(initialData.price?.toString() || "");
+            setPricePromo(initialData.pricePromo?.toString() || "");
+            setStock(initialData.stock?.toString() || "");
+            setSku(initialData.sku || "");
+            setEtat(initialData.etat || ProductCondition.NEUF);
+            setCategoryId(initialData.categoryId || null);
+            setSubCategoryId(initialData.subCategoryId || null);
+            setImagePreviews(
+                initialData.files?.map(f => f.fileUrl) ||
+                initialData.imageUrls ||
+                initialData.images ||
+                []
+            );
+        }
+    }, [initialData]);
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(e.target.files || []);
@@ -87,7 +121,8 @@ export default function FormsProduit({
         formData.append("stock", stock);
         if (sku) formData.append("sku", sku);
         formData.append("etat", etat);
-        formData.append("categoryId", categoryId);
+        formData.append("categoryId", categoryId || "");
+        if (subCategoryId) formData.append("subCategoryId", subCategoryId);
         images.forEach(file => formData.append("files", file));
 
         await onSubmit(formData);
@@ -124,113 +159,145 @@ export default function FormsProduit({
                     </div>
                 </div>
 
-                {/* Infos de base */}
-                <div className="bg-card rounded-xl border border-border p-4 space-y-4">
-                    <h3 className="text-sm font-black flex items-center gap-2">
-                        <Icon icon="solar:box-bold-duotone" className="w-5 h-5 text-primary" />
-                        Informations du produit
+                {/* 1. Catégorisation & État */}
+                <div className="bg-card rounded-2xl border border-border p-6 shadow-sm space-y-4">
+                    <h3 className="text-sm font-black flex items-center gap-2 text-foreground/80">
+                        <Icon icon="solar:tag-bold-duotone" className="w-5 h-5 text-primary" />
+                        Classification
                     </h3>
-
+                    
                     <div className="space-y-1">
-                        <label className="text-xs font-bold">Nom du produit *</label>
+                        <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Nom du produit *</label>
                         <input
                             value={name}
                             onChange={e => setName(e.target.value)}
-                            className="w-full px-3 py-2 rounded-lg border border-border bg-muted text-sm outline-none focus:border-primary transition-all font-medium"
-                            placeholder="ex: iPhone 14 Pro Max"
+                            className="w-full px-4 py-2.5 rounded-xl border border-border bg-muted/30 text-sm outline-none focus:border-primary transition-all font-medium"
+                            placeholder="ex: iPhone 15 Pro"
                         />
-                        {errors.name && <p className="text-[10px] text-red-500 font-bold">{errors.name}</p>}
+                        {errors.name && <p className="text-[10px] text-red-500 font-bold mt-1">{errors.name}</p>}
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Catégorie *</label>
+                            <Select2
+                                options={categories}
+                                labelExtractor={(cat) => cat.name}
+                                valueExtractor={(cat) => cat.id}
+                                selectedItem={categoryId}
+                            onSelectionChange={(val) => {
+                                setCategoryId(val);
+                                setSubCategoryId(null);
+                            }}
+                            placeholder="Choisir une catégorie"
+                            />
+                            {errors.categoryId && <p className="text-[10px] text-red-500 font-bold mt-1">{errors.categoryId}</p>}
+                        </div>
+
+                        {selectedCategory?.subCategories && selectedCategory.subCategories.length > 0 && (
+                            <div className="space-y-1">
+                                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Sous-catégorie</label>
+                                <Select2
+                                    options={selectedCategory.subCategories}
+                                    labelExtractor={(sub) => sub.name}
+                                    valueExtractor={(sub) => sub.id}
+                                    selectedItem={subCategoryId}
+                                    onSelectionChange={(val) => setSubCategoryId(val)}
+                                    placeholder="Choisir une sous-catégorie"
+                                />
+                            </div>
+                        )}
                     </div>
 
                     <div className="space-y-1">
-                        <label className="text-xs font-bold">Description</label>
-                        <textarea
-                            value={description as string}
-                            onChange={e => setDescription(e.target.value)}
-                            rows={3}
-                            className="w-full px-3 py-2 rounded-lg border border-border bg-muted text-sm outline-none focus:border-primary transition-all font-medium resize-none"
-                            placeholder="Décrivez votre produit..."
+                        <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">État du produit *</label>
+                        <Select2
+                            options={Object.values(ProductCondition)}
+                            labelExtractor={(condition) => productConditionLabels[condition as ProductCondition]}
+                            valueExtractor={(condition) => condition}
+                            selectedItem={etat}
+                            onSelectionChange={(val) => setEtat(val as ProductCondition || ProductCondition.NEUF)}
+                            placeholder="Sélectionner l'état"
                         />
                     </div>
+                </div>
 
-                    <div className="grid grid-cols-2 gap-3">
+                {/* 2. Prix & Promotion */}
+                <div className="bg-card rounded-2xl border border-border p-6 shadow-sm space-y-4">
+                    <h3 className="text-sm font-black flex items-center gap-2 text-foreground/80">
+                        <Icon icon="solar:wad-of-money-bold-duotone" className="w-5 h-5 text-primary" />
+                        Prix & Promotion
+                    </h3>
+                    <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1">
-                            <label className="text-xs font-bold">Prix (FCFA) *</label>
+                            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Prix de vente (FCFA) *</label>
                             <input
                                 type="number"
                                 min="0"
                                 value={price}
                                 onChange={e => setPrice(e.target.value)}
-                                className="w-full px-3 py-2 rounded-lg border border-border bg-muted text-sm outline-none focus:border-primary transition-all font-medium"
-                                placeholder="15000"
+                                className="w-full px-4 py-2.5 rounded-xl border border-border bg-muted/30 text-sm outline-none focus:border-primary transition-all font-medium"
+                                placeholder="0"
                             />
-                            {errors.price && <p className="text-[10px] text-red-500 font-bold">{errors.price}</p>}
+                            {errors.price && <p className="text-[10px] text-red-500 font-bold mt-1">{errors.price}</p>}
                         </div>
                         <div className="space-y-1">
-                            <label className="text-xs font-bold">Prix promo</label>
+                            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Prix promo (Optionnel)</label>
                             <input
                                 type="number"
                                 min="0"
                                 value={pricePromo}
                                 onChange={e => setPricePromo(e.target.value)}
-                                className="w-full px-3 py-2 rounded-lg border border-border bg-muted text-sm outline-none focus:border-primary transition-all font-medium"
-                                placeholder="12000"
+                                className="w-full px-4 py-2.5 rounded-xl border border-border bg-muted/30 text-sm outline-none focus:border-primary transition-all font-medium text-primary font-bold"
+                                placeholder="0"
                             />
                         </div>
                     </div>
+                </div>
 
-                    <div className="grid grid-cols-2 gap-3">
+                {/* 3. Stock & SKU */}
+                <div className="bg-card rounded-2xl border border-border p-6 shadow-sm space-y-4">
+                    <h3 className="text-sm font-black flex items-center gap-2 text-foreground/80">
+                        <Icon icon="solar:clipboard-list-bold-duotone" className="w-5 h-5 text-primary" />
+                        Gestion des stocks
+                    </h3>
+                    <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1">
-                            <label className="text-xs font-bold">Stock *</label>
+                            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Quantité disponible *</label>
                             <input
                                 type="number"
                                 min="0"
                                 value={stock}
                                 onChange={e => setStock(e.target.value)}
-                                className="w-full px-3 py-2 rounded-lg border border-border bg-muted text-sm outline-none focus:border-primary transition-all font-medium"
-                                placeholder="10"
+                                className="w-full px-4 py-2.5 rounded-xl border border-border bg-muted/30 text-sm outline-none focus:border-primary transition-all font-medium"
+                                placeholder="0"
                             />
-                            {errors.stock && <p className="text-[10px] text-red-500 font-bold">{errors.stock}</p>}
+                            {errors.stock && <p className="text-[10px] text-red-500 font-bold mt-1">{errors.stock}</p>}
                         </div>
                         <div className="space-y-1">
-                            <label className="text-xs font-bold">SKU</label>
+                            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Référence (SKU)</label>
                             <input
                                 value={sku}
                                 onChange={e => setSku(e.target.value)}
-                                className="w-full px-3 py-2 rounded-lg border border-border bg-muted text-sm outline-none focus:border-primary transition-all font-medium"
-                                placeholder="PRD-001"
+                                className="w-full px-4 py-2.5 rounded-xl border border-border bg-muted/30 text-sm outline-none focus:border-primary transition-all font-medium"
+                                placeholder="SKU-001"
                             />
                         </div>
                     </div>
+                </div>
 
+                {/* 4. Description */}
+                <div className="bg-card rounded-2xl border border-border p-6 shadow-sm space-y-4">
+                    <h3 className="text-sm font-black flex items-center gap-2 text-foreground/80">
+                        <Icon icon="solar:notes-bold-duotone" className="w-5 h-5 text-primary" />
+                        Description détaillée
+                    </h3>
                     <div className="space-y-1">
-                        <label className="text-xs font-bold">État du produit *</label>
-                        <select
-                            value={etat}
-                            onChange={e => setEtat(e.target.value as ProductCondition)}
-                            className="w-full px-3 py-2 rounded-lg border border-border bg-muted text-sm outline-none focus:border-primary transition-all font-medium"
-                        >
-                            {Object.values(ProductCondition).map(condition => (
-                                <option key={condition} value={condition}>
-                                    {productConditionLabels[condition]}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
-                    <div className="space-y-1">
-                        <label className="text-xs font-bold">Catégorie *</label>
-                        <select
-                            value={categoryId}
-                            onChange={e => setCategoryId(e.target.value)}
-                            className="w-full px-3 py-2 rounded-lg border border-border bg-muted text-sm outline-none focus:border-primary transition-all font-medium"
-                        >
-                            <option value="">Sélectionner une catégorie</option>
-                            {categories.map(cat => (
-                                <option key={cat.id} value={cat.id}>{cat.name}</option>
-                            ))}
-                        </select>
-                        {errors.categoryId && <p className="text-[10px] text-red-500 font-bold">{errors.categoryId}</p>}
+                        <RichTextEditor
+                            content={description as string}
+                            onChange={(val) => setDescription(val)}
+                            editable={true}
+                        />
                     </div>
                 </div>
             </div>

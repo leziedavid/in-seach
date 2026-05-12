@@ -54,6 +54,12 @@ const menuItems = [
         color: 'text-rose-500'
     },
     {
+        label: 'Sliders',
+        icon: 'solar:gallery-bold-duotone',
+        href: '/admin/sliders',
+        color: 'text-emerald-500'
+    },
+    {
         label: 'Easy-Delivery',
         icon: 'solar:delivery-bold-duotone',
         href: '/admin/easy-delivery',
@@ -120,7 +126,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             {/* ══════════════════════════════════════════════════
                 SIDEBAR
             ══════════════════════════════════════════════════ */}
-            <aside className={` ${isSidebarOpen ? 'w-[260px]' : 'w-[80px]'} bg-card/50 dark:bg-[#0B0B0B] border border-border/50 rounded-[2.5rem] h-full transition-all duration-300 ease-in-out flex flex-col z-50 flex-shrink-0 shadow-2xl relative overflow-hidden group/sidebar`}  >
+            <aside className={` ${isSidebarOpen ? 'w-[260px]' : 'w-[80px]'} bg-card/50 dark:bg-[#0B0B0B] border border-border/50 rounded-2xl h-full transition-all duration-300 ease-in-out flex flex-col z-50 flex-shrink-0 shadow-md relative overflow-hidden group/sidebar`}  >
                 {/* Glossy overlay effect */}
                 <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent pointer-events-none" />
 
@@ -238,9 +244,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </aside>
 
             {/* ══════════════════════════════════════════════════
-                MAIN AREA
+                MAIN AREA  border border-border/50 rounded-[2.5rem] shadow-xl 
             ══════════════════════════════════════════════════ */}
-            <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0 bg-card/30 dark:bg-[#0B0B0B]/30 border border-border/50 rounded-[2.5rem] shadow-2xl relative">
+            <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0 bg-card/30 dark:bg-[#0B0B0B]/30 shadow-xs relative">
 
                 {/* ── Header ──────────────────────────────────── */}
                 <header className="h-[80px] flex items-center justify-between px-8 z-40 relative flex-shrink-0 border-b border-border/50 backdrop-blur-md bg-background/50">
@@ -286,6 +292,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <main className="flex-1 overflow-y-auto custom-scrollbar p-6">
                     {children}
                 </main>
+
             </div>
         </div>
     );

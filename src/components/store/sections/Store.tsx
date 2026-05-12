@@ -45,7 +45,6 @@ export default function Store() {
     const [isStoreUpdating, setIsStoreUpdating] = useState(false)
     const [copied, setCopied] = useState(false);
 
-
     const slugify = (name: string) => {
         return name
             .trim()
@@ -246,8 +245,10 @@ export default function Store() {
             </div>
 
             <SectionHeader
-                title="Vendez ou revendez vos produits"
-                subtitle="Dès aujourd’hui, mettez vos produits en vente en toute simplicité. Vous définissez le prix, les acheteurs viennent à vous."
+                // title="Vendez ou revendez vos produits"
+                title="La vente en ligne n'a jamais été aussi facile"
+                subtitle="Montez votre boutique en ligne en quelques clics et bénéficiez de tous les outils essentiels pour reussir dans l'e-commerce : ,
+                Achetez, vendez ou échangez tous types de produits d'occasion en toute simplicité"
                 className="mb-8"
             />
 
@@ -326,6 +327,7 @@ export default function Store() {
                             onEdit={openEditModal}
                             onDelete={handleDeleteProduct}
                             onStatusChange={handleToggleStatus}
+                            storeNames={storeInfo?.storeName || ""}
                         />
                     )}
                     className="w-full"

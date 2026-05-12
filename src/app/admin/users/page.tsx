@@ -265,7 +265,7 @@ export default function AdminUsersPage() {
                 <div className="lg:col-span-3">
                     <div className="bg-card rounded-[2.5rem] border border-border/50 shadow-sm p-4">
                         <GenericTable
-                            columns={columns}
+                            columns={columns.filter(c => (c as any).accessorKey !== 'isSuspended')}
                             data={users}
                             loading={loading}
                             totalItems={total}
@@ -273,10 +273,16 @@ export default function AdminUsersPage() {
                             itemsPerPage={10}
                             onPageChange={setPage}
                             searchKey="fullName"
+                            enableSwitch={true}
+                            getActive={(row) => !row.isSuspended}
+                            onToggleActive={(row, value) => {
+                                if (value) handleReactivate(row);
+                                else handleSuspend(row);
+                            }}
                             actions={[
                                 { icon: Edit2, label: "Modifier", value: "edit" },
-                                { icon: Ban, label: "Suspendre", value: "suspend", className: "text-rose-600" },
-                                { icon: RotateCcw, label: "Réactiver", value: "reactivate", className: "text-green-600" },
+                                { icon: Ban, label: "Suspendre", value: "suspend", className: "text-rose-600", disabled: (row) => row.isSuspended },
+                                { icon: RotateCcw, label: "Réactiver", value: "reactivate", className: "text-green-600", disabled: (row) => !row.isSuspended },
                                 { icon: Trash2, label: "Supprimer", value: "delete", className: "text-rose-700" }
                             ]}
                             onAction={(action, row) => {

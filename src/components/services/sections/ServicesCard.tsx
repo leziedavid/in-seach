@@ -231,14 +231,7 @@ export default function ServicesCard({ data: propData, page: propPage, limit: pr
                 {/* LOADING */}
                 {loading && (
                     <div className="text-center py-10 text-muted-foreground">
-                        Chargement...
-                    </div>
-                )}
-
-                {/* EMPTY */}
-                {!loading && listes.length === 0 && (
-                    <div className="text-center py-10 text-muted-foreground/60">
-                        Aucun service trouvé
+                        <Icon icon="line-md:loading-twotone-loop" className="w-6 h-6 mr-2" />  Chargement...
                     </div>
                 )}
 
@@ -273,29 +266,11 @@ export default function ServicesCard({ data: propData, page: propPage, limit: pr
                 />
 
 
+                {!loading && listes.length === 0 && <div className="text-center py-10 text-muted-foreground/60">Aucun service trouvé</div>}
+
                 {!loading && listes.length > 0 && (
                     <>
                         {/* DASHBOARD HEADER */}
-
-                        <div className="w-full max-w-6xl mb-8">
-                            <div className="flex flex-col md:flex-row items-start md:items-center justify-between">
-                                <h2 className="text-2xl md:text-3xl font-bold text-foreground"> </h2>
-                                <div className="flex items-center gap-8">
-                                    <div className="text-center md:text-left"> </div>
-                                    <div className="h-10 w-px bg-border" />
-                                    <div className="text-center md:text-left">
-                                        <p className="flex items-center gap-2 text-3xl md:text-4xl font-black text-secondary">
-                                            <span>{total}</span>
-                                            <Icon icon="solar:album-linear" className="w-8 h-8" />
-                                        </p>
-                                        <p className="text-sm text-muted-foreground font-medium">
-                                            Rendez-vous
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
                         <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-2">
 
                             <div className="w-full px-2 md:px-0">

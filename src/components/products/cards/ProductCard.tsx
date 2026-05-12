@@ -21,12 +21,12 @@ const slugify = (text: string) => {
         .replace(/--+/g, '-');    // Replace multiple - with single -
 }
 
-export default function ProductCard({ product, onEdit, onDelete, onStatusChange }: {
-
+export default function ProductCard({ product, onEdit, onDelete, onStatusChange, storeNames }: {
     product: Product;
     onEdit?: (product: Product) => void;
     onDelete?: (id: string) => void;
     onStatusChange?: (product: Product, value: boolean) => void;
+    storeNames?: string;
 }) {
 
 
@@ -165,12 +165,12 @@ export default function ProductCard({ product, onEdit, onDelete, onStatusChange 
             <Share
                 isOpen={isShareOpen}
                 onClose={() => setIsShareOpen(false)}
-                url={`${window?.location.origin}/shop/${slugify(product.user?.storeName || 'boutique')}`}
+                url={`${process.env.NEXT_PUBLIC_BASE_URL}/shop/${slugify(storeNames || '')}`}
                 title={product.name}
                 description={product.description || undefined}
                 image={product.imageUrl || undefined}
                 price={product.pricePromo || product.price}
-                storeName={product.user?.storeName || product.user?.fullName}
+                storeName={storeNames || ''}
                 storeLogo={product.user?.storeLogo || product.user?.avatar}
             />
         </>

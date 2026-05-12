@@ -243,81 +243,25 @@ export default function AdminPage() {
                         </ResponsiveContainer>
                     </div>
 
-                    {/* Activity Table */}
-                    <div className="bg-card/50 dark:bg-white/[0.02] rounded-[2.5rem] shadow-sm overflow-hidden border border-border/50 backdrop-blur-md">
-                        <div className="p-8 border-b border-border/50 flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
-                                    <Icon icon="solar:pulse-bold-duotone" width={24} className="text-primary" />
-                                </div>
-                                <div>
-                                    <h3 className="text-xl font-black text-foreground uppercase tracking-tight">Activité Récente</h3>
-                                    <p className="text-xs text-muted-foreground font-medium">Logs système en temps réel</p>
-                                </div>
-                            </div>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                className="font-black text-foreground hover:bg-muted rounded-2xl text-[10px] uppercase tracking-widest px-4"
-                            >
-                                Tout voir
-                            </Button>
-                        </div>
-                        <div className="p-6">
-                            <GenericTable
-                                columns={logColumns}
-                                data={recentLogs}
-                                loading={loading}
-                                haveTitle={false}
-                                emptyMessage="Aucune activité récente"
-                            />
-                        </div>
-                    </div>
                 </div>
+
 
                 {/* Right column */}
                 <div className="space-y-5">
-
-                    {/* Upgrade to Pro */}
-                    <div className="bg-[#1a1a1a] dark:bg-white/[0.03] rounded-[2.5rem] p-8 relative overflow-hidden border border-white/5 shadow-2xl">
-                        <div className="absolute -top-12 -right-12 w-48 h-48 bg-primary/10 rounded-full blur-3xl opacity-50" />
-                        <div className="absolute -bottom-12 -left-12 w-40 h-40 bg-violet-500/10 rounded-full blur-3xl opacity-50" />
-                        
-                        <div className="relative z-10">
-                            <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center mb-6">
-                                <Icon icon="solar:star-rainbow-bold-duotone" width={24} className="text-primary" />
-                            </div>
-                            <h3 className="text-white font-black text-2xl mb-2 tracking-tight">Admin Premium</h3>
-                            <div className="flex items-baseline gap-1 mb-1">
-                                <span className="text-4xl font-black text-white">4.200</span>
-                                <span className="text-slate-400 text-sm font-bold uppercase tracking-widest">CFA</span>
-                            </div>
-                            <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mb-8">Facturé par mois</p>
-                            <button className="w-full bg-primary hover:bg-primary/90 text-white font-black py-4 rounded-[1.5rem] text-sm transition-all hover:scale-105 active:scale-95 shadow-xl shadow-primary/20 uppercase tracking-[0.2em]">
-                                Passer au Pro
-                            </button>
-                        </div>
-                    </div>
 
                     {/* More Analysis */}
                     <div className="bg-card/50 dark:bg-white/[0.02] rounded-[2.5rem] p-8 shadow-sm border border-border/50 backdrop-blur-md">
                         <h3 className="text-lg font-black text-foreground uppercase tracking-tight mb-1">Analyses Avancées</h3>
                         <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mb-8">Statistiques détaillées</p>
                         <div className="space-y-4">
-                            <Link
-                                href="/admin/products"
-                                className="flex items-center gap-4 p-4 bg-white/[0.03] rounded-3xl hover:bg-white/[0.08] transition-all group border border-white/5"
-                            >
+                            <Link href="/admin/products" className="flex items-center gap-4 p-4 bg-white/[0.03] rounded-3xl hover:bg-white/[0.08] transition-all group border border-white/5">
                                 <div className="w-10 h-10 bg-emerald-500/10 rounded-2xl flex items-center justify-center shadow-inner">
                                     <Icon icon="solar:shop-bold-duotone" width={20} className="text-emerald-500" />
                                 </div>
                                 <span className="flex-1 text-sm font-black text-foreground uppercase tracking-tight">Ratio de Ventes</span>
                                 <Icon icon="solar:alt-arrow-right-bold-duotone" width={16} className="text-muted-foreground group-hover:text-foreground transition-colors" />
                             </Link>
-                            <Link
-                                href="/admin/products"
-                                className="flex items-center gap-4 p-4 bg-white/[0.03] rounded-3xl hover:bg-white/[0.08] transition-all group border border-white/5"
-                            >
+                            <Link href="/admin/products" className="flex items-center gap-4 p-4 bg-white/[0.03] rounded-3xl hover:bg-white/[0.08] transition-all group border border-white/5">
                                 <div className="w-10 h-10 bg-violet-500/10 rounded-2xl flex items-center justify-center shadow-inner">
                                     <Icon icon="solar:medal-ribbon-bold-duotone" width={20} className="text-violet-500" />
                                 </div>
@@ -327,59 +271,28 @@ export default function AdminPage() {
                         </div>
                     </div>
 
-                    {/* Daily Meeting */}
-                    <div className="bg-card/50 dark:bg-white/[0.02] rounded-[2.5rem] p-8 shadow-sm border border-border/50 backdrop-blur-md">
-                        <div className="flex items-center gap-4 mb-6">
-                            <div className="w-12 h-12 bg-blue-500/10 rounded-2xl flex items-center justify-center">
-                                <Icon icon="solar:videocamera-record-bold-duotone" width={24} className="text-blue-500" />
-                            </div>
-                            <div>
-                                <h4 className="font-black text-foreground text-sm uppercase tracking-tight">Réunion Quotidienne</h4>
-                                <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">12+ pers · 09:30 AM</p>
-                            </div>
+                </div>
+
+            </div>
+
+            {/* Activity Table */}
+            <div className="bg-card/50 dark:bg-white/[0.02] rounded-[2.5rem] shadow-sm overflow-hidden border border-border/50 backdrop-blur-md">
+                <div className="p-8 border-b border-border/50 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
+                            <Icon icon="solar:pulse-bold-duotone" width={24} className="text-primary" />
                         </div>
-
-                        <div className="flex items-center gap-3 mb-8">
-                            <div className="flex -space-x-3 flex-shrink-0">
-                                {[
-                                    { color: 'bg-rose-400', letter: 'A' },
-                                    { color: 'bg-blue-400', letter: 'S' },
-                                    { color: 'bg-amber-400', letter: 'K' },
-                                ].map((m, i) => (
-                                    <div key={i} className={`w-9 h-9 ${m.color} rounded-full border-2 border-background dark:border-[#121212] flex items-center justify-center text-[10px] font-black text-white shadow-lg`}>
-                                        {m.letter}
-                                    </div>
-                                ))}
-                            </div>
-                            <p className="text-[11px] text-muted-foreground font-bold uppercase tracking-tighter">Direction Technique</p>
-                        </div>
-
-                        <button className="w-full bg-foreground dark:bg-white text-background dark:text-black text-[10px] font-black py-4 rounded-[1.5rem] transition-all hover:opacity-90 active:scale-95 uppercase tracking-[0.2em] shadow-xl">
-                            Rejoindre la réunion
-                        </button>
-                    </div>
-
-                    {/* Team Members */}
-                    <div className="bg-card/50 dark:bg-white/[0.02] rounded-[2.5rem] p-8 shadow-sm border border-border/50 backdrop-blur-md">
-                        <h3 className="text-lg font-black text-foreground uppercase tracking-tight mb-6">Équipe Admin</h3>
-                        <div className="space-y-3">
-                            {teamMembers.map((member, i) => (
-                                <div
-                                    key={i}
-                                    className="flex items-center gap-4 p-3 hover:bg-white/[0.05] rounded-2xl transition-all group cursor-pointer border border-transparent hover:border-white/5"
-                                >
-                                    <div className={`w-11 h-11 ${member.color} rounded-full flex items-center justify-center text-white font-black text-sm flex-shrink-0 shadow-lg ring-2 ring-white/5`}>
-                                        {member.initials}
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-black text-foreground truncate">{member.name}</p>
-                                        <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest truncate">{member.role}</p>
-                                    </div>
-                                    <Icon icon="solar:alt-arrow-right-bold-duotone" width={16} className="text-muted-foreground/30 group-hover:text-muted-foreground transition-colors flex-shrink-0" />
-                                </div>
-                            ))}
+                        <div>
+                            <h3 className="text-xl font-black text-foreground uppercase tracking-tight">Activité Récente</h3>
+                            <p className="text-xs text-muted-foreground font-medium">Logs système en temps réel</p>
                         </div>
                     </div>
+                    <Button variant="outline" size="sm" className="font-black text-foreground hover:bg-muted rounded-2xl text-[10px] uppercase tracking-widest px-4">
+                        Tout voir
+                    </Button>
+                </div>
+                <div className="p-6">
+                    <GenericTable columns={logColumns} data={recentLogs} loading={loading} haveTitle={false} emptyMessage="Aucune activité récente" />
                 </div>
             </div>
         </div>

@@ -118,23 +118,11 @@ export default function SeedAdminManager() {
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button
-                        variant="default"
-                        size="sm"
-                        onClick={handleFullSeed}
-                        disabled={loading}
-                        className="rounded-lg font-bold bg-emerald-600 hover:bg-emerald-700 text-white border-none shadow-md shadow-emerald-500/20"
-                    >
+                    <Button variant="default" size="sm" onClick={handleFullSeed} disabled={loading} className="rounded-lg font-bold bg-emerald-600 hover:bg-emerald-700 text-white border-none shadow-md shadow-emerald-500/20">
                         <Play className="w-4 h-4 fill-current mr-2" />
                         Migrer toutes les données
                     </Button>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={fetchConfig}
-                        disabled={isRefreshing}
-                        className="rounded-lg font-bold"
-                    >
+                    <Button variant="outline" size="sm" onClick={fetchConfig} disabled={isRefreshing} className="rounded-lg font-bold">
                         {isRefreshing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Layers className="w-4 h-4" />}
                     </Button>
                 </div>
@@ -156,19 +144,8 @@ export default function SeedAdminManager() {
                         <ScrollArea className="flex-1 rounded-xl border border-border/50 bg-muted/5 p-4">
                             <div className="space-y-3">
                                 {configs.map((config) => (
-                                    <div
-                                        key={config.key}
-                                        className={`p-3 rounded-xl border transition-all flex items-start gap-3 group cursor-pointer ${selectedTables.includes(config.key)
-                                                ? 'bg-primary/5 border-primary/20 shadow-sm'
-                                                : 'bg-card border-border/40 hover:border-border/80'
-                                            }`}
-                                        onClick={() => toggleTable(config.key)}
-                                    >
-                                        <Checkbox
-                                            checked={selectedTables.includes(config.key)}
-                                            onCheckedChange={() => toggleTable(config.key)}
-                                            className="mt-1 rounded-md border-2 border-primary/20 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-                                        />
+                                    <div key={config.key} className={`p-3 rounded-xl border transition-all flex items-start gap-3 group cursor-pointer ${selectedTables.includes(config.key) ? 'bg-primary/5 border-primary/20 shadow-sm' : 'bg-card border-border/40 hover:border-border/80'}`} onClick={() => toggleTable(config.key)}>
+                                        <Checkbox checked={selectedTables.includes(config.key)} onCheckedChange={() => toggleTable(config.key)} className="mt-1 rounded-md border-2 border-primary/20 data-[state=checked]:bg-primary data-[state=checked]:border-primary" />
                                         <div className="flex-1">
                                             <div className="flex items-center justify-between mb-1">
                                                 <span className="text-xs font-black uppercase tracking-tight">{config.name}</span>
@@ -193,20 +170,11 @@ export default function SeedAdminManager() {
                         </ScrollArea>
 
                         <div className="flex gap-3 pt-2">
-                            <Button
-                                onClick={handleRunSeed}
-                                disabled={loading || selectedTables.length === 0}
-                                className="flex-1 rounded-xl font-black gap-2 h-11 shadow-lg shadow-primary/20"
-                            >
+                            <Button onClick={handleRunSeed} disabled={loading || selectedTables.length === 0} className="flex-1 rounded-xl font-black gap-2 h-11 shadow-lg shadow-primary/20">
                                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4 fill-current" />}
                                 EXÉCUTER LE SEED
                             </Button>
-                            <Button
-                                variant="outline"
-                                onClick={handleClearDb}
-                                disabled={loading}
-                                className="rounded-xl font-black text-destructive border-destructive/20 hover:bg-destructive/10 h-11"
-                            >
+                            <Button variant="outline" onClick={handleClearDb} disabled={loading} className="rounded-xl font-black text-destructive border-destructive/20 hover:bg-destructive/10 h-11">
                                 <Trash2 className="w-4 h-4" />
                             </Button>
                         </div>
@@ -229,11 +197,7 @@ export default function SeedAdminManager() {
                                             const isWarning = log.includes('⚠️');
 
                                             return (
-                                                <div key={i} className={`flex items-start gap-2 ${isSuccess ? 'text-emerald-400' :
-                                                        isError ? 'text-rose-400' :
-                                                            isWarning ? 'text-amber-400' :
-                                                                'text-slate-300'
-                                                    }`}>
+                                                <div key={i} className={`flex items-start gap-2 ${isSuccess ? 'text-emerald-400' : isError ? 'text-rose-400' : isWarning ? 'text-amber-400' : 'text-slate-300'}`}>
                                                     <span className="opacity-30 shrink-0 select-none">{(i + 1).toString().padStart(2, '0')}.</span>
                                                     <span className="leading-relaxed">{log}</span>
                                                 </div>
@@ -243,10 +207,7 @@ export default function SeedAdminManager() {
                                 </div>
                             </ScrollArea>
                             {logs.length > 0 && (
-                                <button
-                                    onClick={() => setLogs([])}
-                                    className="mt-3 text-[9px] text-slate-500 hover:text-slate-300 transition-colors flex items-center gap-1.5 font-bold"
-                                >
+                                <button onClick={() => setLogs([])} className="mt-3 text-[9px] text-slate-500 hover:text-slate-300 transition-colors flex items-center gap-1.5 font-bold">
                                     <Trash2 className="w-3 h-3" />
                                     EFFACER LA CONSOLE
                                 </button>

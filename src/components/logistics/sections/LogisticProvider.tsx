@@ -10,6 +10,7 @@ import InfiniteScroll from "@/components/ui/InfiniteScroll";
 import NotFound from "@/components/common/NotFound";
 import Loader from "@/components/common/Loader";
 import ViewToggle, { ViewMode } from "@/components/shared/ViewToggle";
+import CategoryFilter from "@/components/ui/CategoryFilter"
 
 const ITEMS_PER_PAGE = 8;
 
@@ -91,15 +92,19 @@ export default function LogisticProviderList() {
             </div>
 
             {/* Transport Filters */}
-            <div className="flex gap-2 overflow-x-auto pb-4 mb-4 scrollbar-hide w-full justify-start md:justify-center px-2">
-                <button onClick={() => setFilterTransport("ALL")} className={`px-4 py-1.5 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-tighter whitespace-nowrap transition-all duration-300 border-2 ${filterTransport === "ALL" ? 'bg-primary border-primary text-white shadow-md scale-105' : 'bg-card border-border text-muted-foreground hover:border-primary/30'}`}  >
-                    Tous les types
-                </button>
-                {Object.values(TransportType).map((t) => (
-                    <button key={t} onClick={() => setFilterTransport(t as any)} className={`px-4 py-1.5 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-tighter whitespace-nowrap transition-all duration-300 border-2 ${filterTransport === t ? 'bg-primary border-primary text-white shadow-md scale-105' : 'bg-card border-border text-muted-foreground hover:border-primary/30'}`}  >
-                        {t.replace(/_/g, ' ')}
-                    </button>
-                ))}
+            <div className="w-full max-w-3xl mx-auto mb-4">
+                <CategoryFilter
+                    categories={[
+                        { id: "ALL", name: "Tous les types" },
+                        ...Object.values(TransportType).map(t => ({
+                            id: t,
+                            name: t.replace(/_/g, ' ')
+                        }))
+                    ]}
+                    selectedCategoryId={filterTransport}
+                    onCategoryChange={(id) => setFilterTransport(id as any)}
+                    hasSubCategories={false}
+                />
             </div>
 
             {/* Results count header */}

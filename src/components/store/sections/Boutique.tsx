@@ -11,6 +11,7 @@ import Loader from "@/components/common/Loader"
 import VoiceSearchModal from "@/components/services/sections/VoiceSearchModal"
 
 import InfiniteScroll from "@/components/ui/InfiniteScroll"
+import CategoryFilter from "@/components/ui/CategoryFilter"
 
 const ITEMS_PER_PAGE = 10
 
@@ -18,6 +19,7 @@ export default function ProductsPage() {
 
     const [search, setSearch] = useState("")
     const [selectedCategory, setSelectedCategory] = useState("all")
+    const [selectedSubCategory, setSelectedSubCategory] = useState("all")
     const [products, setProducts] = useState<Product[]>([])
     const [categories, setCategories] = useState<CategoryProd[]>([])
     const [page, setPage] = useState(1)
@@ -54,7 +56,8 @@ export default function ProductsPage() {
                 page: pageNum,
                 limit: ITEMS_PER_PAGE,
                 query: search || undefined,
-                categoryId: selectedCategory === "all" ? undefined : selectedCategory
+                categoryId: selectedCategory === "all" ? undefined : selectedCategory,
+                subCategoryId: selectedSubCategory === "all" ? undefined : selectedSubCategory
             })
 
             if (res.statusCode === 200 && res.data) {
@@ -72,7 +75,7 @@ export default function ProductsPage() {
             loadingRef.current = false
             setLoading(false)
         }
-    }, [search, selectedCategory])
+    }, [search, selectedCategory, selectedSubCategory])
 
     // Load more when page changes (infinite scroll)
     useEffect(() => {
@@ -89,7 +92,9 @@ export default function ProductsPage() {
     useEffect(() => {
         setPage(1)
         fetchProducts(1, true)
-    }, [search, selectedCategory, fetchProducts])
+    }, [search, selectedCategory, selectedSubCategory, fetchProducts])
+
+    const activeCategoryData = categories.find(c => c.id === selectedCategory);
 
     return (
         <div className="flex flex-col items-center w-full max-w-7xl mx-auto px-4 py-2">
@@ -109,12 +114,26 @@ export default function ProductsPage() {
                 </div>
             </div>
 
-            {/* CATEGORIES SCROLL */}
-            <div className="flex gap-3 overflow-x-auto pb-2 mb-6 scrollbar-hide w-full justify-start md:justify-center">
-                <CategoryButton label="Tous" active={selectedCategory === "all"} onClick={() => setSelectedCategory("all")} />
-                {categories.map((cat) => (
-                    <CategoryButton key={cat.id} label={cat.name} active={selectedCategory === cat.id} onClick={() => setSelectedCategory(cat.id)} />
-                ))}
+            {/* CATEGORIES & SUB-CATEGORIES FILTERS */}
+            <div className="w-full max-w-3xl mx-auto mb-6">
+                <CategoryFilter
+                    categories={[
+                        { id: "all", name: "Tous" },
+                        ...categories.map(c => ({
+                            id: c.id,
+                            name: c.name,
+                            subCategories: c.subCategories
+                        }))
+                    ]}
+                    selectedCategoryId={selectedCategory}
+                    selectedSubCategoryId={selectedSubCategory}
+                    onCategoryChange={(id) => {
+                        setSelectedCategory(id);
+                        setSelectedSubCategory("all");
+                    }}
+                    onSubCategoryChange={setSelectedSubCategory}
+                    hasSubCategories={true}
+                />
             </div>
 
             {/* Results count header */}
