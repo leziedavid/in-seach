@@ -128,7 +128,7 @@ export default function Header() {
     };
 
     return (
-        <header className={`fixed left-4 z-50 bottom-4 ${isMenuOpen ? "w-[92%]" : "w-fit"} max-w-[800px] md:top-6 md:bottom-auto md:left-1/2 md:-translate-x-1/2 md:w-fit md:px-6 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-lg border border-white/40 dark:border-white/10 rounded-full shadow-lg px-2 py-2 flex items-center justify-start gap-1 md:gap-4 transition-all duration-500 ease-in-out`}>
+        <header className={`fixed left-4 z-[100] bottom-4 ${isMenuOpen ? "w-[92%]" : "w-fit"} max-w-[800px] md:top-6 md:bottom-auto md:left-1/2 md:-translate-x-1/2 md:w-fit md:px-6 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-lg border border-white/40 dark:border-white/10 rounded-full shadow-lg px-2 py-2 flex items-center justify-start gap-1 md:gap-4 transition-all duration-500 ease-in-out`}>
 
             {/* User Section - Flat on mobile */}
             <div className="flex items-center gap-1 md:gap-4 shrink-0">

@@ -8,7 +8,6 @@ import { OpportunitiesIcon, BoutiqueIcon, SearchIcon, LogisticsIcon } from "@/co
 import Info from "./Info"
 import SearchServies from "@/components/services/sections/SearchServies"
 import LogisticProvider from "@/components/logistics/sections/LogisticProvider"
-import { Modal } from "@/components/ui/MotionModal"
 
 
 const tabs = [
@@ -103,12 +102,12 @@ export default function AppTabs() {
                                 )}
 
                                 {/* Cercle - Augmenté pour mobile (w-16) et web (sm-w-18) */}
-                                <div className={`relative z-10 w-16 h-16 sm:w-18 sm:h-18 md:w-20 md:h-20 flex items-center justify-center rounded-[2rem] border transition-all duration-300 ${isActive ? "bg-primary border-primary shadow-[0_10px_25px_-5px_rgba(var(--primary-rgb),0.4)] scale-105" : "bg-card/50 border-border/40 hover:border-sidebar-primary hover:bg-card"} `} >
+                                <div className={`relative z-10 w-16 h-16 sm:w-18 sm:h-18 md:w-20 md:h-20 flex items-center justify-center rounded-[2rem] border transition-all duration-300 ${isActive ? "bg-primary border-primary shadow-[0_10px_25px_-5px_rgba(var(--primary-rgb),0.4)] scale-105" : "bg-white dark:bg-zinc-800 border-border/40 shadow-sx hover:border-primary/50"} `} >
                                     <IconComponent active={isActive} />
                                 </div>
 
                                 {/* Label - Optionnel, caché sur mobile si vide */}
-                                <span className={`text-[10px] sm:text-xs mt-3 whitespace-nowrap transition-colors duration-300 font-black uppercase tracking-tighter ${tab.id === "search" ? "hidden sm:block" : ""} ${isActive ? "text-primary" : "text-muted-foreground group-hover:text-primary"} `}  >
+                                <span className={`text-[10px] sm:text-xs mt-3 whitespace-nowrap transition-colors duration-300 font-black uppercase tracking-tighter ${tab.id === "search" ? "hidden sm:block" : ""} ${isActive ? "text-primary" : "text-zinc-600 dark:text-zinc-400 group-hover:text-primary"} `}  >
                                     {tab.label || "Expertise"}
                                 </span>
                             </button>

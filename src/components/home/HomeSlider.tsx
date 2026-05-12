@@ -7,6 +7,7 @@ import { getSliders } from "@/api/api";
 import { Slider } from "@/types/interface";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import Image from "next/image";
 
 export default function HomeSlider() {
     const [sliders, setSliders] = useState<Slider[]>([]);
@@ -54,17 +55,12 @@ export default function HomeSlider() {
             <div className="overflow-hidden rounded-3xl border border-border/50 shadow-2xl" ref={emblaRef}>
                 <div className="flex">
                     {sliders.map((slider) => (
-                        <div key={slider.id} className="flex-[0_0_100%] min-w-0 relative aspect-[21/9]">
-                            <img
-                                src={slider.file?.fileUrl}
-                                alt={slider.title}
-                                className="w-full h-full object-cover"
-                            />
+                        <div key={slider.id} className="flex-[0_0_100%] min-w-0 relative aspect-[18/9] md:aspect-[21/9]">
+                            <Image src={slider.file?.fileUrl || ""} alt={slider.title} fill className="object-cover" priority unoptimized />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-6 md:p-8">
                                 <motion.h2 initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    className="text-white text-xl md:text-3xl font-black mb-2 drop-shadow-md"
-                                >
+                                    className="text-white text-xl md:text-3xl font-black mb-2 drop-shadow-md" >
                                     {slider.title}
                                 </motion.h2>
                                 {slider.description && (
