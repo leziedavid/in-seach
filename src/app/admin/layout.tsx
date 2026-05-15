@@ -182,7 +182,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     {menuItems.map((item) => {
                         const isActive = pathname === item.href;
                         return (
-                            <Link key={item.href} href={item.href} title={!isSidebarOpen ? item.label : undefined} className={`relative flex items-center rounded-2xl font-bold transition-all duration-300 group ${isSidebarOpen ? 'gap-4 px-4 py-3' : 'justify-center py-3'} ${isActive ? 'bg-white/10 dark:bg-white/[0.08] text-foreground shadow-sm backdrop-blur-md' : 'text-muted-foreground hover:bg-white/5 hover:text-foreground'}`}>
+                            <Link key={item.href} href={item.href} title={!isSidebarOpen ? item.label : undefined} className={`relative flex items-center rounded-2xl font-bold transition-all duration-300 group ${isSidebarOpen ? 'gap-4 px-4 py-3' : 'justify-center py-3'} ${isActive ? 'bg-white/10 dark:bg-white/[0.08] text-foreground dark:text-white shadow-sm backdrop-blur-md' : 'text-muted-foreground dark:text-zinc-400 hover:bg-white/5 hover:text-foreground dark:hover:text-white'}`}>
                                 {/* Active indicator dot */}
                                 {isActive && (
                                     <motion.div layoutId="active-pill" className="absolute left-1.5 w-1 h-5 bg-primary rounded-full" />

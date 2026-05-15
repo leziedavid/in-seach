@@ -1,5 +1,6 @@
 "use client";
 
+import AfricaGlobeWithLocation from "../common/AfricaGlobeWithLocation";
 import AppTabs from "./AppTabs";
 import HomeSlider from "./HomeSlider";
 
@@ -15,6 +16,7 @@ export default function Content() {
                     <HomeSlider />
                 </div>
             </div>
+            {/* <AfricaGlobeWithLocation /> */}
 
             <div className="md:px-10 w-full mb-10 md:mb-0 z-10 mt-4 md:mt-4">
                 <AppTabs />

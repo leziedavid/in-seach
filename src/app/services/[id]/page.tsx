@@ -43,7 +43,7 @@ export default function ServiceDetailPage() {
     );
 
     return (
-        <div className="min-h-screen bg-slate-50 pb-20">
+        <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 pb-20">
             <div className="max-w-6xl mx-auto px-8 py-8">
                 <Link href="/services" className="inline-flex items-center gap-2 text-slate-500 font-bold hover:text-indigo-600 mb-8 transition-colors">
                     <ArrowLeft className="w-5 h-5" /> Retour aux services
@@ -52,7 +52,7 @@ export default function ServiceDetailPage() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
                     {/* Main Content */}
                     <div className="lg:col-span-2 space-y-8">
-                        <div className="bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-sm">
+                        <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] overflow-hidden border border-border shadow-sm">
                             <div className="h-96 relative">
                                 <Image
                                     src={(service.imageUrls?.[0] && service.imageUrls?.[0] !== "") ? service.imageUrls[0] : 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?q=80&w=2070&auto=format&fit=crop'}
@@ -61,25 +61,25 @@ export default function ServiceDetailPage() {
                                     unoptimized
                                     className="object-cover"
                                 />
-                                <div className="absolute top-6 left-6 px-4 py-2 bg-white/90 backdrop-blur rounded-2xl text-xs font-black text-indigo-600 shadow-sm uppercase tracking-widest">
+                                <div className="absolute top-6 left-6 px-4 py-2 bg-white/90 dark:bg-zinc-900/90 backdrop-blur rounded-2xl text-xs font-black text-indigo-600 dark:text-indigo-400 shadow-sm uppercase tracking-widest">
                                     {service.status}
                                 </div>
                             </div>
                             <div className="p-10">
                                 <div className="flex items-center gap-2 text-orange-400 mb-4">
                                     <Star className="w-5 h-5 fill-orange-400" />
-                                    <span className="text-lg font-black text-slate-900">4.9</span>
+                                    <span className="text-lg font-black text-foreground dark:text-white">4.9</span>
                                     <span className="text-slate-400 font-medium">(24 avis vérifiés)</span>
                                 </div>
-                                <h1 className="text-4xl font-black text-slate-900 mb-6">{service.title}</h1>
-                                <div className="flex items-center gap-6 mb-10 pb-10 border-b border-slate-100">
+                                <h1 className="text-4xl font-black text-foreground dark:text-white mb-6">{service.title}</h1>
+                                <div className="flex items-center gap-6 mb-10 pb-10 border-b border-border">
                                     <div className="flex items-center gap-3">
                                         <div className="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center">
                                             <User className="text-slate-500 w-6 h-6" />
                                         </div>
                                         <div>
                                             <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Prestataire</p>
-                                            <p className="font-bold text-slate-800">{service.user?.email.split('@')[0]}</p>
+                                            <p className="font-bold text-foreground dark:text-white">{service.user?.email.split('@')[0]}</p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-3">
@@ -88,13 +88,13 @@ export default function ServiceDetailPage() {
                                         </div>
                                         <div>
                                             <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Localisation</p>
-                                            <p className="font-bold text-slate-800">Cotonou, Bénin</p>
+                                            <p className="font-bold text-foreground dark:text-white">Cotonou, Bénin</p>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div className="prose prose-slate max-w-none">
-                                    <h3 className="text-2xl font-bold text-slate-900 mb-4">Description du service</h3>
+                                    <h3 className="text-2xl font-bold text-foreground dark:text-white mb-4">Description du service</h3>
                                     <p className="text-slate-600 leading-relaxed text-lg">
                                         {service.description}
                                     </p>
@@ -115,11 +115,11 @@ export default function ServiceDetailPage() {
 
                     {/* Sidebar / Booking Card */}
                     <div className="space-y-6">
-                        <div className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-xl shadow-slate-200/50 sticky top-24">
+                        <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] p-8 border border-border shadow-xl shadow-slate-200/50 sticky top-24">
                             <div className="mb-8">
                                 <span className="text-slate-400 font-bold text-sm uppercase tracking-widest block mb-1">À partir de</span>
                                 <div className="flex items-baseline gap-1">
-                                    <span className="text-4xl font-black text-slate-900">45€</span>
+                                    <span className="text-4xl font-black text-foreground dark:text-white">45€</span>
                                     <span className="text-slate-400 font-medium">/intervention</span>
                                 </div>
                             </div>

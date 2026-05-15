@@ -148,10 +148,10 @@ export default function Header() {
                 </button>
 
                 <div className={`${isMenuOpen ? "block" : "hidden"} md:block shrink-0 ml-1`}>
-                    <p className="text-[10px] text-muted-foreground leading-tight">
+                    <p className="text-[10px] text-muted-foreground dark:text-zinc-400 leading-tight">
                         <span className="hidden md:inline">Salut, </span>👋
                     </p>
-                    <p className="font-bold text-foreground text-[10px] sm:text-xs uppercase md:normal-case">
+                    <p className="font-bold text-foreground dark:text-white text-[10px] sm:text-xs uppercase md:normal-case">
                         {/* Mobile: Initiales | Desktop: Nom complet */}
                         <span className="md:hidden">
                             {userName ? userName.substring(0, 2).toUpperCase() : "EX"}
@@ -189,7 +189,7 @@ export default function Header() {
                                 const active = isTabActive(tab.path);
                                 const isProtected = protectedPaths.includes(tab.path);
 
-                                const commonClasses = `flex items-center gap-2 text-xs font-black transition-all px-2.5 py-1.5 rounded-full ${active ? "text-primary-foreground bg-primary shadow-md shadow-primary/20" : "text-muted-foreground hover:text-foreground hover:bg-muted/50"}`;
+                                const commonClasses = `flex items-center gap-2 text-xs font-black transition-all px-2.5 py-1.5 rounded-full ${active ? "text-primary-foreground bg-primary shadow-md shadow-primary/20" : "text-muted-foreground hover:text-foreground dark:text-zinc-400 dark:hover:text-white hover:bg-muted/50"}`;
 
                                 if (isProtected) {
                                     return (

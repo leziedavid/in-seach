@@ -1,0 +1,1221 @@
+╔══════════════════════════════════════════════════════════════════════════════════════════════════╗
+║                                                                                                  ║
+║               DJAMKO SAAS PLATFORM — ANALYSE COMPLÈTE & CONTENU MARKETING                       ║
+║                      Exploitation : Réseaux Sociaux · Vidéo · Business · Investisseurs          ║
+║                                                                                                  ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+Document généré le : 2026-05-13
+Version plateforme : Production
+Architecture : NestJS 11 · Next.js 16 · PostgreSQL · Socket.io · Firebase
+Projets analysés  : Djamko App (in-seach) · Backend API
+
+
+═══════════════════════════════════════════════════════════════════════════════════════════════════
+SECTION 1 — VISION GLOBALE DE LA PLATEFORME
+═══════════════════════════════════════════════════════════════════════════════════════════════════
+
+▌ QU'EST-CE QUE DJAMKO ?
+
+Djamko est une plateforme SaaS multi-services de nouvelle génération qui révolutionne la mise en
+relation entre clients, prestataires de services et entreprises logistiques. C'est un écosystème
+complet qui réunit en un seul endroit : marketplace de services, e-commerce, logistique avancée,
+messagerie en temps réel, abonnements intelligents et outils de gestion d'entreprise.
+
+▌ POSITIONNEMENT
+
+Djamko n'est pas une simple application. C'est une infrastructure digitale complète qui permet à
+n'importe quel professionnel, entrepreneur ou particulier de :
+  · Publier et vendre des services ou des produits
+  · Gérer une entreprise de logistique avec flotte, devis et livraisons
+  · Trouver un prestataire géolocalisé en quelques secondes
+  · Communiquer en temps réel avec ses clients ou partenaires
+  · Suivre ses livraisons en direct sur une carte
+  · Gérer ses abonnements et accès aux fonctionnalités premium
+
+▌ ARCHITECTURE BIPARTITE
+
+  [1] DJAMKO APP — Interface client & prestataire (application publique principale — in-seach)
+  [2] API BACKEND — Moteur central NestJS avec 100+ endpoints, base de données relationnelle
+                    PostgreSQL, temps réel Socket.io, notifications Firebase
+
+▌ CHIFFRES CLÉS DE LA PLATEFORME
+
+  · 6 rôles utilisateurs distincts
+  · 40+ modèles de données (tables)
+  · 100+ endpoints API REST
+  · 30+ pages/routes frontend
+  · 13 modules admin intégrés dans l'application
+  · Temps réel via Socket.io + Firebase FCM
+  · Support PWA (Progressive Web App)
+  · Géolocalisation intégrée (Leaflet Maps)
+  · Systèmes de QR Code pour validation mutuelle
+
+
+═══════════════════════════════════════════════════════════════════════════════════════════════════
+SECTION 2 — LES 6 RÔLES UTILISATEURS
+═══════════════════════════════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────────────────────────────────┐
+│  RÔLE 1 : CLIENT                                                                                │
+│  Le consommateur digital de la plateforme                                                       │
+└─────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+Ce qu'il peut faire :
+  · S'inscrire et créer son profil personnel
+  · Rechercher des services géolocalisés (dépannage, vente, location)
+  · Réserver un prestataire directement depuis l'application
+  · Passer des commandes dans la boutique e-commerce
+  · Consulter les annonces classées (immobilier, véhicules, équipements)
+  · Demander un devis logistique auprès d'une entreprise de transport
+  · Suivre ses livraisons en temps réel avec code de tracking
+  · Communiquer via messagerie instantanée avec les prestataires
+  · Recevoir des notifications push (Firebase FCM)
+  · Gérer son profil et ses abonnements
+
+Ce qu'il peut voir :
+  · Catalogue de services avec filtres géolocalisés
+  · Boutique de produits avec catégories, prix et promotions
+  · Annonces classées (immobilier, véhicules, équipements)
+  · Profils des prestataires et entreprises logistiques
+  · Historique de ses commandes et réservations
+  · Tableau de bord personnel (espace "My Space")
+
+Ses interactions avec les autres utilisateurs :
+  · Chat direct avec les prestataires et livreurs
+  · Évaluation des prestations après service
+  · Validation par QR Code des interventions terminées
+  · Suivi en direct du livreur EasyDelivery
+
+Valeur métier :
+  Djamko donne au client le contrôle total sur ses besoins en services et logistique.
+  Plus besoin de chercher sur dix plateformes différentes : tout est centralisé, géolocalisé
+  et accessible en quelques clics depuis l'application mobile.
+
+
+┌─────────────────────────────────────────────────────────────────────────────────────────────────┐
+│  RÔLE 2 : PRESTATAIRE                                                                           │
+│  L'entrepreneur digital sur Djamko                                                              │
+└─────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+Ce qu'il peut faire :
+  · Créer et gérer sa boutique personnelle (storeName)
+  · Publier des services de type : Dépannage, Vente, Location
+  · Géolocaliser ses services pour être trouvé par proximité
+  · Publier des annonces classées (immobilier, véhicules, équipements)
+  · Recevoir et gérer les réservations de ses clients
+  · Gérer les rendez-vous via calendrier intégré
+  · Intervenir en mode URGENCE ou sur rendez-vous programmé
+  · Générer et scanner des QR Codes pour valider les prestations
+  · Communiquer via chat intégré avec les clients
+  · Gérer son catalogue de produits e-commerce
+  · Accéder aux API avec clés (API Keys) pour intégrations externes
+  · Souscrire à des abonnements pour débloquer plus de fonctionnalités
+
+Ce qu'il peut voir :
+  · Tableau de bord de ses services, annonces et produits
+  · Calendrier de ses réservations
+  · Historique des prestations effectuées
+  · Revenus et statistiques
+  · Profil public de sa boutique accessible aux clients
+
+Ses interactions :
+  · Accepte ou refuse les réservations des clients
+  · Communique en temps réel via la messagerie
+  · Valide les prestations avec son QR Code personnel
+  · Reçoit des notifications push pour chaque nouvelle demande
+
+Valeur métier :
+  Pour le prestataire, Djamko est un vrai moteur d'acquisition client. Sans avoir besoin
+  d'un site web ni d'un budget marketing, il peut se rendre visible, géolocaliser son activité
+  et recevoir des demandes qualifiées. La gestion des interventions, la communication et
+  la facturation sont toutes centralisées dans un seul outil.
+
+  AVANTAGE CONCURRENTIEL : Le système de QR Code pour validation mutuelle garantit la transparence
+  et protège à la fois le client et le prestataire. Aucune contestation possible.
+
+
+┌─────────────────────────────────────────────────────────────────────────────────────────────────┐
+│  RÔLE 3 : ENTREPRISE (Logistique)                                                               │
+│  L'opérateur logistique premium de la plateforme                                                │
+└─────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+Ce qu'il peut faire :
+  · Créer son profil d'entreprise logistique (companyName, siège social)
+  · Publier ses services de transport par type :
+      — Maritime
+      — Aérien
+      — Hors-gabarit
+      — Santé / pharmaceutique
+      — Douane
+      — Logistique & Stockage
+  · Recevoir et traiter des demandes de devis (Quote)
+  · Générer des propositions commerciales
+  · Créer et gérer des livraisons avec suivi multi-étapes
+  · Gérer sa flotte de véhicules (véhicules, camions, avions)
+  · Assigner des chauffeurs aux livraisons
+  · Suivre les livraisons en cours avec timeline d'événements
+  · Générer des documents de livraison (invoice data)
+  · Gérer ses clients (relation Company-Client)
+  · Activer/désactiver les services logistiques
+
+Ce qu'il peut voir :
+  · Tableau de bord logistique complet
+  · Devis reçus, en cours, acceptés, rejetés
+  · État de sa flotte (véhicules actifs/inactifs)
+  · Livraisons en cours avec tracking détaillé
+  · Performance commerciale
+
+Cycle de vie d'un devis logistique :
+  PENDING → REVIEWING → PROPOSED → ACCEPTED → REJECTED | CANCELLED
+  puis si accepté : Création automatique d'une Delivery
+
+Cycle de vie d'une livraison :
+  PREPARING → IN_TRANSIT → AT_CUSTOMS → OUT_FOR_DELIVERY → DELIVERED | CANCELLED
+
+Valeur métier :
+  Djamko offre aux entreprises logistiques une infrastructure digitale complète pour
+  gérer leur activité de bout en bout. De la réception du devis jusqu'à la livraison finale,
+  tout est tracé, documenté et visible en temps réel. Une réponse concrète à la demande
+  croissante de transparence dans la chaîne logistique.
+
+
+┌─────────────────────────────────────────────────────────────────────────────────────────────────┐
+│  RÔLE 4 : CHAUFFEUR                                                                             │
+│  Le professionnel de la route sur Djamko                                                        │
+└─────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+Ce qu'il peut faire :
+  · Être rattaché à une entreprise logistique (companyId)
+  · Être assigné à des livraisons spécifiques
+  · Participer au tracking des livraisons
+  · Accéder à ses missions depuis l'application
+
+Interactions :
+  · L'entreprise logistique lui assigne des livraisons
+  · Il reçoit les détails des trajets (départ, arrivée, tracking code)
+
+Valeur métier :
+  Le chauffeur est l'élément de terrain de l'écosystème logistique.
+  Son intégration numérique dans Djamko permet à l'entreprise de coordonner
+  ses opérations en temps réel et de maintenir une visibilité complète sur les livraisons.
+
+
+┌─────────────────────────────────────────────────────────────────────────────────────────────────┐
+│  RÔLE 5 : LIVREUR (Easy Delivery)                                                               │
+│  Le coursier urbain indépendant de la plateforme                                                │
+└─────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+Ce qu'il peut faire :
+  · Créer son profil EasyDelivery (particulier ou entreprise)
+  · Déclarer son type d'engin : Vélo, Moto, Voiture, Camion
+  · Définir ses tarifs de base et supplémentaires
+  · Recevoir des missions de livraison express
+  · Mettre à jour sa localisation GPS en temps réel
+  · Faire évoluer les statuts de ses livraisons :
+      PENDING → ACCEPTED → PICKED_UP → IN_TRANSIT → ARRIVED → DELIVERED
+  · Accéder à son historique de livraisons et ses statistiques
+
+Ce qu'il peut voir :
+  · Missions disponibles à proximité
+  · Détails des commandes (adresses pickup et dropoff)
+  · Informations du destinataire
+  · Statut de paiement
+
+Valeur métier :
+  EasyDelivery est le module de livraison urbaine rapide de Djamko.
+  Il crée une économie de gigs intégrée directement dans l'écosystème de la plateforme.
+  Un livreur peut y trouver des missions continues, gérer son activité et recevoir
+  ses paiements sans quitter l'application.
+
+
+┌─────────────────────────────────────────────────────────────────────────────────────────────────┐
+│  RÔLE 6 : ADMIN                                                                                 │
+│  Le pilote central de l'écosystème Djamko                                                       │
+└─────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+Ce qu'il peut faire (via le panneau admin intégré à l'application) :
+  · Superviser l'ensemble de la plateforme depuis un tableau de bord central
+  · Gérer tous les utilisateurs (création, modification, suspension, suppression)
+  · Modérer les annonces, services et produits
+  · Valider les paiements d'abonnements
+  · Assigner des plans d'abonnement aux utilisateurs
+  · Activer/désactiver des fonctionnalités via Feature Flags
+  · Consulter les logs système journaliers
+  · Suivre les livraisons EasyDelivery
+  · Surveiller les opérations logistiques
+  · Gérer les logs de localisation
+  · Gérer les sliders de la homepage
+  · Gérer le catalogue de vidéos
+  · Configurer les paramètres de la plateforme
+
+Modules admin accessibles (/admin/*) :
+  · Overview — Vue d'ensemble de la plateforme
+  · Utilisateurs — Gestion des comptes
+  · Produits — Catalogue et modération
+  · Services — Modération des services publiés
+  · Annonces — Modération des petites annonces
+  · Abonnements — Gestion des plans et paiements
+  · Vidéos — Gestion du contenu vidéo
+  · Sliders — Gestion du carousel homepage
+  · Easy-Delivery — Suivi et gestion des livreurs
+  · Logistique — Supervision des opérations cargo
+  · Logs location — Historique des positions GPS
+  · Logs système — Consultation des logs applicatifs
+  · Paramètres — Configuration globale
+
+Valeur métier :
+  L'administrateur dispose d'une visibilité à 360° sur la santé de la plateforme.
+  Des KPIs en temps réel, une gestion fine des utilisateurs et un accès direct à chaque module.
+  C'est la colonne vertébrale opérationnelle de Djamko.
+
+
+═══════════════════════════════════════════════════════════════════════════════════════════════════
+SECTION 3 — MODULES ET FONCTIONNALITÉS DÉTAILLÉES
+═══════════════════════════════════════════════════════════════════════════════════════════════════
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MODULE 1 — MARKETPLACE DE SERVICES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DESCRIPTION :
+  Coeur de la plateforme Djamko, le Marketplace de Services connecte en temps réel
+  les clients avec des prestataires qualifiés, géolocalisés et disponibles.
+
+TYPES DE SERVICES DISPONIBLES :
+  · Dépannage (DEPANNAGE)  — Intervention d'urgence, réparation, assistance
+  · Vente (VENTE)          — Services marchands, prestations commerciales
+  · Location (LOCATION)    — Mise à disposition d'équipements ou d'espaces
+
+FONCTIONNALITÉS CLÉ :
+  · Recherche par géolocalisation (latitude/longitude)
+  · Filtres par catégorie, type de service, statut
+  · Affichage des prix et réductions
+  · Publication avec images multiples
+  · Tags pour une meilleure découvrabilité
+  · Activation/désactivation instantanée du service
+  · Système de notation (rating) et commentaires
+  · Profil public de la boutique (shop/[storeName])
+
+WORKFLOW DE RÉSERVATION (Booking) :
+  1. Client trouve un service géolocalisé
+  2. Client envoie une demande de réservation
+  3. Prestataire accepte ou refuse
+  4. Intervention planifiée (RDV) ou immédiate (URGENCE)
+  5. QR Code généré pour le client et le prestataire
+  6. Scan mutuel des QR Codes à la fin de l'intervention
+  7. Paiement et notation
+
+STATUTS D'UNE RÉSERVATION :
+  PENDING → ACCEPTED → IN_PROGRESS → COMPLETED → PAID | CANCELLED
+
+VALEUR MÉTIER :
+  "Djamko, c'est le Uber des services professionnels. En quelques secondes, trouvez
+  le bon prestataire, au bon endroit, au bon moment. Sans appel téléphonique, sans
+  intermédiaire, sans friction."
+
+POUR LES RÉSEAUX SOCIAUX :
+  "Besoin d'un dépannage, d'une location ou d'un service professionnel ?
+   Sur Djamko, votre prestataire est à portée de tap. Géolocalisé, disponible,
+   vérifié. Réservez en 30 secondes."
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MODULE 2 — E-COMMERCE & BOUTIQUES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DESCRIPTION :
+  Djamko intègre une plateforme e-commerce complète permettant à chaque prestataire
+  de créer sa boutique et de vendre ses produits directement depuis la plateforme.
+
+FONCTIONNALITÉS PRODUITS :
+  · Gestion du catalogue (nom, description, prix, SKU, stock)
+  · Prix promotionnel et pourcentage de réduction
+  · Conditions de produit : Neuf, Comme neuf, Très bon état, Bon état,
+                             État correct, Occasion, Reconditionné, Pour pièces
+  · Catégories et sous-catégories
+  · Boutique personnalisée (storeName unique par vendeur)
+  · Activation/désactivation par produit
+
+FONCTIONNALITÉS COMMANDES :
+  · Panier d'achat intégré (CartProvider)
+  · Commandes multi-articles
+  · Workflow de commande :
+      PENDING → PROCESSING → VALIDATED → PAID → SHIPPED → DELIVERED | CANCELLED
+  · Modes de paiement :
+      — Paiement à la livraison (LIVRAISON)
+      — Wave Money
+      — Orange Money
+      — MTN Mobile Money
+      — Moov Money
+  · Historique complet des commandes
+
+VALEUR MÉTIER :
+  "Avec Djamko, ouvrir sa boutique en ligne prend 5 minutes. Aucune compétence technique
+  requise. Votre catalogue, vos prix, vos commandes — tout est géré dans une interface
+  simple et puissante."
+
+POUR LES RÉSEAUX SOCIAUX :
+  "Vendeurs, Djamko vous offre votre propre boutique en ligne, connectée à des milliers
+   de clients. Gérez votre stock, vos commandes et vos paiements depuis votre téléphone."
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MODULE 3 — ANNONCES CLASSÉES (MARKETPLACE MULTI-SECTEURS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DESCRIPTION :
+  Le module Annonces est un espace de petites annonces multi-secteurs intégré directement
+  dans l'écosystème Djamko. Il permet la publication d'offres immobilières, de véhicules,
+  d'équipements et de tout type de bien ou service.
+
+TYPES D'ANNONCES :
+  Dynamiques — configurables par l'admin via les types (TypeAnnonce)
+
+CATÉGORIES :
+  Dynamiques — gérées via CategorieAnnonce (immobilier, véhicule, équipement, etc.)
+
+FICHES TECHNIQUES DYNAMIQUES :
+  · Pour l'immobilier : surface, nombre de pièces, options (garage, piscine, jardin...)
+  · Pour les véhicules : marque, modèle, immatriculation, type de carburant, kilométrage
+  · Pour les équipements : liste configurable
+
+FONCTIONNALITÉS :
+  · Publication avec images multiples
+  · Prix, localisation GPS
+  · Dates de début/fin de l'annonce
+  · Statuts : ACTIVE, DRAFT, EXPIRED, SOLD, CANCELLED
+  · Options personnalisées (RealEstateOption, VehicleType)
+  · Possibilité de réserver directement depuis une annonce
+
+VALEUR MÉTIER :
+  "Que vous vendiez un appartement, une voiture ou du matériel professionnel,
+   Djamko vous donne une vitrine digitale puissante avec une audience qualifiée.
+   Publiez en 2 minutes. Vendez plus vite."
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MODULE 4 — LOGISTIQUE AVANCÉE (CARGO & TRANSPORT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DESCRIPTION :
+  Djamko intègre un module logistique complet pour les entreprises de transport
+  et d'expédition. De la demande de devis jusqu'à la livraison finale, tout le
+  workflow est digitalisé et traçable en temps réel.
+
+TYPES DE TRANSPORT SUPPORTÉS :
+  · Maritime — Fret maritime international et local
+  · Aérien — Fret aérien et express
+  · Hors-gabarit — Transport de marchandises volumineuses
+  · Santé — Transport pharmaceutique et médical
+  · Douane — Services douaniers et dédouanement
+  · Logistique & Stockage — Entrepôts et solutions de stockage
+
+MODULE DEVIS (QUOTES) :
+  · Demande de devis avec : pays de départ, pays d'arrivée, adresses complètes
+  · Volume et poids de la marchandise
+  · Description détaillée du besoin
+  · Workflow de traitement :
+      PENDING → REVIEWING → PROPOSED → ACCEPTED → REJECTED | CANCELLED
+  · Montant de transaction proposé
+  · Assignation à un prestataire spécialisé
+
+MODULE LIVRAISONS (DELIVERIES) :
+  · Code de tracking unique par livraison
+  · Timeline complète d'événements de suivi
+  · Statuts : PREPARING → IN_TRANSIT → AT_CUSTOMS → OUT_FOR_DELIVERY → DELIVERED
+  · Assignation de chauffeurs et véhicules
+  · Dates estimées et réelles de départ/arrivée
+  · Génération de documents (données facture)
+
+MODULE FLOTTE (FLEET MANAGEMENT) :
+  · Inventaire complet des véhicules par entreprise
+  · Types : Véhicule, Camion, Avion, Autre
+  · Caractéristiques techniques : marque, modèle, immatriculation, capacité
+  · Informations carburant, assurance, mise en circulation
+  · Statut opérationnel : Actif / Inactif
+  · Affectation aux livraisons
+
+VALEUR MÉTIER :
+  "Pour les entreprises de logistique, Djamko est le système d'exploitation de
+   leur activité. Gérez votre flotte, traitez vos devis, suivez vos livraisons et
+   coordonnez vos chauffeurs depuis une seule plateforme. Zéro paperasse. 100% digital."
+
+POUR LES VIDÉOS MARKETING :
+  "Voici comment Djamko transforme la logistique. Un client demande un devis pour
+   expédier du matériel de Dakar à Paris. En 24h, l'entreprise propose une offre.
+   En 48h, la marchandise est prise en charge. En temps réel, le client suit son
+   colis étape par étape. C'est ça, la logistique intelligente."
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MODULE 5 — EASY DELIVERY (LIVRAISON URBAINE EXPRESS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DESCRIPTION :
+  EasyDelivery est la solution de livraison last-mile de Djamko. Elle connecte les
+  vendeurs et acheteurs avec des livreurs indépendants disponibles immédiatement.
+  C'est l'équivalent d'un service type Glovo/Uber Eats adapté à l'écosystème Djamko.
+
+TYPES DE LIVREURS :
+  · Particulier — coursier indépendant
+  · Entreprise — société de livraison intégrée
+
+VÉHICULES SUPPORTÉS :
+  · Vélo, Moto, Voiture, Camion
+
+FONCTIONNALITÉS :
+  · Profil livreur avec tarifs personnalisés (base + supplément)
+  · Assignation automatique ou manuelle de missions
+  · Suivi GPS en temps réel (latitude/longitude en direct)
+  · Route complète avec points pickup et dropoff
+  · Polyline de l'itinéraire
+  · Informations destinataire (nom, téléphone)
+  · Prise en charge des paiements liés aux livraisons
+  · Historique et statistiques du livreur
+
+WORKFLOW D'UNE LIVRAISON EASY :
+  PENDING → ACCEPTED → PICKED_UP → IN_TRANSIT → ARRIVED → DELIVERED
+
+VALEUR MÉTIER :
+  "EasyDelivery transforme n'importe qui en livreur professionnel. Pour les vendeurs
+   sur Djamko, chaque commande peut être livrée en quelques heures. Pour les livreurs,
+   c'est une source de revenus flexible et continue. Un modèle gagnant-gagnant."
+
+POUR LES RÉSEAUX SOCIAUX :
+  "Vous avez commandé sur Djamko ? Suivez votre livreur en direct sur la carte,
+   de la boutique jusqu'à votre porte. Livraison express, c'est EasyDelivery."
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MODULE 6 — MESSAGERIE EN TEMPS RÉEL (CHAT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DESCRIPTION :
+  Djamko intègre une messagerie instantanée premium directement dans la plateforme.
+  Chaque client peut ouvrir une conversation avec n'importe quel prestataire
+  ou entreprise sans quitter l'application.
+
+FONCTIONNALITÉS :
+  · Conversations 1-to-1 entre utilisateurs
+  · Envoi de messages texte
+  · Envoi de fichiers et pièces jointes
+  · Indicateurs de lecture (SENT → DELIVERED → READ)
+  · Compteur de messages non lus
+  · Marquage comme lu
+  · Édition et suppression de messages
+  · Conversations liées à une réservation (bookingId)
+  · Vérification de code via chat (sécurité des interventions)
+  · Temps réel via Socket.io Gateway
+
+VALEUR MÉTIER :
+  "Sur Djamko, la communication ne passe jamais par l'extérieur. Tout se passe
+   en interne, de manière sécurisée et traçable. Chaque échange est lié à
+   une transaction ou une intervention, créant un historique complet et transparent."
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MODULE 7 — ABONNEMENTS & PLANS (MONÉTISATION)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DESCRIPTION :
+  Djamko monétise sa plateforme via un système d'abonnements en niveaux.
+  Chaque plan déverrouille des entités et fonctionnalités supplémentaires.
+
+PLANS DISPONIBLES :
+  Configurables dynamiquement (nom, prix, durée, limites de services, fonctionnalités)
+  Exemples de tiers : FREE, PREMIUM, LOGISTIC
+
+FONCTIONNALITÉS :
+  · Souscription en ligne avec choix du plan
+  · Upload de preuve de paiement
+  · Validation manuelle ou automatique
+  · Renouvellement automatique (autoRenew)
+  · Gestion des limites d'entités par plan (PlanEntity)
+  · Vérification en temps réel du statut de l'abonnement
+  · Feature Flags système (activation/désactivation par module)
+  · Statuts : ACTIVE, EXPIRED, CANCELLED
+
+MODES DE PAIEMENT ACCEPTÉS :
+  · Carte bancaire
+  · Mobile Money (Wave, Orange, MTN, Moov)
+  · Validation admin manuelle
+
+VALEUR MÉTIER :
+  "Le modèle économique de Djamko est basé sur la valeur créée. Plus un professionnel
+   développe son activité sur la plateforme, plus il a besoin de fonctionnalités avancées.
+   Les plans d'abonnement accompagnent cette croissance de manière flexible."
+
+POUR LES INVESTISSEURS :
+  "Djamko génère des revenus récurrents via des abonnements mensuels/annuels
+   des prestataires et entreprises logistiques. Le modèle freemium garantit une
+   acquisition massive d'utilisateurs avec une conversion vers les plans payants."
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MODULE 8 — NOTIFICATIONS (PUSH & TEMPS RÉEL)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DESCRIPTION :
+  Djamko maintient ses utilisateurs informés en permanence via un système
+  de notifications multi-canal.
+
+CANAUX DE NOTIFICATION :
+  · Firebase Cloud Messaging (FCM) — Notifications push natives iOS/Android/Web
+  · WebSocket (Socket.io) — Événements temps réel dans l'application
+  · Consentement granulaire (NotificationPermissionModal)
+
+TYPES D'ÉVÉNEMENTS NOTIFIÉS :
+  · Nouvelle réservation reçue
+  · Changement de statut d'une livraison
+  · Nouveau message chat
+  · Validation d'abonnement
+  · Nouvelles offres logistiques
+  · Alertes système
+
+VALEUR MÉTIER :
+  "Djamko ne dort jamais. Chaque événement important déclenche une notification
+   instantanée, garantissant que personne ne rate une opportunité business
+   ou une mise à jour critique."
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MODULE 9 — GÉOLOCALISATION & TRACKING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DESCRIPTION :
+  La géolocalisation est au coeur de Djamko. Elle permet de trouver les services
+  les plus proches, de suivre les livraisons et d'optimiser la mise en relation.
+
+FONCTIONNALITÉS :
+  · Géocodage et reverse-géocodage (adresses ↔ coordonnées GPS)
+  · Recherche de services par proximité géographique
+  · Calcul de distances (calculateDistance utility)
+  · Tracking GPS en temps réel des livreurs EasyDelivery
+  · Historique des positions (LocationLog)
+  · Carte interactive Leaflet intégrée dans l'interface
+  · Logs de localisation admin consultables
+
+VALEUR MÉTIER :
+  "La technologie géospatiale de Djamko fait correspondre automatiquement
+   les besoins des clients avec les prestataires disponibles dans leur zone.
+   Résultat : des mises en relation plus rapides et des taux de conversion supérieurs."
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MODULE 10 — QR CODE & VALIDATION MUTUELLE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DESCRIPTION :
+  Djamko intègre un système de validation par QR Code unique pour sécuriser
+  et certifier les prestations effectuées.
+
+FONCTIONNEMENT :
+  · À chaque réservation confirmée, deux QR Codes uniques sont générés :
+    — userQrCode : QR Code du client
+    — prestaQrCode : QR Code du prestataire
+  · À la fin de l'intervention, chacun scanne le QR Code de l'autre
+  · La prestation est validée uniquement quand les deux QR Codes sont scannés
+  · Ce double scan certifie que les deux parties confirment la bonne exécution
+
+VALEUR MÉTIER :
+  "La validation par QR Code est la signature digitale de la prestation.
+   Elle élimine les litiges, garantit la transparence et crée un historique
+   inaltérable de chaque service rendu. Client et prestataire sont protégés."
+
+POUR LES VIDÉOS DÉMO :
+  "À la fin de l'intervention, le client ouvre son QR Code dans Djamko.
+   Le prestataire le scanne. Le prestataire présente son QR Code.
+   Le client le scanne. La mission est officiellement clôturée.
+   Simple. Sécurisé. Indiscutable."
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MODULE 11 — INTELLIGENCE ARTIFICIELLE (AI SEARCH)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DESCRIPTION :
+  Djamko intègre des capacités d'intelligence artificielle pour améliorer
+  l'expérience utilisateur et automatiser certains processus.
+
+FONCTIONNALITÉS IA :
+  · Service de recherche IA (search-service-ia) pour la découverte intelligente
+  · Module AI Controller pour le traitement de requêtes complexes
+  · TensorFlow.js intégré côté backend (reconnaissance d'images, ML)
+  · Interface Chat IA (chat-ia) pour l'assistance utilisateur
+
+VALEUR MÉTIER :
+  "L'IA intégrée dans Djamko améliore la pertinence des résultats de recherche,
+   aide les utilisateurs à trouver exactement ce qu'ils cherchent et automatise
+   les tâches répétitives pour les prestataires."
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MODULE 12 — PAIEMENTS & SYSTÈME DE CRÉDITS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DESCRIPTION :
+  Djamko intègre un système de paiement flexible adapté aux marchés locaux.
+
+MÉTHODES DE PAIEMENT SUPPORTÉES :
+  · Wave Money
+  · Orange Money
+  · MTN Mobile Money
+  · Moov Money
+  · Paiement à la livraison
+  · Carte bancaire
+  · Validation admin (manuel)
+
+SYSTÈME DE CRÉDITS :
+  · Chaque utilisateur dispose d'un solde de crédits
+  · Achat de crédits via le module de paiement
+  · Utilisation des crédits pour les services premium
+
+VALEUR MÉTIER :
+  "Djamko parle la langue des paiements locaux. Wave, Orange Money, MTN, Moov —
+   toutes les solutions populaires sont intégrées. Aucun utilisateur n'est exclu
+   par son mode de paiement."
+
+
+═══════════════════════════════════════════════════════════════════════════════════════════════════
+SECTION 4 — CONTENU MARKETING PAR FORMAT
+═══════════════════════════════════════════════════════════════════════════════════════════════════
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PUBLICATIONS RÉSEAUX SOCIAUX (LINKEDIN / INSTAGRAM / TWITTER)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+POST #1 — PRÉSENTATION GÉNÉRALE
+---
+Djamko, c'est la plateforme qui connecte tout le monde.
+
+Services. E-commerce. Logistique. Livraison express.
+Tout ça dans une seule application, pensée pour l'Afrique.
+
+✓ Trouvez un prestataire géolocalisé en 30 secondes
+✓ Ouvrez votre boutique en ligne en 5 minutes
+✓ Gérez votre flotte et vos livraisons en temps réel
+✓ Payez avec Wave, Orange Money, MTN ou Moov
+
+Djamko. La nouvelle façon de faire des affaires.
+#Djamko #SaaS #Afrique #Tech #Innovation
+
+POST #2 — POUR LES PRESTATAIRES
+---
+Prestataires, artisans, indépendants —
+Djamko est votre vitrine digitale.
+
+Pas besoin d'un site web.
+Pas besoin d'un budget pub.
+Pas besoin d'un commercial.
+
+Publiez votre service → Soyez trouvé par des clients proches de vous
+→ Gérez vos rendez-vous → Validez avec QR Code → Soyez payé.
+
+C'est tout. C'est Djamko.
+#Prestataire #Entrepreneur #Business
+
+POST #3 — LOGISTIQUE
+---
+Pour les entreprises de transport et logistique :
+
+Djamko gère votre flotte, vos devis et vos livraisons.
+Maritime. Aérien. Douane. Hors-gabarit. Stockage.
+
+Vos clients suivent leurs colis en temps réel.
+Vos chauffeurs reçoivent leurs missions sur l'app.
+Vous pilotez tout depuis un seul dashboard.
+
+La logistique intelligente, c'est maintenant.
+#Logistique #Transport #Cargo #Tracking
+
+POST #4 — EASY DELIVERY
+---
+Vous livrez des colis en ville ?
+EasyDelivery sur Djamko vous connecte aux clients.
+
+Vélo. Moto. Voiture. Camion.
+Peu importe votre véhicule, il y a une mission pour vous.
+
+Définissez vos tarifs. Recevez des missions. Livrez.
+Le client suit sa commande en direct sur la carte.
+
+Gagnez plus avec EasyDelivery.
+#Livreur #Coursier #EasyDelivery #Djamko
+
+POST #5 — INVESTISSEURS
+---
+Djamko, c'est un écosystème, pas une application.
+
+• Marketplace de services géolocalisés
+• E-commerce avec boutiques intégrées
+• Logistique cargo multi-modal
+• Livraison last-mile (EasyDelivery)
+• Messagerie temps réel
+• Abonnements récurrents
+• IA intégrée
+• PWA (Android + iOS + Web)
+
+6 profils d'utilisateurs. 100+ API endpoints.
+40 tables de données. Architecture NestJS + Next.js.
+
+Prêt pour la scale. Prêt pour la croissance.
+DM pour en savoir plus.
+#Investisseurs #Startup #Fintech #Africa
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SCRIPTS VIDÉO MARKETING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SCRIPT VIDÉO #1 — PRÉSENTATION 60 SECONDES
+---
+[0-5s] Image : ville africaine, gens actifs, téléphones
+Voix : "Chaque jour, des milliers de personnes cherchent un prestataire.
+        Des livreurs cherchent des missions. Des entreprises cherchent des clients.
+        Mais tout le monde cherche... séparément."
+
+[5-15s] Image : interface Djamko sur téléphone
+Voix : "Djamko change ça. Une seule plateforme. Tout le monde connecté."
+
+[15-30s] Montage rapide des fonctionnalités
+Voix : "Réservez un service en 30 secondes.
+        Vendez vos produits sans site web.
+        Suivez vos livraisons en temps réel.
+        Gérez votre logistique depuis votre téléphone."
+
+[30-45s] Image : validation QR Code, livraison GPS, chat
+Voix : "QR Code pour valider les prestations. GPS pour suivre les livreurs.
+        Chat intégré pour communiquer sans friction."
+
+[45-55s] Logo Djamko, appel à l'action
+Voix : "Djamko. La plateforme qui fait marcher le business."
+
+[55-60s] "Téléchargez l'application. Rejoignez la communauté."
+
+SCRIPT VIDÉO #2 — TUTORIEL PRESTATAIRE
+---
+[0-5s] "Vous êtes prestataire ? Voici comment Djamko va booster votre activité."
+
+[5-15s] Démonstration : création de profil
+"Étape 1 : Créez votre profil en 2 minutes. Ajoutez votre nom, votre spécialité,
+           votre localisation."
+
+[15-30s] Démonstration : publication d'un service
+"Étape 2 : Publiez votre premier service. Dépannage, vente, location.
+           Ajoutez des photos, un prix, vos disponibilités."
+
+[30-45s] Démonstration : réception d'une réservation
+"Étape 3 : Un client vous trouve et réserve. Vous recevez une notification.
+           Vous acceptez. L'intervention est planifiée."
+
+[45-60s] Démonstration : QR Code validation
+"Étape 4 : À la fin de l'intervention, validez avec le QR Code.
+           Paiement sécurisé. Client satisfait. Réputation construite."
+
+SCRIPT VIDÉO #3 — LOGISTIQUE B2B
+---
+[0-10s] Image : port, avion cargo, camion sur route
+Voix : "Transport maritime, aérien, routier, douane...
+        La logistique, c'est complexe. Djamko simplifie tout."
+
+[10-25s] Démonstration : demande de devis
+Voix : "Un client envoie une demande de devis depuis l'application.
+        Départ, arrivée, volume, poids. En quelques clics."
+
+[25-40s] Démonstration : traitement du devis
+Voix : "L'entreprise logistique reçoit la demande, analyse et propose un montant.
+        Le client accepte. La livraison démarre automatiquement."
+
+[40-55s] Démonstration : tracking
+Voix : "À chaque étape, le client est informé : préparation, transit, douane,
+        livraison. Un code de tracking. Une timeline complète."
+
+[55-65s] Logo
+Voix : "Djamko Logistique. La supply chain digitale de l'Afrique."
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ARGUMENTAIRE COMMERCIAL (PITCH DECK / SALES)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+LE PROBLÈME :
+  · Les prestataires de services peinent à trouver des clients réguliers
+  · Les clients perdent du temps à chercher des professionnels de confiance
+  · Les entreprises logistiques manquent d'outils digitaux adaptés
+  · Les livreurs n'ont pas de plateforme centralisée pour leurs missions
+  · Les paiements sont fragmentés et difficiles à gérer
+
+LA SOLUTION — DJAMKO :
+  Une plateforme SaaS tout-en-un qui centralise services, commerce et logistique
+  dans une expérience unifiée, mobile-first et adaptée aux marchés africains.
+
+NOS AVANTAGES CONCURRENTIELS :
+  1. TOUT EN UN — Services + E-commerce + Logistique + Livraison dans une seule app
+  2. GÉOLOCALISATION NATIVE — Mise en relation par proximité en temps réel
+  3. QR CODE MUTUEL — Validation transparente et sécurisée des prestations
+  4. PAIEMENTS LOCAUX — Wave, Orange Money, MTN, Moov intégrés nativement
+  5. TEMPS RÉEL — Socket.io + Firebase pour une expérience instantanée
+  6. PWA — Fonctionne comme une app native sans téléchargement obligatoire
+  7. IA INTÉGRÉE — Recherche intelligente et assistance utilisateur
+  8. ABONNEMENTS FLEXIBLES — Modèle SaaS scalable
+
+MODÈLE ÉCONOMIQUE :
+  · Commissions sur transactions (configurable par l'admin)
+  · Abonnements mensuels/annuels (FREE > PREMIUM > LOGISTIC)
+  · Système de crédits
+  · API Keys pour prestataires premium
+
+TRACTION ET SCALABILITÉ :
+  · Architecture NestJS modulaire — ajout de modules sans refactoring
+  · Base de données PostgreSQL optimisée avec indexes
+  · Docker-ready (Dockerfile + docker-compose.yml inclus)
+  · Système de logging avancé (Winston avec rotation journalière)
+  · Documentation API Swagger complète
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CONTENU LANDING PAGE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+HERO SECTION :
+  Titre : "La plateforme qui connecte services, commerce et logistique."
+  Sous-titre : "Trouvez un prestataire, vendez vos produits, gérez vos livraisons.
+                Tout ça sur Djamko."
+  CTA : "Commencer gratuitement" | "Voir la démo"
+
+SECTION FONCTIONNALITÉS :
+  Bloc 1 : [Icône carte] Services géolocalisés
+            "Trouvez le bon prestataire à proximité en quelques secondes.
+             Dépannage, location, vente — géolocalisés et disponibles."
+
+  Bloc 2 : [Icône boutique] Boutique intégrée
+            "Ouvrez votre boutique en ligne sans site web.
+             Gérez votre stock, vos commandes et vos paiements."
+
+  Bloc 3 : [Icône camion] Logistique avancée
+            "Maritime, aérien, routier. Demandez un devis, suivez votre livraison,
+             gérez votre flotte."
+
+  Bloc 4 : [Icône scooter] Easy Delivery
+            "Livraison express urbaine. Suivez votre livreur en direct sur la carte."
+
+  Bloc 5 : [Icône QR] Validation sécurisée
+            "QR Code mutuel pour certifier chaque prestation.
+             Transparent. Inaltérable."
+
+  Bloc 6 : [Icône chat] Messagerie intégrée
+            "Communiquez directement avec vos clients ou prestataires.
+             Tout est tracé, sécurisé, contextuel."
+
+SECTION PLANS :
+  FREE — Démarrez gratuitement
+  PREMIUM — Débloquez plus de fonctionnalités
+  LOGISTIC — La solution complète pour les entreprises
+
+SECTION TÉMOIGNAGES :
+  (À compléter avec de vrais témoignages utilisateurs)
+
+FOOTER :
+  Liens : Solutions | Pricing | Privacy Policy | Terms of Use | Cookies
+  Contact : Support, Partenariats, Investisseurs
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CONTENU INVESTISSEURS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+EXECUTIVE SUMMARY :
+  Djamko est une plateforme SaaS multi-services B2B2C conçue pour les marchés africains.
+  Elle adresse simultanément trois marchés à fort potentiel : les services de proximité,
+  le commerce électronique et la logistique. Son architecture technique est robuste,
+  scalable et prête à une expansion rapide.
+
+OPPORTUNITÉ DE MARCHÉ :
+  · Pénétration mobile croissante dans les marchés cibles
+  · Besoin urgent de digitalisation des activités de service
+  · Logistique fragmentée sans solution digitale dominante
+  · Fort potentiel d'adoption du Mobile Money
+
+AVANTAGES TECHNIQUES :
+  · Architecture microservices NestJS modulaire (37+ modules)
+  · Base de données relationnelle optimisée (40+ tables, indexes stratégiques)
+  · Infrastructure temps réel double canal (Socket.io + Firebase FCM)
+  · PWA avec support offline
+  · API documentée Swagger (100+ endpoints)
+  · Containerisation Docker pour le déploiement scalable
+
+REVENUS RÉCURRENTS :
+  · Abonnements SaaS des prestataires
+  · Commissions configurables sur transactions
+  · Plans logistiques pour entreprises
+  · API Keys premium
+
+ROADMAP VISIBLE :
+  · Modules déjà développés : Marketplace, E-commerce, Logistique, EasyDelivery,
+    Chat, Notifications, Abonnements, IA Search, QR Code, Géolocalisation
+  · Architecture préparée pour : Paiement automatisé, Assurance livraison,
+    Expansion géographique, APIs partenaires
+
+
+═══════════════════════════════════════════════════════════════════════════════════════════════════
+SECTION 5 — ARCHITECTURE TECHNIQUE DÉTAILLÉE
+═══════════════════════════════════════════════════════════════════════════════════════════════════
+
+STACK TECHNOLOGIQUE COMPLET :
+
+  FRONTEND (Djamko App — in-seach)
+  ├── Next.js 16 (App Router)
+  ├── React 19
+  ├── TypeScript
+  ├── Tailwind CSS v4
+  ├── TanStack React Query v5 (data fetching + cache)
+  ├── React Hook Form + Zod (validation)
+  ├── Socket.io Client v4
+  ├── Firebase (auth + push notifications)
+  ├── Leaflet + React Leaflet (maps)
+  ├── TipTap Editor (rich text)
+  ├── QRCode.react + jsqr (QR generation + scan)
+  ├── Framer Motion (animations)
+  └── PWA Support (usePWA hook)
+
+  BACKEND (NestJS API)
+  ├── NestJS v11 (architecture modulaire)
+  ├── Prisma v6 (ORM)
+  ├── PostgreSQL (base de données)
+  ├── Socket.io v4 (WebSocket gateway)
+  ├── JWT + Passport (authentification)
+  ├── Firebase Admin SDK (FCM)
+  ├── TensorFlow.js (machine learning)
+  ├── Winston (logging avec rotation journalière)
+  ├── NestJS Schedule (tâches planifiées)
+  ├── NestJS Throttler (rate limiting)
+  ├── Swagger/OpenAPI (documentation)
+  ├── Docker + docker-compose
+  └── 37+ modules métier
+
+BASE DE DONNÉES :
+  Tables principales (40+ modèles) :
+  User, CategoryProduct, SubCategoryProduct, Product, Order, OrderItem,
+  Service, Booking, Category, Annonce, TypeAnnonce, CategorieAnnonce,
+  TechnicalSheet, TechnicalSheetDefault, Equipment, RealEstateOption,
+  VehicleType, EquipmentName, Conversation, Message, Subscription,
+  SubscriptionPlan, SystemFeatureFlag, PlanEntity, History,
+  LogisticService, Quote, Delivery, DeliveryTracking, Flote,
+  EasyDelivery, HistoryDelivery, LocationLog, NotificationSubscription,
+  ApiKey, FileManager, Video, Slider
+
+ENUMS CRITIQUES :
+  Role: CLIENT | PRESTATAIRE | ADMIN | ENTREPRISE | CHAUFFEUR | LIVREUR
+  BookingStatus: PENDING | ACCEPTED | IN_PROGRESS | COMPLETED | CANCELLED | PAID
+  OrderStatus: PENDING | PROCESSING | VALIDATED | PAID | SHIPPED | DELIVERED | CANCELLED
+  DeliveryStatus: PREPARING | IN_TRANSIT | AT_CUSTOMS | OUT_FOR_DELIVERY | DELIVERED | CANCELLED
+  EasyDeliveryStatus: PENDING | ACCEPTED | PICKED_UP | IN_TRANSIT | ARRIVED | DELIVERED | CANCELLED
+  QuoteStatus: PENDING | REVIEWING | PROPOSED | ACCEPTED | REJECTED | CANCELLED
+  TransportType: MARITIME | AERIEN | HORS_GABARIT | SANTE | LOGISTIQUE_STOCKAGE | DOUANE
+  ServiceType: DEPANNAGE | VENTE | LOCATION
+  AnnonceStatus: ACTIVE | DRAFT | EXPIRED | SOLD | CANCELLED
+
+
+═══════════════════════════════════════════════════════════════════════════════════════════════════
+SECTION 6 — WORKFLOWS COMPLETS
+═══════════════════════════════════════════════════════════════════════════════════════════════════
+
+WORKFLOW #1 — RÉSERVATION DE SERVICE
+  1. Client ouvre l'app Djamko
+  2. Active la géolocalisation
+  3. Recherche par catégorie ou mots-clés
+  4. Voit les prestataires disponibles sur la carte
+  5. Consulte le profil et les avis du prestataire
+  6. Envoie une demande de réservation (RDV ou Urgence)
+  7. Prestataire reçoit une notification push
+  8. Prestataire accepte la réservation
+  9. Les deux parties communiquent via le chat intégré
+  10. Intervention réalisée
+  11. Client et prestataire scannent mutuellement leurs QR Codes
+  12. Prestation validée → notation et paiement
+
+WORKFLOW #2 — COMMANDE E-COMMERCE
+  1. Client browse la boutique
+  2. Ajoute des produits au panier (CartProvider)
+  3. Choisit le mode de paiement (Wave, OM, MTN, livraison...)
+  4. Confirme la commande
+  5. Vendeur reçoit la notification
+  6. Vendeur traite la commande (PROCESSING)
+  7. Validation et paiement (VALIDATED → PAID)
+  8. Expédition (SHIPPED)
+  9. Livraison via EasyDelivery ou logistique standard
+  10. Commande confirmée (DELIVERED)
+
+WORKFLOW #3 — DEVIS LOGISTIQUE
+  1. Client crée une demande de devis
+     (type transport, départ, arrivée, volume, poids, description)
+  2. Système envoie aux entreprises logistiques concernées
+  3. Entreprise analyse et propose un montant (PROPOSED)
+  4. Client accepte ou négocie
+  5. Création automatique d'une livraison (Delivery)
+  6. Assignation de la flotte et des chauffeurs
+  7. Mise à jour des statuts en temps réel
+  8. Events de tracking ajoutés à chaque étape
+  9. Livraison finale confirmée (DELIVERED)
+
+WORKFLOW #4 — INSCRIPTION LIVREUR EASY
+  1. Utilisateur crée un compte Djamko
+  2. Accède à la section EasyDelivery
+  3. Crée son profil livreur (type: particulier/entreprise)
+  4. Déclare son véhicule et ses tarifs
+  5. Est listé comme livreur disponible
+  6. Reçoit des missions de livraison
+  7. Met à jour sa position GPS en temps réel
+  8. Fait évoluer les statuts de ses livraisons
+  9. Complète la livraison, reçoit son paiement
+
+WORKFLOW #5 — PUBLICATION D'ANNONCE
+  1. Prestataire / vendeur crée une annonce
+  2. Choisit le type (immobilier, véhicule, équipement...)
+  3. Remplit la fiche technique dynamique selon le type
+  4. Ajoute les équipements/options disponibles
+  5. Définit le prix, la localisation, les dates
+  6. Publie l'annonce (ACTIVE)
+  7. Clients trouvent l'annonce via recherche
+  8. Client peut réserver directement depuis l'annonce
+  9. Annonce passe à SOLD une fois vendue
+
+
+═══════════════════════════════════════════════════════════════════════════════════════════════════
+SECTION 7 — DOCUMENTATION TECHNIQUE
+═══════════════════════════════════════════════════════════════════════════════════════════════════
+
+ÉTAT DES README PAR PROJET :
+
+  [DJAMKO APP (in-seach) — README.md]
+  Statut : Complet et à jour
+  Contenu : Introduction, fonctionnalités clés, stack technique, architecture flow,
+             installation, gouvernance, sécurité, gestion des erreurs,
+             variables ENV complètes, routes publiques/protégées,
+             documentation chat temps réel, module EasyDelivery
+
+  [BACKEND — README.md]
+  Statut : Complet et à jour
+  Contenu : Introduction, fonctionnalités (marketplace, logistique, e-commerce, admin),
+             stack, schema DB avec diagramme Mermaid, installation, seeding, Swagger, scripts,
+             module EasyDelivery, WebSocket events, variables ENV, guide Docker
+
+NOUVELLES FONCTIONNALITÉS RÉCEMMENT AJOUTÉES :
+  · Module EasyDelivery — Livraison urbaine express avec tracking GPS temps réel
+  · Système de flotte logistique (Flote) — Gestion véhicules/camions/avions
+  · Tracking events Delivery — Timeline complète avec localisation
+  · HistoryDelivery — Historique et statistiques livreurs
+  · TypeEngin — Classification des véhicules de livraison
+  · EasyDeliveryType — Distinction particulier/entreprise pour les livreurs
+  · Recherche IA (search-service-ia) — Module de recherche intelligente
+  · Chat IA (chat-ia) — Interface d'assistance IA intégrée
+  · LocationLog admin — Consultation des logs de position
+  · Logs Système admin — Interface de visualisation des logs Winston
+
+VARIABLES D'ENVIRONNEMENT REQUISES (RÉFÉRENCE) :
+
+  BACKEND (.env) :
+    DATABASE_URL=postgresql://...
+    JWT_SECRET=...
+    FCM_SERVER_KEY=...
+    PORT=4000
+
+  DJAMKO APP (.env.local) :
+    NEXT_PUBLIC_BASE_URL=http://localhost:4000
+    NEXT_PUBLIC_SOCKET_URL=http://localhost:4000
+    NEXT_PUBLIC_FIREBASE_API_KEY=...
+    NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...
+    NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
+    NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=...
+    NEXT_PUBLIC_FIREBASE_APP_ID=...
+
+
+═══════════════════════════════════════════════════════════════════════════════════════════════════
+SECTION 8 — PROMPTS GÉNÉRATION D'IMAGES IA
+═══════════════════════════════════════════════════════════════════════════════════════════════════
+
+Ces prompts peuvent être utilisés avec Midjourney, DALL-E, Stable Diffusion, etc.
+
+IMAGE #1 — Hero Plateforme
+  "Mobile app interface showing a marketplace platform for African market, dark glassmorphism
+   design, map view with service providers pinned nearby, modern UI with emerald and indigo
+   accent colors, smartphone mockup, professional tech product shot, 4K"
+
+IMAGE #2 — Dashboard Admin
+  "Admin panel on mobile and desktop, dark theme, sidebar navigation with 13 modules,
+   users management, product catalog, real-time stats, clean professional SaaS UI,
+   ultra-modern design, 4K product screenshot"
+
+IMAGE #3 — Livreur avec Application
+  "African delivery driver on motorcycle in urban city, holding smartphone showing
+   real-time GPS tracking app, modern interface with delivery route, professional
+   photography, golden hour light, tech-forward lifestyle"
+
+IMAGE #4 — Logistique Cargo
+  "Logistics company dashboard showing fleet management, delivery tracking timeline,
+   cargo containers, airplane and trucks, modern dark UI, real-time tracking interface,
+   professional B2B software screenshot"
+
+IMAGE #5 — QR Code Validation
+  "Two people scanning QR codes on smartphones to validate a service transaction,
+   urban setting, modern tech interface visible on screens, handshake concept,
+   clean and trustworthy visual, African market context"
+
+IMAGE #6 — Communauté / Marketplace
+  "Vibrant African marketplace app on mobile, product listings with prices,
+   categories grid, search bar, modern clean UI, bright colors, community feel,
+   multiple users interacting on the platform"
+
+
+═══════════════════════════════════════════════════════════════════════════════════════════════════
+SECTION 9 — GLOSSAIRE TECHNIQUE ET MÉTIER
+═══════════════════════════════════════════════════════════════════════════════════════════════════
+
+CLIENT          : Utilisateur final qui achète des services ou produits
+PRESTATAIRE     : Professionnel qui publie et offre des services sur la plateforme
+ENTREPRISE      : Société de logistique gérant une flotte et des livraisons
+CHAUFFEUR       : Conducteur rattaché à une entreprise logistique
+LIVREUR         : Coursier indépendant sur le service EasyDelivery
+ADMIN           : Gestionnaire de la plateforme avec accès au panneau d'administration
+
+BOOKING         : Réservation d'un service par un client auprès d'un prestataire
+ORDER           : Commande de produits dans la boutique e-commerce
+QUOTE           : Demande et proposition de devis logistique
+DELIVERY        : Livraison créée après acceptation d'un devis logistique
+EASY DELIVERY   : Service de livraison urbaine rapide
+FLOTE           : Véhicule appartenant à la flotte d'une entreprise logistique
+
+QR CODE MUTUEL  : Double validation par scan des deux parties (client + prestataire)
+TRACKING CODE   : Code unique permettant de suivre une livraison logistique
+FEATURE FLAG    : Interrupteur permettant d'activer/désactiver une fonctionnalité
+API KEY         : Clé d'accès API pour prestataires premium
+PLAN ENTITY     : Entité déverrouillée par un plan d'abonnement
+
+SOCKET.IO       : Protocole WebSocket pour les communications temps réel
+FIREBASE FCM    : Firebase Cloud Messaging pour les notifications push
+PRISMA          : ORM (Object-Relational Mapping) pour la base de données
+NESTJS          : Framework Node.js modulaire pour le backend
+NEXTJS          : Framework React pour le frontend (App Router)
+PWA             : Progressive Web App — expérience app native dans le navigateur
+
+
+═══════════════════════════════════════════════════════════════════════════════════════════════════
+FIN DU DOCUMENT
+═══════════════════════════════════════════════════════════════════════════════════════════════════
+
+Document produit par analyse complète de :
+  · /in-seach/ — Frontend Djamko (Next.js PWA)
+  · /backend/ — API NestJS + PostgreSQL + Prisma
+
+Analyse de : 37+ modules NestJS, 40+ modèles Prisma, 100+ endpoints API,
+              30+ routes frontend, 2 README.md, schéma complet base de données
+
+Contenu exploitable pour :
+  Publications sociales · Scripts vidéo · Landing pages · Pitch investisseurs
+  Présentations business · Prompts images IA · Argumentaires commerciaux
+  Documentation produit · Branding · Démonstrations
+
+╔══════════════════════════════════════════════════════════════════════════════════════════════════╗
+║                          DJAMKO — Built for High-Performance SaaS                               ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════╝

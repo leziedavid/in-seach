@@ -65,4 +65,85 @@ Le frontend consomme les données standardisées du backend (`BaseResponse`) :
 - **Fallback** : Gestion des erreurs 404 et des états vides ("Empty States").
 
 ---
-*Une interface conçue pou la performance et l'élégance.*
+
+## Variables d'Environnement Complètes
+
+Créer un fichier `.env.local` à la racine :
+
+```env
+# API Backend
+NEXT_PUBLIC_BASE_URL=http://localhost:4000
+
+# WebSocket
+NEXT_PUBLIC_SOCKET_URL=http://localhost:4000
+
+# Firebase (Notifications Push)
+NEXT_PUBLIC_FIREBASE_API_KEY=
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
+NEXT_PUBLIC_FIREBASE_APP_ID=
+NEXT_PUBLIC_FIREBASE_VAPID_KEY=
+```
+
+---
+
+## Routes — Public vs Protégé
+
+### Pages Publiques (sans authentification)
+| Route                        | Description                            |
+|------------------------------|----------------------------------------|
+| `/`                          | Homepage avec slider et présentation   |
+| `/login`                     | Connexion                              |
+| `/register`                  | Inscription                            |
+| `/solutions`                 | Page des fonctionnalités               |
+| `/pricing`                   | Plans et tarifs                        |
+| `/privacy-policy`            | Politique de confidentialité           |
+| `/terms-of-use`              | Conditions d'utilisation               |
+| `/cookies`                   | Politique cookies                      |
+| `/shop/[storeName]`          | Boutique publique d'un vendeur         |
+| `/logistics/[companyName]`   | Profil public d'une entreprise logist. |
+| `/services/[id]`             | Détail d'un service                    |
+
+### Pages Protégées (JWT requis)
+| Route                        | Description                            |
+|------------------------------|----------------------------------------|
+| `/akwaba`                    | Onboarding utilisateur                 |
+| `/chat-ia`                   | Interface chat IA                      |
+| `/location`                  | Paramètres de localisation             |
+| `/logs`                      | Historique d'activité                  |
+| `/connect/[id]`              | Connexion service                      |
+| `/services`                  | Gestion des services                   |
+| `/admin/*`                   | Espace admin (rôle ADMIN requis)       |
+
+---
+
+## Messagerie Temps Réel
+
+Le chat utilise Socket.io (SocketProvider) pour les mises à jour instantanées :
+
+```typescript
+// Connexion automatique si authentifié
+// Écoute des événements :
+socket.on('new_message', (message) => { ... })
+socket.on('notification', (notif) => { ... })
+socket.on('delivery_update', (update) => { ... })
+```
+
+Le hook `useRealTimeUpdate` gère la synchronisation automatique des données en temps réel avec le cache React Query.
+
+---
+
+## Module EasyDelivery (Frontend)
+
+Le composant de tracking live se trouve dans `components/delivery/`.
+Il affiche :
+- Position du livreur sur carte Leaflet en temps réel
+- Statut de la livraison avec timeline
+- Informations livreur (nom, téléphone, véhicule)
+- Temps estimé d'arrivée
+
+---
+
+*Une interface conçue pour la performance et l'élégance.*

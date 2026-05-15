@@ -8,6 +8,7 @@ import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescri
 import { Button } from "@/components/ui/button";
 
 export type TabType =
+    | "Overview"
     | "Calendrier"
     | "Services"
     | "Rendez-vous"
@@ -38,6 +39,7 @@ export interface TabConfig {
 }
 
 export const TABS_CONFIG: TabConfig[] = [
+    { label: 'Vue d\'ensemble', icon: "solar:graph-bold-duotone", key: 'Overview', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ADMIN, Role.ENTREPRISE] },
     { label: 'Calendrier', icon: "solar:calendar-date-bold-duotone", key: 'Calendrier', roles: [Role.PRESTATAIRE, Role.ADMIN, Role.CLIENT] },
     { label: 'Mes Services', icon: "solar:box-bold-duotone", key: 'Services', roles: [Role.PRESTATAIRE, Role.ADMIN] },
     { label: 'Mes Annonces', icon: "solar:eye-bold-duotone", key: 'Annonces', roles: [Role.PRESTATAIRE, Role.ADMIN] },
@@ -101,7 +103,7 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
     const renderMenuItem = (item: TabConfig) => {
         const isActive = activeTab === item.key;
         return (
-            <button key={item.key} onClick={() => { onTabChange(item.key); setOpen(false); }} className={`w-full flex items-center gap-3 p-3 rounded-xl text-sm transition-all duration-300 ${isActive ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-[1.02]" : "hover:bg-muted text-muted-foreground hover:text-foreground"}`} >
+            <button key={item.key} onClick={() => { onTabChange(item.key); setOpen(false); }} className={`w-full flex items-center gap-3 p-3 rounded-xl text-sm transition-all duration-300 ${isActive ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-[1.02]" : "hover:bg-muted text-muted-foreground hover:text-foreground dark:text-zinc-400 dark:hover:text-white"}`} >
                 <Icon icon={item.icon} width={18} />
                 {item.label}
             </button>
@@ -152,8 +154,8 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
                                 </>
                             ) : (
                                 <>
-                                    <p className="font-bold text-center text-foreground">{user?.fullName || "Mon compte"}</p>
-                                    <p className="text-sm text-muted-foreground">
+                                    <p className="font-bold text-center text-foreground dark:text-white">{user?.fullName || "Mon compte"}</p>
+                                    <p className="text-sm text-muted-foreground dark:text-zinc-400">
                                         {userRole === Role.PRESTATAIRE ? "Prestataire" : userRole === Role.ENTREPRISE ? "Entreprise Logistique" : userRole === Role.CHAUFFEUR ? "Chauffeur" : userRole === Role.LIVREUR ? "Livreur EasyDelivery" : "Client"}
                                     </p>
                                 </>
@@ -175,7 +177,7 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
 
                     {/* Logout */}
                     <div className="mt-8 pt-6 border-t border-border">
-                        <button onClick={onLogout} className="w-full flex items-center gap-3 p-3 rounded-xl text-sm text-red-500 hover:bg-red-50 transition-all duration-300">
+                        <button onClick={onLogout} className="w-full flex items-center gap-3 p-3 rounded-xl text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-300">
                             <Icon icon="solar:logout-bold-duotone" width={18} />
                             Déconnexion
                         </button>
@@ -202,7 +204,7 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
                             <div className="w-16 h-16 rounded-full border-2 border-primary flex items-center justify-center text-lg font-bold text-primary bg-primary/5">
                                 {user?.fullName?.charAt(0) || "P"}
                             </div>
-                            <p className="mt-2 font-semibold text-foreground">Mon compte</p>
+                            <p className="mt-2 font-semibold text-foreground dark:text-white">Mon compte</p>
                         </div>
 
                         <div className="space-y-3">
@@ -211,7 +213,7 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
                             </div>
 
                             <div className="pt-2 border-t border-border mt-2">
-                                <button onClick={onLogout} className="w-full flex items-center gap-3 p-4 rounded-xl text-sm text-red-500 bg-red-50/50 hover:bg-red-50 transition-all font-bold">
+                                <button onClick={onLogout} className="w-full flex items-center gap-3 p-4 rounded-xl text-sm text-red-500 bg-red-50/50 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all font-bold">
                                     <Icon icon="solar:logout-bold-duotone" width={18} />
                                     Déconnexion
                                 </button>

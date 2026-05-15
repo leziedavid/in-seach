@@ -9,6 +9,10 @@
   /* Brand colors */
   --brand-primary: hsl(29, 32%, 53%);
   --brand-secondary: hsl(195, 69%, 27%);
+
+  /* --brand-secondary: hsl(29, 32%, 53%);
+  --brand-primary: hsl(195, 69%, 27%); */
+
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -16,10 +20,10 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
+  --primary: var(--brand-primary);
   --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
+  --secondary: var(--brand-secondary);
+  --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.97 0 0);
   --muted-foreground: oklch(0.556 0 0);
   --accent: oklch(0.97 0 0);
@@ -101,9 +105,9 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
+  --primary: var(--brand-primary);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: var(--brand-secondary);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
   --muted-foreground: oklch(0.708 0 0);
@@ -174,18 +178,36 @@
       opacity: 0;
       transform: translateY(10px);
     }
+
     to {
       opacity: 1;
       transform: translateY(0);
     }
   }
 
-  .stagger-parent > *:nth-child(1) { animation-delay: 0.05s; }
-  .stagger-parent > *:nth-child(2) { animation-delay: 0.1s; }
-  .stagger-parent > *:nth-child(3) { animation-delay: 0.15s; }
-  .stagger-parent > *:nth-child(4) { animation-delay: 0.2s; }
-  .stagger-parent > *:nth-child(5) { animation-delay: 0.25s; }
-  .stagger-parent > *:nth-child(6) { animation-delay: 0.3s; }
+  .stagger-parent>*:nth-child(1) {
+    animation-delay: 0.05s;
+  }
+
+  .stagger-parent>*:nth-child(2) {
+    animation-delay: 0.1s;
+  }
+
+  .stagger-parent>*:nth-child(3) {
+    animation-delay: 0.15s;
+  }
+
+  .stagger-parent>*:nth-child(4) {
+    animation-delay: 0.2s;
+  }
+
+  .stagger-parent>*:nth-child(5) {
+    animation-delay: 0.25s;
+  }
+
+  .stagger-parent>*:nth-child(6) {
+    animation-delay: 0.3s;
+  }
 
   /* Sidebar hover subtle white overlay */
   .hover\:bg-white\/8:hover {
@@ -197,7 +219,28 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
+  }
+}
+
+@layer utilities {
+  @keyframes spin-slow {
+    from {
+      transform: rotate(0deg);
+    }
+
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .animate-spin-slow {
+    animation: spin-slow 30s linear infinite;
+  }
+
+  .tracking-tightest {
+    letter-spacing: -0.05em;
   }
 }

@@ -9,13 +9,13 @@ import { NotificationPermissionModal } from "@/components/modals/NotificationPer
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
 
-    // Check if the current route is an admin route
-    const isAdminRoute = pathname?.startsWith("/admin");
+    // Check if the current route is an admin or portfolio route
+    const isIsolatedRoute = pathname?.startsWith("/admin") || pathname?.startsWith("/me");
 
     return (
         <div className="min-h-screen premium-bg relative overflow-x-hidden">
             <NotificationPermissionModal />
-            {isAdminRoute ? (
+            {isIsolatedRoute ? (
                 children
             ) : (
                 <ComingSoon>

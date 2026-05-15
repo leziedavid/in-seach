@@ -32,7 +32,7 @@ export default function ServicesPage() {
             {/* Search Bar & Filters */}
             <div className="py-8 space-y-6">
                 <div className="flex flex-col md:flex-row gap-4 items-center">
-                    <div className="flex-1 w-full bg-white rounded-2xl flex items-center px-5 py-3 border border-slate-100 focus-within:border-primary focus-within:shadow-lg focus-within:shadow-primary/5 transition-all">
+                    <div className="flex-1 w-full bg-white dark:bg-zinc-900 rounded-2xl flex items-center px-5 py-3 border border-border focus-within:border-primary focus-within:shadow-lg focus-within:shadow-primary/5 transition-all">
                         <Search className="text-slate-400 w-5 h-5 mr-3" />
                         <input type="text" placeholder="Rechercher un service (ex: plombier, électricien...)" className="bg-transparent outline-none w-full font-medium text-slate-700 text-sm md:text-base" value={query} onChange={(e) => setQuery(e.target.value)} />
                     </div>
@@ -41,14 +41,14 @@ export default function ServicesPage() {
                             <MapPin className="w-5 h-5" />
                             <span className="text-sm">{lat ? 'Ma position activée' : 'Me géolocaliser'}</span>
                         </button>
-                        <button className="p-3 bg-white border border-slate-100 rounded-2xl text-slate-600 hover:text-primary hover:border-primary transition-all shadow-sm">
+                        <button className="p-3 bg-white dark:bg-zinc-900 border border-border rounded-2xl text-slate-600 hover:text-primary hover:border-primary transition-all shadow-sm">
                             <Filter className="w-6 h-6" />
                         </button>
                     </div>
                 </div>
 
                 <div className="flex flex-col gap-2">
-                    <h2 className="text-2xl md:text-4xl font-bold text-slate-900">
+                    <h2 className="text-2xl md:text-4xl font-bold text-foreground dark:text-white">
                         {isLoading ? 'Recherche en cours...' : `${services?.length || 0} experts disponibles`}
                     </h2>
                     {/* {!isLoading && isFallback && (
@@ -80,15 +80,15 @@ export default function ServicesPage() {
                     ) : (
                         <div className="grid grid-cols-2 md:grid-cols-2 gap-4 md:gap-6">
                             {services?.map((service: any) => (
-                                <div key={service.id} className="group bg-white rounded-3xl p-3 md:p-5 border border-slate-100 hover:border-primary/20 hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col items-center text-center">
+                                <div key={service.id} className="group bg-white dark:bg-zinc-900 rounded-3xl p-3 md:p-5 border border-border hover:border-primary/20 hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col items-center text-center">
                                     <div className="relative w-full aspect-square mb-4 overflow-hidden rounded-2xl bg-slate-50">
                                         <Image src={(service.files?.[0]?.url && service.files?.[0]?.url !== "") ? service.files[0].url : 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop'} alt={service.title} fill unoptimized className="object-cover group-hover:scale-110 transition-transform duration-500" />
-                                        <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-full text-[8px] md:text-[10px] font-black text-slate-900 shadow-sm uppercase tracking-tighter">
+                                        <div className="absolute top-2 left-2 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-sm px-2.5 py-1 rounded-full text-[8px] md:text-[10px] font-black text-foreground dark:text-white shadow-sm uppercase tracking-tighter">
                                             {service.categoryLabel || 'Service'}
                                         </div>
                                     </div>
 
-                                    <h3 className="text-[13px] md:text-base font-bold text-slate-900 mb-1 line-clamp-1 group-hover:text-primary transition-colors px-2">
+                                    <h3 className="text-[13px] md:text-base font-bold text-foreground dark:text-white mb-1 line-clamp-1 group-hover:text-primary transition-colors px-2">
                                         {service.title}
                                     </h3>
 
@@ -116,11 +116,11 @@ export default function ServicesPage() {
 
                 {/* Map Sidebar */}
                 <div className="hidden lg:block lg:col-span-4 sticky top-0 h-fit">
-                    <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-xl shadow-slate-200/50">
+                    <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-border p-6 shadow-xl shadow-slate-200/50">
                         <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-6">
                             <MapPin className="text-primary w-8 h-8" />
                         </div>
-                        <h4 className="font-bold text-slate-900 mb-2 text-xl italic">Carte Interactive</h4>
+                        <h4 className="font-bold text-foreground dark:text-white mb-2 text-xl italic">Carte Interactive</h4>
                         <p className="text-slate-500 text-sm leading-relaxed mb-6">
                             Visualisez les experts disponibles autour de vous en temps réel.
                         </p>

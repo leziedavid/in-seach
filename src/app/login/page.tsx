@@ -118,6 +118,12 @@ export default function LoginPage() {
                         </div>
                     )}
 
+                    {/* info */}
+                    {/* info */}
+                    <div className="p-2 text-sm bg-blue-50 text-blue-600 rounded-lg border border-blue-100">
+                        Achetez ou vendez librement avec votre compte particulier ou professionnel.
+                    </div>
+
                     {/* IDENTIFIER */}
                     <div className="space-y-1">
                         <div className="flex justify-between items-center">
@@ -217,8 +223,8 @@ export default function LoginPage() {
                     </div>
 
                     <div className="text-center pt-2">
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             onClick={() => setIsRecoveryModalOpen(true)}
                             className="text-[11px] sm:text-xs font-bold text-muted-foreground hover:text-primary transition-colors flex items-center justify-center gap-1.5 mx-auto opacity-70 hover:opacity-100"
                         >
@@ -229,9 +235,9 @@ export default function LoginPage() {
 
                 </form>
 
-                <AccountRecoveryModal 
-                    isOpen={isRecoveryModalOpen} 
-                    onClose={() => setIsRecoveryModalOpen(false)} 
+                <AccountRecoveryModal
+                    isOpen={isRecoveryModalOpen}
+                    onClose={() => setIsRecoveryModalOpen(false)}
                 />
 
 

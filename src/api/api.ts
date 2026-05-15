@@ -131,6 +131,14 @@ export const getAllSearch = async (params: any): Promise<BaseResponse<MySpaceRes
 };
 
 
+export const getOverview = async (): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/auth/overview`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
+
 // =====================
 // STORE
 // =====================

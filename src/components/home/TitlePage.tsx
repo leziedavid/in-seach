@@ -20,7 +20,7 @@ export default function TitlePage({ part1, highlight, part2, isSearching = false
     }, [])
 
     return (
-        <h2 className={` text-4xl md:text-6xl font-light  max-w-4xl max-auto  leading-[1.1] text-slate-900 mb-8 transition-all duration-500  px-2  ${isSearching ? "text-3xl md:text-4xl mb-6" : ""} `}  >
+        <h2 className={` text-4xl md:text-6xl font-light  max-w-4xl max-auto  leading-[1.1] text-slate-900 dark:text-white mb-8 transition-all duration-500  px-2  ${isSearching ? "text-3xl md:text-4xl mb-6" : ""} `}  >
             {part1}{" "}
             <span className={` font-bold text-secondary italic inline-block transition-all duration-500 ease-out ${animate ? "opacity-100 scale-100" : "opacity-0 scale-90"} `} >
                 {highlight}

@@ -28,6 +28,7 @@ import DeliveriesList from '@/components/logistics/sections/DeliveriesList';
 import QuoteRequestModal from '@/components/logistics/modals/QuoteRequestModal';
 import ApiDocumentation from '@/components/profile/ApiDocumentation';
 import { Modal } from '@/components/ui/MotionModal';
+import Overview from '@/components/profile/Overview';
 
 
 export default function Page() {
@@ -87,11 +88,13 @@ export default function Page() {
     // Effect to set initial tab once role is known
     useEffect(() => {
         if (userRole) {
-            if (userRole === Role.CLIENT) setActiveTab('Rendez-vous');
-            else if (userRole === Role.ENTREPRISE) setActiveTab('Mes-services-logistiques');
-            else if (userRole === Role.CHAUFFEUR) setActiveTab('Livraisons-chauffeur');
-            else if (userRole === Role.LIVREUR) setActiveTab('Livreur-dashboard');
-            else setActiveTab('Calendrier');
+            if (userRole === Role.LIVREUR) {
+                setActiveTab('Livreur-dashboard');
+            } else if (userRole === Role.CHAUFFEUR) {
+                setActiveTab('Mes-livraisons');
+            } else {
+                setActiveTab('Overview');
+            }
         }
     }, [userRole]);
 
@@ -185,6 +188,8 @@ export default function Page() {
     // Component Mapping for Content
     const renderContent = () => {
         switch (activeTab) {
+            case 'Overview':
+                return <Overview />;
 
             case 'Calendrier':
                 return <BookingCalendar />;

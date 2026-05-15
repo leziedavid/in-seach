@@ -12,7 +12,7 @@ import { Switch } from '@/components/ui/switch';
 const registerSchema = z.object({
     email: z.string().email(),
     phone: z.string().min(8),
-    role: z.enum(['CLIENT', 'PRESTATAIRE', 'LOGISTICIAN']),
+    role: z.enum(['CLIENT', 'PRESTATAIRE', 'LOGISTICIAN', 'LIVREUR']),
     otp: z.string().length(5), // @ + 4 chiffres
     fullname: z.string().optional(),
     company: z.string().optional(),
@@ -24,7 +24,7 @@ const registerSchema = z.object({
 export default function RegisterPage() {
     const router = useRouter();
 
-    const [role, setRole] = useState<'CLIENT' | 'PRESTATAIRE' | 'LOGISTICIAN'>('CLIENT');
+    const [role, setRole] = useState<'CLIENT' | 'PRESTATAIRE' | 'LOGISTICIAN' | 'LIVREUR'>('CLIENT');
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
     const [otp, setOtp] = useState(Array(4).fill(''));
@@ -69,7 +69,7 @@ export default function RegisterPage() {
                 otp: password,
                 role,
                 fullname: fullname || undefined,
-                company: role === 'PRESTATAIRE' || role === 'LOGISTICIAN' && company ? company : undefined,
+                company: role === 'PRESTATAIRE' || role === 'LOGISTICIAN' || role === 'LIVREUR' && company ? company : undefined,
                 acceptedTerms,
             };
 
@@ -111,15 +111,19 @@ export default function RegisterPage() {
                 <div className="grid grid-cols-2 gap-4 mb-6">
                     <div onClick={() => setRole('CLIENT')} className={`p-4 rounded-2xl border-2 cursor-pointer transition-all flex flex-col items-center gap-2 ${role === 'CLIENT' ? 'border-primary bg-primary/20' : 'border-gray-200 bg-gray-50 hover:bg-gray-100'}`} >
                         <Icon icon="solar:user-bold-duotone" className={role === 'CLIENT' ? 'text-primary' : 'text-gray-400'} width={24} />
-                        <span className={`text-xs font-bold ${role === 'CLIENT' ? 'text-primary' : 'text-gray-500'}`}>Particulier</span>
+                        <span className={`text-xs font-bold uppercase ${role === 'CLIENT' ? 'text-primary' : 'text-gray-500'}`}>Particulier</span>
                     </div>
                     <div onClick={() => setRole('PRESTATAIRE')} className={`p-4 rounded-2xl border-2 cursor-pointer transition-all flex flex-col items-center gap-2 ${role === 'PRESTATAIRE' ? 'border-primary bg-primary/20' : 'border-gray-200 bg-gray-50 hover:bg-gray-100'}`} >
                         <Icon icon="solar:case-minimalistic-bold-duotone" className={role === 'PRESTATAIRE' ? 'text-primary' : 'text-gray-400'} width={24} />
-                        <span className={`text-xs font-bold ${role === 'PRESTATAIRE' ? 'text-primary' : 'text-gray-500'}`}>Professionnel</span>
+                        <span className={`text-xs font-bold uppercase ${role === 'PRESTATAIRE' ? 'text-primary' : 'text-gray-500'}`}>Professionnel</span>
                     </div>
                     <div onClick={() => setRole('LOGISTICIAN')} className={`p-4 rounded-2xl border-2 cursor-pointer transition-all flex flex-col items-center gap-2 ${role === 'LOGISTICIAN' ? 'border-primary bg-primary/20' : 'border-gray-200 bg-gray-50 hover:bg-gray-100'}`} >
                         <Icon icon="solar:case-minimalistic-bold-duotone" className={role === 'LOGISTICIAN' ? 'text-primary' : 'text-gray-400'} width={24} />
-                        <span className={`text-xs font-bold ${role === 'LOGISTICIAN' ? 'text-primary' : 'text-gray-500'}`}>Logisticien</span>
+                        <span className={`text-xs font-bold uppercase ${role === 'LOGISTICIAN' ? 'text-primary' : 'text-gray-500'}`}>Logisticien</span>
+                    </div>
+                    <div onClick={() => setRole('LIVREUR')} className={`p-4 rounded-2xl border-2 cursor-pointer transition-all flex flex-col items-center gap-2 ${role === 'LIVREUR' ? 'border-primary bg-primary/20' : 'border-gray-200 bg-gray-50 hover:bg-gray-100'}`} >
+                        <Icon icon="solar:case-minimalistic-bold-duotone" className={role === 'LIVREUR' ? 'text-primary' : 'text-gray-400'} width={24} />
+                        <span className={`text-xs font-bold uppercase ${role === 'LIVREUR' ? 'text-primary' : 'text-gray-500'}`}>Livreur</span>
                     </div>
                 </div>
 
@@ -130,6 +134,12 @@ export default function RegisterPage() {
                             {error}
                         </div>
                     )}
+
+                    {/* info */}
+                    <div className="p-2 text-sm bg-blue-50 text-blue-600 rounded-lg border border-blue-100">
+                        Avec votre compte, que vous soyez particulier ou professionnel, vous pouvez vendre vos produits en toute simplicité.
+                        Aucune boutique à configurer : tout est automatisé pour vous permettre de commencer à vendre immédiatement et de toucher plus de clients sans effort.
+                    </div>
 
                     {/* Email Input */}
                     <div className="space-y-1">
@@ -238,9 +248,9 @@ export default function RegisterPage() {
                                 <Link href="/privacy-policy" className="text-primary hover:underline">politique de confidentialité</Link>.
                             </p>
                         </div>
-                        <Switch 
-                            checked={acceptedTerms} 
-                            onCheckedChange={setAcceptedTerms} 
+                        <Switch
+                            checked={acceptedTerms}
+                            onCheckedChange={setAcceptedTerms}
                             className="data-[state=checked]:bg-primary scale-90 sm:scale-100"
                         />
                     </div>
