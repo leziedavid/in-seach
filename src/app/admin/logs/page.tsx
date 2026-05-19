@@ -60,6 +60,7 @@ export default function AdminLogsPage() {
     };
 
     const handlePurge = async () => {
+        const message = purgeRange.startDate
             ? t("admin.logs.confirm_purge_range", { start: purgeRange.startDate, end: purgeRange.endDate })
             : t("admin.logs.confirm_purge_auto");
         
