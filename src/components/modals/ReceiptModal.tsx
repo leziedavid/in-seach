@@ -80,11 +80,11 @@ export default function ReceiptModal({ isOpen, onClose, data }: ReceiptModalProp
         <AnimatePresence>
             {isOpen && (
                 <>
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 bg-black/60 backdrop-blur-xl z-[1000]" />
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 bg-black/20 dark:bg-black/60 backdrop-blur-[2px] z-[1000]" />
                     <motion.div initial={{ y: "100%", opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: "100%", opacity: 0 }}
                         transition={{ type: "spring", damping: 30, stiffness: 300 }}
                         className="fixed inset-0 flex items-end md:items-center justify-center z-[1001] pointer-events-none p-4">
-                        <motion.div className="bg-white text-slate-900 shadow-2xl overflow-hidden flex flex-col md:w-[90%] md:max-w-xl md:max-h-[85vh] md:rounded-3xl rounded-t-[2.5rem] w-full max-h-[90vh] pb-safe pointer-events-auto"
+                        <motion.div className="bg-white text-slate-900 shadow-2xl overflow-hidden flex flex-col md:w-[90%] md:max-w-xl md:max-h-[85vh] md:rounded-[2rem] rounded-t-[2rem] w-full max-h-[90vh] pb-safe pointer-events-auto"
                             initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} transition={{ delay: 0.1, type: "spring", damping: 25 }} >
 
                             <div className="flex justify-center pt-4 pb-2 shrink-0 md:hidden"><div className="w-12 h-1.5 bg-slate-200 rounded-full" /></div>
@@ -195,14 +195,13 @@ export default function ReceiptModal({ isOpen, onClose, data }: ReceiptModalProp
                                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Merci de votre confiance</p>
                                 </div>
                             </div>
-
-                            <div className="p-6 bg-slate-50 border-t border-slate-100 flex gap-3">
-                                <button onClick={handlePrint} className="flex-1 py-4 bg-primary text-white rounded-2xl font-black text-xs active:scale-95 transition flex items-center justify-center gap-2 shadow-lg shadow-primary/20">
+                            <div className="p-4 sm:p-6 bg-white border-t border-slate-100 flex flex-col sm:flex-row gap-3">
+                                <button onClick={onClose} className="w-full sm:flex-1 py-3.5 px-4 bg-slate-100 text-slate-700 rounded-[14px] font-bold text-sm transition-all hover:bg-slate-200 active:scale-[0.98]">
+                                    Fermer
+                                </button>
+                                <button onClick={handlePrint} className="w-full sm:flex-1 py-3.5 px-4 bg-primary text-white rounded-[14px] font-bold text-sm transition-all flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] shadow-lg shadow-primary/25">
                                     <Icon icon="solar:printer-minimalistic-bold-duotone" width={18} />
                                     Imprimer / PDF
-                                </button>
-                                <button onClick={onClose} className="px-6 py-4 bg-white text-slate-900 border border-slate-200 rounded-2xl font-black text-xs active:scale-95 transition">
-                                    Fermer
                                 </button>
                             </div>
                         </motion.div>

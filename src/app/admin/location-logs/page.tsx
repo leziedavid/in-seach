@@ -10,8 +10,10 @@ import { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Link from 'next/link';
+import { useTranslation } from "@/utils/langue/hooks";
 
 export default function AdminLocationLogsPage() {
+    const { t } = useTranslation();
     const [logs, setLogs] = React.useState<LocationLog[]>([]);
     const [loading, setLoading] = React.useState(true);
     const [page, setPage] = React.useState(1);
@@ -28,7 +30,7 @@ export default function AdminLocationLogsPage() {
                 setTotal(res.data.total || 0);
             }
         } catch (error) {
-            addNotification("Erreur lors du chargement des logs de position", "error");
+            addNotification(t("admin.location_logs.error_load"), "error");
         } finally {
             setLoading(false);
         }
@@ -42,29 +44,29 @@ export default function AdminLocationLogsPage() {
     }, [page, phone]);
 
     const handleDelete = async (id: string) => {
-        if (!confirm("Voulez-vous vraiment supprimer ce log de position ?")) return;
+        if (!confirm(t("admin.location_logs.confirm_delete"))) return;
         try {
             const res = await deleteLocationLog(id);
             if (res.statusCode === 200) {
-                addNotification("Log supprimé avec succès", "success");
+                addNotification(t("admin.location_logs.success_delete"), "success");
                 fetchLogs(page);
             }
         } catch (error) {
-            addNotification("Erreur lors de la suppression", "error");
+            addNotification(t("admin.location_logs.error_delete"), "error");
         }
     };
 
     const columns: ColumnDef<LocationLog>[] = [
         {
             accessorKey: 'user',
-            header: 'Utilisateur',
+            header: t("common.user"),
             cell: ({ row }) => (
                 <div className="flex items-center gap-4">
                     <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary font-black text-xs border border-primary/20">
                         <UserIcon className="w-5 h-5" />
                     </div>
                     <div>
-                        <div className="font-black text-sm">{row.original.user?.fullName || "Utilisateur inconnu"}</div>
+                        <div className="font-black text-sm">{row.original.user?.fullName || t("admin.users.unnamed")}</div>
                         <div className="flex items-center gap-1.5 text-muted-foreground text-[10px] font-mono">
                            <Phone className="w-2.5 h-2.5" />
                            {row.original.user?.phone || row.original.userId.substring(0, 8) + '...'}
@@ -75,7 +77,7 @@ export default function AdminLocationLogsPage() {
         },
         {
             accessorKey: 'coordinates',
-            header: 'Coordonnées',
+            header: t("admin.location_logs.coordinates"),
             cell: ({ row }) => (
                 <div className="space-y-0.5">
                     <div className="flex items-center gap-2 text-xs font-medium">
@@ -91,7 +93,7 @@ export default function AdminLocationLogsPage() {
         },
         {
             accessorKey: 'updatedAt',
-            header: 'Dernière mise à jour',
+            header: t("admin.location_logs.last_update"),
             cell: ({ row }) => (
                 <div className="flex flex-col gap-0.5">
                     <div className="flex items-center gap-2 text-xs text-foreground font-medium">
@@ -106,13 +108,13 @@ export default function AdminLocationLogsPage() {
         },
         {
             id: 'actions',
-            header: 'Actions',
+            header: t("common.actions"),
             cell: ({ row }) => (
                 <div className="flex items-center gap-2">
                     <Button variant="outline" size="sm" className="rounded-xl h-8 text-[10px] font-bold" asChild>
                         <Link href={`/location?id=${row.original.userId}`}>
                             <MapIcon className="w-3 h-3 mr-1.5" />
-                            Voir carte
+                            {t("admin.location_logs.view_map")}
                         </Link>
                     </Button>
                     <Button 
@@ -132,15 +134,15 @@ export default function AdminLocationLogsPage() {
         <div className="p-8 space-y-8 animate-in fade-in duration-500">
             <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
                 <div className="space-y-1">
-                    <h1 className="text-3xl font-black tracking-tight">Logs de Position</h1>
-                    <p className="text-muted-foreground font-medium">Suivi en temps réel des positions des utilisateurs.</p>
+                    <h1 className="text-3xl font-black tracking-tight">{t("admin.location_logs.title")}</h1>
+                    <p className="text-muted-foreground font-medium">{t("admin.location_logs.subtitle")}</p>
                 </div>
                 
                 <div className="flex flex-col sm:flex-row items-center gap-4">
                     <div className="relative w-full sm:w-72">
                         <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                         <Input
-                            placeholder="Filtrer par téléphone..."
+                            placeholder={t("admin.location_logs.filter_phone")}
                             value={phone}
                             onChange={(e) => {
                                 setPhone(e.target.value);
@@ -154,7 +156,7 @@ export default function AdminLocationLogsPage() {
                         className="h-11 px-5 rounded-xl font-bold border-border/50 bg-card shadow-sm hover:bg-muted/50 transition-colors"
                         onClick={() => fetchLogs(page, phone)}
                     >
-                        Actualiser
+                        {t("admin.location_logs.refresh")}
                     </Button>
                 </div>
             </header>
@@ -168,7 +170,7 @@ export default function AdminLocationLogsPage() {
                     currentPage={page}
                     itemsPerPage={10}
                     onPageChange={setPage}
-                    emptyMessage="Aucun log de position trouvé"
+                    emptyMessage={t("common.no_results")}
                 />
             </div>
         </div>

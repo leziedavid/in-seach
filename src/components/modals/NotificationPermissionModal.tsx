@@ -1,6 +1,4 @@
-
 "use client";
-
 
 import React, { useState, useEffect } from 'react';
 import { useNotifications } from '@/hooks/useNotifications';
@@ -38,59 +36,59 @@ export const NotificationPermissionModal = () => {
     return (
         <AnimatePresence>
             {isVisible && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
                     {/* Backdrop */}
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={handleDecline}
-                        className="absolute inset-0 bg-black/10 dark:bg-black/40 backdrop-blur-sm"
+                        className="absolute inset-0 bg-black/20 dark:bg-black/60 backdrop-blur-[2px]"
                     />
 
-                    {/* Compact iOS Style Modal */}
+                    {/* Spacious Elegant Modal */}
                     <motion.div
-                        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                        initial={{ opacity: 0, scale: 0.95, y: 20 }}
                         animate={{
                             opacity: 1,
                             scale: 1,
                             y: 0,
                             transition: { type: "spring", damping: 25, stiffness: 400 }
                         }}
-                        exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.15 } }}
-                        className="relative w-full max-w-[320px] bg-white dark:bg-zinc-900 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)] border border-white/20 dark:border-zinc-800/50 overflow-hidden"
+                        exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.15 } }}
+                        className="relative w-full max-w-md bg-white dark:bg-zinc-900 rounded-[2rem] shadow-2xl overflow-hidden flex flex-col"
                     >
-                        <div className="p-6 pt-8 flex flex-col items-center text-center">
+                        <div className="p-8 sm:p-10 flex flex-col items-center text-center">
 
                             {/* Modern Notification Icon */}
                             <div className="relative mb-6">
                                 <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full animate-pulse" />
-                                <div className="relative bg-primary/10 p-4 rounded-2xl text-primary">
-                                    <Icon icon="solar:bell-bing-bold-duotone" width={32} />
+                                <div className="relative bg-white dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 shadow-sm p-5 rounded-[1.5rem] text-primary">
+                                    <Icon icon="solar:bell-bing-bold-duotone" width={36} />
                                 </div>
                             </div>
 
-                            <h3 className="text-xl font-black text-zinc-900 dark:text-white mb-2 tracking-tight">
+                            <h3 className="text-2xl font-black text-zinc-900 dark:text-white mb-3 tracking-tight">
                                 Notifications
                             </h3>
 
-                            <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-8 px-4 font-bold leading-relaxed">
-                                Restez informé de vos commandes, livraisons et actualités en temps réel.
+                            <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-8 px-2 leading-relaxed">
+                                Restez informé de vos commandes, livraisons et actualités en temps réel pour ne rien manquer.
                             </p>
 
                             {/* Buttons on one line */}
                             <div className="flex w-full gap-3">
-                                <button onClick={handleDecline} className="flex-1 py-3 px-4 bg-muted text-muted-foreground hover:text-foreground rounded-xl font-bold text-xs transition-all active:scale-[0.95]">
+                                <button onClick={handleDecline} className="flex-1 py-3.5 px-4 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 rounded-[14px] font-bold text-sm transition-all hover:bg-zinc-200 dark:hover:bg-zinc-700 active:scale-[0.98]">
                                     Refuser
                                 </button>
-                                <button onClick={handleAccept} className="flex-1 py-3 px-4 bg-primary text-white rounded-xl font-black text-xs shadow-lg shadow-primary/20 transition-all active:scale-[0.95]">
+                                <button onClick={handleAccept} className="flex-1 py-3.5 px-4 bg-primary text-white rounded-[14px] font-bold text-sm shadow-lg shadow-primary/25 transition-all hover:opacity-90 active:scale-[0.98]">
                                     Autoriser
                                 </button>
                             </div>
 
                             {/* Minimal Secure Label */}
-                            <div className="mt-6 flex items-center gap-1.5 text-[8px] text-zinc-400 font-bold uppercase tracking-widest opacity-60">
-                                <Icon icon="solar:shield-check-bold" width={10} />
+                            <div className="mt-6 flex items-center justify-center gap-1.5 text-[10px] text-zinc-400 font-bold uppercase tracking-widest opacity-80">
+                                <Icon icon="solar:shield-check-bold" width={12} />
                                 <span>Confidentialité garantie</span>
                             </div>
                         </div>

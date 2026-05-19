@@ -9,14 +9,17 @@ import { useRouter } from 'next/navigation';
 import { Role } from '@/types/interface';
 import { useUserLocation } from '@/utils/location';
 import { upsertLocationLog } from '@/api/api';
+import { useTranslation } from '@/utils/langue/hooks';
 import { AccountRecoveryModal } from '@/components/auth/AccountRecoveryModal';
+import { InputPhone } from '@/components/ui/InputPhone';
 
 export default function LoginPage() {
-
+    const { t } = useTranslation();
     const router = useRouter();
     const { getUserLocation } = useUserLocation();
 
     const [useEmail, setUseEmail] = useState(false);
+    const [indicatif, setIndicatif] = useState('+225');
     const [identifier, setIdentifier] = useState('');
     const [otp, setOtp] = useState(Array(4).fill('')); // OTP 4 chiffres
     const [showPassword, setShowPassword] = useState(false);
@@ -52,7 +55,6 @@ export default function LoginPage() {
         setError('');
 
         try {
-
             const res = await login(identifier, password); // OTP envoyé avec @
             if (res.statusCode === 200 || res.statusCode === 201) {
                 setToken(res.data.accessToken);
@@ -80,12 +82,12 @@ export default function LoginPage() {
                     router.push('/');
                 }
             } else {
-                setError(res.message || 'Identifiants invalides');
+                setError(res.message || t("auth.login.errors.invalid_credentials"));
             }
         } catch {
 
 
-            setError('Une erreur est survenue lors de la connexion');
+            setError(t("auth.login.errors.connection_error"));
 
         } finally {
             setLoading(false);
@@ -103,10 +105,10 @@ export default function LoginPage() {
                         <Icon icon="solar:shield-check-bold-duotone" width={18} />
                     </div>
                     <h1 className="text-xl sm:text-2xl font-black text-foreground">
-                        Connexion
+                        {t("auth.login.title")}
                     </h1>
                     <p className="text-xs sm:text-sm text-muted-foreground">
-                        Accédez à votre espace
+                        {t("auth.login.subtitle")}
                     </p>
                 </div>
 
@@ -119,43 +121,53 @@ export default function LoginPage() {
                     )}
 
                     {/* info */}
-                    {/* info */}
                     <div className="p-2 text-sm bg-blue-50 text-blue-600 rounded-lg border border-blue-100">
-                        Achetez ou vendez librement avec votre compte particulier ou professionnel.
+                        {t("auth.login.info_box")}
                     </div>
 
                     {/* IDENTIFIER */}
                     <div className="space-y-1">
                         <div className="flex justify-between items-center">
                             <label className="text-[11px] sm:text-xs font-black text-muted-foreground">
-                                {useEmail ? 'Email' : 'Numéro de téléphone'}
+                                {useEmail ? t("auth.login.identifier_label_email") : t("auth.login.identifier_label_phone")}
                             </label>
                             <button type="button" className="text-xs font-semibold text-primary"
                                 onClick={() => { setUseEmail(!useEmail); setIdentifier(''); }}>
-                                {useEmail ? 'Se connecter par téléphone' : 'Se connecter par email'}
+                                {useEmail ? t("auth.login.switch_to_phone") : t("auth.login.switch_to_email")}
                             </button>
                         </div>
 
                         <div className="relative">
                             {useEmail ? (
-                                <Icon icon="solar:letter-bold-duotone" width={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                <>
+                                    <Icon icon="solar:letter-bold-duotone" width={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                    <input
+                                        type="email"
+                                        value={identifier}
+                                        onChange={(e) => setIdentifier(e.target.value)}
+                                        placeholder={t("auth.login.identifier_placeholder_email")}
+                                        required
+                                        autoComplete="email"
+                                        className="w-full h-10 sm:h-11 pl-9 pr-3 rounded-lg border border-border bg-muted/30 dark:bg-muted/10 outline-none focus:border-primary text-xs sm:text-sm transition-all text-foreground"
+                                        pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+                                        title={t("auth.login.errors.email_pattern")}
+                                        inputMode="email"
+                                        style={{ fontSize: '16px' }}
+                                        suppressHydrationWarning
+                                    />
+                                </>
                             ) : (
-                                <Icon icon="solar:phone-bold-duotone" width={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                <InputPhone
+                                    indicatif={indicatif}
+                                    phone={identifier}
+                                    onPhoneChange={(val) => {
+                                        setIndicatif(val.indicatif);
+                                        setIdentifier(val.phone);
+                                    }}
+                                    required
+                                    className="bg-muted/30 dark:bg-muted/10 h-10 sm:h-11 border-border"
+                                />
                             )}
-                            <input
-                                type={useEmail ? 'email' : 'tel'}
-                                value={identifier}
-                                onChange={(e) => setIdentifier(e.target.value)}
-                                placeholder={useEmail ? 'nom@exemple.com' : '+225 01 23 45 67'}
-                                required
-                                autoComplete={useEmail ? 'email' : 'tel'}
-                                className="w-full h-10 sm:h-11 pl-9 pr-3 rounded-lg border border-border bg-muted/30 dark:bg-muted/10 outline-none focus:border-primary text-xs sm:text-sm transition-all text-foreground"
-                                pattern={useEmail ? '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$' : '^[0-9]{10}$'}
-                                title={useEmail ? 'Veuillez entrer un email valide' : 'Veuillez entrer un numéro de téléphone valide'}
-                                inputMode={useEmail ? 'email' : 'numeric'}
-                                style={{ fontSize: '16px' }}
-                                suppressHydrationWarning
-                            />
                         </div>
                     </div>
 
@@ -163,11 +175,11 @@ export default function LoginPage() {
                     <div className="space-y-2">
                         <div className="flex justify-between items-center mb-1">
                             <label className="text-[11px] sm:text-xs font-black text-muted-foreground">
-                                Mot de passe
+                                {t("auth.login.password_label")}
                             </label>
                             <button type="button" onClick={() => setShowPassword(!showPassword)} className="text-xs text-primary font-semibold flex items-center gap-1">
                                 {showPassword ? <Icon icon="solar:eye-closed-bold-duotone" width={14} /> : <Icon icon="solar:eye-bold-duotone" width={14} />}
-                                {showPassword ? 'Masquer' : 'Voir'}
+                                {showPassword ? t("auth.login.hide_password") : t("auth.login.show_password")}
                             </button>
                         </div>
 
@@ -193,17 +205,17 @@ export default function LoginPage() {
 
                     {/* BUTTON */}
                     <button type="submit" disabled={loading} className="w-full h-10 sm:h-12 bg-primary hover:bg-primary/90 text-white rounded-lg text-xs sm:text-sm font-black flex items-center justify-center gap-2 transition-all active:scale-95">
-                        {loading ? <Icon icon="solar:refresh-bold-duotone" width={16} className="animate-spin" /> : <>Se connecter <Icon icon="solar:alt-arrow-right-bold-duotone" width={16} /></>}
+                        {loading ? <Icon icon="solar:refresh-bold-duotone" width={16} className="animate-spin" /> : <>{t("auth.login.submit_button")} <Icon icon="solar:alt-arrow-right-bold-duotone" width={16} /></>}
                     </button>
 
 
                     {/* FOOTER */}
                     <div className="text-center">
                         <p className="text-[11px] sm:text-xs text-muted-foreground mb-2">
-                            <Link href="/" className="text-primary font-bold hover:underline">Retour à l'accueil</Link>
+                            <Link href="/" className="text-primary font-bold hover:underline">{t("auth.login.back_to_home")}</Link>
                         </p>
                         <p className="text-[11px] sm:text-xs text-muted-foreground">
-                            Pas de compte ? <Link href="/register" className="text-primary font-bold hover:underline">Inscrivez-vous</Link>
+                            {t("auth.login.no_account")} <Link href="/register" className="text-primary font-bold hover:underline">{t("auth.login.register_link")}</Link>
                         </p>
                     </div>
 
@@ -213,11 +225,11 @@ export default function LoginPage() {
                         <div className="flex flex-wrap justify-center gap-x-2 gap-y-1">
                             <span className="text-gray-300">|</span>
                             <Link href="/terms-of-use" className="hover:text-primary transition-colors underline-offset-2 hover:underline">
-                                Conditions Générales d'Utilisation
+                                {t("auth.login.terms_link")}
                             </Link>
                             <span className="text-gray-300">|</span>
                             <Link href="/privacy-policy" className="hover:text-primary transition-colors underline-offset-2 hover:underline">
-                                Politique de confidentialité
+                                {t("auth.login.privacy_link")}
                             </Link>
                         </div>
                     </div>
@@ -229,7 +241,7 @@ export default function LoginPage() {
                             className="text-[11px] sm:text-xs font-bold text-muted-foreground hover:text-primary transition-colors flex items-center justify-center gap-1.5 mx-auto opacity-70 hover:opacity-100"
                         >
                             <Icon icon="solar:question-circle-bold-duotone" width={14} />
-                            Compte suspendu ? Récupérer mon compte
+                            {t("auth.login.recovery_link")}
                         </button>
                     </div>
 

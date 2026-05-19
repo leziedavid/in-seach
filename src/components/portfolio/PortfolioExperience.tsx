@@ -3,6 +3,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Icon } from "@iconify/react";
+import { useTranslation } from "@/utils/langue/hooks";
 
 const EXPERIENCES = [
     {
@@ -26,9 +27,11 @@ const EXPERIENCES = [
 ];
 
 export default function PortfolioExperience() {
+    const { t } = useTranslation();
+
     return (
         <section id="experience" className="py-20 px-6 max-w-5xl mx-auto border-t border-border/40">
-            <h2 className="text-4xl font-black mb-12 tracking-tight">Expérience professionnelle</h2>
+            <h2 className="text-4xl font-black mb-12 tracking-tight">{t("portfolio.experience.title")}</h2>
 
             <div className="flex flex-col gap-16">
                 {EXPERIENCES.map((exp) => (

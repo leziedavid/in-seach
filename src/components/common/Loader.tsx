@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Icon } from "@iconify/react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "@/utils/langue/hooks";
 
 interface LoaderProps {
     title?: string;
@@ -12,11 +13,14 @@ interface LoaderProps {
 }
 
 export default function Loader({
-    title = "Chargement en cours",
-    description = "Veuillez patienter, nous récupérons les données pour vous.",
+    title,
+    description,
     icon = "solar:hourglass-line-duotone",
     className = "",
 }: LoaderProps) {
+    const { t } = useTranslation();
+    const finalTitle = title || t("common.loading");
+    const finalDescription = description || t("services.search_loading_description");
     const [elapsed, setElapsed] = useState(0);
 
     useEffect(() => {
@@ -74,10 +78,10 @@ export default function Loader({
 
             <div className="space-y-3 relative z-10 w-full">
                 <h3 className="text-xl font-black text-foreground tracking-tight">
-                    {title}
+                    {finalTitle}
                 </h3>
                 <p className="text-sm text-muted-foreground leading-relaxed font-medium">
-                    {description}
+                    {finalDescription}
                 </p>
 
                 {/* Bouncing dots */}

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Icon } from "@iconify/react";
+import { useTranslation } from "@/utils/langue/hooks";
 
 export type InterventionType = "urgence" | "rdv" | null;
 
@@ -14,6 +15,7 @@ export default function FormsIntervention({
     onSelectionChange,
     initialValue = null
 }: FormsInterventionProps) {
+    const { t } = useTranslation();
     const [selectedType, setSelectedType] = useState<InterventionType>(initialValue);
 
     // Notifie le parent lorsque la sélection change
@@ -33,10 +35,10 @@ export default function FormsIntervention({
             {/* En-tête */}
             <div className="mb-2">
                 <h3 className="text-sm font-bold text-foreground border-l-4 border-primary pl-3">
-                    Type d'intervention <span className="text-red-500">*</span>
+                    {t("akwaba.bookings.intervention_form.title")} <span className="text-red-500">*</span>
                 </h3>
                 <p className="text-[11px] text-muted-foreground mt-1 pl-4 uppercase tracking-wider font-bold">
-                    Sélectionnez votre priorité
+                    {t("akwaba.bookings.intervention_form.subtitle")}
                 </p>
             </div>
 
@@ -65,24 +67,24 @@ export default function FormsIntervention({
                                 <Icon icon="solar:danger-bold-duotone" className="w-4 h-4 text-red-500 flex-shrink-0" />
                             </div>
                             <span className="text-[9px] font-black bg-red-100 dark:bg-red-500/20 text-red-800 dark:text-red-400 px-1.5 py-0.5 rounded-full uppercase tracking-tighter">
-                                Direct
+                                {t("akwaba.bookings.intervention_form.direct_badge")}
                             </span>
                         </div>
 
                         {/* Titre principal */}
                         <h4 className="text-sm font-black text-foreground mb-0.5">
-                            Urgence
+                            {t("akwaba.bookings.intervention_form.urgency_title")}
                         </h4>
 
                         {/* Description ultra-courte */}
                         <p className="text-[10px] text-muted-foreground font-medium leading-tight mb-2">
-                            Dépannage en 40 min
+                            {t("akwaba.bookings.intervention_form.urgency_desc")}
                         </p>
 
                         {/* Indicateur de confirmation */}
                         <div className="flex items-center gap-1 mt-auto">
                             <Icon icon="solar:check-circle-bold-duotone" className="w-3 h-3 text-red-600" />
-                            <span className="text-[10px] font-bold text-red-600">24h/24 & 7j/7</span>
+                            <span className="text-[10px] font-bold text-red-600">{t("akwaba.bookings.intervention_form.urgency_note")}</span>
                         </div>
                     </div>
                 </div>
@@ -108,24 +110,24 @@ export default function FormsIntervention({
                                 <Icon icon="solar:clock-circle-bold-duotone" className="w-4 h-4 text-primary flex-shrink-0" />
                             </div>
                             <span className="text-[9px] font-black bg-primary/10 text-primary px-1.5 py-0.5 rounded-full uppercase tracking-tighter">
-                                Libre
+                                {t("akwaba.bookings.intervention_form.free_badge")}
                             </span>
                         </div>
 
                         {/* Titre principal */}
                         <h4 className="text-sm font-black text-foreground mb-0.5">
-                            Rendez-vous
+                            {t("akwaba.bookings.intervention_form.rdv_title")}
                         </h4>
 
                         {/* Description ultra-courte */}
                         <p className="text-[10px] text-muted-foreground font-medium leading-tight mb-2">
-                            Selon vos disponibilités
+                            {t("akwaba.bookings.intervention_form.rdv_desc")}
                         </p>
 
                         {/* Indicateur de confirmation */}
                         <div className="flex items-center gap-1 mt-auto">
                             <Icon icon="solar:check-circle-bold-duotone" className="w-3 h-3 text-primary" />
-                            <span className="text-[10px] font-bold text-primary italic">Planifié</span>
+                            <span className="text-[10px] font-bold text-primary italic">{t("akwaba.bookings.intervention_form.rdv_note")}</span>
                         </div>
                     </div>
                 </div>
@@ -139,10 +141,10 @@ export default function FormsIntervention({
                         <Icon icon="solar:danger-bold-duotone" className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
                         <div>
                             <h4 className="text-[11px] font-bold text-amber-600 dark:text-amber-500 uppercase tracking-tighter mb-1">
-                                Infos 0h-6h
+                                {t("akwaba.bookings.intervention_form.night_info_title")}
                             </h4>
                             <p className="text-[10px] text-amber-800 dark:text-amber-200/80 leading-tight font-medium">
-                                Les interventions de nuit peuvent être sujettes à des ajustements.
+                                {t("akwaba.bookings.intervention_form.night_info_desc")}
                             </p>
                         </div>
                     </div>

@@ -16,6 +16,7 @@ import { useSubscriptionCheck } from "@/hooks/useSubscriptionCheck"
 import Delete from "@/components/logistics/modals/Delete"
 import { SectionHeader } from "@/components/shared/SectionHeader"
 import ViewToggle, { ViewMode } from "@/components/shared/ViewToggle"
+import { useTranslation } from "@/utils/langue/hooks"
 
 interface AnnoncesCardProps {
     data?: Annonce[];
@@ -38,6 +39,7 @@ export default function AnnoncesCard({
     onPageChange,
     onSuccess
 }: AnnoncesCardProps) {
+    const { t } = useTranslation();
     const [internalPage, setInternalPage] = useState(1)
     const page = propPage ?? internalPage;
     const limit = propLimit;
@@ -124,7 +126,7 @@ export default function AnnoncesCard({
     const handleToggleActiv = async (row: Annonce, value: boolean) => {
         const response = await handleToggleAnnonceActive(row.id, value)
         if (response?.statusCode === 200) {
-            showNotification(response.message || "Statut mis à jour", "success");
+            showNotification(response.message || t("akwaba.annonces.status_updated"), "success");
             onSuccess?.();
         }
     }
@@ -141,7 +143,7 @@ export default function AnnoncesCard({
             }
 
             if (response.statusCode === 201 || response.statusCode === 200) {
-                showNotification(response.message || "Opération réussie", "success");
+                showNotification(response.message || t("akwaba.annonces.operation_success"), "success");
                 setIsOpen(false)
 
                 // 1. Reset pagination to first page
@@ -160,7 +162,7 @@ export default function AnnoncesCard({
                 }
 
             } else {
-                showNotification(response.message || "Une erreur est survenue", "error");
+                showNotification(response.message || t("akwaba.services.error_update"), "error");
             }
 
         } catch (error: any) {
@@ -179,11 +181,11 @@ export default function AnnoncesCard({
             setIsDeleting(true)
             const response = await apiDeleteAnnonce(annonceToDelete.id)
             if (response.statusCode === 200) {
-                showNotification("Annonce supprimée avec succès", "success")
+                showNotification(t("akwaba.annonces.delete_success"), "success")
                 setInternalListes((prev) => prev.filter((a) => a.id !== annonceToDelete.id))
                 onSuccess?.()
             } else {
-                showNotification(response.message || "Erreur lors de la suppression", "error")
+                showNotification(response.message || t("akwaba.annonces.delete_error"), "error")
             }
         } catch (error: any) {
             showNotification(error.message || "Erreur serveur", "error")
@@ -217,20 +219,20 @@ export default function AnnoncesCard({
                     }}
                         className="bg-primary text-primary-foreground hover:bg-secondary uppercase">
                         {checkLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-6 h-6 mr-2" /> : <Icon icon="solar:widget-add-bold" width="24" height="24" />}
-                        Publier une annonce
+                        {t("akwaba.annonces.publish_button")}
                     </Button>
                 </div>
 
                 <SectionHeader
-                    title="Publiez toutes vos annonces"
-                    subtitle="Vente de tickets, location, tourisme… publiez vos annonces, fixez vos prix et trouvez rapidement des clients."
+                    title={t("akwaba.annonces.publish_title")}
+                    subtitle={t("akwaba.annonces.publish_subtitle")}
                     className="mb-8"
                 />
 
                 <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-2">
                     <div className="flex items-center justify-between w-full px-2 md:px-0 mb-6 border-b border-border pb-4">
                         <h3 className="text-lg font-black text-foreground">
-                            {loading && listes.length === 0 ? 'Chargement...' : listes.length === 0 ? 'Mes Annonces' : `Mes Annonces (${total})`}
+                            {loading && listes.length === 0 ? t("akwaba.annonces.loading") : listes.length === 0 ? t("akwaba.annonces.my_annonces") : `${t("akwaba.annonces.my_annonces")} (${total})`}
                         </h3>
                         {listes.length > 0 && (
                             <ViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />
@@ -238,8 +240,8 @@ export default function AnnoncesCard({
                     </div>
                 </div>
 
-                {loading && <div className="text-center py-10 text-muted-foreground">Chargement...</div>}
-                {!loading && listes.length === 0 && <div className="text-center py-10 text-muted-foreground/60">Aucune annonce trouvée</div>}
+                {loading && <div className="text-center py-10 text-muted-foreground">{t("akwaba.annonces.loading")}</div>}
+                {!loading && listes.length === 0 && <div className="text-center py-10 text-muted-foreground/60">{t("akwaba.annonces.no_annonces")}</div>}
 
                 {!loading && listes.length > 0 && (
                     <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-2">
@@ -266,7 +268,7 @@ export default function AnnoncesCard({
 
                                             <div className={`text-left ${viewMode === 'grid' ? "mb-3" : "mb-1"}`}>
                                                 <p className={`text-secondary font-black ${viewMode === 'grid' ? "text-sm md:text-base" : "text-base md:text-xl"}`}>
-                                                    {annonce.price ? `${annonce.price.toLocaleString()} FCFA` : "0 FCFA"}
+                                                    {annonce.price ? t("akwaba.services.price_fcfa", { price: annonce.price.toLocaleString() }) : t("akwaba.services.price_fcfa", { price: "0" })}
                                                 </p>
                                             </div>
 

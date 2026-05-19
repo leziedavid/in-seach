@@ -14,10 +14,12 @@ import { GenericTable } from '@/components/ui/table/table';
 import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from "@/utils/langue/hooks";
 
 type TabType = 'products' | 'categories' | 'sub-categories';
 
 export default function AdminProductsPage() {
+    const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState<TabType>('products');
     const [products, setProducts] = useState<Product[]>([]);
     const [categories, setCategories] = useState<CategoryProd[]>([]);
@@ -51,7 +53,7 @@ export default function AdminProductsPage() {
                 setTotal(res.data.total || 0);
             }
         } catch (error) {
-            addNotification("Erreur lors du chargement des produits", "error");
+            addNotification(t("admin.products.error_load"), "error");
         } finally {
             setLoading(false);
         }
@@ -65,7 +67,7 @@ export default function AdminProductsPage() {
                 setCategories(res.data);
             }
         } catch (error) {
-            addNotification("Erreur lors du chargement des catégories", "error");
+            addNotification(t("admin.products.error_load"), "error");
         } finally {
             setLoading(false);
         }
@@ -79,7 +81,7 @@ export default function AdminProductsPage() {
                 setSubCategories(res.data);
             }
         } catch (error) {
-            addNotification("Erreur lors du chargement des sous-catégories", "error");
+            addNotification(t("admin.products.error_load"), "error");
         } finally {
             setLoading(false);
         }
@@ -108,27 +110,27 @@ export default function AdminProductsPage() {
         try {
             const res = await adminUpdateProduct(selectedProduct.id, data);
             if (res.statusCode === 200) {
-                addNotification("Produit mis à jour avec succès", "success");
+                addNotification(t("admin.products.success_update"), "success");
                 setIsProductModalOpen(false);
                 fetchProducts(page);
             }
         } catch (error) {
-            addNotification("Erreur lors de la mise à jour du produit", "error");
+            addNotification(t("admin.products.error_update"), "error");
         } finally {
             setIsSubmitting(false);
         }
     };
 
     const handleDeleteProduct = async (product: Product) => {
-        if (!confirm(`Voulez-vous vraiment supprimer le produit "${product.name}" ?`)) return;
+        if (!confirm(t("admin.products.confirm_delete_product", { name: product.name }))) return;
         try {
             const res = await adminDeleteProduct(product.id);
             if (res.statusCode === 200) {
-                addNotification("Produit supprimé", "success");
+                addNotification(t("admin.products.success_delete"), "success");
                 fetchProducts(page);
             }
         } catch (error) {
-            addNotification("Erreur lors de la suppression", "error");
+            addNotification(t("admin.products.error_delete"), "error");
         }
     };
 
@@ -136,11 +138,11 @@ export default function AdminProductsPage() {
         try {
             const res = await adminToggleProductStatus(product.id, value);
             if (res.statusCode === 200) {
-                addNotification("Statut du produit mis à jour", "success");
+                addNotification(t("admin.products.success_update"), "success");
                 fetchProducts(page);
             }
         } catch (error) {
-            addNotification("Erreur lors de la modification du statut", "error");
+            addNotification(t("admin.products.error_status"), "error");
         }
     };
 
@@ -161,11 +163,11 @@ export default function AdminProductsPage() {
         try {
             const res = await adminToggleCategoryProductStatus(category.id, value);
             if (res.statusCode === 200) {
-                addNotification("Statut de la catégorie mis à jour", "success");
+                addNotification(t("admin.products.success_update"), "success");
                 fetchCategories();
             }
         } catch (error) {
-            addNotification("Erreur lors de la modification du statut", "error");
+            addNotification(t("admin.products.error_status"), "error");
         }
     };
 
@@ -180,27 +182,27 @@ export default function AdminProductsPage() {
             }
 
             if (res.statusCode === 200 || res.statusCode === 201) {
-                addNotification(isEditing ? "Catégorie mise à jour" : "Catégorie créée", "success");
+                addNotification(isEditing ? t("admin.products.edit_category") : t("admin.products.new_category"), "success");
                 setIsCategoryModalOpen(false);
                 fetchCategories();
             }
         } catch (error) {
-            addNotification("Erreur lors de l'enregistrement de la catégorie", "error");
+            addNotification(t("admin.products.error_save_category"), "error");
         } finally {
             setIsSubmitting(false);
         }
     };
 
     const handleDeleteCategory = async (category: CategoryProd) => {
-        if (!confirm(`Voulez-vous vraiment supprimer la catégorie "${category.name}" ?`)) return;
+        if (!confirm(t("admin.products.confirm_delete_product", { name: category.name }))) return;
         try {
             const res = await adminDeleteCategoryProduct(category.id);
             if (res.statusCode === 200) {
-                addNotification("Catégorie supprimée", "success");
+                addNotification(t("admin.products.success_delete"), "success");
                 fetchCategories();
             }
         } catch (error) {
-            const msg = (error as any)?.message || "Erreur lors de la suppression. Vérifiez si des produits y sont liés.";
+            const msg = (error as any)?.message || t("admin.products.error_delete");
             addNotification(msg, "error");
         }
     };
@@ -229,12 +231,12 @@ export default function AdminProductsPage() {
             }
 
             if (res.statusCode === 200 || res.statusCode === 201) {
-                addNotification(isEditing ? "Sous-catégorie mise à jour" : "Sous-catégorie créée", "success");
+                addNotification(isEditing ? t("admin.products.edit_sub_category") : t("admin.products.new_sub_category"), "success");
                 setIsSubCategoryModalOpen(false);
                 fetchSubCategories();
             }
         } catch (error) {
-            const msg = (error as any)?.response?.data?.message || "Erreur lors de l'enregistrement de la sous-catégorie";
+            const msg = (error as any)?.response?.data?.message || t("admin.products.error_save_sub_category");
             addNotification(msg, "error");
         } finally {
             setIsSubmitting(false);
@@ -242,15 +244,15 @@ export default function AdminProductsPage() {
     };
 
     const handleDeleteSubCategory = async (subCategory: SubCategoryProd) => {
-        if (!confirm(`Voulez-vous vraiment supprimer la sous-catégorie "${subCategory.name}" ?`)) return;
+        if (!confirm(t("admin.products.confirm_delete_product", { name: subCategory.name }))) return;
         try {
             const res = await adminDeleteSubCategoryProduct(subCategory.id);
             if (res.statusCode === 200) {
-                addNotification("Sous-catégorie supprimée", "success");
+                addNotification(t("admin.products.success_delete"), "success");
                 fetchSubCategories();
             }
         } catch (error) {
-            const msg = (error as any)?.message || "Erreur lors de la suppression. Vérifiez si des produits y sont liés.";
+            const msg = (error as any)?.message || t("admin.products.error_delete");
             addNotification(msg, "error");
         }
     };
@@ -259,18 +261,18 @@ export default function AdminProductsPage() {
         try {
             const res = await adminToggleSubCategoryProductStatus(subCategory.id, value);
             if (res.statusCode === 200) {
-                addNotification("Statut de la sous-catégorie mis à jour", "success");
+                addNotification(t("admin.products.success_update"), "success");
                 fetchSubCategories();
             }
         } catch (error) {
-            addNotification("Erreur lors de la modification du statut", "error");
+            addNotification(t("admin.products.error_status"), "error");
         }
     };
 
     const productColumns: ColumnDef<Product>[] = [
         {
             accessorKey: 'name',
-            header: 'Produit',
+            header: t("admin.menu.products"),
             cell: ({ row }) => (
                 <div className="flex items-center gap-4">
                     <div className="relative w-12 h-12 bg-muted rounded-xl overflow-hidden border border-border/50 flex-shrink-0">
@@ -293,50 +295,50 @@ export default function AdminProductsPage() {
         },
         {
             accessorKey: 'category.name',
-            header: 'Catégorie',
+            header: t("common.category"),
             cell: ({ row }) => (
                 <div className="flex items-center gap-2 text-xs font-semibold">
                     <Tag className="w-3 h-3 text-primary" />
-                    {row.original.category?.name || "Général"}
+                    {row.original.category?.name || t("admin.dashboard.available")}
                 </div>
             )
         },
         {
             accessorKey: 'price',
-            header: 'Prix',
+            header: t("common.price"),
             cell: ({ row }) => (
                 <div className="font-black text-sm tabular-nums">
-                    {row.original.price}€
+                    {row.original.price} CFA
                 </div>
             )
         },
         {
             accessorKey: 'stock',
-            header: 'Stock',
+            header: t("common.stock"),
             cell: ({ row }) => (
                 <div className="flex items-center gap-2">
                     <Box className="w-3 h-3 text-muted-foreground" />
                     <span className={`text-xs font-bold ${row.original.stock < 5 ? 'text-rose-500' : 'text-foreground'}`}>
-                        {row.original.stock} pcs
+                        {t("admin.products.units_count", { count: row.original.stock })}
                     </span>
                 </div>
             )
         },
         {
             accessorKey: 'isActive',
-            header: 'Statut',
+            header: t("common.status"),
             cell: ({ row }) => (
                 <Badge variant="outline" className={`font-black text-[9px] uppercase tracking-widest ${row.original.isActive
-                    ? 'text-emerald-600 border-emerald-200 bg-emerald-50'
+                    ? 'text-green-600 border-green-200 bg-green-50'
                     : 'text-rose-600 border-rose-200 bg-rose-50'
                     }`}>
-                    {row.original.isActive ? 'Actif' : 'Inactif'}
+                    {row.original.isActive ? t("common.active") : t("common.inactive")}
                 </Badge>
             )
         },
         {
             accessorKey: 'etat',
-            header: 'État',
+            header: t("admin.products.state"),
             cell: ({ row }) => (
                 <Badge variant="secondary" className="font-black text-[9px] uppercase tracking-widest bg-blue-50 text-blue-600 border-blue-200">
                     {productConditionLabels[row.original.etat] || row.original.etat}
@@ -345,19 +347,19 @@ export default function AdminProductsPage() {
         },
         {
             accessorKey: 'user',
-            header: 'Vendeur',
+            header: t("admin.products.seller"),
             cell: ({ row }) => (
                 <div className="flex items-center gap-2">
                     <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-black text-primary border border-primary/20">
                         {row.original.user?.fullName?.[0] || 'U'}
                     </div>
-                    <span className="text-xs font-bold">{row.original.user?.fullName || "Inconnu"}</span>
+                    <span className="text-xs font-bold">{row.original.user?.fullName || t("admin.products.unknown_seller")}</span>
                 </div>
             )
         },
         {
             accessorKey: 'createdAt',
-            header: 'Ajouté le',
+            header: t("admin.products.added_at"),
             cell: ({ row }) => (
                 <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium">
                     <Calendar className="w-3 h-3" />
@@ -370,7 +372,7 @@ export default function AdminProductsPage() {
     const categoryColumns: ColumnDef<CategoryProd>[] = [
         {
             accessorKey: 'name',
-            header: 'Nom de la catégorie',
+            header: t("admin.products.category_name"),
             cell: ({ row }) => (
                 <div className="flex items-center gap-4">
                     <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary border border-primary/20">
@@ -385,11 +387,11 @@ export default function AdminProductsPage() {
         },
         {
             accessorKey: 'subCategories',
-            header: 'Sous-catégories',
+            header: t("admin.products.sub_categories"),
             cell: ({ row }) => (
                 <div className="flex items-center gap-2">
                     <Badge variant="secondary" className="px-2 py-0.5 rounded-full text-[10px] font-black">
-                        {row.original.subCategories?.length || 0} items
+                        {t("admin.products.items_count", { count: row.original.subCategories?.length || 0 })}
                     </Badge>
                 </div>
             )
@@ -399,7 +401,7 @@ export default function AdminProductsPage() {
     const subCategoryColumns: ColumnDef<SubCategoryProd>[] = [
         {
             accessorKey: 'name',
-            header: 'Sous-catégorie',
+            header: t("admin.products.sub_category_name"),
             cell: ({ row }) => (
                 <div className="flex items-center gap-4">
                     <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-600 border border-blue-500/20">
@@ -414,13 +416,13 @@ export default function AdminProductsPage() {
         },
         {
             accessorKey: 'categoryId',
-            header: 'Parent',
+            header: t("common.back"),
             cell: ({ row }) => {
                 const parent = categories.find(c => c.id === row.original.categoryId);
                 return (
                     <div className="flex items-center gap-2">
                         <Badge variant="outline" className="text-[10px] font-bold border-primary/30 text-primary">
-                            {parent?.name || "Général"}
+                            {parent?.name || t("admin.dashboard.available")}
                         </Badge>
                     </div>
                 );
@@ -432,22 +434,22 @@ export default function AdminProductsPage() {
         <div className="p-8 space-y-8 animate-in fade-in duration-500">
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-black tracking-tight mb-1">Produits</h1>
-                    <p className="text-muted-foreground font-medium text-sm">Gestion du catalogue, du stock et des catégories.</p>
+                    <h1 className="text-3xl font-black tracking-tight mb-1">{t("admin.products.title")}</h1>
+                    <p className="text-muted-foreground font-medium text-sm">{t("admin.products.subtitle")}</p>
                 </div>
 
                 <div className="flex items-center gap-2 p-1 bg-muted rounded-xl">
                     <button onClick={() => setActiveTab('products')} className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${activeTab === 'products' ? 'bg-card shadow-xs text-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
                         <ShoppingBag className="w-3.5 h-3.5" />
-                        Articles
+                        {t("admin.products.articles")}
                     </button>
                     <button onClick={() => setActiveTab('categories')} className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${activeTab === 'categories' ? 'bg-card shadow-xs text-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
                         <Layers className="w-3.5 h-3.5" />
-                        Catégories
+                        {t("admin.products.categories")}
                     </button>
                     <button onClick={() => setActiveTab('sub-categories')} className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${activeTab === 'sub-categories' ? 'bg-card shadow-xs text-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
                         <ListTree className="w-3.5 h-3.5" />
-                        Sous-catégories
+                        {t("admin.products.sub_categories")}
                     </button>
                 </div>
             </header>
@@ -462,7 +464,7 @@ export default function AdminProductsPage() {
                 <div className="animate-in slide-in-from-bottom-2 duration-500">
                     <div className="flex justify-end mb-4">
                         <Button variant="outline" className="rounded-xl font-bold border-border/50 bg-card shadow-sm">
-                            Exporter CSV
+                            {t("admin.products.export_csv")}
                         </Button>
                     </div>
 
@@ -480,14 +482,14 @@ export default function AdminProductsPage() {
                             getActive={(row) => row.isActive}
                             onToggleActive={handleToggleProduct}
                             actions={[
-                                { icon: Edit2, label: "Modifier", value: "edit" },
-                                { icon: Trash2, label: "Supprimer", value: "delete", variant: "destructive" }
+                                { icon: Edit2, label: t("common.edit"), value: "edit" },
+                                { icon: Trash2, label: t("common.delete"), value: "delete", variant: "destructive" }
                             ]}
                             onAction={(action, row) => {
                                 if (action === "edit") handleEditProductClick(row);
                                 if (action === "delete") handleDeleteProduct(row);
                             }}
-                            emptyMessage="Aucun produit trouvé"
+                            emptyMessage={t("common.no_results")}
                         />
                     </div>
                 </div>
@@ -497,7 +499,7 @@ export default function AdminProductsPage() {
                 <div className="animate-in slide-in-from-bottom-2 duration-500 space-y-4">
                     <div className="flex justify-end">
                         <Button onClick={handleCreateCategoryClick} className="rounded-xl font-bold gap-2">
-                            <Plus className="w-4 h-4" /> Nouvelle Catégorie
+                            <Plus className="w-4 h-4" /> {t("admin.products.new_category")}
                         </Button>
                     </div>
 
@@ -515,14 +517,14 @@ export default function AdminProductsPage() {
                             getActive={(row) => row.status}
                             onToggleActive={handleToggleCategory}
                             actions={[
-                                { icon: Edit2, label: "Modifier", value: "edit" },
-                                { icon: Trash2, label: "Supprimer", value: "delete", variant: "destructive" }
+                                { icon: Edit2, label: t("common.edit"), value: "edit" },
+                                { icon: Trash2, label: t("common.delete"), value: "delete", variant: "destructive" }
                             ]}
                             onAction={(action, row) => {
                                 if (action === "edit") handleEditCategoryClick(row);
                                 if (action === "delete") handleDeleteCategory(row);
                             }}
-                            emptyMessage="Aucune catégorie définie."
+                            emptyMessage={t("common.no_results")}
                         />
                     </div>
                 </div>
@@ -532,7 +534,7 @@ export default function AdminProductsPage() {
                 <div className="animate-in slide-in-from-bottom-2 duration-500 space-y-4">
                     <div className="flex justify-end">
                         <Button onClick={handleCreateSubCategoryClick} className="rounded-xl font-bold gap-2">
-                            <Plus className="w-4 h-4" /> Nouvelle Sous-catégorie
+                            <Plus className="w-4 h-4" /> {t("admin.products.new_sub_category")}
                         </Button>
                     </div>
 
@@ -550,14 +552,14 @@ export default function AdminProductsPage() {
                             getActive={(row) => row.status}
                             onToggleActive={handleToggleSubCategory}
                             actions={[
-                                { icon: Edit2, label: "Modifier", value: "edit" },
-                                { icon: Trash2, label: "Supprimer", value: "delete", variant: "destructive" }
+                                { icon: Edit2, label: t("common.edit"), value: "edit" },
+                                { icon: Trash2, label: t("common.delete"), value: "delete", variant: "destructive" }
                             ]}
                             onAction={(action, row) => {
                                 if (action === "edit") handleEditSubCategoryClick(row);
                                 if (action === "delete") handleDeleteSubCategory(row);
                             }}
-                            emptyMessage="Aucune sous-catégorie définie."
+                            emptyMessage={t("common.no_results")}
                         />
                     </div>
                 </div>
@@ -570,8 +572,8 @@ export default function AdminProductsPage() {
             >
                 {selectedProduct && (
                     <div className="p-4">
-                        <h2 className="text-xl font-black px-2 pt-2 mb-1">Modifier le produit</h2>
-                        <p className="text-muted-foreground px-2 mb-6 text-sm font-medium tracking-tight">Mise à jour des informations de l'article.</p>
+                        <h2 className="text-xl font-black px-2 pt-2 mb-1">{t("admin.products.edit_product")}</h2>
+                        <p className="text-muted-foreground px-2 mb-6 text-sm font-medium tracking-tight">{t("admin.products.success_update")}</p>
                         <FormsProduit
                             initialData={selectedProduct}
                             onSubmit={handleUpdateProduct}
@@ -590,8 +592,8 @@ export default function AdminProductsPage() {
                 onClose={() => setIsCategoryModalOpen(false)}
             >
                 <div className="p-6">
-                    <h2 className="text-xl font-black mb-1">{isEditing ? 'Éditer la catégorie' : 'Nouvelle catégorie'}</h2>
-                    <p className="text-muted-foreground mb-6 text-sm font-medium tracking-tight">Définissez un nom clair pour regrouper vos produits.</p>
+                    <h2 className="text-xl font-black mb-1">{isEditing ? t("admin.products.edit_category") : t("admin.products.new_category")}</h2>
+                    <p className="text-muted-foreground mb-6 text-sm font-medium tracking-tight">{t("admin.products.category_name")}</p>
                     <CategoryProductForm
                         initialData={selectedCategory || undefined}
                         onSubmit={handleCategorySubmit}
@@ -608,8 +610,8 @@ export default function AdminProductsPage() {
                 onClose={() => setIsSubCategoryModalOpen(false)}
             >
                 <div className="p-6">
-                    <h2 className="text-xl font-black mb-1">{isEditing ? 'Éditer la sous-catégorie' : 'Nouvelle sous-catégorie'}</h2>
-                    <p className="text-muted-foreground mb-6 text-sm font-medium tracking-tight">Associez-la à une catégorie parente pour une meilleure organisation.</p>
+                    <h2 className="text-xl font-black mb-1">{isEditing ? t("admin.products.edit_sub_category") : t("admin.products.new_sub_category")}</h2>
+                    <p className="text-muted-foreground mb-6 text-sm font-medium tracking-tight">{t("admin.products.sub_category_name")}</p>
                     <SubCategoryProductForm
                         initialData={selectedSubCategory || undefined}
                         categories={categories}

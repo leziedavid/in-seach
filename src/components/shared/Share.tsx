@@ -5,6 +5,7 @@ import { Icon } from '@iconify/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { useNotification } from "@/components/notifications/NotificationProvider";
+import { useTranslation } from "@/utils/langue/hooks";
 
 interface ShareProps {
     isOpen: boolean;
@@ -19,7 +20,7 @@ interface ShareProps {
 }
 
 export const Share = ({ isOpen, onClose, url, title, description, image, price, storeName, storeLogo }: ShareProps) => {
-
+    const { t } = useTranslation();
     const { addNotification } = useNotification();
     const [copied, setCopied] = useState(false);
 
@@ -27,10 +28,10 @@ export const Share = ({ isOpen, onClose, url, title, description, image, price, 
         try {
             await navigator.clipboard.writeText(url);
             setCopied(true);
-            addNotification("Lien copié !", "success");
+            addNotification(t("akwaba.share.copied"), "success");
             setTimeout(() => setCopied(false), 2000);
         } catch (err) {
-            addNotification("Erreur lors de la copie", "error");
+            addNotification(t("akwaba.share.copy_error"), "error");
         }
     };
 
@@ -87,7 +88,7 @@ export const Share = ({ isOpen, onClose, url, title, description, image, price, 
                         {/* Header */}
                         <div className="flex items-center justify-between p-5 md:p-6 border-b border-zinc-100 dark:border-zinc-800 shrink-0">
                             <h3 className="text-xl font-black text-zinc-900 dark:text-white tracking-tight">
-                                Partager
+                                {t("akwaba.share.title")}
                             </h3>
                             <button
                                 onClick={onClose}
@@ -141,7 +142,7 @@ export const Share = ({ isOpen, onClose, url, title, description, image, price, 
                             {/* Copy Link Section */}
                             <div className="space-y-3">
                                 <h5 className="text-sm font-black text-zinc-900 dark:text-white uppercase tracking-wider ml-1">
-                                    Par lien
+                                    {t("akwaba.share.by_link")}
                                 </h5>
                                 <div className="relative flex items-center bg-zinc-100 dark:bg-zinc-800/80 rounded-2xl p-1.5 border border-zinc-200/50 dark:border-zinc-700/50">
                                     <div className="flex-1 px-4 text-xs font-medium text-zinc-500 truncate select-all">
@@ -149,7 +150,7 @@ export const Share = ({ isOpen, onClose, url, title, description, image, price, 
                                     </div>
                                     <button onClick={handleCopy} className={`flex items-center gap-2 py-2.5 px-5 rounded-xl font-black text-xs transition-all active:scale-95 shadow-sm ${copied ? 'bg-secondary text-white' : 'bg-secondary hover:opacity-90 text-white'}`}>
                                         <Icon icon={copied ? "solar:check-read-bold" : "solar:copy-bold-duotone"} width={16} />
-                                        {copied ? 'Copié' : 'Copier'}
+                                        {copied ? t("akwaba.share.is_copied") : t("akwaba.share.copy")}
                                     </button>
                                 </div>
                             </div>
@@ -157,7 +158,7 @@ export const Share = ({ isOpen, onClose, url, title, description, image, price, 
                             {/* Social Media Section */}
                             <div className="space-y-4">
                                 <h5 className="text-sm font-black text-zinc-900 dark:text-white uppercase tracking-wider ml-1">
-                                    Sur vos réseaux sociaux
+                                    {t("akwaba.share.on_social")}
                                 </h5>
                                 <div className="flex flex-wrap gap-4 md:gap-6 justify-start items-center ml-1">
                                     {shareOptions.map((option) => (
@@ -192,7 +193,7 @@ export const Share = ({ isOpen, onClose, url, title, description, image, price, 
                                             <Icon icon="solar:menu-dots-bold" width={24} className="text-zinc-400" />
                                         </div>
                                         <span className="text-[10px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">
-                                            Plus
+                                            {t("akwaba.share.more")}
                                         </span>
                                     </button>
                                 </div>
@@ -203,7 +204,7 @@ export const Share = ({ isOpen, onClose, url, title, description, image, price, 
                         <div className="p-4 bg-zinc-50 dark:bg-zinc-800/30 flex justify-center border-t border-zinc-100 dark:border-zinc-800 shrink-0">
                             <div className="flex items-center gap-2 text-[9px] text-zinc-400 font-black uppercase tracking-[0.2em] opacity-60">
                                 <Icon icon="solar:shield-check-bold" width={12} />
-                                <span>Partage sécurisé • Djamko</span>
+                                <span>{t("akwaba.share.secure_share")} • Djamko</span>
                             </div>
                         </div>
                     </motion.div>

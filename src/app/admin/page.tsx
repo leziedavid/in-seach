@@ -11,24 +11,25 @@ import { GenericTable } from '@/components/ui/table/table';
 import { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useTranslation } from "@/utils/langue/hooks";
 
 /* ─── Static data for charts & team ───────────────────────────── */
 
-const weeklyData = [
-    { day: 'Sun', primary: 30000, secondary: 19000 },
-    { day: 'Mon', primary: 38000, secondary: 28000 },
-    { day: 'Tue', primary: 43000, secondary: 32000 },
-    { day: 'Wed', primary: 29000, secondary: 22000 },
-    { day: 'Thu', primary: 35000, secondary: 26000 },
-    { day: 'Fri', primary: 49000, secondary: 38000 },
-    { day: 'Sat', primary: 50000, secondary: 43000 },
+const weeklyData = (t: any) => [
+    { day: t("admin.dashboard.weekly.sun"), primary: 30000, secondary: 19000 },
+    { day: t("admin.dashboard.weekly.mon"), primary: 38000, secondary: 28000 },
+    { day: t("admin.dashboard.weekly.tue"), primary: 43000, secondary: 32000 },
+    { day: t("admin.dashboard.weekly.wed"), primary: 29000, secondary: 22000 },
+    { day: t("admin.dashboard.weekly.thu"), primary: 35000, secondary: 26000 },
+    { day: t("admin.dashboard.weekly.fri"), primary: 49000, secondary: 38000 },
+    { day: t("admin.dashboard.weekly.sat"), primary: 50000, secondary: 43000 },
 ];
 
-const teamMembers = [
-    { name: 'Aneeta T rose', role: 'Project Manager', initials: 'AT', color: 'bg-rose-400' },
-    { name: 'Safan Ahmed', role: 'Head Of Department', initials: 'SA', color: 'bg-blue-400' },
-    { name: 'Karina', role: 'Co-ordinator', initials: 'KA', color: 'bg-emerald-400' },
-    { name: 'Manuel', role: 'Co-ordinator', initials: 'MA', color: 'bg-amber-400' },
+const teamMembers = (t: any) => [
+    { name: 'Aneeta T rose', role: t("common.role"), initials: 'AT', color: 'bg-rose-400' },
+    { name: 'Safan Ahmed', role: t("common.role"), initials: 'SA', color: 'bg-blue-400' },
+    { name: 'Karina', role: t("common.role"), initials: 'KA', color: 'bg-emerald-400' },
+    { name: 'Manuel', role: t("common.role"), initials: 'MA', color: 'bg-amber-400' },
 ];
 
 /* ─── Card colour map ──────────────────────────────────────────── */
@@ -75,11 +76,12 @@ const CARD_STYLES = [
 /* ─── Component ────────────────────────────────────────────────── */
 
 export default function AdminPage() {
+    const { t } = useTranslation();
     const [stats, setStats] = React.useState([
-        { label: 'Utilisateurs', value: '0', growth: '+12%', icon: 'solar:users-group-rounded-bold-duotone', sub: 'Comptes actifs' },
-        { label: 'Produits', value: '0', growth: '+8%', icon: 'solar:bag-heart-bold-duotone', sub: 'En catalogue' },
-        { label: 'Services', value: '0', growth: '+15%', icon: 'solar:hand-stars-bold-duotone', sub: 'Disponibles' },
-        { label: 'Annonces', value: '0', growth: '+5%', icon: 'solar:eye-bold-duotone', sub: 'Publiées' },
+        { label: t("admin.menu.users"), value: '0', growth: '+12%', icon: 'solar:users-group-rounded-bold-duotone', sub: t("admin.dashboard.active_accounts") },
+        { label: t("admin.menu.products"), value: '0', growth: '+8%', icon: 'solar:bag-heart-bold-duotone', sub: t("admin.dashboard.in_catalog") },
+        { label: t("admin.menu.services"), value: '0', growth: '+15%', icon: 'solar:hand-stars-bold-duotone', sub: t("admin.dashboard.available") },
+        { label: t("admin.menu.annonces"), value: '0', growth: '+5%', icon: 'solar:eye-bold-duotone', sub: t("admin.dashboard.published") },
     ]);
     const [recentLogs, setRecentLogs] = React.useState<AdminLog[]>([]);
     const [loading, setLoading] = React.useState(true);
@@ -97,15 +99,15 @@ export default function AdminPage() {
             ]);
 
             setStats([
-                { label: 'Utilisateurs', value: users.data?.total?.toString() || '0', growth: '+12%', icon: 'solar:users-group-rounded-bold-duotone', sub: 'Comptes actifs' },
-                { label: 'Produits', value: prods.data?.total?.toString() || '0', growth: '+8%', icon: 'solar:bag-heart-bold-duotone', sub: 'En catalogue' },
-                { label: 'Services', value: servs.data?.total?.toString() || '0', growth: '+15%', icon: 'solar:hand-stars-bold-duotone', sub: 'Disponibles' },
-                { label: 'Annonces', value: anns.data?.total?.toString() || '0', growth: '+5%', icon: 'solar:megaphone-bold-duotone', sub: 'Publiées' },
+                { label: t("admin.menu.users"), value: users.data?.total?.toString() || '0', growth: '+12%', icon: 'solar:users-group-rounded-bold-duotone', sub: t("admin.dashboard.active_accounts") },
+                { label: t("admin.menu.products"), value: prods.data?.total?.toString() || '0', growth: '+8%', icon: 'solar:bag-heart-bold-duotone', sub: t("admin.dashboard.in_catalog") },
+                { label: t("admin.menu.services"), value: servs.data?.total?.toString() || '0', growth: '+15%', icon: 'solar:hand-stars-bold-duotone', sub: t("admin.dashboard.available") },
+                { label: t("admin.menu.annonces"), value: anns.data?.total?.toString() || '0', growth: '+5%', icon: 'solar:megaphone-bold-duotone', sub: t("admin.dashboard.published") },
             ]);
 
             setRecentLogs(logs.data?.data || []);
         } catch {
-            addNotification("Erreur lors de la mise à jour du tableau de bord", "error");
+            addNotification(t("admin.dashboard.error_dashboard"), "error");
         } finally {
             setLoading(false);
         }
@@ -118,7 +120,7 @@ export default function AdminPage() {
     const logColumns: ColumnDef<AdminLog>[] = [
         {
             accessorKey: 'timestamp',
-            header: 'Heure',
+            header: t("common.time"),
             cell: ({ row }) => (
                 <span className="text-muted-foreground tabular-nums text-[10px]">
                     {row.original.timestamp.split('T')[1]?.substring(0, 8) || row.original.timestamp}
@@ -127,7 +129,7 @@ export default function AdminPage() {
         },
         {
             accessorKey: 'level',
-            header: 'Niveau',
+            header: t("common.level"),
             cell: ({ row }) => (
                 <Badge variant="outline" className={`text-[9px] uppercase font-black px-2 py-0 ${row.original.level === 'error' ? 'text-rose-500 border-rose-200 bg-rose-50' : 'text-primary border-primary/20 bg-primary/5'}`}>
                     {row.original.level}
@@ -136,7 +138,7 @@ export default function AdminPage() {
         },
         {
             accessorKey: 'message',
-            header: 'Message',
+            header: t("common.message"),
             cell: ({ row }) => (
                 <span className="text-xs font-medium truncate max-w-[200px] block">{row.original.message}</span>
             )
@@ -193,15 +195,15 @@ export default function AdminPage() {
                     <div className="bg-card/50 dark:bg-white/[0.02] rounded-[2.5rem] p-8 shadow-sm border border-border/50 backdrop-blur-md">
                         <div className="flex items-center justify-between mb-8">
                             <div>
-                                <h3 className="text-xl font-black text-foreground uppercase tracking-tight">Analyse Hebdomadaire</h3>
-                                <p className="text-xs text-muted-foreground font-medium">Comparaison des performances récentes</p>
+                                <h3 className="text-xl font-black text-foreground uppercase tracking-tight">{t("admin.dashboard.weekly_analysis")}</h3>
+                                <p className="text-xs text-muted-foreground font-medium">{t("admin.dashboard.performance_comparison")}</p>
                             </div>
                             <button className="bg-primary hover:bg-primary/90 text-white px-6 py-2.5 rounded-2xl text-xs font-black transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/20 uppercase tracking-widest">
-                                Exporter
+                                {t("common.export")}
                             </button>
                         </div>
                         <ResponsiveContainer width="100%" height={250}>
-                            <BarChart data={weeklyData} barGap={8} barCategoryGap="25%">
+                            <BarChart data={weeklyData(t)} barGap={8} barCategoryGap="25%">
                                 <CartesianGrid strokeDasharray="3 3" stroke="#888" vertical={false} strokeOpacity={0.1} />
                                 <XAxis
                                     dataKey="day"
@@ -251,21 +253,21 @@ export default function AdminPage() {
 
                     {/* More Analysis */}
                     <div className="bg-card/50 dark:bg-white/[0.02] rounded-[2.5rem] p-8 shadow-sm border border-border/50 backdrop-blur-md">
-                        <h3 className="text-lg font-black text-foreground uppercase tracking-tight mb-1">Analyses Avancées</h3>
-                        <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mb-8">Statistiques détaillées</p>
+                        <h3 className="text-lg font-black text-foreground uppercase tracking-tight mb-1">{t("admin.dashboard.advanced_analysis")}</h3>
+                        <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mb-8">{t("admin.dashboard.detailed_stats")}</p>
                         <div className="space-y-4">
                             <Link href="/admin/products" className="flex items-center gap-4 p-4 bg-white/[0.03] rounded-3xl hover:bg-white/[0.08] transition-all group border border-white/5">
                                 <div className="w-10 h-10 bg-emerald-500/10 rounded-2xl flex items-center justify-center shadow-inner">
                                     <Icon icon="solar:shop-bold-duotone" width={20} className="text-emerald-500" />
                                 </div>
-                                <span className="flex-1 text-sm font-black text-foreground uppercase tracking-tight">Ratio de Ventes</span>
+                                <span className="flex-1 text-sm font-black text-foreground uppercase tracking-tight">{t("admin.dashboard.sales_ratio")}</span>
                                 <Icon icon="solar:alt-arrow-right-bold-duotone" width={16} className="text-muted-foreground group-hover:text-foreground transition-colors" />
                             </Link>
                             <Link href="/admin/products" className="flex items-center gap-4 p-4 bg-white/[0.03] rounded-3xl hover:bg-white/[0.08] transition-all group border border-white/5">
                                 <div className="w-10 h-10 bg-violet-500/10 rounded-2xl flex items-center justify-center shadow-inner">
                                     <Icon icon="solar:medal-ribbon-bold-duotone" width={20} className="text-violet-500" />
                                 </div>
-                                <span className="flex-1 text-sm font-black text-foreground uppercase tracking-tight">Meilleures Ventes</span>
+                                <span className="flex-1 text-sm font-black text-foreground uppercase tracking-tight">{t("admin.dashboard.best_sellers")}</span>
                                 <Icon icon="solar:alt-arrow-right-bold-duotone" width={16} className="text-muted-foreground group-hover:text-foreground transition-colors" />
                             </Link>
                         </div>
@@ -283,16 +285,16 @@ export default function AdminPage() {
                             <Icon icon="solar:pulse-bold-duotone" width={24} className="text-primary" />
                         </div>
                         <div>
-                            <h3 className="text-xl font-black text-foreground uppercase tracking-tight">Activité Récente</h3>
-                            <p className="text-xs text-muted-foreground font-medium">Logs système en temps réel</p>
+                            <h3 className="text-xl font-black text-foreground uppercase tracking-tight">{t("admin.dashboard.recent_activity")}</h3>
+                            <p className="text-xs text-muted-foreground font-medium">{t("admin.dashboard.real_time_logs")}</p>
                         </div>
                     </div>
                     <Button variant="outline" size="sm" className="font-black text-foreground hover:bg-muted rounded-2xl text-[10px] uppercase tracking-widest px-4">
-                        Tout voir
+                        {t("common.see_all")}
                     </Button>
                 </div>
                 <div className="p-6">
-                    <GenericTable columns={logColumns} data={recentLogs} loading={loading} haveTitle={false} emptyMessage="Aucune activité récente" />
+                    <GenericTable columns={logColumns} data={recentLogs} loading={loading} haveTitle={false} emptyMessage={t("admin.dashboard.no_recent_activity")} />
                 </div>
             </div>
         </div>

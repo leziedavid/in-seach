@@ -8,7 +8,10 @@ import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
+import { useTranslation } from "@/utils/langue/hooks";
+
 export default function Overview() {
+    const { t } = useTranslation();
     const { data: response, isLoading } = useQuery({
         queryKey: ["overview"],
         queryFn: getOverview,
@@ -66,11 +69,11 @@ export default function Overview() {
             {/* Header section */}
             <div className="flex items-end justify-between">
                 <div>
-                    <h2 className="text-2xl font-bold text-foreground tracking-tight">Tableau de bord</h2>
-                    <p className="text-sm text-muted-foreground">Résumé global de vos activités.</p>
+                    <h2 className="text-2xl font-bold text-foreground tracking-tight">{t("akwaba.overview.title")}</h2>
+                    <p className="text-sm text-muted-foreground">{t("akwaba.overview.subtitle")}</p>
                 </div>
                 <div className="hidden md:flex items-center gap-2 bg-muted/50 p-1 rounded-2xl border border-border/50">
-                    <div className="px-4 py-2 bg-background rounded-xl shadow-sm border border-border/50 text-[10px] font-bold uppercase tracking-widest text-primary">Aujourd'hui</div>
+                    <div className="px-4 py-2 bg-background rounded-xl shadow-sm border border-border/50 text-[10px] font-bold uppercase tracking-widest text-primary">{t("akwaba.overview.today")}</div>
                 </div>
             </div>
 
@@ -79,13 +82,13 @@ export default function Overview() {
                 <div className="space-y-6">
                     <div className="flex items-center gap-2">
                         <div className="w-1 h-5 bg-primary rounded-full" />
-                        <h3 className="font-bold text-base tracking-tight">Administration Globale</h3>
+                        <h3 className="font-bold text-base tracking-tight">{t("akwaba.overview.admin_section")}</h3>
                     </div>
                     <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-                        {renderStatCard("Utilisateurs", stats.admin.totalUsers || 0, "solar:users-group-rounded-bold-duotone", "primary")}
-                        {renderStatCard("Revenu Global", `${(stats.admin.totalRevenue || 0).toLocaleString()} FCFA`, "solar:wad-of-money-bold-duotone", "green-500")}
-                        {renderStatCard("Commandes", stats.admin.totalOrders || 0, "solar:cart-large-bold-duotone", "orange-500")}
-                        {renderStatCard("Réservations", stats.admin.totalBookings || 0, "solar:clipboard-list-bold-duotone", "blue-500")}
+                        {renderStatCard(t("akwaba.overview.users"), stats.admin.totalUsers || 0, "solar:users-group-rounded-bold-duotone", "primary")}
+                        {renderStatCard(t("akwaba.overview.revenue"), `${(stats.admin.totalRevenue || 0).toLocaleString()} FCFA`, "solar:wad-of-money-bold-duotone", "green-500")}
+                        {renderStatCard(t("akwaba.overview.orders"), stats.admin.totalOrders || 0, "solar:cart-large-bold-duotone", "orange-500")}
+                        {renderStatCard(t("akwaba.overview.bookings"), stats.admin.totalBookings || 0, "solar:clipboard-list-bold-duotone", "blue-500")}
                     </div>
                 </div>
             )}
@@ -95,16 +98,16 @@ export default function Overview() {
                 <div className="space-y-6">
                     <div className="flex items-center gap-2">
                         <div className="w-1 h-5 bg-blue-500 rounded-full" />
-                        <h3 className="font-bold text-base tracking-tight">Espace Prestataire</h3>
+                        <h3 className="font-bold text-base tracking-tight">{t("akwaba.overview.provider_section")}</h3>
                     </div>
                     <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-                        {renderStatCard("Gains RDV", `${(stats.prestataire.totalEarnings || 0).toLocaleString()} FCFA`, "solar:dollar-bold-duotone", "green-500")}
-                        {renderStatCard("Ventes Boutique", `${(stats.prestataire.boutiqueRevenue || 0).toLocaleString()} FCFA`, "solar:wad-of-money-bold-duotone", "primary")}
-                        {renderStatCard("Services", stats.prestataire.myServices || 0, "solar:box-bold-duotone", "blue-500")}
-                        {renderStatCard("Annonces", stats.prestataire.myAnnonces || 0, "solar:eye-bold-duotone", "indigo-500")}
-                        {renderStatCard("Produits", stats.prestataire.myProducts || 0, "solar:shop-bold-duotone", "orange-500")}
-                        {renderStatCard("RDV Reçus", stats.prestataire.receivedBookings || 0, "solar:user-speak-bold-duotone", "primary")}
-                        {renderStatCard("Commandes", stats.prestataire.receivedOrders || 0, "solar:cart-large-bold-duotone", "green-500")}
+                        {renderStatCard(t("akwaba.overview.rdv_gains"), `${(stats.prestataire.totalEarnings || 0).toLocaleString()} FCFA`, "solar:dollar-bold-duotone", "green-500")}
+                        {renderStatCard(t("akwaba.overview.shop_sales"), `${(stats.prestataire.boutiqueRevenue || 0).toLocaleString()} FCFA`, "solar:wad-of-money-bold-duotone", "primary")}
+                        {renderStatCard(t("akwaba.overview.services"), stats.prestataire.myServices || 0, "solar:box-bold-duotone", "blue-500")}
+                        {renderStatCard(t("akwaba.overview.annonces"), stats.prestataire.myAnnonces || 0, "solar:eye-bold-duotone", "indigo-500")}
+                        {renderStatCard(t("akwaba.overview.products"), stats.prestataire.myProducts || 0, "solar:shop-bold-duotone", "orange-500")}
+                        {renderStatCard(t("akwaba.overview.rdv_received"), stats.prestataire.receivedBookings || 0, "solar:user-speak-bold-duotone", "primary")}
+                        {renderStatCard(t("akwaba.overview.orders"), stats.prestataire.receivedOrders || 0, "solar:cart-large-bold-duotone", "green-500")}
                     </div>
                 </div>
             )}
@@ -114,14 +117,14 @@ export default function Overview() {
                 <div className="space-y-6">
                     <div className="flex items-center gap-2">
                         <div className="w-1 h-5 bg-orange-500 rounded-full" />
-                        <h3 className="font-bold text-base tracking-tight">Espace Client</h3>
+                        <h3 className="font-bold text-base tracking-tight">{t("akwaba.overview.client_section")}</h3>
                     </div>
                     <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-                        {(stats.client.boutiqueRevenue || 0) > 0 && renderStatCard("Ventes Boutique", `${(stats.client.boutiqueRevenue || 0).toLocaleString()} FCFA`, "solar:wad-of-money-bold-duotone", "green-500")}
-                        {renderStatCard("Mes RDV", stats.client.myBookings || 0, "solar:calendar-date-bold-duotone", "orange-500")}
-                        {renderStatCard("Mes Commandes", stats.client.myOrders || 0, "solar:bag-bold-duotone", "primary")}
-                        {renderStatCard("Mes Devis", stats.client.myQuotes || 0, "solar:chat-round-money-bold-duotone", "indigo-500")}
-                        {renderStatCard("Mes Livraisons", stats.client.myDeliveries || 0, "solar:delivery-bold-duotone", "green-500")}
+                        {(stats.client.boutiqueRevenue || 0) > 0 && renderStatCard(t("akwaba.overview.shop_sales"), `${(stats.client.boutiqueRevenue || 0).toLocaleString()} FCFA`, "solar:wad-of-money-bold-duotone", "green-500")}
+                        {renderStatCard(t("akwaba.overview.my_rdv"), stats.client.myBookings || 0, "solar:calendar-date-bold-duotone", "orange-500")}
+                        {renderStatCard(t("akwaba.overview.my_orders"), stats.client.myOrders || 0, "solar:bag-bold-duotone", "primary")}
+                        {renderStatCard(t("akwaba.overview.my_quotes"), stats.client.myQuotes || 0, "solar:chat-round-money-bold-duotone", "indigo-500")}
+                        {renderStatCard(t("akwaba.overview.my_deliveries"), stats.client.myDeliveries || 0, "solar:delivery-bold-duotone", "green-500")}
                     </div>
                 </div>
             )}
@@ -131,14 +134,14 @@ export default function Overview() {
                 <div className="space-y-6">
                     <div className="flex items-center gap-2">
                         <div className="w-1 h-5 bg-indigo-500 rounded-full" />
-                        <h3 className="font-bold text-base tracking-tight">Logistique & Flotte</h3>
+                        <h3 className="font-bold text-base tracking-tight">{t("akwaba.overview.logistics_section")}</h3>
                     </div>
                     <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4">
-                        {renderStatCard("Services Log.", stats.entreprise.myLogisticServices || 0, "solar:delivery-bold-duotone", "indigo-500")}
-                        {renderStatCard("Ma Flotte", stats.entreprise.floteCount || 0, "solar:bus-bold-duotone", "primary")}
-                        {renderStatCard("Devis Reçus", stats.entreprise.receivedQuotes || 0, "solar:chat-round-money-bold-duotone", "blue-500")}
-                        {renderStatCard("En Attente", stats.entreprise.pendingQuotes || 0, "solar:clock-circle-bold-duotone", "orange-500")}
-                        {renderStatCard("Livraisons", stats.entreprise.activeDeliveries || 0, "solar:map-point-wave-bold-duotone", "green-500")}
+                        {renderStatCard(t("akwaba.overview.logistics_services"), stats.entreprise.myLogisticServices || 0, "solar:delivery-bold-duotone", "indigo-500")}
+                        {renderStatCard(t("akwaba.overview.my_fleet"), stats.entreprise.floteCount || 0, "solar:bus-bold-duotone", "primary")}
+                        {renderStatCard(t("akwaba.overview.quotes_received"), stats.entreprise.receivedQuotes || 0, "solar:chat-round-money-bold-duotone", "blue-500")}
+                        {renderStatCard(t("akwaba.overview.pending"), stats.entreprise.pendingQuotes || 0, "solar:clock-circle-bold-duotone", "orange-500")}
+                        {renderStatCard(t("akwaba.overview.deliveries"), stats.entreprise.activeDeliveries || 0, "solar:map-point-wave-bold-duotone", "green-500")}
                     </div>
                 </div>
             )}
@@ -148,11 +151,11 @@ export default function Overview() {
                 <div className="space-y-6 mt-12">
                     <div className="flex items-center gap-2">
                         <div className="w-1 h-5 bg-zinc-500 rounded-full" />
-                        <h3 className="font-bold text-base tracking-tight">Dernières Activités</h3>
+                        <h3 className="font-bold text-base tracking-tight">{t("akwaba.overview.recent_activity")}</h3>
                     </div>
                     <div className="bg-card/50 backdrop-blur-xl border border-border/50 rounded-2xl md:rounded-[2.5rem] overflow-hidden shadow-xl">
                         <div className="p-4 md:p-6 border-b border-border/50 bg-muted/30">
-                            <h4 className="font-bold text-sm md:text-base">Réservations Récentes</h4>
+                            <h4 className="font-bold text-sm md:text-base">{t("akwaba.overview.recent_bookings")}</h4>
                         </div>
                         <div className="divide-y divide-border/50">
                             {stats.admin.recentBookings.map((booking: any) => (
@@ -162,7 +165,7 @@ export default function Overview() {
                                             <Icon icon="solar:calendar-add-bold-duotone" className="w-4 h-4 md:w-5 md:h-5" />
                                         </div>
                                         <div>
-                                            <p className="font-bold text-sm">{booking.client?.fullName || "Client Inconnu"}</p>
+                                            <p className="font-bold text-sm">{booking.client?.fullName || t("akwaba.overview.unknown_client")}</p>
                                             <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">{booking.code}</p>
                                         </div>
                                     </div>

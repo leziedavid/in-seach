@@ -12,8 +12,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { GenericTable } from '@/components/ui/table/table';
+import { useTranslation } from "@/utils/langue/hooks";
 
 export default function AdminLogsPage() {
+    const { t } = useTranslation();
     const [logs, setLogs] = React.useState<AdminLog[]>([]);
     const [logFiles, setLogFiles] = React.useState<string[]>([]);
     const [loading, setLoading] = React.useState(true);
@@ -34,7 +36,7 @@ export default function AdminLogsPage() {
             }
             if (filesRes.statusCode === 200) setLogFiles(filesRes.data || []);
         } catch (error) {
-            addNotification("Erreur lors du chargement des logs", "error");
+            addNotification(t("admin.logs.error_load"), "error");
         } finally {
             setLoading(false);
         }
@@ -45,22 +47,21 @@ export default function AdminLogsPage() {
     }, [filters.page, filters.level, filters.startDate, filters.endDate]);
 
     const handleDelete = async (dates: string[]) => {
-        if (!confirm(`Voulez-vous vraiment supprimer les logs pour : ${dates.join(', ')} ?`)) return;
+        if (!confirm(t("admin.logs.confirm_delete", { dates: dates.join(', ') }))) return;
         try {
             const res = await deleteAdminLogs(dates);
             if (res.statusCode === 200) {
-                addNotification("Logs supprimés", "success");
+                addNotification(t("admin.logs.success_delete"), "success");
                 fetchData();
             }
         } catch (error) {
-            addNotification("Erreur lors de la suppression", "error");
+            addNotification(t("admin.logs.error_delete"), "error");
         }
     };
 
     const handlePurge = async () => {
-        const message = purgeRange.startDate && purgeRange.endDate 
-            ? `Voulez-vous vraiment purger les logs du ${purgeRange.startDate} au ${purgeRange.endDate} ?`
-            : "Voulez-vous vraiment effectuer une purge automatique (logs de plus de 48h) ?";
+            ? t("admin.logs.confirm_purge_range", { start: purgeRange.startDate, end: purgeRange.endDate })
+            : t("admin.logs.confirm_purge_auto");
         
         if (!confirm(message)) return;
 
@@ -68,12 +69,12 @@ export default function AdminLogsPage() {
         try {
             const res = await purgeAdminLogs(purgeRange);
             if (res.statusCode === 200) {
-                addNotification(res.data?.message || "Purge effectuée avec succès", "success");
+                addNotification(res.data?.message || t("admin.logs.success_purge"), "success");
                 fetchData();
                 setPurgeRange({ startDate: '', endDate: '' });
             }
         } catch (error) {
-            addNotification("Erreur lors de la purge", "error");
+            addNotification(t("admin.logs.error_purge"), "error");
         } finally {
             setPurging(false);
         }
@@ -82,29 +83,29 @@ export default function AdminLogsPage() {
     const getLevelBadge = (level: string) => {
         switch (level.toLowerCase()) {
             case 'error':
-                return <Badge variant="destructive" className="font-black uppercase tracking-widest gap-1.5 py-1 px-3 rounded-full"><XCircle className="w-3 h-3" /> Error</Badge>;
+                return <Badge variant="destructive" className="font-black uppercase tracking-widest gap-1.5 py-1 px-3 rounded-full"><XCircle className="w-3 h-3" /> {t("common.error")}</Badge>;
             case 'warn':
-                return <Badge variant="link" className="bg-amber-500/10 text-amber-500 border-amber-500/20 font-black uppercase tracking-widest gap-1.5 py-1 px-3 rounded-full"><ShieldAlert className="w-3 h-3" /> Warning</Badge>;
+                return <Badge variant="link" className="bg-amber-500/10 text-amber-500 border-amber-500/20 font-black uppercase tracking-widest gap-1.5 py-1 px-3 rounded-full"><ShieldAlert className="w-3 h-3" /> {t("common.warning")}</Badge>;
             default:
-                return <Badge variant="default" className="bg-primary/10 text-primary border-primary/20 font-black uppercase tracking-widest gap-1.5 py-1 px-3 rounded-full"><Info className="w-3 h-3" /> Info</Badge>;
+                return <Badge variant="default" className="bg-primary/10 text-primary border-primary/20 font-black uppercase tracking-widest gap-1.5 py-1 px-3 rounded-full"><Info className="w-3 h-3" /> {t("common.info")}</Badge>;
         }
     };
 
     const columns: ColumnDef<AdminLog>[] = [
         {
-            header: 'Timestamp',
+            header: t("common.time"),
             accessorKey: 'timestamp',
             cell: ({ row }) => (
                 <span className="font-mono text-[10px] text-muted-foreground whitespace-nowrap">{row.original.timestamp}</span>
             )
         },
         {
-            header: 'Niveau',
+            header: t("common.level"),
             accessorKey: 'level',
             cell: ({ row }) => getLevelBadge(row.original.level)
         },
         {
-            header: 'Contexte',
+            header: t("common.context"),
             accessorKey: 'context',
             cell: ({ row }) => (
                 <Badge variant="outline" className="font-mono text-[10px] border-primary/20 text-primary bg-primary/5 uppercase font-black">
@@ -113,7 +114,7 @@ export default function AdminLogsPage() {
             )
         },
         {
-            header: 'Message',
+            header: t("common.message"),
             accessorKey: 'message',
             cell: ({ row }) => (
                 <div className="max-w-md break-words font-mono text-[11px] leading-relaxed group-hover:text-foreground transition-colors duration-200">
@@ -131,9 +132,9 @@ export default function AdminLogsPage() {
                         <div className="p-2 bg-primary/10 rounded-xl">
                             <Terminal className="text-primary w-5 h-5" />
                         </div>
-                        <h1 className="text-3xl font-black tracking-tight">Logs Système</h1>
+                        <h1 className="text-3xl font-black tracking-tight">{t("admin.logs.title")}</h1>
                     </div>
-                    <p className="text-muted-foreground font-medium text-sm">Surveillance en temps réel des événements et erreurs du serveur.</p>
+                    <p className="text-muted-foreground font-medium text-sm">{t("admin.logs.subtitle")}</p>
                 </div>
                 <div className="flex gap-3">
                     <Button
@@ -151,7 +152,7 @@ export default function AdminLogsPage() {
                         disabled={purging}
                     >
                         {purging ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                        {purgeRange.startDate ? 'Confirmer la purge' : 'Auto Purge (48h)'}
+                        {purgeRange.startDate ? t("admin.logs.confirm_purge") : t("admin.logs.purge")}
                     </Button>
                 </div>
             </header>
@@ -163,7 +164,7 @@ export default function AdminLogsPage() {
                             <div>
                                 <h3 className="text-sm font-black text-foreground mb-4 flex items-center gap-2 uppercase tracking-widest">
                                     <Filter className="w-4 h-4 text-primary" />
-                                    Filtrer par niveau
+                                    {t("admin.logs.filter_level")}
                                 </h3>
                                 <div className="space-y-4">
                                     <Select
@@ -174,10 +175,10 @@ export default function AdminLogsPage() {
                                             <SelectValue placeholder="Tous les niveaux" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="all">Tous les niveaux</SelectItem>
-                                            <SelectItem value="info">Information</SelectItem>
-                                            <SelectItem value="warn">Avertissement</SelectItem>
-                                            <SelectItem value="error">Erreur</SelectItem>
+                                            <SelectItem value="all">{t("admin.logs.all_levels")}</SelectItem>
+                                            <SelectItem value="info">{t("common.info")}</SelectItem>
+                                            <SelectItem value="warn">{t("common.warning")}</SelectItem>
+                                            <SelectItem value="error">{t("common.error")}</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -186,7 +187,7 @@ export default function AdminLogsPage() {
                             <div>
                                 <h3 className="text-sm font-black text-foreground mb-4 flex items-center gap-2 uppercase tracking-widest">
                                     <Calendar className="w-4 h-4 text-primary" />
-                                    Fichiers par date
+                                    {t("admin.logs.files_by_date")}
                                 </h3>
                                 <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                                     {logFiles.map((file, i) => (
@@ -202,7 +203,7 @@ export default function AdminLogsPage() {
                                     ))}
                                     {logFiles.length === 0 && (
                                         <div className="p-4 text-center border-2 border-dashed border-border/50 rounded-2xl">
-                                            <p className="text-[10px] font-bold text-muted-foreground">Aucun fichier trouvé</p>
+                                            <p className="text-[10px] font-bold text-muted-foreground">{t("common.no_results")}</p>
                                         </div>
                                     )}
                                 </div>
@@ -211,11 +212,11 @@ export default function AdminLogsPage() {
                             <div className="space-y-4 pt-4 border-t border-border/50">
                                 <h3 className="text-sm font-black text-foreground flex items-center gap-2 uppercase tracking-widest">
                                     <Trash2 className="w-4 h-4 text-rose-500" />
-                                    Période de purge
+                                    {t("admin.logs.purge_period")}
                                 </h3>
                                 <div className="grid grid-cols-1 gap-3">
                                     <div className="space-y-1.5">
-                                        <label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Début</label>
+                                        <label className="text-[10px] font-black uppercase text-muted-foreground ml-1">{t("admin.logs.start")}</label>
                                         <Input 
                                             type="date" 
                                             className="rounded-xl h-10 text-xs font-bold bg-muted/30 border-border/50"
@@ -224,7 +225,7 @@ export default function AdminLogsPage() {
                                         />
                                     </div>
                                     <div className="space-y-1.5">
-                                        <label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Fin</label>
+                                        <label className="text-[10px] font-black uppercase text-muted-foreground ml-1">{t("admin.logs.end")}</label>
                                         <Input 
                                             type="date" 
                                             className="rounded-xl h-10 text-xs font-bold bg-muted/30 border-border/50"
@@ -239,7 +240,7 @@ export default function AdminLogsPage() {
                                             className="text-[10px] font-bold h-8 hover:bg-rose-50 text-rose-500"
                                             onClick={() => setPurgeRange({ startDate: '', endDate: '' })}
                                         >
-                                            Effacer la sélection
+                                            {t("admin.logs.clear_selection")}
                                         </Button>
                                     )}
                                 </div>
@@ -251,10 +252,10 @@ export default function AdminLogsPage() {
                         <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl -mr-16 -mt-16"></div>
                         <h4 className="text-sm font-black mb-3 flex items-center gap-2 uppercase tracking-widest">
                             <Info className="w-4 h-4 text-primary" />
-                            Rétention
+                            {t("admin.logs.retention")}
                         </h4>
                         <p className="text-muted-foreground text-xs font-medium leading-relaxed">
-                            Les logs sont automatiquement purgés après <span className="text-foreground font-black underline decoration-primary/30">48 heures</span> pour optimiser les performances. Vous pouvez également effectuer une purge manuelle par période.
+                            {t("admin.logs.retention_desc", { time: 48 })}
                         </p>
                     </Card>
                 </div>
@@ -268,7 +269,7 @@ export default function AdminLogsPage() {
                         currentPage={filters.page}
                         itemsPerPage={filters.limit}
                         onPageChange={(page: number) => setFilters({ ...filters, page })}
-                        emptyMessage="Aucun log correspondant trouvé pour cette période."
+                        emptyMessage={t("common.no_results")}
                     />
                 </div>
             </div>

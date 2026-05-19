@@ -31,7 +31,11 @@ import { Modal } from '@/components/ui/MotionModal';
 import Overview from '@/components/profile/Overview';
 
 
+import { useTranslation } from '@/utils/langue/hooks';
+import { Icon } from '@iconify/react';
+
 export default function Page() {
+    const { t } = useTranslation();
     const router = useRouter();
     const { getUserLocation } = useUserLocation();
 
@@ -261,8 +265,6 @@ export default function Page() {
                 </main>
             </div>
 
-
-
             {/* Blocking Location Loading Overlay */}
             {/* {isLocationLoading && !locationError && (
                 <div className="fixed inset-0 z-[999] bg-background/80 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center space-y-6">
@@ -273,9 +275,9 @@ export default function Page() {
                         </div>
                     </div>
                     <div className="space-y-2">
-                        <h2 className="text-xl font-black text-foreground">Localisation...</h2>
+                        <h2 className="text-xl font-black text-foreground">{t("akwaba.location.loading_title")}</h2>
                         <p className="text-sm text-muted-foreground">
-                            Nous configurons votre espace en fonction de votre position.
+                            {t("akwaba.location.loading_desc")}
                         </p>
                     </div>
                 </div>
@@ -289,19 +291,19 @@ export default function Page() {
                             <Icon icon="solar:map-point-remove-bold-duotone" width={48} />
                         </div>
                         <div className="space-y-2">
-                            <h2 className="text-xl font-black text-foreground">Localisation requise</h2>
+                            <h2 className="text-xl font-black text-foreground">{t("akwaba.location.required_title")}</h2>
                             <p className="text-sm text-muted-foreground">
-                                Veuillez activer la localisation pour continuer d'utiliser l'application.
+                                {t("akwaba.location.required_desc")}
                             </p>
                         </div>
-                        <Button onClick={() => trackLocation(true)} disabled={isRetrying} className="w-full h-12 rounded-xl font-bold flex items-center justify-center gap-2 transition-all duration-300" >
+                        <button onClick={() => trackLocation(true)} disabled={isRetrying} className="w-full h-12 rounded-xl font-bold flex items-center justify-center gap-2 transition-all duration-300 bg-primary text-white" >
                             {isRetrying ? (
                                 <>
                                     <Icon icon="line-md:loading-twotone-loop" width={20} />
-                                    <span>Traitement en cours...</span>
+                                    <span>{t("akwaba.location.processing")}</span>
                                 </>
-                            ) : ("Réessayer")}
-                        </Button>
+                            ) : (t("akwaba.location.retry"))}
+                        </button>
                     </div>
                 </div>
             )} */}

@@ -7,19 +7,22 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { requestRecovery } from '@/api/api';
 
+import { useTranslation } from '@/utils/langue/hooks';
+
 interface AccountRecoveryModalProps {
     isOpen: boolean;
     onClose: () => void;
 }
 
 export const AccountRecoveryModal = ({ isOpen, onClose }: AccountRecoveryModalProps) => {
+    const { t } = useTranslation();
     const [phone, setPhone] = useState('');
     const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!phone) {
-            toast.error("Veuillez entrer votre numéro de téléphone");
+            toast.error(t("auth.login.recovery_modal.toast_phone_required"));
             return;
         }
 
@@ -27,13 +30,13 @@ export const AccountRecoveryModal = ({ isOpen, onClose }: AccountRecoveryModalPr
         try {
             const res = await requestRecovery(phone);
             if (res.statusCode === 200 || res.statusCode === 201) {
-                toast.success("Demande de récupération envoyée avec succès. L'administration vous contactera prochainement.");
+                toast.success(t("auth.login.recovery_modal.toast_success"));
                 onClose();
             } else {
-                toast.error(res.message || "Une erreur est survenue");
+                toast.error(res.message || t("auth.login.recovery_modal.toast_error"));
             }
         } catch (error) {
-            toast.error("Impossible d'envoyer la demande. Vérifiez que le numéro est correct et associé à un compte suspendu.");
+            toast.error(t("auth.login.recovery_modal.toast_connection_error"));
         } finally {
             setLoading(false);
         }
@@ -75,11 +78,11 @@ export const AccountRecoveryModal = ({ isOpen, onClose }: AccountRecoveryModalPr
                             </div>
 
                             <h3 className="text-2xl font-black text-zinc-900 dark:text-white mb-2 tracking-tight">
-                                Récupération
+                                {t("auth.login.recovery_modal.title")}
                             </h3>
 
                             <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-8 px-2 font-bold leading-relaxed">
-                                Votre compte a été suspendu ? Saisissez votre numéro de téléphone pour demander une réactivation.
+                                {t("auth.login.recovery_modal.desc")}
                             </p>
 
                             <form onSubmit={handleSubmit} className="w-full space-y-6">
@@ -89,7 +92,7 @@ export const AccountRecoveryModal = ({ isOpen, onClose }: AccountRecoveryModalPr
                                         type="tel"
                                         value={phone}
                                         onChange={(e) => setPhone(e.target.value)}
-                                        placeholder="Numéro de téléphone"
+                                        placeholder={t("auth.login.recovery_modal.phone_placeholder")}
                                         className="w-full h-12 pl-11 pr-4 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 outline-none focus:border-primary text-sm font-bold transition-all"
                                         style={{ fontSize: '16px' }}
                                     />
@@ -101,7 +104,7 @@ export const AccountRecoveryModal = ({ isOpen, onClose }: AccountRecoveryModalPr
                                         onClick={onClose}
                                         className="flex-1 py-4 px-4 bg-muted text-muted-foreground hover:text-foreground rounded-2xl font-bold text-xs transition-all active:scale-[0.95]"
                                     >
-                                        Annuler
+                                        {t("common.cancel")}
                                     </button>
                                     <button
                                         type="submit"
@@ -111,7 +114,7 @@ export const AccountRecoveryModal = ({ isOpen, onClose }: AccountRecoveryModalPr
                                         {loading ? (
                                             <Icon icon="solar:refresh-bold-duotone" width={16} className="animate-spin" />
                                         ) : (
-                                            "Envoyer"
+                                            t("auth.login.recovery_modal.submit_button")
                                         )}
                                     </button>
                                 </div>
@@ -120,7 +123,7 @@ export const AccountRecoveryModal = ({ isOpen, onClose }: AccountRecoveryModalPr
                             {/* Minimal Footer */}
                             <div className="mt-8 flex items-center gap-1.5 text-[8px] text-zinc-400 font-bold uppercase tracking-widest opacity-60">
                                 <Icon icon="solar:shield-user-bold" width={10} />
-                                <span>Traitement sécurisé</span>
+                                <span>{t("auth.login.recovery_modal.secure_badge")}</span>
                             </div>
                         </div>
                     </motion.div>

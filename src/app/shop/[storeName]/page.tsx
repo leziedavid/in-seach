@@ -13,6 +13,7 @@ import CategoryFilter from "@/components/ui/CategoryFilter"
 import Image from "next/image"
 import NotFound from "@/components/common/NotFound"
 import Loader from "@/components/common/Loader"
+import { ReviewSection } from "@/components/shared/ReviewSection"
 
 type Props = { params: Promise<{ storeName: string }> }
 
@@ -250,6 +251,17 @@ export default function StorePage(props: Props) {
                     />
                 )}
             </div>
+
+            {/* Review Section */}
+            {publicStore && publicStore.id && (
+                <div className="w-full max-w-4xl mx-auto px-4 mt-12">
+                    <ReviewSection 
+                        labelleServies="Boutique" 
+                        targetUserId={publicStore.id} 
+                        title={`Avis sur ${publicStore.storeName || 'la boutique'}`}
+                    />
+                </div>
+            )}
 
             <VoiceSearchModal
                 isOpen={isVoiceModalOpen}

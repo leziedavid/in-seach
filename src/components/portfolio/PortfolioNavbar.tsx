@@ -5,26 +5,27 @@ import { motion } from "framer-motion";
 import { Icon } from "@iconify/react";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { cn } from "@/lib/utils";
-
-const NAV_LINKS = [
-    { label: "About", href: "#hero", icon: "solar:user-bold" },
-    { label: "Work", href: "#projects", icon: "solar:folder-bold" },
-    { label: "Blog", href: "#", icon: "solar:pen-bold" },
-    { label: "Gallery", href: "#", icon: "solar:gallery-bold" },
-];
+import { useTranslation } from "@/utils/langue/hooks";
 
 export default function PortfolioNavbar() {
+    const { t, language, setLanguage } = useTranslation();
+
+    const NAV_LINKS = [
+        { label: t("portfolio.nav.about"), href: "#hero", icon: "solar:user-bold" },
+        { label: t("portfolio.nav.work"), href: "#projects", icon: "solar:folder-bold" },
+        { label: t("portfolio.nav.blog"), href: "#", icon: "solar:pen-bold" },
+        { label: t("portfolio.nav.gallery"), href: "#", icon: "solar:gallery-bold" },
+    ];
     return (
         <div className="fixed top-8 left-1/2 -translate-x-1/2 z-[100] w-fit">
             <nav className="bg-background/80 backdrop-blur-2xl border border-border/50 rounded-full shadow-sm p-1.5 flex items-center gap-1">
                 <Link href="/" className="p-2 hover:bg-muted rounded-full transition-colors">
                     <Icon icon="solar:home-2-bold" className="w-4 h-4" />
                 </Link>
-                
+
                 {NAV_LINKS.map((link) => (
-                    <Link 
-                        key={link.label} 
+                    <Link
+                        key={link.label}
                         href={link.href}
                         className="flex items-center gap-2 px-4 py-2 rounded-full hover:bg-muted transition-all text-xs font-bold"
                     >
@@ -34,6 +35,12 @@ export default function PortfolioNavbar() {
                 ))}
 
                 <div className="w-px h-4 bg-border/50 mx-2" />
+                <button
+                    onClick={() => setLanguage(language === "fr" ? "en" : "fr")}
+                    className="p-2 hover:bg-muted rounded-full transition-colors text-[10px] font-black uppercase"
+                >
+                    {language === "fr" ? "EN" : "FR"}
+                </button>
                 <ThemeToggle />
             </nav>
         </div>

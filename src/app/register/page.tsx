@@ -8,24 +8,31 @@ import { setToken } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import { z } from 'zod';
 import { Switch } from '@/components/ui/switch';
+import { InputPhone } from '@/components/ui/InputPhone';
 
-const registerSchema = z.object({
-    email: z.string().email(),
-    phone: z.string().min(8),
-    role: z.enum(['CLIENT', 'PRESTATAIRE', 'LOGISTICIAN', 'LIVREUR']),
-    otp: z.string().length(5), // @ + 4 chiffres
-    fullname: z.string().optional(),
-    company: z.string().optional(),
-    acceptedTerms: z.boolean().refine(val => val === true, {
-        message: "Vous devez accepter les conditions d'utilisation"
-    }),
-});
+
+import { useTranslation } from '@/utils/langue/hooks';
 
 export default function RegisterPage() {
+    const { t } = useTranslation();
+
+    const registerSchema = z.object({
+        email: z.string().email(),
+        indicatif: z.string().optional(),
+        phone: z.string().min(8),
+        role: z.enum(['CLIENT', 'PRESTATAIRE', 'LOGISTICIAN', 'LIVREUR']),
+        otp: z.string().length(5), // @ + 4 chiffres
+        fullname: z.string().optional(),
+        company: z.string().optional(),
+        acceptedTerms: z.boolean().refine(val => val === true, {
+            message: t("auth.register.errors.accepted_terms")
+        }),
+    });
     const router = useRouter();
 
     const [role, setRole] = useState<'CLIENT' | 'PRESTATAIRE' | 'LOGISTICIAN' | 'LIVREUR'>('CLIENT');
     const [email, setEmail] = useState('');
+    const [indicatif, setIndicatif] = useState('+225');
     const [phone, setPhone] = useState('');
     const [otp, setOtp] = useState(Array(4).fill(''));
     const [showPassword, setShowPassword] = useState(false);
@@ -65,6 +72,7 @@ export default function RegisterPage() {
         try {
             const payload = {
                 email: email || undefined,
+                indicatif,
                 phone: phone || undefined,
                 otp: password,
                 role,
@@ -85,10 +93,10 @@ export default function RegisterPage() {
                 setToken(res.data.accessToken);
                 router.push('/');
             } else {
-                setError(res.message || 'Une erreur est survenue');
+                setError(res.message || t("auth.register.errors.generic_error"));
             }
         } catch {
-            setError('Erreur lors de l\'inscription');
+            setError(t("auth.register.errors.registration_error"));
         } finally {
             setLoading(false);
         }
@@ -103,27 +111,27 @@ export default function RegisterPage() {
                     <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white mx-auto">
                         <Icon icon="solar:shield-check-bold-duotone" width={18} />
                     </div>
-                    <h1 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white">Créer votre compte</h1>
-                    <p className="text-xs sm:text-sm text-gray-500">Rejoignez la communauté et commencez dès maintenant.</p>
+                    <h1 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white">{t("auth.register.title")}</h1>
+                    <p className="text-xs sm:text-sm text-gray-500">{t("auth.register.subtitle")}</p>
                 </div>
 
                 {/* Role Selector */}
                 <div className="grid grid-cols-2 gap-4 mb-6">
                     <div onClick={() => setRole('CLIENT')} className={`p-4 rounded-2xl border-2 cursor-pointer transition-all flex flex-col items-center gap-2 ${role === 'CLIENT' ? 'border-primary bg-primary/20' : 'border-gray-200 bg-gray-50 hover:bg-gray-100'}`} >
                         <Icon icon="solar:user-bold-duotone" className={role === 'CLIENT' ? 'text-primary' : 'text-gray-400'} width={24} />
-                        <span className={`text-xs font-bold uppercase ${role === 'CLIENT' ? 'text-primary' : 'text-gray-500'}`}>Particulier</span>
+                        <span className={`text-xs font-bold uppercase ${role === 'CLIENT' ? 'text-primary' : 'text-gray-500'}`}>{t("auth.register.role_particular")}</span>
                     </div>
                     <div onClick={() => setRole('PRESTATAIRE')} className={`p-4 rounded-2xl border-2 cursor-pointer transition-all flex flex-col items-center gap-2 ${role === 'PRESTATAIRE' ? 'border-primary bg-primary/20' : 'border-gray-200 bg-gray-50 hover:bg-gray-100'}`} >
                         <Icon icon="solar:case-minimalistic-bold-duotone" className={role === 'PRESTATAIRE' ? 'text-primary' : 'text-gray-400'} width={24} />
-                        <span className={`text-xs font-bold uppercase ${role === 'PRESTATAIRE' ? 'text-primary' : 'text-gray-500'}`}>Professionnel</span>
+                        <span className={`text-xs font-bold uppercase ${role === 'PRESTATAIRE' ? 'text-primary' : 'text-gray-500'}`}>{t("auth.register.role_professional")}</span>
                     </div>
                     <div onClick={() => setRole('LOGISTICIAN')} className={`p-4 rounded-2xl border-2 cursor-pointer transition-all flex flex-col items-center gap-2 ${role === 'LOGISTICIAN' ? 'border-primary bg-primary/20' : 'border-gray-200 bg-gray-50 hover:bg-gray-100'}`} >
                         <Icon icon="solar:case-minimalistic-bold-duotone" className={role === 'LOGISTICIAN' ? 'text-primary' : 'text-gray-400'} width={24} />
-                        <span className={`text-xs font-bold uppercase ${role === 'LOGISTICIAN' ? 'text-primary' : 'text-gray-500'}`}>Logisticien</span>
+                        <span className={`text-xs font-bold uppercase ${role === 'LOGISTICIAN' ? 'text-primary' : 'text-gray-500'}`}>{t("auth.register.role_logistician")}</span>
                     </div>
                     <div onClick={() => setRole('LIVREUR')} className={`p-4 rounded-2xl border-2 cursor-pointer transition-all flex flex-col items-center gap-2 ${role === 'LIVREUR' ? 'border-primary bg-primary/20' : 'border-gray-200 bg-gray-50 hover:bg-gray-100'}`} >
                         <Icon icon="solar:case-minimalistic-bold-duotone" className={role === 'LIVREUR' ? 'text-primary' : 'text-gray-400'} width={24} />
-                        <span className={`text-xs font-bold uppercase ${role === 'LIVREUR' ? 'text-primary' : 'text-gray-500'}`}>Livreur</span>
+                        <span className={`text-xs font-bold uppercase ${role === 'LIVREUR' ? 'text-primary' : 'text-gray-500'}`}>{t("auth.register.role_deliverer")}</span>
                     </div>
                 </div>
 
@@ -137,18 +145,17 @@ export default function RegisterPage() {
 
                     {/* info */}
                     <div className="p-2 text-sm bg-blue-50 text-blue-600 rounded-lg border border-blue-100">
-                        Avec votre compte, que vous soyez particulier ou professionnel, vous pouvez vendre vos produits en toute simplicité.
-                        Aucune boutique à configurer : tout est automatisé pour vous permettre de commencer à vendre immédiatement et de toucher plus de clients sans effort.
+                        {t("auth.register.info_box")}
                     </div>
 
                     {/* Email Input */}
                     <div className="space-y-1">
-                        <label className="text-[11px] sm:text-xs font-black text-gray-600">Email</label>
+                        <label className="text-[11px] sm:text-xs font-black text-gray-600">{t("auth.register.email_label")}</label>
                         <div className="relative">
                             <Icon icon="solar:letter-bold-duotone" width={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                             <input type="email" value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                placeholder="nom@exemple.com"
+                                placeholder={t("auth.register.email_placeholder")}
                                 required
                                 className="w-full h-9 sm:h-11 pl-9 pr-3 rounded-lg border border-gray-200 dark:border-gray-700 dark:bg-gray-800 outline-none focus:border-primary text-xs sm:text-sm transition-all"
                                 inputMode="email"
@@ -159,31 +166,27 @@ export default function RegisterPage() {
 
                     {/* Phone Input */}
                     <div className="space-y-1">
-                        <label className="text-[11px] sm:text-xs font-black text-gray-600">Numéro de téléphone</label>
-                        <div className="relative">
-                            <Icon icon="solar:phone-bold-duotone" width={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                            <input
-                                type="tel"
-                                value={phone}
-                                onChange={(e) => setPhone(e.target.value)}
-                                placeholder="+225 01 23 45 67"
-                                required
-                                className="w-full h-9 sm:h-11 pl-9 pr-3 rounded-lg border border-gray-200 dark:border-gray-700 dark:bg-gray-800 outline-none focus:border-primary text-xs sm:text-sm transition-all"
-                                inputMode="tel"
-                                style={{ fontSize: '16px' }} />
-                        </div>
+                        <label className="text-[11px] sm:text-xs font-black text-gray-600">{t("auth.register.phone_label")}</label>
+                        <InputPhone 
+                            indicatif={indicatif} 
+                            phone={phone} 
+                            onPhoneChange={(val) => {
+                                setIndicatif(val.indicatif);
+                                setPhone(val.phone);
+                            }} 
+                        />
                     </div>
 
                     {/* Optional Fullname */}
                     <div className="space-y-2">
-                        <label className="text-[11px] sm:text-xs font-black text-gray-600">Nom & Prénom (optionnel)</label>
+                        <label className="text-[11px] sm:text-xs font-black text-gray-600">{t("auth.register.fullname_label")}</label>
                         <div className="relative">
                             <Icon icon="solar:user-bold-duotone" width={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                             <input
                                 type="text"
                                 value={fullname}
                                 onChange={(e) => setFullname(e.target.value)}
-                                placeholder="Ex: Jean Dupont"
+                                placeholder={t("auth.register.fullname_placeholder")}
                                 className="w-full h-9 sm:h-11 pl-9 pr-3 rounded-lg border border-gray-200 dark:border-gray-700 dark:bg-gray-800 outline-none focus:border-primary text-xs sm:text-sm transition-all"
                                 inputMode="text"
                                 style={{ fontSize: '16px' }}
@@ -194,14 +197,14 @@ export default function RegisterPage() {
                     {/* Optional Company if PRESTATAIRE */}
                     {(role === 'PRESTATAIRE' || role === 'LOGISTICIAN') && (
                         <div className="space-y-2">
-                            <label className="text-[11px] sm:text-xs font-black text-gray-600">Nom de votre entreprise (optionnel)</label>
+                            <label className="text-[11px] sm:text-xs font-black text-gray-600">{t("auth.register.company_label")}</label>
                             <div className="relative">
                                 <Icon icon="solar:case-minimalistic-bold-duotone" width={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                                 <input
                                     type="text"
                                     value={company}
                                     onChange={(e) => setCompany(e.target.value)}
-                                    placeholder="Ex: MonEntreprise SARL"
+                                    placeholder={t("auth.register.company_placeholder")}
                                     className="w-full h-9 sm:h-11 pl-9 pr-3 rounded-lg border border-gray-200 dark:border-gray-700 dark:bg-gray-800 outline-none focus:border-primary text-xs sm:text-sm transition-all"
                                     inputMode="text"
                                     style={{ fontSize: '16px' }}
@@ -213,10 +216,10 @@ export default function RegisterPage() {
                     {/* PASSWORD OTP 4 CHIFFRES */}
                     <div className="space-y-2">
                         <div className="flex justify-between items-center mb-1">
-                            <label className="text-[11px] sm:text-xs font-black text-gray-600">Mot de passe</label>
+                            <label className="text-[11px] sm:text-xs font-black text-gray-600">{t("auth.register.password_label")}</label>
                             <button type="button" onClick={() => setShowPassword(!showPassword)} className="text-xs text-primary font-semibold flex items-center gap-1" >
                                 {showPassword ? <Icon icon="solar:eye-closed-bold-duotone" width={14} /> : <Icon icon="solar:eye-bold-duotone" width={14} />}
-                                {showPassword ? 'Masquer' : 'Voir'}
+                                {showPassword ? t("auth.login.hide_password") : t("auth.login.show_password")}
                             </button>
                         </div>
 
@@ -242,10 +245,10 @@ export default function RegisterPage() {
                     <div className="flex items-center gap-4 p-4 rounded-2xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800">
                         <div className="flex-1">
                             <p className="text-[11px] sm:text-xs font-bold text-gray-700 dark:text-gray-300">
-                                J'accepte les{" "}
-                                <Link href="/terms-of-use" className="text-primary hover:underline">conditions d'utilisation</Link>
-                                {" "}et la{" "}
-                                <Link href="/privacy-policy" className="text-primary hover:underline">politique de confidentialité</Link>.
+                                {t("auth.register.terms_acceptance", {
+                                    terms: <Link href="/terms-of-use" className="text-primary hover:underline">{t("auth.login.terms_link")}</Link>,
+                                    privacy: <Link href="/privacy-policy" className="text-primary hover:underline">{t("auth.login.privacy_link")}</Link>
+                                })}
                             </p>
                         </div>
                         <Switch
@@ -257,14 +260,14 @@ export default function RegisterPage() {
 
                     {/* Submit */}
                     <button type="submit" disabled={loading} className="w-full h-10 sm:h-12 bg-primary hover:bg-primary/90 text-white rounded-lg text-xs sm:text-sm font-black flex items-center justify-center gap-2 transition-all active:scale-95" >
-                        {loading ? <Icon icon="solar:refresh-bold-duotone" width={16} className="animate-spin" /> : <>Créer mon compte <Icon icon="solar:alt-arrow-right-bold-duotone" width={16} /></>}
+                        {loading ? <Icon icon="solar:refresh-bold-duotone" width={16} className="animate-spin" /> : <>{t("auth.register.submit_button")} <Icon icon="solar:alt-arrow-right-bold-duotone" width={16} /></>}
                     </button>
 
                 </form>
 
                 {/* Footer */}
                 <p className="text-center text-[11px] sm:text-xs text-gray-500 mt-6">
-                    Déjà inscrit ? <Link href="/login" className="text-primary font-bold">Connectez-vous</Link>
+                    {t("auth.register.already_registered")} <Link href="/login" className="text-primary font-bold">{t("auth.register.login_link")}</Link>
                 </p>
 
 
@@ -274,11 +277,11 @@ export default function RegisterPage() {
                     <div className="flex flex-wrap justify-center gap-x-2 gap-y-1">
                         <span className="text-gray-300">|</span>
                         <Link href="/terms-of-use" className="hover:text-primary transition-colors underline-offset-2 hover:underline">
-                            Conditions Générales d'Utilisation
+                            {t("auth.login.terms_link")}
                         </Link>
                         <span className="text-gray-300">|</span>
                         <Link href="/privacy-policy" className="hover:text-primary transition-colors underline-offset-2 hover:underline">
-                            Politique de confidentialité
+                            {t("auth.login.privacy_link")}
                         </Link>
                     </div>
                 </div>

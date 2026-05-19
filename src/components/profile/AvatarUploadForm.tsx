@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import { Icon } from "@iconify/react";
 import Image from "next/image";
 
+import { useTranslation } from "@/utils/langue/hooks";
+
 interface AvatarUploadFormProps {
     currentAvatar?: string;
     onSubmit: (file: File) => Promise<void>;
@@ -12,6 +14,7 @@ interface AvatarUploadFormProps {
 }
 
 export default function AvatarUploadForm({ currentAvatar, onSubmit, onClose, isSubmitting }: AvatarUploadFormProps) {
+    const { t } = useTranslation();
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(currentAvatar || null);
 
@@ -19,11 +22,11 @@ export default function AvatarUploadForm({ currentAvatar, onSubmit, onClose, isS
         const file = e.target.files?.[0];
         if (file) {
             if (!['image/png', 'image/jpeg', 'image/jpg'].includes(file.type)) {
-                alert("Veuillez sélectionner une image PNG ou JPEG.");
+                alert(t("akwaba.settings.invalid_file_type"));
                 return;
             }
             if (file.size > 5 * 1024 * 1024) {
-                alert("L'image ne doit pas dépasser 5 Mo.");
+                alert(t("akwaba.settings.file_too_large"));
                 return;
             }
             setSelectedFile(file);
@@ -59,7 +62,7 @@ export default function AvatarUploadForm({ currentAvatar, onSubmit, onClose, isS
 
                 <label className="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-full cursor-pointer hover:bg-primary/20 transition-all font-bold text-sm">
                     <Icon icon="solar:camera-bold-duotone" className="w-5 h-5" />
-                    Choisir une photo
+                    {t("akwaba.settings.choose_photo")}
                     <input
                         type="file"
                         accept="image/*"
@@ -75,7 +78,7 @@ export default function AvatarUploadForm({ currentAvatar, onSubmit, onClose, isS
                     onClick={onClose}
                     className="px-4 py-2 text-sm font-bold text-muted-foreground hover:bg-muted rounded-lg transition-all"
                 >
-                    Annuler
+                    {t("common.cancel")}
                 </button>
                 <button
                     type="submit"
@@ -87,7 +90,7 @@ export default function AvatarUploadForm({ currentAvatar, onSubmit, onClose, isS
                     ) : (
                         <Icon icon="solar:check-circle-bold" className="w-4 h-4" />
                     )}
-                    Mettre à jour
+                    {t("akwaba.settings.update_button")}
                 </button>
             </div>
         </form>

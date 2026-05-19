@@ -15,6 +15,7 @@ import { useSubscriptionCheck } from "@/hooks/useSubscriptionCheck"
 import Delete from "@/components/logistics/modals/Delete"
 import { deleteService as apiDeleteService } from "@/api/api"
 import { SectionHeader } from "@/components/shared/SectionHeader"
+import { useTranslation } from "@/utils/langue/hooks"
 
 /* =====================================================
    PAGE
@@ -32,6 +33,7 @@ interface ServicesCardProps {
 }
 
 export default function ServicesCard({ data: propData, page: propPage, limit: propLimit = 6, total: propTotal, totalPages: propTotalPages, loading: propLoading, onPageChange, onSuccess }: ServicesCardProps) {
+    const { t } = useTranslation();
 
     const [internalPage, setInternalPage] = useState(1)
     const page = propPage ?? internalPage;
@@ -198,11 +200,11 @@ export default function ServicesCard({ data: propData, page: propPage, limit: pr
             setIsDeleting(true)
             const response = await apiDeleteService(serviceToDelete.id)
             if (response.statusCode === 200) {
-                showNotification("Service supprimé avec succès", "success")
+                showNotification(t("akwaba.services.delete_success"), "success")
                 setInternalListes((prev) => prev.filter((s) => s.id !== serviceToDelete.id))
                 onSuccess?.()
             } else {
-                showNotification(response.message || "Erreur lors de la suppression", "error")
+                showNotification(response.message || t("akwaba.services.delete_error"), "error")
             }
         } catch (error: any) {
             showNotification(error.message || "Erreur serveur", "error")
@@ -231,7 +233,7 @@ export default function ServicesCard({ data: propData, page: propPage, limit: pr
                 {/* LOADING */}
                 {loading && (
                     <div className="text-center py-10 text-muted-foreground">
-                        <Icon icon="line-md:loading-twotone-loop" className="w-6 h-6 mr-2" />  Chargement...
+                        <Icon icon="line-md:loading-twotone-loop" className="w-6 h-6 mr-2" />  {t("akwaba.services.loading")}
                     </div>
                 )}
 
@@ -241,7 +243,7 @@ export default function ServicesCard({ data: propData, page: propPage, limit: pr
                 <div className="flex flex-col md:flex-row items-center justify-between gap-4 w-full max-w-4xl mb-6">
                     <div className="flex items-center w-full md:max-w-md bg-card border border-border rounded-xl px-4 py-2.5 shadow-sm focus-within:border-primary transition-all">
                         <Icon icon="solar:magnifer-bold-duotone" className="w-5 h-5 text-muted-foreground mr-3 flex-shrink-0" />
-                        <input type="text" placeholder="Rechercher dans mes produits..." className="flex-1 bg-transparent text-foreground outline-none text-sm placeholder:text-muted-foreground" />
+                        <input type="text" placeholder={t("akwaba.services.search_placeholder")} className="flex-1 bg-transparent text-foreground outline-none text-sm placeholder:text-muted-foreground" />
                     </div>
 
 
@@ -255,18 +257,18 @@ export default function ServicesCard({ data: propData, page: propPage, limit: pr
                     }}
                         className="bg-primary text-primary-foreground hover:bg-secondary uppercase">
                         {checkLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-6 h-6 mr-2" /> : <Icon icon="solar:widget-add-bold" width="24" height="24" />}
-                        Publier un service
+                        {t("akwaba.services.publish_button")}
                     </Button>
                 </div>
 
                 <SectionHeader
-                    title="Boostez votre visibilité et revenus"
-                    subtitle="Développez votre activité en ajoutant de nouveaux services afin d’améliorer votre visibilité et vos revenus."
+                    title={t("akwaba.services.boost_title")}
+                    subtitle={t("akwaba.services.boost_subtitle")}
                     className="mb-8"
                 />
 
 
-                {!loading && listes.length === 0 && <div className="text-center py-10 text-muted-foreground/60">Aucun service trouvé</div>}
+                {!loading && listes.length === 0 && <div className="text-center py-10 text-muted-foreground/60">{t("akwaba.services.no_services")}</div>}
 
                 {!loading && listes.length > 0 && (
                     <>
@@ -299,11 +301,11 @@ export default function ServicesCard({ data: propData, page: propPage, limit: pr
 
                                                 <div className="text-left">
                                                     <p className="text-secondary font-black text-sm md:text-sm whitespace-nowrap">
-                                                        {service.price ? `${service.price.toLocaleString()} FCFA` : "10 000 FCFA"}
+                                                        {service.price ? t("akwaba.services.price_fcfa", { price: service.price.toLocaleString() }) : t("akwaba.services.price_fcfa", { price: "10 000" })}
                                                     </p>
                                                     {service.frais && (
                                                         <p className="text-[9px] text-muted-foreground font-bold mt-1">
-                                                            Est. {service.frais.toLocaleString()} FCFA
+                                                            {t("akwaba.services.est_price", { price: service.frais.toLocaleString() })}
                                                         </p>
                                                     )}
                                                 </div>

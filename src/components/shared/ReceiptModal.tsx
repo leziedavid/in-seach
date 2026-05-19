@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Icon } from "@iconify/react";
 import { createPortal } from "react-dom";
+import { useTranslation } from "@/utils/langue/hooks";
 
 export interface ReceiptData {
     title: string;
@@ -34,6 +35,7 @@ interface ReceiptModalProps {
 }
 
 export default function ReceiptModal({ isOpen, onClose, data }: ReceiptModalProps) {
+    const { t, language } = useTranslation();
     const [mounted, setMounted] = useState(false);
     const receiptRef = useRef<HTMLDivElement>(null);
 
@@ -91,7 +93,7 @@ export default function ReceiptModal({ isOpen, onClose, data }: ReceiptModalProp
 
                             <div className="sticky top-0 z-50 px-6 py-4 flex items-center justify-between border-b border-slate-100 bg-white/80 backdrop-blur-md">
                                 <button onClick={onClose} className="p-2 bg-slate-50 rounded-full hover:bg-slate-100 transition"><Icon icon="solar:close-circle-bold-duotone" width={20} /></button>
-                                <h2 className="text-lg font-black uppercase tracking-tight">Reçu Numérique</h2>
+                                <h2 className="text-lg font-black uppercase tracking-tight">{t("akwaba.receipt.title")}</h2>
                                 <button onClick={handlePrint} className="p-2 bg-primary text-white rounded-full hover:scale-110 transition shadow-lg shadow-primary/20"><Icon icon="solar:printer-minimalistic-bold-duotone" width={20} /></button>
                             </div>
 
@@ -101,18 +103,18 @@ export default function ReceiptModal({ isOpen, onClose, data }: ReceiptModalProp
                                     <div className="inline-flex p-3 bg-primary/10 text-primary rounded-2xl mb-2">
                                         <Icon icon="solar:wallet-money-bold-duotone" width={32} />
                                     </div>
-                                    <h1 className="text-2xl font-black tracking-tighter">NEST APP</h1>
-                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Plateforme de Services & Annonces</p>
+                                    <h1 className="text-2xl font-black tracking-tighter">{t("akwaba.receipt.platform_name")}</h1>
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t("akwaba.receipt.platform_desc")}</p>
                                 </div>
 
                                 {/* RECEIPT INFO */}
                                 <div className="flex justify-between items-end border-b-2 border-dashed border-slate-100 pb-6">
                                     <div className="space-y-1">
-                                        <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Référence {data.type === 'RDV' ? 'Réservation' : 'Commande'}</p>
+                                        <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">{t("akwaba.receipt.reference")} {data.type === 'RDV' ? t("akwaba.receipt.booking") : t("akwaba.receipt.order")}</p>
                                         <p className="text-lg font-black text-primary italic">#{data.code.toUpperCase()}</p>
                                     </div>
                                     <div className="text-right space-y-1">
-                                        <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Date d&apos;émission</p>
+                                        <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">{t("akwaba.receipt.issue_date")}</p>
                                         <p className="text-sm font-bold">{data.date}</p>
                                     </div>
                                 </div>
@@ -120,7 +122,7 @@ export default function ReceiptModal({ isOpen, onClose, data }: ReceiptModalProp
                                 {/* CLIENT / PROVIDER */}
                                 <div className="grid grid-cols-2 gap-8 py-4">
                                     <div className="space-y-2">
-                                        <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Client</p>
+                                        <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">{t("akwaba.receipt.client")}</p>
                                         <div className="space-y-0.5">
                                             <p className="text-sm font-black">{data.clientName}</p>
                                             <p className="text-xs text-slate-500 font-medium">{data.clientPhone || data.clientEmail || 'N/A'}</p>
@@ -128,7 +130,7 @@ export default function ReceiptModal({ isOpen, onClose, data }: ReceiptModalProp
                                     </div>
                                     {data.providerName && (
                                         <div className="space-y-2 text-right">
-                                            <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Prestataire</p>
+                                            <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">{t("akwaba.receipt.provider")}</p>
                                             <div className="space-y-0.5">
                                                 <p className="text-sm font-black">{data.providerName}</p>
                                                 <p className="text-xs text-slate-500 font-medium">{data.providerPhone || 'N/A'}</p>
@@ -140,10 +142,10 @@ export default function ReceiptModal({ isOpen, onClose, data }: ReceiptModalProp
                                 {/* ITEMS TABLE */}
                                 <div className="space-y-4">
                                     <div className="flex justify-between items-center text-[10px] font-black uppercase text-slate-400 tracking-widest border-b border-slate-100 pb-2">
-                                        <span>Désignation</span>
+                                        <span>{t("akwaba.receipt.designation")}</span>
                                         <div className="flex gap-8">
-                                            <span className="w-12 text-center">Qté</span>
-                                            <span className="w-24 text-right">Total</span>
+                                            <span className="w-12 text-center">{t("akwaba.receipt.quantity")}</span>
+                                            <span className="w-24 text-right">{t("akwaba.receipt.total")}</span>
                                         </div>
                                     </div>
                                     <div className="space-y-4">
@@ -151,7 +153,7 @@ export default function ReceiptModal({ isOpen, onClose, data }: ReceiptModalProp
                                             <div key={index} className="flex justify-between items-start group">
                                                 <div className="space-y-0.5">
                                                     <p className="text-sm font-black leading-tight">{item.name}</p>
-                                                    <p className="text-[10px] text-slate-400 font-black">{item.price.toLocaleString()} FCFA /unité</p>
+                                                    <p className="text-[10px] text-slate-400 font-black">{item.price.toLocaleString()} FCFA / {language === 'fr' ? 'unité' : 'unit'}</p>
                                                 </div>
                                                 <div className="flex gap-8">
                                                     <p className="w-12 text-sm font-black text-center tabular-nums">x{item.quantity}</p>
@@ -168,12 +170,12 @@ export default function ReceiptModal({ isOpen, onClose, data }: ReceiptModalProp
                                     <Icon icon="solar:shield-check-bold" className="absolute -right-4 -bottom-4 text-slate-200" width={100} />
 
                                     <div className="flex justify-between items-center relative z-10">
-                                        <p className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Montant Total</p>
+                                        <p className="text-[10px] font-black uppercase text-slate-500 tracking-widest">{t("akwaba.receipt.total_amount")}</p>
                                         <p className="text-3xl font-black text-primary tracking-tighter tabular-nums">{data.totalAmount.toLocaleString()} FCFA</p>
                                     </div>
 
                                     <div className="flex justify-between items-center pt-2 border-t border-slate-200 relative z-10">
-                                        <p className="text-[9px] font-bold text-slate-400">Statut du paiement</p>
+                                        <p className="text-[9px] font-bold text-slate-400">{t("akwaba.receipt.payment_status")}</p>
                                         <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full ${data.statusColor.bg} ${data.statusColor.text} text-[10px] font-black`}>
                                             <Icon icon="solar:verified-check-bold-duotone" width={12} />
                                             <span>{data.statusLabel}</span>
@@ -181,7 +183,7 @@ export default function ReceiptModal({ isOpen, onClose, data }: ReceiptModalProp
                                     </div>
                                     {data.paymentMethod && (
                                         <div className="flex justify-between items-center relative z-10">
-                                            <p className="text-[9px] font-bold text-slate-400">Méthode</p>
+                                            <p className="text-[9px] font-bold text-slate-400">{t("akwaba.receipt.method")}</p>
                                             <p className="text-[10px] font-black uppercase leading-none">{data.paymentMethod}</p>
                                         </div>
                                     )}
@@ -192,17 +194,17 @@ export default function ReceiptModal({ isOpen, onClose, data }: ReceiptModalProp
                                     <div className="flex justify-center">
                                         <Icon icon="solar:qr-code-bold-duotone" width={64} className="text-slate-200" />
                                     </div>
-                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Merci de votre confiance</p>
+                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{t("akwaba.receipt.thanks")}</p>
                                 </div>
                             </div>
 
                             <div className="p-6 bg-slate-50 border-t border-slate-100 flex gap-3">
                                 <button onClick={handlePrint} className="flex-1 py-4 bg-primary text-white rounded-2xl font-black text-xs active:scale-95 transition flex items-center justify-center gap-2 shadow-lg shadow-primary/20">
                                     <Icon icon="solar:printer-minimalistic-bold-duotone" width={18} />
-                                    Imprimer / PDF
+                                    {t("akwaba.receipt.print")}
                                 </button>
                                 <button onClick={onClose} className="px-6 py-4 bg-white text-slate-900 border border-slate-200 rounded-2xl font-black text-xs active:scale-95 transition">
-                                    Fermer
+                                    {t("akwaba.receipt.close")}
                                 </button>
                             </div>
                         </motion.div>

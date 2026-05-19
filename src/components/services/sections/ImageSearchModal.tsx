@@ -4,6 +4,7 @@ import React, { useState, useRef } from "react";
 import { Icon } from "@iconify/react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "@/utils/langue/hooks";
 
 import { createPortal } from "react-dom";
 
@@ -15,6 +16,7 @@ interface ImageSearchModalProps {
 }
 
 export default function ImageSearchModal({ isOpen, onClose, onSearch, isLoading }: ImageSearchModalProps) {
+    const { t } = useTranslation();
     const [mounted, setMounted] = useState(false);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -49,7 +51,7 @@ export default function ImageSearchModal({ isOpen, onClose, onSearch, isLoading 
             }
         } catch (err) {
             console.error("Error accessing camera:", err);
-            alert("Impossible d'accéder à la caméra.");
+            alert(t("home.image_search.camera_error"));
         }
     };
 
@@ -125,7 +127,7 @@ export default function ImageSearchModal({ isOpen, onClose, onSearch, isLoading 
 
                         {/* Header */}
                         <div className="p-6 border-b flex items-center justify-between bg-card sticky top-0 z-10">
-                            <h2 className="text-xl font-black text-foreground">Recherche par image IA</h2>
+                            <h2 className="text-xl font-black text-foreground">{t("home.image_search.title")}</h2>
                             <button onClick={handleClose} className="p-2 md:p-3 bg-muted hover:bg-accent rounded-full text-muted-foreground hover:text-foreground transition-all active:scale-90 flex items-center justify-center">
                                 <Icon icon="solar:close-circle-bold-duotone" className="w-6 h-6" />
                             </button>
@@ -141,15 +143,15 @@ export default function ImageSearchModal({ isOpen, onClose, onSearch, isLoading 
                                                     <Icon icon="solar:upload-bold-duotone" className="w-8 h-8" />
                                                 </div>
                                                 <div className="text-center">
-                                                    <p className="font-bold text-foreground">Choisir une image</p>
-                                                    <p className="text-sm text-muted-foreground">Glissez-déposez ou cliquez pour parcourir</p>
+                                                    <p className="font-bold text-foreground">{t("home.image_search.choose_image")}</p>
+                                                    <p className="text-sm text-muted-foreground">{t("home.image_search.choose_desc")}</p>
                                                 </div>
                                                 <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
                                             </div>
 
                                             <button onClick={startCamera} className="w-full py-4 flex items-center justify-center gap-3 bg-primary text-white rounded-2xl font-bold hover:bg-secondary transition-all active:scale-95 shadow-lg" >
                                                 <Icon icon="solar:camera-bold-duotone" className="w-5 h-5" />
-                                                Utiliser l'appareil photo
+                                                {t("home.image_search.use_camera")}
                                             </button>
                                         </>
                                     ) : (
@@ -183,14 +185,14 @@ export default function ImageSearchModal({ isOpen, onClose, onSearch, isLoading 
                                         {isLoading && (
                                             <div className="absolute inset-0 bg-background/60 backdrop-blur-sm flex flex-col items-center justify-center gap-4">
                                                 <Icon icon="solar:refresh-bold-duotone" className="w-12 h-12 text-primary animate-spin" />
-                                                <p className="font-black text-primary animate-pulse italic">Analyse IA en cours...</p>
+                                                <p className="font-black text-primary animate-pulse italic">{t("home.image_search.analyzing")}</p>
                                             </div>
                                         )}
                                     </div>
 
                                     <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
                                         <button disabled={isLoading} onClick={reset} className="flex-1 py-4 text-sm sm:text-base md:text-lg bg-muted text-foreground rounded-xl sm:rounded-2xl font-bold hover:bg-accent transition-all disabled:opacity-50" >
-                                            Recommencer
+                                            {t("home.image_search.retry")}
                                         </button>
 
                                         <button disabled={isLoading} onClick={handleConfirm} className="flex-1 py-4 text-sm sm:text-base md:text-lg bg-primary text-white rounded-xl sm:rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-secondary transition-all shadow-md sm:shadow-lg active:scale-95 disabled:opacity-50">
@@ -198,7 +200,7 @@ export default function ImageSearchModal({ isOpen, onClose, onSearch, isLoading 
                                                 ? <Icon icon="solar:refresh-bold-duotone" className="animate-spin w-5 h-5" />
                                                 : <Icon icon="solar:check-circle-bold-duotone" className="w-5 h-5" />
                                             }
-                                            Lancer la recherche
+                                            {t("home.image_search.start_search")}
                                         </button>
                                     </div>
                                 </div>

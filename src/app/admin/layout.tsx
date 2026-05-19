@@ -6,96 +6,95 @@ import { usePathname } from 'next/navigation';
 import { Icon } from '@iconify/react';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { motion } from 'framer-motion';
+import { useTranslation } from "@/utils/langue/hooks";
 
-/* ─────────────────────────────────────────────────────────────────
-   Menu items — icônes Solar Bold Duotone (les plus belles de Solar)
-───────────────────────────────────────────────────────────────── */
-const menuItems = [
-    {
-        label: 'Overview',
-        icon: 'solar:widget-5-bold-duotone',
-        href: '/admin',
-        color: 'text-emerald-500'
-    },
-    {
-        label: 'Utilisateurs',
-        icon: 'solar:users-group-rounded-bold-duotone',
-        href: '/admin/users',
-        color: 'text-blue-500'
-    },
-    {
-        label: 'Produits',
-        icon: 'solar:bag-heart-bold-duotone',
-        href: '/admin/products',
-        color: 'text-orange-500'
-    },
-    {
-        label: 'Services',
-        icon: 'solar:hand-stars-bold-duotone',
-        href: '/admin/services',
-        color: 'text-pink-500'
-    },
-    {
-        label: 'Annonces',
-        icon: 'solar:lightbulb-bolt-bold-duotone',
-        href: '/admin/annonces',
-        color: 'text-amber-500'
-    },
-    {
-        label: 'Abonnements',
-        icon: 'solar:wallet-money-bold-duotone',
-        href: '/admin/subscriptions',
-        color: 'text-violet-500'
-    },
-    {
-        label: 'Vidéos',
-        icon: 'solar:video-library-bold-duotone',
-        href: '/admin/videos',
-        color: 'text-rose-500'
-    },
-    {
-        label: 'Sliders',
-        icon: 'solar:gallery-bold-duotone',
-        href: '/admin/sliders',
-        color: 'text-emerald-500'
-    },
-    {
-        label: 'Easy-Delivery',
-        icon: 'solar:delivery-bold-duotone',
-        href: '/admin/easy-delivery',
-        color: 'text-sky-500'
-    },
-    {
-        label: 'Logistique',
-        icon: 'solar:ship-bold-duotone',
-        href: '/admin/logistics',
-        color: 'text-teal-500'
-    },
-    {
-        label: 'Paramètres',
-        icon: 'solar:settings-bold-duotone',
-        href: '/admin/settings',
-        color: 'text-slate-500'
-    },
-    {
-        label: 'Logs location',
-        icon: 'solar:map-point-wave-bold-duotone',
-        href: '/admin/location-logs',
-        color: 'text-indigo-500'
-    },
-    {
-        label: 'Logs Système',
-        icon: 'solar:code-square-bold-duotone',
-        href: '/admin/logs',
-        color: 'text-cyan-500'
-    },
-];
-
-/* ─────────────────────────────────────────────────────────────────
-   Layout
-───────────────────────────────────────────────────────────────── */
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+    const { t } = useTranslation();
     const pathname = usePathname();
+
+    /* ─────────────────────────────────────────────────────────────────
+       Menu items — icônes Solar Bold Duotone (les plus belles de Solar)
+    ───────────────────────────────────────────────────────────────── */
+    const menuItems = [
+        {
+            label: t("admin.menu.overview"),
+            icon: 'solar:widget-5-bold-duotone',
+            href: '/admin',
+            color: 'text-emerald-500'
+        },
+        {
+            label: t("admin.menu.users"),
+            icon: 'solar:users-group-rounded-bold-duotone',
+            href: '/admin/users',
+            color: 'text-blue-500'
+        },
+        {
+            label: t("admin.menu.products"),
+            icon: 'solar:bag-heart-bold-duotone',
+            href: '/admin/products',
+            color: 'text-orange-500'
+        },
+        {
+            label: t("admin.menu.services"),
+            icon: 'solar:hand-stars-bold-duotone',
+            href: '/admin/services',
+            color: 'text-pink-500'
+        },
+        {
+            label: t("admin.menu.annonces"),
+            icon: 'solar:lightbulb-bolt-bold-duotone',
+            href: '/admin/annonces',
+            color: 'text-amber-500'
+        },
+        {
+            label: t("admin.menu.subscriptions"),
+            icon: 'solar:wallet-money-bold-duotone',
+            href: '/admin/subscriptions',
+            color: 'text-violet-500'
+        },
+        {
+            label: t("admin.menu.videos"),
+            icon: 'solar:video-library-bold-duotone',
+            href: '/admin/videos',
+            color: 'text-rose-500'
+        },
+        {
+            label: t("admin.menu.sliders"),
+            icon: 'solar:gallery-bold-duotone',
+            href: '/admin/sliders',
+            color: 'text-emerald-500'
+        },
+        {
+            label: t("admin.menu.easy_delivery"),
+            icon: 'solar:delivery-bold-duotone',
+            href: '/admin/easy-delivery',
+            color: 'text-sky-500'
+        },
+        {
+            label: t("admin.menu.logistics"),
+            icon: 'solar:ship-bold-duotone',
+            href: '/admin/logistics',
+            color: 'text-teal-500'
+        },
+        {
+            label: t("admin.menu.settings"),
+            icon: 'solar:settings-bold-duotone',
+            href: '/admin/settings',
+            color: 'text-slate-500'
+        },
+        {
+            label: t("admin.menu.location_logs"),
+            icon: 'solar:map-point-wave-bold-duotone',
+            href: '/admin/location-logs',
+            color: 'text-indigo-500'
+        },
+        {
+            label: t("admin.menu.system_logs"),
+            icon: 'solar:code-square-bold-duotone',
+            href: '/admin/logs',
+            color: 'text-cyan-500'
+        },
+    ];
 
     const [isSidebarOpen, setIsSidebarOpen] = React.useState(true);
 
@@ -117,8 +116,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     };
 
     const today = new Date();
-    const dateStr = today.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
-    const currentLabel = menuItems.find(item => item.href === pathname)?.label || 'Dashboard';
+    const dateStr = today.toLocaleDateString(pathname.startsWith('/en') ? 'en-US' : 'fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+    const currentLabel = menuItems.find(item => item.href === pathname)?.label || t("admin.menu.overview");
 
     return (
         <div className="min-h-screen bg-background text-foreground flex overflow-hidden p-2 md:p-4 gap-2 md:gap-4">
@@ -157,7 +156,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
                     {/* Bouton hamburger collapse */}
                     {isSidebarOpen && (
-                        <button onClick={toggleSidebar} className="w-8 h-8 flex items-center justify-center rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-all flex-shrink-0" aria-label="Réduire le menu">
+                        <button onClick={toggleSidebar} className="w-8 h-8 flex items-center justify-center rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-all flex-shrink-0" aria-label={t("admin.sidebar.collapse")}>
                             <Icon icon="solar:sidebar-minimalistic-bold-duotone" width={20} />
                         </button>
                     )}
@@ -165,7 +164,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
                 {/* Bouton expand quand collapsed */}
                 {!isSidebarOpen && (
-                    <button onClick={toggleSidebar} className="mx-auto mt-3 w-9 h-9 flex items-center justify-center rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-all" aria-label="Déplier le menu">
+                    <button onClick={toggleSidebar} className="mx-auto mt-3 w-9 h-9 flex items-center justify-center rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-all" aria-label={t("admin.sidebar.expand")}>
                         <Icon icon="solar:hamburger-menu-bold-duotone" width={20} />
                     </button>
                 )}
@@ -173,7 +172,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 {/* ── Label section ──────────────────────────── */}
                 {isSidebarOpen && (
                     <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.18em] px-6 mt-5 mb-2">
-                        Main Menu
+                        {t("admin.dashboard.main_menu")}
                     </p>
                 )}
 
@@ -220,7 +219,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             <Icon icon="solar:logout-bold-duotone" width={22} className="flex-shrink-0" />
                             {isSidebarOpen && (
                                 <span className="text-[14px] font-bold whitespace-nowrap">
-                                    Quitter l'admin
+                                    {t("common.logout")}
                                 </span>
                             )}
                         </Link>
@@ -235,7 +234,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             <>
                                 <div className="min-w-0 flex-1">
                                     <p className="text-[13px] font-black text-foreground leading-tight truncate">Admin Hub</p>
-                                    <p className="text-[11px] text-muted-foreground font-medium truncate uppercase tracking-wider">Super Admin</p>
+                                    <p className="text-[11px] text-muted-foreground font-medium truncate uppercase tracking-wider">{t("admin.dashboard.super_admin")}</p>
                                 </div>
                             </>
                         )}

@@ -353,6 +353,11 @@ export const getForSelectCategories = async (): Promise<BaseResponse<Category[]>
     return await response.json();
 };
 
+export const searchServiceCategories = async (query: string): Promise<BaseResponse<Category[]>> => {
+    const response = await fetch(`${getBaseUrl()}/categories/search?q=${encodeURIComponent(query)}`);
+    return await response.json();
+};
+
 
 export const getCategories = async (): Promise<BaseResponse<Pagination<Category>>> => {
     const response = await fetch(`${getBaseUrl()}/categories`);
@@ -440,6 +445,11 @@ export const getCategorieAnnonces = async (params: { page?: number; limit?: numb
 
 export const getForSelectCategorieAnnonces = async (): Promise<BaseResponse<any[]>> => {
     const response = await fetch(`${getBaseUrl()}/categorie-annonce/select`);
+    return await response.json();
+};
+
+export const searchAnnonceCategories = async (query: string): Promise<BaseResponse<any[]>> => {
+    const response = await fetch(`${getBaseUrl()}/categorie-annonce/searchByName?q=${encodeURIComponent(query)}`);
     return await response.json();
 };
 

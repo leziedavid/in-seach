@@ -13,6 +13,8 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import InstallPWA from "@/components/pwa/InstallPWA";
 import BackgroundDecoration from "@/components/layout/BackgroundDecoration";
 import VideoModal from "@/components/modals/VideoModal";
+import { I18nProvider } from "@/utils/langue/provider";
+
 const inter = Inter({ subsets: ["latin"] });
 import { Montserrat } from 'next/font/google'
 
@@ -108,22 +110,24 @@ export default function RootLayout({ children, }: Readonly<{ children: React.Rea
       <body className={`${jost.variable} font-sans antialiased`}>
         {/* <BackgroundDecoration /> */}
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange >
-          <NotificationProvider>
-            <WebPushManager />
+          <I18nProvider>
+            <NotificationProvider>
+              <WebPushManager />
 
-            <QueryProvider>
-              <SocketProvider>
-                <CartProvider>
+              <QueryProvider>
+                <SocketProvider>
+                  <CartProvider>
 
-                  <ClientLayout>
-                    {children}
-                    <VideoModal />
-                  </ClientLayout>
-                </CartProvider>
-              </SocketProvider>
-            </QueryProvider>
+                    <ClientLayout>
+                      {children}
+                      <VideoModal />
+                    </ClientLayout>
+                  </CartProvider>
+                </SocketProvider>
+              </QueryProvider>
 
-          </NotificationProvider>
+            </NotificationProvider>
+          </I18nProvider>
         </ThemeProvider>
 
         {/* PWA & Firebase Messaging Service Worker Registration */}

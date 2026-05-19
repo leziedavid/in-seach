@@ -11,10 +11,12 @@ import { GenericTable } from '@/components/ui/table/table';
 import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { useTranslation } from "@/utils/langue/hooks";
 
 type ViewMode = 'all' | 'suspended' | 'recovery';
 
 export default function AdminUsersPage() {
+    const { t } = useTranslation();
     const [viewMode, setViewMode] = useState<ViewMode>('all');
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
@@ -47,7 +49,7 @@ export default function AdminUsersPage() {
                 setTotal(res.data.total || 0);
             }
         } catch (error) {
-            addNotification("Erreur lors du chargement des données", "error");
+            addNotification(t("admin.products.error_load"), "error");
         } finally {
             setLoading(false);
         }
@@ -58,15 +60,15 @@ export default function AdminUsersPage() {
     }, [page, viewMode]);
 
     const handleSuspend = async (user: User) => {
-        if (!confirm(`Êtes-vous sûr de vouloir suspendre ${user.fullName || user.email} ?`)) return;
+        if (!confirm(t("admin.users.suspend_confirm", { name: user.fullName || user.email }))) return;
         try {
             const res = await suspendUserAdmin(user.id);
             if (res.statusCode === 200) {
-                addNotification("Utilisateur suspendu", "success");
+                addNotification(t("admin.users.success_suspend"), "success");
                 fetchUsers();
             }
         } catch (error) {
-            addNotification("Erreur lors de la suspension", "error");
+            addNotification(t("admin.users.error_suspend"), "error");
         }
     };
 
@@ -74,24 +76,24 @@ export default function AdminUsersPage() {
         try {
             const res = await reactivateUserAdmin(user.id);
             if (res.statusCode === 200) {
-                addNotification("Compte réactivé avec succès", "success");
+                addNotification(t("admin.users.success_reactivate"), "success");
                 fetchUsers();
             }
         } catch (error) {
-            addNotification("Erreur lors de la réactivation", "error");
+            addNotification(t("admin.users.error_reactivate"), "error");
         }
     };
 
     const handleDelete = async (user: User) => {
-        if (!confirm(`Suppression DÉFINITIVE de ${user.fullName || user.email}. Cette action est irréversible. Continuer ?`)) return;
+        if (!confirm(t("admin.users.delete_confirm", { name: user.fullName || user.email }))) return;
         try {
             const res = await deleteUserAdmin(user.id);
             if (res.statusCode === 200) {
-                addNotification("Utilisateur supprimé", "success");
+                addNotification(t("admin.users.success_delete"), "success");
                 fetchUsers();
             }
         } catch (error) {
-            addNotification("Erreur lors de la suppression", "error");
+            addNotification(t("admin.users.error_delete"), "error");
         }
     };
 
@@ -101,12 +103,12 @@ export default function AdminUsersPage() {
         try {
             const res = await updateUser(selectedUser.id, data);
             if (res.statusCode === 200) {
-                addNotification("Utilisateur mis à jour", "success");
+                addNotification(t("admin.users.success_update"), "success");
                 setIsEditOpen(false);
                 fetchUsers();
             }
         } catch (error) {
-            addNotification("Erreur lors de la mise à jour", "error");
+            addNotification(t("admin.users.error_update"), "error");
         } finally {
             setIsSubmitting(false);
         }
@@ -115,7 +117,7 @@ export default function AdminUsersPage() {
     const columns: ColumnDef<User>[] = [
         {
             accessorKey: 'fullName',
-            header: 'Utilisateur',
+            header: t("common.user"),
             cell: ({ row }) => (
                 <div className="flex items-center gap-4">
                     <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs border transition-colors", row.original.isSuspended ? "bg-rose-500/10 text-rose-600 border-rose-500/20" : "bg-primary/10 text-primary border-primary/20")}>
@@ -123,10 +125,10 @@ export default function AdminUsersPage() {
                     </div>
                     <div>
                         <div className="flex items-center gap-2">
-                            <span className="font-black text-sm">{row.original.fullName || "Sans nom"}</span>
+                            <span className="font-black text-sm">{row.original.fullName || t("admin.users.unnamed")}</span>
                             {row.original.recoveryRequested && (
                                 <Badge className="bg-amber-500 text-[8px] h-4 px-1.5 font-black uppercase tracking-tighter">
-                                    Récupération !
+                                    {t("admin.users.recovery_badge")}
                                 </Badge>
                             )}
                         </div>
@@ -137,7 +139,7 @@ export default function AdminUsersPage() {
         },
         {
             accessorKey: 'email',
-            header: 'Contact',
+            header: t("admin.users.role_contact"),
             cell: ({ row }) => (
                 <div className="space-y-0.5">
                     <div className="flex items-center gap-2 text-xs font-medium">
@@ -155,7 +157,7 @@ export default function AdminUsersPage() {
         },
         {
             accessorKey: 'role',
-            header: 'Rôle',
+            header: t("common.role"),
             cell: ({ row }) => (
                 <Badge variant="outline" className={cn(
                     "font-black text-[9px] uppercase tracking-widest",
@@ -169,17 +171,17 @@ export default function AdminUsersPage() {
         },
         {
             accessorKey: 'isSuspended',
-            header: 'État',
+            header: t("common.status"),
             cell: ({ row }) => (
                 <div className="flex items-center gap-2">
                     {row.original.isSuspended ? (
                         <Badge className="bg-rose-500 hover:bg-rose-600 text-[9px] font-black uppercase tracking-widest border-none">
                             <Ban className="w-3 h-3 mr-1" />
-                            Suspendu
+                            {t("admin.users.status_suspended")}
                         </Badge>
                     ) : (
                         <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50 text-[9px] font-black uppercase tracking-widest">
-                            Actif
+                            {t("admin.users.status_active")}
                         </Badge>
                     )}
                 </div>
@@ -187,7 +189,7 @@ export default function AdminUsersPage() {
         },
         {
             accessorKey: 'createdAt',
-            header: 'Inscription',
+            header: t("common.created_at"),
             cell: ({ row }) => (
                 <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium">
                     <Calendar className="w-3 h-3" />
@@ -218,8 +220,8 @@ export default function AdminUsersPage() {
         <div className="p-8 space-y-8 animate-in fade-in duration-500">
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
-                    <h1 className="text-4xl font-black tracking-tight mb-2">Gouvernance</h1>
-                    <p className="text-muted-foreground font-medium">Gestion de la conformité, suspensions et récupérations de comptes.</p>
+                    <h1 className="text-4xl font-black tracking-tight mb-2">{t("admin.users.title")}</h1>
+                    <p className="text-muted-foreground font-medium">{t("admin.users.subtitle")}</p>
                 </div>
 
             </header>
@@ -236,7 +238,7 @@ export default function AdminUsersPage() {
                                         setUsers([res.data]);
                                         setTotal(1);
                                     } else {
-                                        addNotification("Aucun utilisateur trouvé pour ce numéro", "info");
+                                        addNotification(t("admin.users.no_users"), "info");
                                     }
                                 });
                             });
@@ -246,7 +248,7 @@ export default function AdminUsersPage() {
                     }}>
                         <input
                             type="tel"
-                            placeholder="Rechercher par téléphone..."
+                            placeholder={t("admin.users.search_placeholder")}
                             value={searchPhone}
                             onChange={(e) => setSearchPhone(e.target.value)}
                             className="w-full h-11 pl-10 pr-4 rounded-2xl bg-card border border-border/50 outline-none focus:border-primary text-xs font-bold transition-all"
@@ -255,9 +257,9 @@ export default function AdminUsersPage() {
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                    <TabButton mode="all" label="Tous" icon={Users} />
-                    <TabButton mode="suspended" label="Suspendus" icon={Ban} />
-                    <TabButton mode="recovery" label="Demandes" icon={RotateCcw} />
+                    <TabButton mode="all" label={t("admin.users.all_users")} icon={Users} />
+                    <TabButton mode="suspended" label={t("admin.users.suspended_users")} icon={Ban} />
+                    <TabButton mode="recovery" label={t("admin.users.recovery_requests")} icon={RotateCcw} />
                 </div>
             </div>
 
@@ -280,10 +282,10 @@ export default function AdminUsersPage() {
                                 else handleSuspend(row);
                             }}
                             actions={[
-                                { icon: Edit2, label: "Modifier", value: "edit" },
-                                { icon: Ban, label: "Suspendre", value: "suspend", className: "text-rose-600", disabled: (row) => row.isSuspended },
-                                { icon: RotateCcw, label: "Réactiver", value: "reactivate", className: "text-green-600", disabled: (row) => !row.isSuspended },
-                                { icon: Trash2, label: "Supprimer", value: "delete", className: "text-rose-700" }
+                                { icon: Edit2, label: t("common.edit"), value: "edit" },
+                                { icon: Ban, label: t("admin.users.suspend"), value: "suspend", className: "text-rose-600", disabled: (row) => row.isSuspended },
+                                { icon: RotateCcw, label: t("admin.users.reactivate"), value: "reactivate", className: "text-green-600", disabled: (row) => !row.isSuspended },
+                                { icon: Trash2, label: t("common.delete"), value: "delete", className: "text-rose-700" }
                             ]}
                             onAction={(action, row) => {
                                 if (action === "edit") { setSelectedUser(row); setIsEditOpen(true); }
@@ -292,9 +294,9 @@ export default function AdminUsersPage() {
                                 if (action === "delete") handleDelete(row);
                             }}
                             emptyMessage={
-                                viewMode === 'recovery' ? "Aucune demande de récupération en attente" :
-                                    viewMode === 'suspended' ? "Aucun compte suspendu" :
-                                        "Aucun utilisateur trouvé"
+                                viewMode === 'recovery' ? t("admin.users.no_recovery") :
+                                    viewMode === 'suspended' ? t("admin.users.no_suspended") :
+                                        t("admin.users.no_users")
                             }
                         />
                     </div>

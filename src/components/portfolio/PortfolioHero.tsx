@@ -5,8 +5,11 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { Icon } from "@iconify/react";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/utils/langue/hooks";
 
 export default function PortfolioHero() {
+    const { t } = useTranslation();
+
     return (
         <section id="hero" className="pt-48 pb-20 px-6 max-w-5xl mx-auto flex flex-col md:flex-row gap-16">
             {/* Left Column: Avatar & Info */}
@@ -24,12 +27,12 @@ export default function PortfolioHero() {
                 <div className="flex flex-col gap-4 w-full">
                     <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
                         <Icon icon="solar:map-point-bold" className="text-primary w-4 h-4" />
-                        <span>Abidjan, Côte d'Ivoire</span>
+                        <span>{t("portfolio.hero.location")}</span>
                     </div>
 
                     <div className="flex gap-2">
-                        <div className="px-3 py-1 bg-muted rounded-md text-[10px] font-bold border border-border/50 text-muted-foreground uppercase">Français</div>
-                        <div className="px-3 py-1 bg-muted rounded-md text-[10px] font-bold border border-border/50 text-muted-foreground uppercase">Anglais</div>
+                        <div className="px-3 py-1 bg-muted rounded-md text-[10px] font-bold border border-border/50 text-muted-foreground uppercase">{t("portfolio.hero.languages.fr")}</div>
+                        <div className="px-3 py-1 bg-muted rounded-md text-[10px] font-bold border border-border/50 text-muted-foreground uppercase">{t("portfolio.hero.languages.en")}</div>
                     </div>
                 </div>
             </div>
@@ -39,16 +42,16 @@ export default function PortfolioHero() {
                 <div className="flex flex-col items-center md:items-start gap-4">
                     <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 text-primary border border-primary/10 text-[10px] font-bold uppercase tracking-widest">
                         <Icon icon="solar:calendar-bold" className="w-4 h-4" />
-                        <span>Schedule a call</span>
+                        <span>{t("portfolio.hero.schedule")}</span>
                         <Icon icon="solar:alt-arrow-right-bold" className="w-3 h-3" />
                     </div>
 
                     <div>
                         <h1 className="text-5xl md:text-7xl font-black tracking-tight leading-none mb-2">
-                            TRA BI LEZIE <span className="text-foreground/80 font-medium">DAVID</span>
+                            {t("portfolio.hero.title")} <span className="text-foreground/80 font-medium">DAVID</span>
                         </h1>
                         <p className="text-xl md:text-2xl text-muted-foreground font-medium tracking-tight">
-                            Ingénieur Full-Stack & Mobile Senior
+                            {t("portfolio.hero.subtitle")}
                         </p>
                     </div>
 
@@ -61,7 +64,7 @@ export default function PortfolioHero() {
                 </div>
 
                 <p className="text-lg text-muted-foreground leading-relaxed max-w-2xl font-medium">
-                    Passionné par le développement moderne, je conçois et déploie des applications web et mobiles performantes avec des architectures robustes. Mon travail allie interfaces fluides, expériences interactives et convergence entre design et technologie.
+                    {t("portfolio.hero.bio")}
                 </p>
             </div>
         </section>

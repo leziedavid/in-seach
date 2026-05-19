@@ -37,10 +37,12 @@ import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { useTranslation } from "@/utils/langue/hooks"
 
 type TabType = 'overview' | 'plans' | 'entities' | 'users';
 
 export default function AdminSubscriptionsPage() {
+    const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState<TabType>('overview');
     const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
     const [entities, setEntities] = useState<PlanEntity[]>([]);
@@ -73,7 +75,7 @@ export default function AdminSubscriptionsPage() {
                 setSubTotal(res.data.total || 0);
             }
         } catch (error) {
-            addNotification("Erreur lors du chargement des souscriptions", "error");
+            addNotification(t("admin.subscriptions.users.error_load"), "error");
         }
     };
 
@@ -92,7 +94,7 @@ export default function AdminSubscriptionsPage() {
 
             await fetchSubscriptions(subPage);
         } catch (error) {
-            addNotification("Erreur lors du chargement des données", "error");
+            addNotification(t("admin.subscriptions.error_load"), "error");
         } finally {
             setLoading(false);
         }
@@ -112,10 +114,10 @@ export default function AdminSubscriptionsPage() {
             const res = await setSystemSubscriptionStatus(!isSystemEnabled);
             if (res.statusCode === 200) {
                 setIsSystemEnabled(!isSystemEnabled);
-                addNotification(`Système d'abonnement ${!isSystemEnabled ? 'activé' : 'désactivé'}`, "success");
+                addNotification(t("admin.subscriptions.system.success_toggle", { status: !isSystemEnabled ? t("admin.subscriptions.system.active") : t("admin.subscriptions.system.inactive") }), "success");
             }
         } catch (error) {
-            addNotification("Erreur lors de la modification du système", "error");
+            addNotification(t("common.error"), "error");
         }
     };
 
@@ -143,12 +145,12 @@ export default function AdminSubscriptionsPage() {
             }
 
             if (res.statusCode === 200 || res.statusCode === 201) {
-                addNotification(isEditing ? "Plan mis à jour" : "Plan créé", "success");
+                addNotification(isEditing ? t("admin.subscriptions.plans.success_update") : t("admin.subscriptions.plans.success_create"), "success");
                 setIsPlanModalOpen(false);
                 fetchData();
             }
         } catch (error) {
-            addNotification("Erreur lors de l'enregistrement du plan", "error");
+            addNotification(t("common.error"), "error");
         } finally {
             setIsSubmitting(false);
         }
@@ -158,24 +160,24 @@ export default function AdminSubscriptionsPage() {
         try {
             const res = await updateSubscriptionPlanAdmin(plan.id, { isActive: !plan.isActive });
             if (res.statusCode === 200) {
-                addNotification(`Plan ${!plan.isActive ? 'activé' : 'désactivé'}`, "success");
+                addNotification(t("admin.subscriptions.system.success_toggle", { status: !plan.isActive ? t("admin.subscriptions.plans.active") : t("admin.subscriptions.plans.inactive") }), "success");
                 fetchData();
             }
         } catch (error) {
-            addNotification("Erreur lors de la modification du statut", "error");
+            addNotification(t("common.error"), "error");
         }
     };
 
     const handleDeletePlan = async (id: string) => {
-        if (!confirm("Supprimer ce plan ?")) return;
+        if (!confirm(t("admin.subscriptions.plans.confirm_delete"))) return;
         try {
             const res = await deleteSubscriptionPlanAdmin(id);
             if (res.statusCode === 200) {
-                addNotification("Plan supprimé", "success");
+                addNotification(t("admin.subscriptions.plans.success_delete"), "success");
                 fetchData();
             }
         } catch (error) {
-            addNotification("Erreur lors de la suppression", "error");
+            addNotification(t("common.error"), "error");
         }
     };
 
@@ -204,23 +206,23 @@ export default function AdminSubscriptionsPage() {
             }
 
             if (res.statusCode === 201 || res.statusCode === 200) {
-                addNotification(isEditing ? "Entité mise à jour" : "Entité créée", "success");
+                addNotification(isEditing ? t("admin.subscriptions.entities.success_update") : t("admin.subscriptions.entities.success_create"), "success");
                 setIsEntityModalOpen(false);
                 fetchData();
             }
         } catch (error) {
-            addNotification("Erreur lors de l'enregistrement de l'entité", "error");
+            addNotification(t("common.error"), "error");
         } finally {
             setIsSubmitting(false);
         }
     };
 
     const handleDeleteEntity = async (id: string) => {
-        if (!confirm("Supprimer cette entité ? Cela pourrait impacter les plans existants.")) return;
+        if (!confirm(t("admin.subscriptions.entities.confirm_delete"))) return;
         try {
             const res = await adminDeletePlanEntity(id);
             if (res.statusCode === 200) {
-                addNotification("Entité supprimée", "success");
+                addNotification(t("admin.subscriptions.entities.success_delete"), "success");
                 fetchData();
             }
         } catch (error) {
@@ -234,11 +236,11 @@ export default function AdminSubscriptionsPage() {
         try {
             const res = await adminValidatePayment(id, success);
             if (res.statusCode === 200) {
-                addNotification(success ? "Paiement validé" : "Paiement rejeté", "success");
+                addNotification(success ? t("admin.subscriptions.users.success_validate") : t("admin.subscriptions.users.success_reject"), "success");
                 fetchSubscriptions(subPage);
             }
         } catch (error) {
-            addNotification("Erreur lors de la validation", "error");
+            addNotification(t("common.error"), "error");
         } finally {
             setIsSubmitting(false);
         }
@@ -251,12 +253,12 @@ export default function AdminSubscriptionsPage() {
         try {
             const res = await adminAssignPlan({ ...assignForm, paymentMethod: 'ADMIN' });
             if (res.statusCode === 201 || res.statusCode === 200) {
-                addNotification("Plan assigné avec succès", "success");
+                addNotification(t("admin.subscriptions.users.success_assign"), "success");
                 setIsAssignModalOpen(false);
                 fetchData();
             }
         } catch (error) {
-            addNotification("Erreur lors de l'assignation", "error");
+            addNotification(t("common.error"), "error");
         } finally {
             setIsSubmitting(false);
         }
@@ -265,14 +267,14 @@ export default function AdminSubscriptionsPage() {
     const subColumns: ColumnDef<AdminUserSubscription>[] = [
         {
             accessorKey: 'user.fullName',
-            header: 'Utilisateur',
+            header: t("admin.subscriptions.users.table.user"),
             cell: ({ row }) => (
                 <div className="flex items-center gap-4">
                     <div className="w-9 h-9 bg-primary/10 rounded-xl flex items-center justify-center text-primary font-black text-[10px] border border-primary/20">
                         {row.original.user?.fullName?.[0] || <Users className="w-4 h-4" />}
                     </div>
                     <div>
-                        <div className="font-black text-sm">{row.original.user?.fullName || 'Inconnu'}</div>
+                        <div className="font-black text-sm">{row.original.user?.fullName || t("common.unknown")}</div>
                         <div className="text-muted-foreground text-[10px] font-mono">{row.original.userId.substring(0, 8)}...</div>
                     </div>
                 </div>
@@ -280,7 +282,7 @@ export default function AdminSubscriptionsPage() {
         },
         {
             accessorKey: 'plan.name',
-            header: 'Plan',
+            header: t("admin.subscriptions.users.table.plan"),
             cell: ({ row }) => (
                 <Badge variant="secondary" className="px-2 py-0.5 text-[9px] font-black uppercase tracking-widest border border-indigo-500/20 bg-indigo-500/5 text-indigo-500">
                     {row.original.plan?.name}
@@ -289,23 +291,23 @@ export default function AdminSubscriptionsPage() {
         },
         {
             accessorKey: 'startDate',
-            header: 'Période',
+            header: t("admin.subscriptions.users.table.period"),
             cell: ({ row }) => (
                 <div className="flex flex-col gap-1 text-[10px] text-muted-foreground font-medium">
                     <div className="flex items-center gap-1.5">
                         <Calendar className="w-3 h-3 text-primary" />
-                        <span>Du {new Date(row.original.startDate).toLocaleDateString()}</span>
+                        <span>{t("admin.subscriptions.users.table.from", { date: new Date(row.original.startDate).toLocaleDateString() })}</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                         <Calendar className="w-3 h-3 text-rose-400" />
-                        <span>Au {new Date(row.original.endDate).toLocaleDateString()}</span>
+                        <span>{t("admin.subscriptions.users.table.to", { date: new Date(row.original.endDate).toLocaleDateString() })}</span>
                     </div>
                 </div>
             )
         },
         {
             accessorKey: 'paymentMethod',
-            header: 'Paiement',
+            header: t("admin.subscriptions.users.table.payment"),
             cell: ({ row }) => {
                 const method = row.original.paymentMethod;
                 const icon = method === 'CARD' ? 'solar:card-bold-duotone' : method === 'MOBILE_MONEY' ? 'solar:phone-bold-duotone' : 'solar:bank-bold-duotone';
@@ -319,7 +321,7 @@ export default function AdminSubscriptionsPage() {
         },
         {
             accessorKey: 'paymentStatus',
-            header: 'État Paiement',
+            header: t("admin.subscriptions.users.table.payment_status"),
             cell: ({ row }) => (
                 <div className="flex flex-col gap-2">
                     <Badge variant="outline" className={`font-black text-[9px] uppercase tracking-widest ${row.original.paymentStatus === 'SUCCESS'
@@ -332,7 +334,7 @@ export default function AdminSubscriptionsPage() {
                     </Badge>
                     {row.original.paymentProof && (
                         <a href={row.original.paymentProof} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-[8px] font-black uppercase text-primary hover:underline">
-                            <Icon icon="solar:eye-bold-duotone" width={10} /> Voir Preuve
+                            <Icon icon="solar:eye-bold-duotone" width={10} /> {t("admin.subscriptions.users.table.proof")}
                         </a>
                     )}
                 </div>
@@ -340,14 +342,14 @@ export default function AdminSubscriptionsPage() {
         },
         {
             accessorKey: 'status',
-            header: 'Abonnement',
+            header: t("admin.subscriptions.users.table.subscription"),
             cell: ({ row }) => (
                 <div className="flex flex-col gap-3">
                     <Badge variant="outline" className={`font-black text-[9px] uppercase tracking-widest ${row.original.status === 'ACTIVE'
                         ? 'text-indigo-600 border-indigo-200 bg-indigo-50'
                         : 'text-slate-400 border-slate-200 bg-slate-50'
                         }`}>
-                        {row.original.status === 'ACTIVE' ? 'Actif' : 'Expiré'}
+                        {row.original.status === 'ACTIVE' ? t("admin.subscriptions.plans.active") : t("common.expired")}
                     </Badge>
                     
                     {row.original.paymentStatus === 'PENDING' && (
@@ -359,7 +361,7 @@ export default function AdminSubscriptionsPage() {
                                 onClick={() => handleValidatePayment(row.original.id, true)}
                                 disabled={isSubmitting}
                             >
-                                <Icon icon="solar:check-circle-bold-duotone" className="mr-1" /> VALIDER
+                                <Icon icon="solar:check-circle-bold-duotone" className="mr-1" /> {t("admin.subscriptions.users.table.validate")}
                             </Button>
                             <Button 
                                 size="sm" 
@@ -368,7 +370,7 @@ export default function AdminSubscriptionsPage() {
                                 onClick={() => handleValidatePayment(row.original.id, false)}
                                 disabled={isSubmitting}
                             >
-                                <Icon icon="solar:close-circle-bold-duotone" className="mr-1" /> REJETER
+                                <Icon icon="solar:close-circle-bold-duotone" className="mr-1" /> {t("admin.subscriptions.users.table.reject")}
                             </Button>
                         </div>
                     )}
@@ -382,33 +384,33 @@ export default function AdminSubscriptionsPage() {
             <div className="p-8 space-y-8 animate-in fade-in duration-500">
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-black tracking-tight mb-1">Abonnements</h1>
-                    <p className="text-muted-foreground font-medium text-sm">Gestion des revenus, plans tarifaires et limitations système.</p>
+                    <h1 className="text-3xl font-black tracking-tight mb-1">{t("admin.subscriptions.title")}</h1>
+                    <p className="text-muted-foreground font-medium text-sm">{t("admin.subscriptions.subtitle")}</p>
                 </div>
                 <div className="flex items-center gap-2 p-1 bg-muted rounded-xl">
                     <button
                         onClick={() => setActiveTab('overview')}
                         className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === 'overview' ? 'bg-card shadow-xs text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
                     >
-                        Overview
+                        {t("admin.subscriptions.tabs.overview")}
                     </button>
                     <button
                         onClick={() => setActiveTab('plans')}
                         className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === 'plans' ? 'bg-card shadow-xs text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
                     >
-                        Plans
+                        {t("admin.subscriptions.tabs.plans")}
                     </button>
                     <button
                         onClick={() => setActiveTab('entities')}
                         className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === 'entities' ? 'bg-card shadow-xs text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
                     >
-                        Entités
+                        {t("admin.subscriptions.tabs.entities")}
                     </button>
                     <button
                         onClick={() => setActiveTab('users')}
                         className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === 'users' ? 'bg-card shadow-xs text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
                     >
-                        Souscriptions
+                        {t("admin.subscriptions.tabs.users")}
                     </button>
                 </div>
             </header>
@@ -429,13 +431,13 @@ export default function AdminSubscriptionsPage() {
                                     <Settings2 className="w-6 h-6" />
                                 </div>
                                 <div>
-                                    <CardTitle className="text-xl font-black mb-1">Système de Restriction</CardTitle>
-                                    <CardDescription className="max-w-md font-medium">Une fois activé, les quotas définis dans les plans s'appliquent automatiquement.</CardDescription>
+                                    <CardTitle className="text-xl font-black mb-1">{t("admin.subscriptions.system.title")}</CardTitle>
+                                    <CardDescription className="max-w-md font-medium">{t("admin.subscriptions.system.desc")}</CardDescription>
                                 </div>
                             </div>
                             <div className="flex items-center gap-4">
                                 <Badge variant={isSystemEnabled ? "default" : "secondary"} className="font-black uppercase tracking-widest text-[10px]">
-                                    {isSystemEnabled ? 'Activé' : 'Désactivé'}
+                                    {isSystemEnabled ? t("admin.subscriptions.system.active") : t("admin.subscriptions.system.inactive")}
                                 </Badge>
                                 <Switch checked={isSystemEnabled} onCheckedChange={handleToggleSystem} />
                             </div>
@@ -444,10 +446,10 @@ export default function AdminSubscriptionsPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                         {[
-                            { label: 'Plans Actifs', val: plans.filter(p => p.isActive).length, icon: CreditCard, color: 'text-primary' },
-                            { label: 'Entités', val: entities.length, icon: Database, color: 'text-amber-500' },
-                            { label: 'Abonnés', val: userSubscriptions.length, icon: Users, color: 'text-primary' },
-                            { label: 'Chiffre d\'Affaires', val: '0 CFA', icon: ShieldCheck, color: 'text-rose-500' },
+                            { label: t("admin.subscriptions.stats.active_plans"), val: plans.filter(p => p.isActive).length, icon: CreditCard, color: 'text-primary' },
+                            { label: t("admin.subscriptions.stats.entities"), val: entities.length, icon: Database, color: 'text-amber-500' },
+                            { label: t("admin.subscriptions.stats.subscribers"), val: userSubscriptions.length, icon: Users, color: 'text-primary' },
+                            { label: t("admin.subscriptions.stats.revenue"), val: '0 CFA', icon: ShieldCheck, color: 'text-rose-500' },
                         ].map((stat, i) => (
                             <Card key={i} className="rounded-3xl border-border/50 shadow-xs">
                                 <CardContent className="p-6">
@@ -468,7 +470,7 @@ export default function AdminSubscriptionsPage() {
                 <div className="space-y-8 animate-in cubic-bezier duration-500">
                     <div className="flex justify-end">
                         <Button onClick={handleCreatePlan} className="rounded-xl font-bold gap-2">
-                            <Plus className="w-4 h-4" /> Nouveau Plan
+                            <Plus className="w-4 h-4" /> {t("admin.subscriptions.plans.new")}
                         </Button>
                     </div>
 
@@ -479,7 +481,7 @@ export default function AdminSubscriptionsPage() {
                                             <div className="flex items-center justify-between mb-4">
                                                 <div className="flex items-center gap-3">
                                                     <Badge variant={plan.isActive ? "default" : "secondary"} className="font-black text-[9px] uppercase tracking-widest px-2 py-0.5">
-                                                        {plan.isActive ? 'Actif' : 'Inactif'}
+                                                        {plan.isActive ? t("admin.subscriptions.plans.active") : t("admin.subscriptions.plans.inactive")}
                                                     </Badge>
                                                     <Switch 
                                                         checked={plan.isActive} 
@@ -495,7 +497,7 @@ export default function AdminSubscriptionsPage() {
                                     <CardTitle className="text-2xl font-black">{plan.name}</CardTitle>
                                     <div className="flex items-baseline gap-1 pt-2">
                                         <span className="text-3xl font-black text-primary">{plan.price} CFA</span>
-                                        <span className="text-muted-foreground font-bold text-xs">/{plan.durationDays}j</span>
+                                        <span className="text-muted-foreground font-bold text-xs">/{t("admin.subscriptions.plans.period", { days: plan.durationDays })}</span>
                                     </div>
                                 </CardHeader>
 
@@ -503,7 +505,7 @@ export default function AdminSubscriptionsPage() {
                                     <div className="space-y-3 mb-6">
                                         <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
                                             <ShieldCheck className="w-4 h-4 text-primary" />
-                                            <span>Limite: {plan.serviceLimit === 999999 ? 'ILLIMITÉ' : `${plan.serviceLimit} unités`}</span>
+                                            <span>{plan.serviceLimit === 999999 ? t("admin.subscriptions.plans.unlimited") : t("admin.subscriptions.plans.limit_desc", { count: plan.serviceLimit })}</span>
                                         </div>
                                         <div className="flex flex-wrap gap-2 mt-4">
                                             {plan.entities?.map((ent) => (
@@ -518,7 +520,7 @@ export default function AdminSubscriptionsPage() {
                                 <div className="px-8 py-5 border-t border-border/30 bg-muted/20 flex items-center justify-between">
                                     <div className="flex items-center gap-2 text-muted-foreground font-bold text-[10px] uppercase tracking-widest">
                                         <Users className="w-3.5 h-3.5" />
-                                        {plan._count?.subscriptions || 0} Abonnés
+                                        {t("admin.subscriptions.stats.subscribers", { count: plan._count?.subscriptions || 0 })}
                                     </div>
                                 </div>
                             </div>
@@ -532,11 +534,11 @@ export default function AdminSubscriptionsPage() {
                 <div className="space-y-8 animate-in cubic-bezier duration-500">
                     <div className="flex justify-between items-end">
                         <div>
-                            <h2 className="text-xl font-black">Modèles Restreints</h2>
-                            <p className="text-muted-foreground text-sm font-medium">Configurez les tables Prisma soumises aux quotas.</p>
+                            <h2 className="text-xl font-black">{t("admin.subscriptions.entities.title")}</h2>
+                            <p className="text-muted-foreground text-sm font-medium">{t("admin.subscriptions.entities.subtitle")}</p>
                         </div>
                         <Button onClick={handleCreateEntity} variant="outline" className="rounded-xl font-bold gap-2">
-                            <Plus className="w-4 h-4" /> Nouvelle Entité
+                            <Plus className="w-4 h-4" /> {t("admin.subscriptions.entities.new")}
                         </Button>
                     </div>
 
@@ -554,7 +556,7 @@ export default function AdminSubscriptionsPage() {
                                         </div>
                                     </div>
                                     <h3 className="font-black text-base">{entity.entityName}</h3>
-                                    <p className="text-muted-foreground text-[10px] font-bold uppercase tracking-widest mt-1">{entity._count?.plans || 0} Plans Liés</p>
+                                    <p className="text-muted-foreground text-[10px] font-bold uppercase tracking-widest mt-1">{t("admin.subscriptions.entities.linked_plans", { count: entity._count?.plans || 0 })}</p>
                                 </CardContent>
                             </Card>
                         ))}
@@ -567,11 +569,11 @@ export default function AdminSubscriptionsPage() {
                 <div className="space-y-8 animate-in cubic-bezier duration-500">
                     <div className="flex justify-between items-end">
                         <div>
-                            <h2 className="text-xl font-black">Clients & Souscriptions</h2>
-                            <p className="text-muted-foreground text-sm font-medium">Historique et statut des abonnements utilisateurs.</p>
+                            <h2 className="text-xl font-black">{t("admin.subscriptions.users.title")}</h2>
+                            <p className="text-muted-foreground text-sm font-medium">{t("admin.subscriptions.users.subtitle")}</p>
                         </div>
                         <Button onClick={() => setIsAssignModalOpen(true)} className="rounded-xl font-bold gap-2 bg-primary hover:bg-primary/90">
-                            <ShieldCheck className="w-4 h-4" /> Attribution Manuelle
+                            <ShieldCheck className="w-4 h-4" /> {t("admin.subscriptions.users.assign_manual")}
                         </Button>
                     </div>
 
@@ -585,7 +587,7 @@ export default function AdminSubscriptionsPage() {
                             itemsPerPage={10}
                             onPageChange={setSubPage}
                             searchKey="user_fullName"
-                            emptyMessage="Aucune souscription active."
+                            emptyMessage={t("common.no_results")}
                         />
                     </div>
                 </div>
@@ -594,8 +596,8 @@ export default function AdminSubscriptionsPage() {
             {/* MODALS */}
             <Modal isOpen={isPlanModalOpen} onClose={() => setIsPlanModalOpen(false)}>
                 <div className="p-4">
-                    <h2 className="text-xl font-black px-2 pt-2 mb-1">{isEditing ? 'Éditer le Plan' : 'Nouveau Plan'}</h2>
-                    <p className="text-muted-foreground px-2 mb-6 text-sm font-medium tracking-tight">Configuration des quotas de service.</p>
+                    <h2 className="text-xl font-black px-2 pt-2 mb-1">{isEditing ? t("admin.subscriptions.plans.edit") : t("admin.subscriptions.plans.new")}</h2>
+                    <p className="text-muted-foreground px-2 mb-6 text-sm font-medium tracking-tight">{t("admin.subscriptions.plans.desc")}</p>
                     <FormsSubscriptionPlan
                         initialData={selectedPlan || undefined}
                         onSubmit={handlePlanSubmit}
@@ -608,23 +610,23 @@ export default function AdminSubscriptionsPage() {
 
             <Modal isOpen={isEntityModalOpen} onClose={() => setIsEntityModalOpen(false)}>
                 <div className="p-6">
-                    <h2 className="text-xl font-black mb-1">{isEditing ? 'Éditer l\'Entité' : 'Nouvelle Entité'}</h2>
-                    <p className="text-muted-foreground mb-6 text-sm font-medium tracking-tight">Nom technique du modèle (ex: Service, Annonce).</p>
+                    <h2 className="text-xl font-black mb-1">{isEditing ? t("admin.subscriptions.entities.edit") : t("admin.subscriptions.entities.new")}</h2>
+                    <p className="text-muted-foreground mb-6 text-sm font-medium tracking-tight">{t("admin.subscriptions.entities.model_desc")}</p>
                     <form onSubmit={handleEntitySubmit} className="space-y-5">
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1 block ml-1">Identifiant du modèle</label>
+                            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1 block ml-1">{t("admin.subscriptions.entities.model_id")}</label>
                             <input
                                 value={entityForm.entityName}
                                 onChange={(e) => setEntityForm({ ...entityForm, entityName: e.target.value })}
-                                placeholder="ex: Service"
+                                placeholder={t("admin.subscriptions.entities.placeholder")}
                                 className="w-full bg-muted border-border/50 border rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none transition-all"
                                 required
                             />
                         </div>
                         <div className="flex justify-end gap-2 pt-2">
-                            <Button variant="ghost" type="button" onClick={() => setIsEntityModalOpen(false)}>Annuler</Button>
+                            <Button variant="ghost" type="button" onClick={() => setIsEntityModalOpen(false)}>{t("common.cancel")}</Button>
                             <Button type="submit" disabled={isSubmitting} className="font-bold rounded-xl px-8">
-                                {isSubmitting ? '...' : (isEditing ? 'Sauvegarder' : 'Créer')}
+                                {isSubmitting ? '...' : (isEditing ? t("common.save") : t("common.add"))}
                             </Button>
                         </div>
                     </form>
@@ -633,12 +635,12 @@ export default function AdminSubscriptionsPage() {
 
             <Modal isOpen={isAssignModalOpen} onClose={() => setIsAssignModalOpen(false)}>
                 <div className="p-6">
-                    <h2 className="text-xl font-black mb-1">Assignation Manuelle</h2>
-                    <p className="text-muted-foreground mb-6 text-sm font-medium tracking-tight">Forcer l'abonnement d'un utilisateur à un plan spécifique.</p>
+                    <h2 className="text-xl font-black mb-1">{t("admin.subscriptions.users.modal.title")}</h2>
+                    <p className="text-muted-foreground mb-6 text-sm font-medium tracking-tight">{t("admin.subscriptions.users.modal.desc")}</p>
                     <form onSubmit={handleAssignPlan} className="space-y-5">
                         <div className="space-y-4">
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1 block ml-1">UUID Utilisateur</label>
+                                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1 block ml-1">{t("admin.subscriptions.users.modal.user_id")}</label>
                                 <input
                                     value={assignForm.userId}
                                     onChange={(e) => setAssignForm({ ...assignForm, userId: e.target.value })}
@@ -648,14 +650,14 @@ export default function AdminSubscriptionsPage() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1 block ml-1">Sélection du Plan</label>
+                                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1 block ml-1">{t("admin.subscriptions.users.modal.plan_select")}</label>
                                 <select
                                     value={assignForm.planId}
                                     onChange={(e) => setAssignForm({ ...assignForm, planId: e.target.value })}
                                     className="w-full bg-muted border-border/50 border rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none transition-all appearance-none"
                                     required
                                 >
-                                    <option value="">Choisir un plan...</option>
+                                    <option value="">{t("admin.subscriptions.users.modal.plan_placeholder")}</option>
                                     {plans.map(p => (
                                         <option key={p.id} value={p.id}>{p.name} ({p.price} CFA)</option>
                                     ))}
@@ -663,9 +665,9 @@ export default function AdminSubscriptionsPage() {
                             </div>
                         </div>
                         <div className="flex justify-end gap-2 pt-2">
-                            <Button variant="ghost" type="button" onClick={() => setIsAssignModalOpen(false)}>Annuler</Button>
+                            <Button variant="ghost" type="button" onClick={() => setIsAssignModalOpen(false)}>{t("common.cancel")}</Button>
                             <Button type="submit" disabled={isSubmitting} className="font-bold rounded-xl px-8 bg-primary hover:bg-primary/90">
-                                {isSubmitting ? '...' : 'Attribuer'}
+                                {isSubmitting ? '...' : t("common.add")}
                             </Button>
                         </div>
                     </form>

@@ -4,6 +4,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Icon } from "@iconify/react";
 import Image from "next/image";
+import { useTranslation } from "@/utils/langue/hooks";
 
 const PROJECTS = [
     {
@@ -21,9 +22,11 @@ const PROJECTS = [
 ];
 
 export default function PortfolioProjects() {
+    const { t } = useTranslation();
+
     return (
         <section id="projects" className="py-20 px-6 max-w-5xl mx-auto border-t border-border/40">
-            <h2 className="text-4xl font-black mb-12 tracking-tight">Projets</h2>
+            <h2 className="text-4xl font-black mb-12 tracking-tight">{t("portfolio.projects.title")}</h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
                 {PROJECTS.map((project) => (

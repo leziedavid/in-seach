@@ -9,9 +9,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useTranslation } from "@/utils/langue/hooks";
 
 export default function SeedAdminManager() {
-
+    const { t } = useTranslation();
     const { addNotification } = useNotification();
     const [configs, setConfigs] = useState<SeedTableConfig[]>([]);
     const [selectedTables, setSelectedTables] = useState<string[]>([]);
@@ -27,7 +28,7 @@ export default function SeedAdminManager() {
                 setConfigs((res.data || []).sort((a, b) => a.order - b.order));
             }
         } catch (error) {
-            addNotification("Erreur lors de la récupération de la config", "error");
+            addNotification(t("akwaba.seed.error_config"), "error");
         } finally {
             setIsRefreshing(false);
         }
@@ -45,61 +46,61 @@ export default function SeedAdminManager() {
 
     const handleRunSeed = async () => {
         if (selectedTables.length === 0) {
-            addNotification("Veuillez sélectionner au moins une table", "warning");
+            addNotification(t("akwaba.seed.select_table"), "warning");
             return;
         }
 
         setLoading(true);
-        setLogs(prev => [...prev, `🚀 Lancement du seed manuel : ${new Date().toLocaleTimeString()}`]);
+        setLogs(prev => [...prev, `🚀 ${t("akwaba.seed.launch_manual")} : ${new Date().toLocaleTimeString()}`]);
         try {
             const res = await runSeed(selectedTables);
             if (res.statusCode === 200) {
-                setLogs(prev => [...prev, ...(res.data?.logs || []), "✅ Opération terminée avec succès."]);
-                addNotification("Seed exécuté avec succès", "success");
+                setLogs(prev => [...prev, ...(res.data?.logs || []), `✅ ${t("akwaba.seed.operation_success")}`]);
+                addNotification(t("akwaba.seed.seed_success"), "success");
             } else {
-                addNotification("Erreur lors de l'exécution du seed", "error");
+                addNotification(t("akwaba.seed.seed_error"), "error");
             }
         } catch (error: any) {
             setLogs(prev => [...prev, `❌ ERREUR: ${error.message}`]);
-            addNotification("Erreur système lors du seed", "error");
+            addNotification(t("akwaba.seed.system_error_seed"), "error");
         } finally {
             setLoading(false);
         }
     };
 
     const handleFullSeed = async () => {
-        if (!confirm("Voulez-vous migrer TOUTES les données de test ? Cela peut prendre quelques instants.")) return;
+        if (!confirm(t("akwaba.seed.confirm_full_seed"))) return;
 
         setLoading(true);
-        setLogs(prev => [...prev, `🔥 Lancement du SEED COMPLET : ${new Date().toLocaleTimeString()}`]);
+        setLogs(prev => [...prev, `🔥 ${t("akwaba.seed.launch_full")} : ${new Date().toLocaleTimeString()}`]);
         try {
             const res = await runFullSeed();
             if (res.statusCode === 200) {
-                setLogs(prev => [...prev, ...(res.data || []), "✅ Migration complète terminée."]);
-                addNotification("Toutes les données ont été migrées", "success");
+                setLogs(prev => [...prev, ...(res.data || []), `✅ ${t("akwaba.seed.full_migration_done")}`]);
+                addNotification(t("akwaba.seed.all_migrated"), "success");
             } else {
-                addNotification("Erreur lors de la migration complète", "error");
+                addNotification(t("akwaba.seed.full_migration_error"), "error");
             }
         } catch (error: any) {
             setLogs(prev => [...prev, `❌ ERREUR: ${error.message}`]);
-            addNotification("Erreur système lors de la migration", "error");
+            addNotification(t("akwaba.seed.system_error_migration"), "error");
         } finally {
             setLoading(false);
         }
     };
 
     const handleClearDb = async () => {
-        if (!confirm("ATTENTION: Cela va supprimer TOUTES les données de test. Êtes-vous sûr ?")) return;
+        if (!confirm(t("akwaba.seed.confirm_clear_db"))) return;
 
         setLoading(true);
         try {
             const res = await clearDatabase();
             if (res.statusCode === 200) {
-                setLogs(prev => [...prev, "🧹 Base de données nettoyée."]);
-                addNotification("Base de données nettoyée", "success");
+                setLogs(prev => [...prev, `🧹 ${t("akwaba.seed.db_cleaned_log")}`]);
+                addNotification(t("akwaba.seed.db_cleaned_toast"), "success");
             }
         } catch (error) {
-            addNotification("Erreur lors du nettoyage", "error");
+            addNotification(t("akwaba.seed.error_cleaning"), "error");
         } finally {
             setLoading(false);
         }
@@ -113,14 +114,14 @@ export default function SeedAdminManager() {
                         <Database className="w-5 h-5" />
                     </div>
                     <div>
-                        <CardTitle className="text-lg font-black">Gestion du Seed Dynamique</CardTitle>
-                        <CardDescription className="text-xs font-medium">Contrôlez les données initiales et les jeux de tests.</CardDescription>
+                        <CardTitle className="text-lg font-black">{t("akwaba.seed.title")}</CardTitle>
+                        <CardDescription className="text-xs font-medium">{t("akwaba.seed.description")}</CardDescription>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
                     <Button variant="default" size="sm" onClick={handleFullSeed} disabled={loading} className="rounded-lg font-bold bg-emerald-600 hover:bg-emerald-700 text-white border-none shadow-md shadow-emerald-500/20">
                         <Play className="w-4 h-4 fill-current mr-2" />
-                        Migrer toutes les données
+                        {t("akwaba.seed.migrate_all")}
                     </Button>
                     <Button variant="outline" size="sm" onClick={fetchConfig} disabled={isRefreshing} className="rounded-lg font-bold">
                         {isRefreshing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Layers className="w-4 h-4" />}
@@ -134,10 +135,10 @@ export default function SeedAdminManager() {
                         <div className="flex items-center justify-between">
                             <h3 className="text-sm font-black flex items-center gap-2">
                                 <Info className="w-4 h-4 text-primary" />
-                                Tables Disponibles
+                                {t("akwaba.seed.available_tables")}
                             </h3>
                             <Badge variant="outline" className="text-[10px] uppercase font-black">
-                                {configs.length} Entités
+                                {configs.length} {t("akwaba.seed.entities")}
                             </Badge>
                         </div>
 
@@ -158,7 +159,7 @@ export default function SeedAdminManager() {
                                                 <div className="flex flex-wrap gap-1 mt-2">
                                                     {config.dependsOn.map(dep => (
                                                         <Badge key={dep} variant="outline" className="text-[8px] bg-muted/50 font-bold border-border/30">
-                                                            dep: {dep}
+                                                            {t("akwaba.seed.dependency")}: {dep}
                                                         </Badge>
                                                     ))}
                                                 </div>
@@ -172,7 +173,7 @@ export default function SeedAdminManager() {
                         <div className="flex gap-3 pt-2">
                             <Button onClick={handleRunSeed} disabled={loading || selectedTables.length === 0} className="flex-1 rounded-xl font-black gap-2 h-11 shadow-lg shadow-primary/20">
                                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4 fill-current" />}
-                                EXÉCUTER LE SEED
+                                {t("akwaba.seed.execute_seed")}
                             </Button>
                             <Button variant="outline" onClick={handleClearDb} disabled={loading} className="rounded-xl font-black text-destructive border-destructive/20 hover:bg-destructive/10 h-11">
                                 <Trash2 className="w-4 h-4" />
@@ -182,14 +183,14 @@ export default function SeedAdminManager() {
 
                     <div className="space-y-4 flex flex-col overflow-hidden">
                         <h3 className="text-sm font-black flex items-center gap-2">
-                            <Code className="w-4 h-4 text-primary" />
-                            Logs d'Exécution
+                            <CodeIcon className="w-4 h-4 text-primary" />
+                            {t("akwaba.seed.execution_logs")}
                         </h3>
                         <div className="flex-1 bg-slate-950 rounded-xl p-4 font-mono text-[10px] overflow-hidden flex flex-col border border-white/5 shadow-2xl">
                             <ScrollArea className="flex-1">
                                 <div className="space-y-1.5">
                                     {logs.length === 0 ? (
-                                        <span className="text-slate-500 italic">En attente d'une action...</span>
+                                        <span className="text-slate-500 italic">{t("akwaba.seed.wait_action")}</span>
                                     ) : (
                                         logs.map((log, i) => {
                                             const isSuccess = log.includes('✅') || log.includes('success') || log.includes('completed');
@@ -209,7 +210,7 @@ export default function SeedAdminManager() {
                             {logs.length > 0 && (
                                 <button onClick={() => setLogs([])} className="mt-3 text-[9px] text-slate-500 hover:text-slate-300 transition-colors flex items-center gap-1.5 font-bold">
                                     <Trash2 className="w-3 h-3" />
-                                    EFFACER LA CONSOLE
+                                    {t("akwaba.seed.clear_console")}
                                 </button>
                             )}
                         </div>
@@ -221,7 +222,7 @@ export default function SeedAdminManager() {
 }
 
 // Sub-components used
-function Code({ className, ...props }: React.SVGProps<SVGSVGElement>) {
+function CodeIcon({ className, ...props }: React.SVGProps<SVGSVGElement>) {
     return (
         <svg
             {...props}

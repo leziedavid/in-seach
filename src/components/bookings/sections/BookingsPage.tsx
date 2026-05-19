@@ -14,6 +14,7 @@ import { getUserId, getUserRole } from "@/lib/auth";
 import { Role } from "@/types/interface";
 import { useRealTimeUpdate } from "@/hooks/useRealTimeUpdate";
 import { SectionHeader } from "@/components/shared/SectionHeader";
+import { useTranslation } from "@/utils/langue/hooks";
 
 interface BookingsPageProps {
     data?: Booking[];
@@ -37,6 +38,7 @@ export default function BookingsPage({
     onPageChange,
     onSuccess,
     bookingType }: BookingsPageProps) {
+    const { t } = useTranslation();
 
     const [internalPage, setInternalPage] = useState(1);
     const page = propPage ?? internalPage;
@@ -104,13 +106,13 @@ export default function BookingsPage({
             }
 
             if (response.statusCode === 200 || response.statusCode === 201) {
-                showNotification("Statut mis à jour avec succès", "success");
+                showNotification(t("akwaba.bookings.success_update"), "success");
                 if (propData) {
                     onSuccess?.();
                 }
                 fetchBookings();
             } else {
-                showNotification(response.message || "Erreur lors de la mise à jour", "error");
+                showNotification(response.message || t("akwaba.bookings.error_update"), "error");
             }
         } catch (error: any) {
             showNotification(error.message || "Erreur de connexion", "error");
@@ -145,9 +147,9 @@ export default function BookingsPage({
     return (
         <div className="w-full mx-auto py-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                <SectionHeader 
-                    title={bookingType === 'ANNONCE' ? 'Rendez-vous Annonces' : 'Rendez-vous Services'}
-                    subtitle="Gérez l'ensemble de vos rendez-vous et leur statut en un coup d'œil."
+                <SectionHeader
+                    title={bookingType === 'ANNONCE' ? t("akwaba.bookings.title_annonces") : t("akwaba.bookings.title_services")}
+                    subtitle={t("akwaba.bookings.subtitle")}
                     className="!text-left"
                 />
 
@@ -157,11 +159,11 @@ export default function BookingsPage({
                     <div className="flex bg-muted/30 p-1 rounded-xl border border-border w-fit">
                         <button onClick={() => setActiveTab('recues')} className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'recues' ? 'bg-background text-primary shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}  >
                             <Icon icon="solar:download-square-bold-duotone" className="w-4 h-4" />
-                            RDV Reçus
+                            {t("akwaba.bookings.rdv_received")}
                         </button>
                         <button onClick={() => setActiveTab('passees')} className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'passees' ? 'bg-background text-primary shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}  >
                             <Icon icon="solar:upload-square-bold-duotone" className="w-4 h-4" />
-                            RDV Passés
+                            {t("akwaba.bookings.rdv_placed")}
                         </button>
                     </div>
                 )}
@@ -178,7 +180,10 @@ export default function BookingsPage({
                 {!loading && bookings.length === 0 && (
                     <div className="py-10 text-center text-sm text-muted-foreground bg-muted/10 rounded-2xl border border-dashed border-border">
                         <Icon icon="solar:clipboard-list-bold-duotone" className="w-10 h-10 mx-auto mb-3 opacity-20" />
-                        <p>Aucun rendez-vous {activeTab === 'recues' ? 'reçu' : 'passé'} {bookingType === 'ANNONCE' ? 'pour vos annonces' : 'pour vos services'}</p>
+                        <p>{t("akwaba.bookings.no_rdv", {
+                            type: activeTab === 'recues' ? t("akwaba.bookings.received") : t("akwaba.bookings.placed"),
+                            itemType: bookingType === 'ANNONCE' ? t("akwaba.bookings.annonces") : t("akwaba.bookings.services")
+                        })}</p>
                     </div>
                 )}
 
@@ -196,12 +201,12 @@ export default function BookingsPage({
                                         <div className="flex-1 min-w-0">
                                             <button onClick={() => { handleAction(booking) }} className="flex items-center gap-1 text-xs text-primary font-semibold hover:underline shrink-0 truncate"  >
                                                 <Icon icon="solar:eye-bold-duotone" className="w-3.5 h-3.5" />
-                                                {booking.service?.title || booking.annonce?.title || "Détails"}
+                                                {booking.service?.title || booking.annonce?.title || t("akwaba.bookings.details")}
                                             </button>
 
                                             <p className="text-xs text-muted-foreground truncate">
-                                                {booking.scheduledDate ? new Date(booking.scheduledDate).toLocaleDateString() : "Non planifié"} •{" "}
-                                                {booking.price ? `${booking.price.toLocaleString()} FCFA` : "-"}
+                                                {booking.scheduledDate ? new Date(booking.scheduledDate).toLocaleDateString() : t("akwaba.bookings.not_scheduled")} •{" "}
+                                                {booking.price ? t("akwaba.services.price_fcfa", { price: booking.price.toLocaleString() }) : "-"}
                                             </p>
                                         </div>
 
@@ -209,11 +214,11 @@ export default function BookingsPage({
                                         <div className="flex items-center gap-2 shrink-0">
                                             {/* STATUS BADGE */}
                                             <span className={`text-[10px] font-bold px-2 py-1 rounded-full whitespace-nowrap ${getStatusStyle(booking.status)}`}>
-                                                {booking.status === BookingStatus.PENDING ? 'EN ATTENTE' :
-                                                    booking.status === BookingStatus.ACCEPTED ? 'ACCEPTÉ' :
-                                                        booking.status === BookingStatus.IN_PROGRESS ? 'EN COURS' :
-                                                            booking.status === BookingStatus.COMPLETED ? 'TERMINÉ' :
-                                                                booking.status === BookingStatus.CANCELLED ? 'ANNULÉ' : booking.status}
+                                                {booking.status === BookingStatus.PENDING ? t("akwaba.bookings.status.pending") :
+                                                    booking.status === BookingStatus.ACCEPTED ? t("akwaba.bookings.status.accepted") :
+                                                        booking.status === BookingStatus.IN_PROGRESS ? t("akwaba.bookings.status.in_progress") :
+                                                            booking.status === BookingStatus.COMPLETED ? t("akwaba.bookings.status.completed") :
+                                                                booking.status === BookingStatus.CANCELLED ? t("akwaba.bookings.status.cancelled") : booking.status}
                                             </span>
 
                                             {/* Status specific actions */}
@@ -222,7 +227,7 @@ export default function BookingsPage({
                                                     {(booking.status === BookingStatus.PENDING || booking.status === BookingStatus.ACCEPTED) && (
                                                         <Button size="sm" variant="destructive" className="h-8 px-3 text-[10px] font-black flex items-center gap-1.5" onClick={() => handleChangeStatus(booking.id, BookingStatus.CANCELLED)} >
                                                             <Icon icon="solar:close-circle-bold" className="w-4 h-4" />
-                                                            <span className="hidden sm:inline">Annuler</span>
+                                                            <span className="hidden sm:inline">{t("akwaba.bookings.actions.cancel")}</span>
                                                         </Button>
                                                     )}
                                                 </div>
@@ -233,19 +238,19 @@ export default function BookingsPage({
                                                     {booking.status === BookingStatus.PENDING && (
                                                         <Button size="sm" className="h-8 px-3 text-[10px] font-black bg-blue-600 hover:bg-blue-700 flex items-center gap-1.5" onClick={() => handleChangeStatus(booking.id, BookingStatus.ACCEPTED)} >
                                                             <Icon icon="solar:check-circle-bold" className="w-4 h-4" />
-                                                            <span className="hidden sm:inline">Accepter</span>
+                                                            <span className="hidden sm:inline">{t("akwaba.bookings.actions.accept")}</span>
                                                         </Button>
                                                     )}
                                                     {booking.status === BookingStatus.ACCEPTED && (
                                                         <Button size="sm" className="h-8 px-3 text-[10px] font-black bg-indigo-600 hover:bg-indigo-700 flex items-center gap-1.5" onClick={() => handleChangeStatus(booking.id, BookingStatus.IN_PROGRESS)} >
                                                             <Icon icon="solar:play-bold" className="w-4 h-4" />
-                                                            <span className="hidden sm:inline">Démarrer</span>
+                                                            <span className="hidden sm:inline">{t("akwaba.bookings.actions.start")}</span>
                                                         </Button>
                                                     )}
                                                     {booking.status === BookingStatus.IN_PROGRESS && (
                                                         <Button size="sm" className="h-8 px-3 text-[10px] font-black bg-green-600 hover:bg-green-700 flex items-center gap-1.5" onClick={() => handleChangeStatus(booking.id, BookingStatus.COMPLETED)} >
                                                             <Icon icon="solar:check-read-bold" className="w-4 h-4" />
-                                                            <span className="hidden sm:inline">Terminer</span>
+                                                            <span className="hidden sm:inline">{t("akwaba.bookings.actions.finish")}</span>
                                                         </Button>
                                                     )}
                                                 </div>

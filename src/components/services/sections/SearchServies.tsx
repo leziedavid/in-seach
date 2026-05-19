@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Icon } from "@iconify/react";
 import Image from 'next/image';
-import { getServices, searchServiceIA } from "@/api/api";
+import { getServices, searchServiceIA, searchServiceCategories } from "@/api/api";
 import { UserLocation, Service } from "@/types/interface";
 import { useUserLocation } from "@/utils/location";
 import BookingModal from "@/components/bookings/modals/BookingModal";
@@ -14,6 +14,7 @@ import NotFound from "@/components/common/NotFound";
 import Loader from "@/components/common/Loader";
 import dynamic from 'next/dynamic';
 import VoiceSearchModal from "@/components/services/sections/VoiceSearchModal";
+import { useTranslation } from "@/utils/langue/hooks";
 
 const ServicesMap = dynamic(() => import("./ServicesMap"), {
     ssr: false,
@@ -23,6 +24,7 @@ const ServicesMap = dynamic(() => import("./ServicesMap"), {
 });
 
 export default function SearchServies() {
+    const { t } = useTranslation();
     const { withAuth } = useRequireAuth();
     const { getUserLocation } = useUserLocation();
     const [query, setQuery] = useState("");
@@ -38,6 +40,12 @@ export default function SearchServies() {
     const [aiSearchEmpty, setAiSearchEmpty] = useState(false);
     const [aiMessage, setAiMessage] = useState("");
     const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
+
+    // Autocomplete states
+    const [suggestions, setSuggestions] = useState<{ id: string, label: string }[]>([]);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const [isSearchingSuggestions, setIsSearchingSuggestions] = useState(false);
+    const suggestionRef = useRef<HTMLDivElement>(null);
 
     // State-based pagination
     const [services, setServices] = useState<Service[]>([]);
@@ -86,6 +94,13 @@ export default function SearchServies() {
         }
     }, [query, lat, lng]);
 
+    // Réinitialiser la recherche si query est vide ET pas de localisation
+    useEffect(() => {
+        if (query === "" && !lat && !lng) {
+            setIsSearching(false);
+        }
+    }, [query, lat, lng]);
+
     // Reset and fetch when filters change
     useEffect(() => {
         if (isSearching && aiResults.length === 0) {
@@ -101,13 +116,59 @@ export default function SearchServies() {
         }
     }, [page, fetchServices, aiResults.length]);
 
+    // Fetch suggestions
+    useEffect(() => {
+        const fetchSuggestions = async () => {
+            if (!query.trim() || isSearching) {
+                setSuggestions([]);
+                setShowSuggestions(false);
+                return;
+            }
+            setIsSearchingSuggestions(true);
+            try {
+                const res = await searchServiceCategories(query);
+                if (res.statusCode === 200 && res.data) {
+                    setSuggestions(res.data);
+                    setShowSuggestions(res.data.length > 0);
+                }
+            } catch (e) {
+                console.error("Error fetching suggestions:", e);
+            } finally {
+                setIsSearchingSuggestions(false);
+            }
+        };
+
+        const debounce = setTimeout(fetchSuggestions, 300);
+        return () => clearTimeout(debounce);
+    }, [query, isSearching]);
+
+    // Close suggestions on outside click
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (suggestionRef.current && !suggestionRef.current.contains(event.target as Node)) {
+                setShowSuggestions(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
+        setShowSuggestions(false);
         if (query.trim() || lat || lng) {
             setAiResults([]);
             setAiSearchEmpty(false);
             setIsSearching(true);
         }
+    };
+
+    const handleSuggestionClick = (suggestion: any) => {
+        setQuery(suggestion.label);
+        setShowSuggestions(false);
+        setAiResults([]);
+        setAiSearchEmpty(false);
+        setIsSearching(true);
     };
 
     const handleUseMyLocation = async () => {
@@ -162,32 +223,48 @@ export default function SearchServies() {
     return (
         <div className="flex flex-col items-center w-full max-w-7xl mx-auto px-4 py-2">
             {/* Search Input - Centered */}
-            <form suppressHydrationWarning onSubmit={handleSearch} className="flex flex-col md:flex-row items-center justify-center gap-4 w-full max-w-2xl mb-2">
-                <div className="flex items-center w-full bg-card border border-primary rounded-xl px-4 py-2 shadow-sm hover:border-secondary transition-colors">
+            <form onSubmit={handleSearch} className="flex flex-row items-stretch justify-center gap-1 w-full max-w-2xl mb-2 relative">
+                <div className="flex items-center w-full bg-card border border-primary rounded-xl px-3 md:px-4 py-2 shadow-sm hover:border-secondary transition-colors">
                     <Icon icon="solar:map-point-bold-duotone" className="w-4 h-4 text-muted-foreground mr-2 flex-shrink-0" />
-                    <input suppressHydrationWarning value={query} type="text" placeholder="Quel service recherchez-vous ?" className="flex-1 bg-transparent outline-none text-foreground text-sm min-w-0 md:text-sm placeholder:text-muted-foreground" onChange={(e) => { setQuery(e.target.value); if (e.target.value === "" && !lat && !lng) setIsSearching(false); }} inputMode="text" style={{ fontSize: '16px' }} />
+                    <input value={query} type="text" placeholder={t("services.search_placeholder")} className="flex-1 bg-transparent text-foreground outline-none text-sm min-w-0 placeholder:text-muted-foreground" onChange={(e) => setQuery(e.target.value)} />
                     {query && (
-                        <button type="button" onClick={() => { setQuery(""); if (!lat && !lng) setIsSearching(false); }} className="p-1 text-muted-foreground hover:text-primary transition-colors animate-in fade-in zoom-in duration-200" title="Effacer la recherche">
+                        <button type="button" onClick={() => { setQuery(""); if (!lat && !lng) setIsSearching(false); }} className="p-1 text-muted-foreground hover:text-primary transition-colors animate-in fade-in zoom-in duration-200" title={t("common.clear_search")}>
                             <Icon icon="solar:close-circle-bold-duotone" className="w-5 h-5" />
                         </button>
                     )}
-                    <button type="button" onClick={() => setIsVoiceModalOpen(true)} className="p-2 text-muted-foreground hover:text-primary transition-colors hover:scale-110 active:scale-90" title="Recherche vocale" >
+                    <button type="button" onClick={() => setIsVoiceModalOpen(true)} className="p-2 text-muted-foreground hover:text-primary transition-colors hover:scale-110 active:scale-90" title={t("common.voice_search")} >
                         <Icon icon="solar:microphone-bold-duotone" className="w-5 h-5" />
                     </button>
 
-                    <button type="button" onClick={() => setIsImageModalOpen(true)} className="p-2 text-muted-foreground hover:text-primary transition-colors" title="Recherche par image (IA)" >
+                    <button type="button" onClick={() => setIsImageModalOpen(true)} className="p-2 text-muted-foreground hover:text-primary transition-colors" title={t("common.image_search")} >
                         <Icon icon="solar:camera-bold-duotone" className="w-5 h-5" />
                     </button>
 
-                    <button type="button" onClick={handleUseMyLocation} className="p-2 text-muted-foreground hover:text-primary transition-colors" title="Recherche par image (IA)" >
+                    <button type="button" onClick={handleUseMyLocation} className="p-2 text-muted-foreground hover:text-primary transition-colors" title={t("common.my_location")} >
                         <Icon icon="solar:gps-bold-duotone" className="w-5 h-5" />
-                        {/* <span className="hidden md:inline">Ma position</span> */}
                     </button>
                 </div>
-                <button type="submit" className="w-full md:w-auto bg-primary text-white px-8 py-2 rounded-xl text-base font-black flex items-center justify-center gap-3 hover:bg-secondary transition-all shadow-xs active:scale-95 flex-shrink-0 md:px-8 md:py-2" >
-                    Explorer
+                <button type="submit" className="flex-shrink-0 px-3 bg-transparent border border-border/40 text-muted-foreground hover:text-primary rounded-xl shadow-sm transition-all active:scale-95 hover:border-primary/50 flex items-center justify-center" >
                     <Icon icon="solar:magnifer-bold-duotone" className="w-5 h-5" />
                 </button>
+
+                {/* Suggestions Dropdown */}
+                {showSuggestions && (
+                    <div ref={suggestionRef} className="absolute z-50 w-full max-w-2xl mt-14 bg-card border border-border/40 rounded-xl shadow-lg overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                        {isSearchingSuggestions ? (
+                            <div className="p-4 text-center text-sm text-muted-foreground">Recherche...</div>
+                        ) : suggestions.length > 0 ? (
+                            <ul className="max-h-60 overflow-y-auto">
+                                {suggestions.map((suggestion) => (
+                                    <li key={suggestion.id} onClick={() => handleSuggestionClick(suggestion)} className="px-4 py-3 flex items-center gap-3 hover:bg-primary/10 cursor-pointer transition-colors border-b border-border/20 last:border-0" >
+                                        <Icon icon="solar:magnifer-outline" className="w-4 h-4 text-muted-foreground" />
+                                        <span className="text-foreground text-sm font-medium">{suggestion.label}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : null}
+                    </div>
+                )}
             </form>
 
             {/* Adresse */}
@@ -211,11 +288,11 @@ export default function SearchServies() {
                             <div className="flex bg-muted p-1 rounded-xl gap-1">
                                 <button onClick={() => setViewMode('map')} className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-black transition-all ${viewMode === 'map' ? 'bg-card text-primary shadow-sm' : 'text-muted-foreground hover:text-foreground'}`} >
                                     <Icon icon="solar:map-bold-duotone" className="w-4 h-4" />
-                                    Carte
+                                    {t("common.map")}
                                 </button>
                                 <button onClick={() => setViewMode('grid')} className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-black transition-all ${viewMode === 'grid' ? 'bg-card text-primary shadow-sm' : 'text-muted-foreground hover:text-foreground'}`} >
                                     <Icon icon="solar:posts-carousel-vertical-bold-duotone" className="w-4 h-4" />
-                                    Grille
+                                    {t("common.grid")}
                                 </button>
 
                             </div>
@@ -224,14 +301,14 @@ export default function SearchServies() {
 
                     {isAiLoading || (loading && displayedServices.length === 0) ? (
                         <Loader
-                            title={isAiLoading ? "Analyse IA en cours..." : "Recherche de services..."}
-                            description={isAiLoading ? "Notre IA analyse votre image pour trouver les services correspondants." : "Nous recherchons les meilleurs services disponibles pour vous."}
+                            title={isAiLoading ? t("services.ai_loading_title") : t("services.search_loading_title")}
+                            description={isAiLoading ? t("services.ai_loading_description") : t("services.search_loading_description")}
                             icon="solar:case-round-minimalistic-bold-duotone"
                         />
                     ) : displayedServices.length === 0 ? (
                         <NotFound
-                            title="Aucun service trouvé"
-                            description={aiSearchEmpty ? (aiMessage || "Aucun service ne correspond à cette image. Essayez avec une autre photo ou saisissez le nom du service.") : "Aucun service ne correspond à votre recherche. Essayez d'autres mots-clés ou une localisation différente."}
+                            title={t("services.not_found_title")}
+                            description={aiSearchEmpty ? (aiMessage || t("services.ai_not_found_description")) : t("services.not_found_description")}
                             icon="solar:case-round-minimalistic-bold-duotone"
                         />
                     ) : (
@@ -274,7 +351,7 @@ export default function SearchServies() {
                                                     </p>
                                                 </div>
                                                 <button className="flex items-center gap-1 md:gap-2 bg-secondary text-white px-2 py-1 md:px-3 md:py-2 rounded-full text-[10px] md:text-xs font-black hover:bg-primary transition-all active:scale-90 shadow-sm" >
-                                                    <span className="whitespace-nowrap">Consulter</span>
+                                                    <span className="whitespace-nowrap">{t("common.consult")}</span>
                                                     <Icon icon="solar:check-circle-bold-duotone" className="w-3 h-3 md:w-4 md:h-4" />
                                                 </button>
                                             </div>

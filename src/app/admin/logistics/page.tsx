@@ -3,27 +3,29 @@
 import React, { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Ship, FileText, Truck, Users, LayoutGrid } from "lucide-react"
+import { useTranslation } from "@/utils/langue/hooks"
 import AdminLogisticsServices from "@/components/dashboard/admin/logistics/AdminLogisticsServices"
 import AdminLogisticsQuotes from "@/components/dashboard/admin/logistics/AdminLogisticsQuotes"
 import AdminLogisticsDeliveries from "@/components/dashboard/admin/logistics/AdminLogisticsDeliveries"
 import AdminLogisticsFleet from "@/components/dashboard/admin/logistics/AdminLogisticsFleet"
 
-const TABS = [
-    { id: "services", label: "Services", icon: Ship },
-    { id: "quotes", label: "Devis", icon: FileText },
-    { id: "deliveries", label: "Livraisons", icon: Truck },
-    { id: "fleet", label: "Flotte", icon: LayoutGrid },
-];
-
 export default function AdminLogisticsPage() {
+    const { t } = useTranslation()
     const [activeTab, setActiveTab] = useState("services")
+
+    const TABS = [
+        { id: "services", label: t("admin.logistics.tabs.services"), icon: Ship },
+        { id: "quotes", label: t("admin.logistics.tabs.quotes"), icon: FileText },
+        { id: "deliveries", label: t("admin.logistics.tabs.deliveries"), icon: Truck },
+        { id: "fleet", label: t("admin.logistics.tabs.fleet"), icon: LayoutGrid },
+    ];
 
     return (
         <div className="p-6 space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">Gestion Logistique Globale</h1>
-                    <p className="text-sm text-zinc-500 dark:text-zinc-400">Supervision des services, devis, livraisons et flottes</p>
+                    <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">{t("admin.logistics.title")}</h1>
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400">{t("admin.logistics.subtitle")}</p>
                 </div>
             </div>
 

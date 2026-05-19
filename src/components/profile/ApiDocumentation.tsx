@@ -6,52 +6,8 @@ import { Button } from '@/components/ui/button';
 import { getApiKeyAuth } from '@/lib/auth';
 import { getBaseUrl } from '@/api/api';
 import { SectionHeader } from '@/components/shared/SectionHeader';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, } from 'recharts';
-
-const ENDPOINTS = [
-  {
-    category: 'Services',
-    endpoints: [
-      { method: 'GET', url: '/open-api/services', description: 'Récupérer la liste de vos services.' },
-    ],
-  },
-  {
-    category: 'Produits',
-    endpoints: [
-      { method: 'GET', url: '/open-api/products', description: 'Récupérer la liste de vos produits.' },
-    ],
-  },
-  {
-    category: 'Commandes',
-    endpoints: [
-      { method: 'GET', url: '/open-api/orders', description: 'Récupérer vos commandes (reçues et passées).' },
-    ],
-  },
-  {
-    category: 'Réservations',
-    endpoints: [
-      { method: 'GET', url: '/open-api/service-bookings', description: 'Récupérer vos réservations liées aux Services.' },
-      { method: 'GET', url: '/open-api/annonce-bookings', description: 'Récupérer vos réservations liées aux Annonces.' },
-    ],
-  },
-  {
-    category: 'Annonces',
-    endpoints: [
-      { method: 'GET', url: '/open-api/annonces', description: 'Récupérer vos annonces.' },
-      { method: 'GET', url: '/open-api/type-annonces', description: 'Récupérer les types d\'annonces disponibles.' },
-    ],
-  },
-  {
-    category: 'Logistique',
-    endpoints: [
-      { method: 'GET', url: '/open-api/logistic-services', description: 'Récupérer vos services logistiques.' },
-      { method: 'GET', url: '/open-api/quotes', description: 'Récupérer vos devis (envoyés et reçus).' },
-      { method: 'GET', url: '/open-api/deliveries', description: 'Récupérer vos livraisons.' },
-      { method: 'GET', url: '/open-api/fleet', description: 'Récupérer la liste de vos engins (véhicules, camions, etc.).' },
-      { method: 'GET', url: '/open-api/delivery-tracking?trackingCode=XXX', description: 'Suivre une livraison spécifique.', noPagination: true },
-    ],
-  },
-];
+import { useTranslation } from '@/utils/langue/hooks';
+import { XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, } from 'recharts';
 
 const getCodeExamples = (baseUrl: string, apiKey: string) => ({
   javascript: `
@@ -93,6 +49,53 @@ print(response.json())
 const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
 
 export default function ApiDocumentation() {
+  const { t } = useTranslation();
+
+  const ENDPOINTS = [
+    {
+      category: t('api.endpoints.categories.services'),
+      endpoints: [
+        { method: 'GET', url: '/open-api/services', description: t('api.endpoints.descriptions.get_services') },
+      ],
+    },
+    {
+      category: t('api.endpoints.categories.products'),
+      endpoints: [
+        { method: 'GET', url: '/open-api/products', description: t('api.endpoints.descriptions.get_products') },
+      ],
+    },
+    {
+      category: t('api.endpoints.categories.orders'),
+      endpoints: [
+        { method: 'GET', url: '/open-api/orders', description: t('api.endpoints.descriptions.get_orders') },
+      ],
+    },
+    {
+      category: t('api.endpoints.categories.bookings'),
+      endpoints: [
+        { method: 'GET', url: '/open-api/service-bookings', description: t('api.endpoints.descriptions.get_service_bookings') },
+        { method: 'GET', url: '/open-api/annonce-bookings', description: t('api.endpoints.descriptions.get_annonce_bookings') },
+      ],
+    },
+    {
+      category: t('api.endpoints.categories.annonces'),
+      endpoints: [
+        { method: 'GET', url: '/open-api/annonces', description: t('api.endpoints.descriptions.get_annonces') },
+        { method: 'GET', url: '/open-api/type-annonces', description: t('api.endpoints.descriptions.get_type_annonces') },
+      ],
+    },
+    {
+      category: t('api.endpoints.categories.logistics'),
+      endpoints: [
+        { method: 'GET', url: '/open-api/logistic-services', description: t('api.endpoints.descriptions.get_logistic_services') },
+        { method: 'GET', url: '/open-api/quotes', description: t('api.endpoints.descriptions.get_quotes') },
+        { method: 'GET', url: '/open-api/deliveries', description: t('api.endpoints.descriptions.get_deliveries') },
+        { method: 'GET', url: '/open-api/fleet', description: t('api.endpoints.descriptions.get_fleet') },
+        { method: 'GET', url: '/open-api/delivery-tracking?trackingCode=XXX', description: t('api.endpoints.descriptions.track_delivery'), noPagination: true },
+      ],
+    },
+  ];
+
   const [activeTab, setActiveTab] = useState<'docs' | 'stats'>('docs');
   const [activeLang, setActiveLang] = useState<keyof ReturnType<typeof getCodeExamples>>('javascript');
   const [responses, setResponses] = useState<Record<string, any>>({});
@@ -100,11 +103,9 @@ export default function ApiDocumentation() {
   const [loading, setLoading] = useState<Record<string, boolean>>({});
   const [tryItOut, setTryItOut] = useState<Record<string, boolean>>({});
 
-  // Analytics State
   const [analytics, setAnalytics] = useState<any>(null);
   const [loadingAnalytics, setLoadingAnalytics] = useState(false);
 
-  // Pagination State
   const [pagination, setPagination] = useState<Record<string, { page: number; limit: number }>>({});
 
   useEffect(() => {
@@ -151,14 +152,12 @@ export default function ApiDocumentation() {
       setExecutedUrls(prev => ({ ...prev, [url]: fullUrl }));
 
       const res = await fetch(fullUrl, {
-        headers: {
-          'x-api-key': apiKey,
-        },
+        headers: { 'x-api-key': apiKey },
       });
       const data = await res.json();
       setResponses(prev => ({ ...prev, [url]: data }));
     } catch (error) {
-      setResponses(prev => ({ ...prev, [url]: { error: 'Erreur lors de l’exécution' } }));
+      setResponses(prev => ({ ...prev, [url]: { error: t('api.error_load') } }));
     } finally {
       setLoading(prev => ({ ...prev, [url]: false }));
     }
@@ -169,8 +168,8 @@ export default function ApiDocumentation() {
       ...prev,
       [url]: {
         ...(prev[url] || { page: 1, limit: 10 }),
-        [field]: value
-      }
+        [field]: value,
+      },
     }));
   };
 
@@ -178,24 +177,22 @@ export default function ApiDocumentation() {
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
         <SectionHeader
-          title="Documentation API"
-          subtitle="Intégrez vos données dans vos propres systèmes grâce à notre API publique sécurisée."
+          title={t('api.title')}
+          subtitle={t('api.subtitle')}
           className="!text-left"
         />
         <div className="flex bg-muted p-1 rounded-xl">
           <button
             onClick={() => setActiveTab('docs')}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === 'docs' ? 'bg-white text-primary shadow-sm' : 'text-muted-foreground hover:bg-muted/50'
-              }`}
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === 'docs' ? 'bg-white text-primary shadow-sm' : 'text-muted-foreground hover:bg-muted/50'}`}
           >
-            Documentation
+            {t('api.documentation')}
           </button>
           <button
             onClick={() => setActiveTab('stats')}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === 'stats' ? 'bg-white text-primary shadow-sm' : 'text-muted-foreground hover:bg-muted/50'
-              }`}
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === 'stats' ? 'bg-white text-primary shadow-sm' : 'text-muted-foreground hover:bg-muted/50'}`}
           >
-            Statistiques
+            {t('api.statistics')}
           </button>
         </div>
       </div>
@@ -208,14 +205,13 @@ export default function ApiDocumentation() {
               <div className="bg-primary p-2 rounded-lg text-white">
                 <Icon icon="solar:key-bold" width={24} />
               </div>
-              <h3 className="text-xl font-bold">Authentification</h3>
+              <h3 className="text-xl font-bold">{t('api.auth_title')}</h3>
             </div>
             <p className="text-sm text-muted-foreground mb-4">
-              Toutes les requêtes API doivent inclure votre clé API dans le header <code className="bg-muted px-2 py-1 rounded">x-api-key</code>.
-              Cette fonctionnalité est réservée aux membres Premium.
+              {t('api.auth_desc')}
             </p>
             <div className="flex items-center gap-2 bg-background border border-border p-3 rounded-xl overflow-hidden">
-              <code className="text-xs flex-1 truncate">{getApiKeyAuth() || 'votre_cle_api_ici'}</code>
+              <code className="text-xs flex-1 truncate">{getApiKeyAuth() || t('api.your_api_key')}</code>
               <Button
                 variant="ghost"
                 size="sm"
@@ -234,7 +230,7 @@ export default function ApiDocumentation() {
           <div className="space-y-4">
             <h3 className="text-xl font-bold flex items-center gap-2">
               <Icon icon="solar:code-bold" className="text-primary" />
-              Exemples d'intégration
+              {t('api.integration_examples')}
             </h3>
             <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
               <div className="flex bg-muted/50 p-2 gap-2 border-b border-border">
@@ -242,8 +238,7 @@ export default function ApiDocumentation() {
                   <button
                     key={lang}
                     onClick={() => setActiveLang(lang)}
-                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${activeLang === lang ? 'bg-primary text-white shadow-md' : 'text-muted-foreground hover:bg-muted'
-                      }`}
+                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${activeLang === lang ? 'bg-primary text-white shadow-md' : 'text-muted-foreground hover:bg-muted'}`}
                   >
                     {lang.toUpperCase()}
                   </button>
@@ -261,7 +256,7 @@ export default function ApiDocumentation() {
           <div className="space-y-6">
             <h3 className="text-xl font-bold flex items-center gap-2">
               <Icon icon="solar:list-bold" className="text-primary" />
-              Endpoints disponibles
+              {t('api.available_endpoints')}
             </h3>
             {ENDPOINTS.map((cat) => (
               <div key={cat.category} className="space-y-3">
@@ -283,7 +278,7 @@ export default function ApiDocumentation() {
                           className="h-8 text-[10px] font-bold"
                           onClick={() => setTryItOut(prev => ({ ...prev, [ep.url]: !prev[ep.url] }))}
                         >
-                          {tryItOut[ep.url] ? 'Fermer' : 'Try it out'}
+                          {tryItOut[ep.url] ? t('api.close') : t('api.try_it_out')}
                         </Button>
                       </div>
 
@@ -293,7 +288,7 @@ export default function ApiDocumentation() {
                             {!ep.noPagination && (
                               <>
                                 <div className="space-y-1">
-                                  <label className="text-[10px] font-black uppercase text-muted-foreground">Page</label>
+                                  <label className="text-[10px] font-black uppercase text-muted-foreground">{t('api.page')}</label>
                                   <input
                                     type="number"
                                     value={pagination[ep.url]?.page || 1}
@@ -303,7 +298,7 @@ export default function ApiDocumentation() {
                                   />
                                 </div>
                                 <div className="space-y-1">
-                                  <label className="text-[10px] font-black uppercase text-muted-foreground">Limit</label>
+                                  <label className="text-[10px] font-black uppercase text-muted-foreground">{t('api.limit')}</label>
                                   <input
                                     type="number"
                                     value={pagination[ep.url]?.limit || 10}
@@ -321,7 +316,7 @@ export default function ApiDocumentation() {
                               onClick={() => handleExecute(ep.url, ep.noPagination)}
                               disabled={loading[ep.url]}
                             >
-                              {loading[ep.url] ? 'Exécution...' : 'Execute'}
+                              {loading[ep.url] ? t('api.executing') : t('api.execute')}
                             </Button>
                           </div>
 
@@ -329,7 +324,7 @@ export default function ApiDocumentation() {
                             <div className="space-y-4">
                               <div className="bg-slate-900 border border-slate-800 rounded-lg p-3">
                                 <div className="flex items-center justify-between mb-2">
-                                  <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Requested URL</span>
+                                  <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest">{t('api.requested_url')}</span>
                                 </div>
                                 <code className="text-[10px] text-blue-400 font-mono break-all italic">
                                   {executedUrls[ep.url]}
@@ -338,7 +333,7 @@ export default function ApiDocumentation() {
 
                               <div className="bg-slate-950 rounded-lg p-4 overflow-hidden shadow-inner">
                                 <div className="flex items-center justify-between mb-2">
-                                  <span className="text-[10px] font-black uppercase text-blue-400">Response Body</span>
+                                  <span className="text-[10px] font-black uppercase text-blue-400">{t('api.response_body')}</span>
                                   <span className="text-[10px] font-mono text-slate-500">application/json</span>
                                 </div>
                                 <pre className="text-[10px] text-green-400 font-mono overflow-auto max-h-[300px]">
@@ -361,7 +356,7 @@ export default function ApiDocumentation() {
           {loadingAnalytics ? (
             <div className="flex flex-col items-center justify-center py-20 gap-4">
               <Icon icon="svg-spinners:90-ring-with-bg" className="text-primary text-4xl" />
-              <p className="text-sm text-muted-foreground animate-pulse">Chargement des données analytiques...</p>
+              <p className="text-sm text-muted-foreground animate-pulse">{t('api.loading_analytics')}</p>
             </div>
           ) : analytics ? (
             <>
@@ -375,7 +370,7 @@ export default function ApiDocumentation() {
                     <code className="text-sm font-bold text-primary">/open-api/analytics</code>
                   </div>
                   <p className="text-xs text-muted-foreground md:ml-auto">
-                    Utilisez cet endpoint pour récupérer ces statistiques dans vos propres applications.
+                    {t('api.analytics_desc')}
                   </p>
                   <Button
                     size="sm"
@@ -384,12 +379,12 @@ export default function ApiDocumentation() {
                     onClick={fetchAnalytics}
                     disabled={loadingAnalytics}
                   >
-                    {loadingAnalytics ? 'Chargement...' : 'Try it out'}
+                    {loadingAnalytics ? t('api.executing') : t('api.try_it_out')}
                   </Button>
                 </div>
                 <div className="pt-3 border-t border-border">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest italic">Requested URL</span>
+                    <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest italic">{t('api.requested_url')}</span>
                   </div>
                   <code className="text-[10px] text-blue-400 font-mono break-all italic">
                     {getBaseUrl()}/open-api/analytics
@@ -400,25 +395,25 @@ export default function ApiDocumentation() {
               {/* Global Summary Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <Card
-                  title="Revenu Total"
+                  title={t('api.total_revenue')}
                   value={`${(analytics.services.revenue + analytics.orders.revenue).toLocaleString()} F`}
                   icon="solar:wad-of-money-bold"
                   color="text-green-500"
                 />
                 <Card
-                  title="Réservations"
+                  title={t('api.bookings')}
                   value={analytics.services.bookings + analytics.annonces.bookings}
                   icon="solar:calendar-date-bold"
                   color="text-blue-500"
                 />
                 <Card
-                  title="Commandes"
+                  title={t('api.orders')}
                   value={analytics.orders.total}
                   icon="solar:bag-bold"
                   color="text-orange-500"
                 />
                 <Card
-                  title="Logistique"
+                  title={t('api.logistics')}
                   value={analytics.logistics.deliveries}
                   icon="solar:delivery-bold"
                   color="text-purple-500"
@@ -431,7 +426,7 @@ export default function ApiDocumentation() {
                 <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
                   <h3 className="text-sm font-black uppercase tracking-wider mb-6 flex items-center gap-2">
                     <Icon icon="solar:chart-line-bold-duotone" className="text-primary" />
-                    Évolution des Réservations
+                    {t('api.bookings_evolution')}
                   </h3>
                   <div className="h-[250px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
@@ -443,8 +438,8 @@ export default function ApiDocumentation() {
                           contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
                         />
                         <Legend iconType="circle" wrapperStyle={{ fontSize: '10px', paddingTop: '20px' }} />
-                        <Line type="monotone" name="Services" dataKey="count" stroke="#3B82F6" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
-                        <Line type="monotone" name="Annonces" data={analytics.annonces.chart} dataKey="count" stroke="#10B981" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                        <Line type="monotone" name={t('api.endpoints.categories.services')} dataKey="count" stroke="#3B82F6" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                        <Line type="monotone" name={t('api.endpoints.categories.annonces')} data={analytics.annonces.chart} dataKey="count" stroke="#10B981" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
                       </LineChart>
                     </ResponsiveContainer>
                   </div>
@@ -454,7 +449,7 @@ export default function ApiDocumentation() {
                 <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
                   <h3 className="text-sm font-black uppercase tracking-wider mb-6 flex items-center gap-2">
                     <Icon icon="solar:chart-pie-bold-duotone" className="text-primary" />
-                    Statut des Commandes
+                    {t('api.order_status')}
                   </h3>
                   <div className="h-[250px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
@@ -486,30 +481,30 @@ export default function ApiDocumentation() {
               <div className="space-y-4">
                 <h3 className="text-sm font-black uppercase tracking-wider flex items-center gap-2">
                   <Icon icon="solar:database-bold-duotone" className="text-primary" />
-                  Détails par Entité
+                  {t('api.entity_details')}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <EntityBox label="Services" items={[
-                    { label: 'Total Créés', value: analytics.services.total },
-                    { label: 'Bookings', value: analytics.services.bookings },
-                    { label: 'Revenu Total', value: `${(analytics.services.revenue || 0).toLocaleString()} F`, color: 'text-green-500' },
+                  <EntityBox label={t('api.endpoints.categories.services')} items={[
+                    { label: t('api.entity.total_created'), value: analytics.services.total },
+                    { label: t('api.bookings'), value: analytics.services.bookings },
+                    { label: t('api.entity.revenue_total'), value: `${(analytics.services.revenue || 0).toLocaleString()} F`, color: 'text-green-500' },
                   ]} />
-                  <EntityBox label="Annonces" items={[
-                    { label: 'Total Créées', value: analytics.annonces.total },
-                    { label: 'Bookings', value: analytics.annonces.bookings },
-                    { label: 'Revenu Total', value: `${(analytics.annonces.revenue || 0).toLocaleString()} F`, color: 'text-green-500' },
+                  <EntityBox label={t('api.endpoints.categories.annonces')} items={[
+                    { label: t('api.entity.total_created_f'), value: analytics.annonces.total },
+                    { label: t('api.bookings'), value: analytics.annonces.bookings },
+                    { label: t('api.entity.revenue_total'), value: `${(analytics.annonces.revenue || 0).toLocaleString()} F`, color: 'text-green-500' },
                   ]} />
-                  <EntityBox label="Produits" items={[
-                    { label: 'Total Créés', value: analytics.products.total },
-                    { label: 'Stock Faible', value: analytics.products.lowStock, color: 'text-red-500' },
-                    { label: 'Revenu (Orders)', value: `${(analytics.products.revenue || 0).toLocaleString()} F`, color: 'text-green-500' },
+                  <EntityBox label={t('api.endpoints.categories.products')} items={[
+                    { label: t('api.entity.total_created'), value: analytics.products.total },
+                    { label: t('api.entity.low_stock'), value: analytics.products.lowStock, color: 'text-red-500' },
+                    { label: t('api.entity.revenue_orders'), value: `${(analytics.products.revenue || 0).toLocaleString()} F`, color: 'text-green-500' },
                   ]} />
-                  <EntityBox label="Logistique" items={[
-                    { label: 'Services', value: analytics.logistics.services },
-                    { label: 'Devis (Quotes)', value: analytics.logistics.quotes },
-                    { label: 'Flotte (Total)', value: analytics.logistics.fleet?.total || 0 },
-                    { label: 'Véhicules Actifs', value: analytics.logistics.fleet?.active || 0, color: 'text-primary' },
-                    { label: 'Revenu Total', value: `${(analytics.logistics.revenue || 0).toLocaleString()} F`, color: 'text-green-500' },
+                  <EntityBox label={t('api.endpoints.categories.logistics')} items={[
+                    { label: t('api.entity.services'), value: analytics.logistics.services },
+                    { label: t('api.entity.quotes'), value: analytics.logistics.quotes },
+                    { label: t('api.entity.fleet_total'), value: analytics.logistics.fleet?.total || 0 },
+                    { label: t('api.entity.active_vehicles'), value: analytics.logistics.fleet?.active || 0, color: 'text-primary' },
+                    { label: t('api.entity.revenue_total'), value: `${(analytics.logistics.revenue || 0).toLocaleString()} F`, color: 'text-green-500' },
                   ]} />
                 </div>
               </div>
@@ -518,7 +513,7 @@ export default function ApiDocumentation() {
               <div className="space-y-4">
                 <h3 className="text-sm font-black uppercase tracking-wider flex items-center gap-2">
                   <Icon icon="solar:code-bold-duotone" className="text-primary" />
-                  JSON Analytics (Response API)
+                  {t('api.json_preview')}
                 </h3>
                 <div className="bg-slate-950 rounded-2xl p-6 overflow-hidden relative group">
                   <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -540,8 +535,8 @@ export default function ApiDocumentation() {
           ) : (
             <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
               <Icon icon="solar:shield-warning-bold" className="text-amber-500 text-5xl" />
-              <p className="text-sm text-muted-foreground">Impossible de charger les statistiques.<br />Vérifiez votre connexion ou votre clé API.</p>
-              <Button onClick={fetchAnalytics} variant="outline" size="sm">Réessayer</Button>
+              <p className="text-sm text-muted-foreground">{t('api.error_load')}</p>
+              <Button onClick={fetchAnalytics} variant="outline" size="sm">{t('api.retry')}</Button>
             </div>
           )}
         </div>

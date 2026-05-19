@@ -10,6 +10,7 @@ import Image from "next/image"
 import dynamic from "next/dynamic"
 import NotFound from "@/components/common/NotFound"
 import Loader from "@/components/common/Loader"
+import { ReviewSection } from "@/components/shared/ReviewSection"
 
 // Lazy-load : uniquement chargé quand l'utilisateur ouvre un devis
 const QuoteRequestModal = dynamic(() => import("@/components/logistics/modals/QuoteRequestModal"), { ssr: false })
@@ -114,6 +115,17 @@ export default function LogisticsCompanyPage(props: Props) {
                     onRequestQuote={openQuoteModal}
                 />
             </div>
+
+            {/* Review Section */}
+            {companyInfo && companyInfo.id && (
+                <div className="w-full max-w-4xl mx-auto px-4 mt-12 mb-8">
+                    <ReviewSection 
+                        labelleServies="LogisticService" 
+                        targetUserId={companyInfo.id} 
+                        title={`Avis sur ${companyInfo.companyName || 'cette entreprise'}`}
+                    />
+                </div>
+            )}
 
             {/* Quote Request Modal */}
             <Modal isOpen={isQuoteModalOpen} onClose={() => setIsQuoteModalOpen(false)}>

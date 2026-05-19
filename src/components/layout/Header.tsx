@@ -14,6 +14,7 @@ import { useCart } from "@/components/providers/CartProvider";
 import CartDetailModal from "@/components/store/modals/CartDetailModal";
 import { useNotification } from "@/components/notifications/NotificationProvider";
 import { motion, AnimatePresence } from "framer-motion";
+import { LanguageToggle } from "./LanguageToggle";
 
 const NAVIGATION_TABS = [
     { key: "accueil", label: "Accueil", icon: "ic:twotone-home-max", path: "/" },
@@ -236,7 +237,24 @@ export default function Header() {
                             </button>
 
                             <ThemeToggle />
+                            <div className="hidden md:block">
+                                <LanguageToggle />
+                            </div>
                         </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Mobile Language Toggle - Floating in the top right of the expanded menu */}
+            <AnimatePresence>
+                {isMenuOpen && mounted && (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.8, y: 10 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.8, y: 10 }}
+                        className="absolute -top-12 right-0 md:hidden"
+                    >
+                        <LanguageToggle className="shadow-lg !bg-white/80 dark:!bg-zinc-900/80 backdrop-blur-md border-white/40 dark:border-white/10" />
                     </motion.div>
                 )}
             </AnimatePresence>

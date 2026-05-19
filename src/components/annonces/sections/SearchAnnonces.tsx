@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Icon } from "@iconify/react";
 import Image from 'next/image';
-import { getAnnonces } from "@/api/api";
+import { getAnnonces, searchAnnonceCategories } from "@/api/api";
 import { Annonce, UserLocation } from "@/types/interface";
 import { useUserLocation } from "@/utils/location";
 import AnnonceModal from "../../home/AnnonceModal";
@@ -13,8 +13,10 @@ import VoiceSearchModal from "@/components/services/sections/VoiceSearchModal";
 import NotFound from "@/components/common/NotFound";
 import Loader from "@/components/common/Loader";
 import ViewToggle, { ViewMode } from "@/components/shared/ViewToggle";
+import { useTranslation } from "@/utils/langue/hooks";
 
 export default function SearchAnnonces() {
+    const { t } = useTranslation();
     const { withAuth } = useRequireAuth();
     const { getUserLocation } = useUserLocation();
     const [query, setQuery] = useState("");
@@ -26,6 +28,12 @@ export default function SearchAnnonces() {
     const [address, setAddress] = useState<string>("");
     const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
     const [viewMode, setViewMode] = useState<ViewMode>("grid");
+
+    // Autocomplete states
+    const [suggestions, setSuggestions] = useState<{ id: string, name: string }[]>([]);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const [isSearchingSuggestions, setIsSearchingSuggestions] = useState(false);
+    const suggestionRef = useRef<HTMLDivElement>(null);
 
     // State-based pagination
     const [annonces, setAnnonces] = useState<Annonce[]>([]);
@@ -91,12 +99,57 @@ export default function SearchAnnonces() {
         }
     }, [page, fetchAnnonces]);
 
+    // Fetch suggestions
+    useEffect(() => {
+        const fetchSuggestions = async () => {
+            if (!query.trim() || isSearching) {
+                setSuggestions([]);
+                setShowSuggestions(false);
+                return;
+            }
+            setIsSearchingSuggestions(true);
+            try {
+                const res = await searchAnnonceCategories(query);
+                if (res.statusCode === 200 && res.data) {
+                    setSuggestions(res.data);
+                    setShowSuggestions(res.data.length > 0);
+                }
+            } catch (e) {
+                console.error("Error fetching suggestions:", e);
+            } finally {
+                setIsSearchingSuggestions(false);
+            }
+        };
+
+        const debounce = setTimeout(fetchSuggestions, 300);
+        return () => clearTimeout(debounce);
+    }, [query, isSearching]);
+
+    // Close suggestions on outside click
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (suggestionRef.current && !suggestionRef.current.contains(event.target as Node)) {
+                setShowSuggestions(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
+        setShowSuggestions(false);
         if (query.trim() || lat || lng) {
             setAnnonces([]);
             setIsSearching(true);
         }
+    };
+
+    const handleSuggestionClick = (suggestion: any) => {
+        setQuery(suggestion.name);
+        setShowSuggestions(false);
+        setAnnonces([]);
+        setIsSearching(true);
     };
 
     const handleUseMyLocation = async () => {
@@ -133,13 +186,12 @@ export default function SearchAnnonces() {
 
             {/* Search Input - Centered */}
 
-            <form onSubmit={handleSearch} className="flex flex-col md:flex-row items-center justify-center gap-4 w-full max-w-2xl mb-2">
+            <form onSubmit={handleSearch} className="flex flex-row items-stretch justify-center gap-2 w-full max-w-2xl mb-2 relative">
                 <div className="flex items-center w-full bg-card border border-primary rounded-xl px-4 py-2 shadow-sm hover:border-secondary transition-colors">
                     <Icon icon="solar:map-point-bold-duotone" className="w-4 h-4 text-muted-foreground mr-2 flex-shrink-0" />
                     <input value={query} type="text" placeholder="Quelle annonce recherchez-vous ?"
-                        className="flex-1 bg-transparent text-foreground outline-none text-sm min-w-0 md:text-sm placeholder:text-muted-foreground"
-                        onChange={(e) => { setQuery(e.target.value); }}
-                        inputMode="text" style={{ fontSize: '16px' }}
+                        className="flex-1 bg-transparent text-foreground outline-none text-sm min-w-0 placeholder:text-muted-foreground"
+                        onChange={(e) => setQuery(e.target.value)}
                     />
                     {query && (
                         <button type="button" onClick={() => setQuery("")} className="p-1 text-muted-foreground hover:text-primary transition-colors animate-in fade-in zoom-in duration-200" title="Effacer la recherche" >
@@ -154,10 +206,27 @@ export default function SearchAnnonces() {
                         <Icon icon="solar:gps-bold-duotone" className="w-5 h-5" />
                     </button>
                 </div>
-                <button type="submit" className="w-full md:w-auto bg-primary text-white px-8 py-2 rounded-xl text-base font-black flex items-center justify-center gap-3 hover:bg-secondary transition-all shadow-xs active:scale-95 flex-shrink-0 md:px-8 md:py-2" >
-                    Explorer
+                <button type="submit" className="flex-shrink-0 px-3 bg-transparent border border-border/40 text-muted-foreground hover:text-primary rounded-xl shadow-sm transition-all active:scale-95 hover:border-primary/50 flex items-center justify-center" >
                     <Icon icon="solar:magnifer-bold-duotone" className="w-5 h-5" />
                 </button>
+
+                {/* Suggestions Dropdown */}
+                {showSuggestions && (
+                    <div ref={suggestionRef} className="absolute z-50 w-full max-w-2xl mt-14 bg-card border border-border/40 rounded-xl shadow-lg overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                        {isSearchingSuggestions ? (
+                            <div className="p-4 text-center text-sm text-muted-foreground">Recherche...</div>
+                        ) : suggestions.length > 0 ? (
+                            <ul className="max-h-60 overflow-y-auto">
+                                {suggestions.map((suggestion) => (
+                                    <li key={suggestion.id} onClick={() => handleSuggestionClick(suggestion)} className="px-4 py-3 flex items-center gap-3 hover:bg-primary/10 cursor-pointer transition-colors border-b border-border/20 last:border-0" >
+                                        <Icon icon="solar:magnifer-outline" className="w-4 h-4 text-muted-foreground" />
+                                        <span className="text-foreground text-sm font-medium">{suggestion.name}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : null}
+                    </div>
+                )}
             </form>
 
             {/* Adresse */}
@@ -202,21 +271,12 @@ export default function SearchAnnonces() {
                         skeletonCount={3}
                         gridClassName={viewMode === 'grid' ? "grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-6" : "grid grid-cols-1 gap-4"}
                         renderItem={(annonce: Annonce) => (
-                            <div key={annonce.id} onClick={() => withAuth(() => setSelectedAnnonce(annonce))} 
-                                className={`group rounded-xl transition-all duration-300 cursor-pointer bg-card border border-border/40 hover:border-primary/30 overflow-hidden ${
-                                    viewMode === 'grid' 
-                                    ? "p-0 md:p-4 flex flex-col md:items-center text-left md:text-center" 
-                                    : "p-2 md:p-4 flex flex-row items-center gap-4 text-left"
-                                }`}>
+                            <div key={annonce.id} onClick={() => withAuth(() => setSelectedAnnonce(annonce))} className={`group rounded-xl transition-all duration-300 cursor-pointer bg-card border border-border/40 hover:border-primary/30 overflow-hidden ${viewMode === 'grid' ? "p-0 md:p-4 flex flex-col md:items-center text-left md:text-center" : "p-2 md:p-4 flex flex-row items-center gap-4 text-left"}`}>
                                 {/* Image */}
-                                <div className={`relative overflow-hidden rounded-lg md:rounded-2xl shrink-0 ${
-                                    viewMode === 'grid' ? "w-full aspect-square mb-1.5" : "w-24 h-24 md:w-32 md:h-32"
-                                }`}>
+                                <div className={`relative overflow-hidden rounded-lg md:rounded-2xl shrink-0 ${viewMode === 'grid' ? "w-full aspect-square mb-1.5" : "w-24 h-24 md:w-32 md:h-32"}`}>
                                     <Image src={(annonce.images?.[0] && typeof annonce.images?.[0] === 'string') ? annonce.images[0] : (Array.isArray(annonce.images) && (annonce.images[0] as any)?.fileUrl) || 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop'} alt={annonce.title} fill unoptimized className="object-cover group-hover:scale-110 transition-transform duration-500" />
                                     {annonce.categorie && (
-                                        <div className={`absolute bg-black/70 md:bg-background/95 backdrop-blur-sm px-1.5 py-0.5 md:px-2 md:py-0.5 rounded-full text-[8px] md:text-[9px] font-black text-white md:text-foreground shadow-sm uppercase tracking-tighter ${
-                                            viewMode === 'grid' ? "top-1 left-1 md:top-2 md:left-2" : "top-1 left-1"
-                                        }`}>
+                                        <div className={`absolute bg-black/70 md:bg-background/95 backdrop-blur-sm px-1.5 py-0.5 md:px-2 md:py-0.5 rounded-full text-[8px] md:text-[9px] font-black text-white md:text-foreground shadow-sm uppercase tracking-tighter ${viewMode === 'grid' ? "top-1 left-1 md:top-2 md:left-2" : "top-1 left-1"}`}>
                                             {annonce.categorie.label}
                                         </div>
                                     )}
@@ -224,15 +284,11 @@ export default function SearchAnnonces() {
 
                                 {/* Contenu */}
                                 <div className={`flex flex-col flex-1 min-w-0 ${viewMode === 'grid' ? "px-0.5 pb-0 md:px-0 md:pb-0 w-full" : "h-full justify-center"}`}>
-                                    <h3 className={`font-black text-foreground mb-1 group-hover:text-primary transition-colors leading-tight truncate ${
-                                        viewMode === 'grid' ? "text-xs md:text-base line-clamp-2 md:line-clamp-1 text-left md:text-center w-full" : "text-sm md:text-lg"
-                                    }`}>
+                                    <h3 className={`font-black text-foreground mb-1 group-hover:text-primary transition-colors leading-tight truncate ${viewMode === 'grid' ? "text-xs md:text-base line-clamp-2 md:line-clamp-1 text-left md:text-center w-full" : "text-sm md:text-lg"}`}>
                                         {annonce.title}
                                     </h3>
 
-                                    <div className={`flex items-center gap-1 text-primary ${
-                                        viewMode === 'grid' ? "justify-start md:justify-center mb-2 md:mb-4" : "justify-start mb-1 md:mb-2"
-                                    }`}>
+                                    <div className={`flex items-center gap-1 text-primary ${viewMode === 'grid' ? "justify-start md:justify-center mb-2 md:mb-4" : "justify-start mb-1 md:mb-2"}`}>
                                         <Icon icon="solar:star-bold-duotone" className="w-2.5 h-2.5 fill-current md:w-3 md:h-3" />
                                         <span className="text-[9px] md:text-xs font-black tracking-tight">
                                             4.9 • <span className="text-muted-foreground">
@@ -248,9 +304,8 @@ export default function SearchAnnonces() {
                                             </p>
                                         </div>
 
-                                        <button className={`flex items-center gap-1 md:gap-2 bg-secondary text-white rounded-full font-black hover:bg-primary transition-all active:scale-90 shadow-sm ${
-                                            viewMode === 'grid' ? "px-2 py-1 md:px-3 md:py-2 text-[10px] md:text-xs" : "px-3 py-1.5 md:px-5 md:py-2.5 text-xs md:text-sm"
-                                        }`}>
+                                        <button className={`flex items-center gap-1 md:gap-2 bg-secondary text-white rounded-full font-black hover:bg-primary transition-all active:scale-90 shadow-sm ${viewMode === 'grid' ? "px-2 py-1 md:px-3 md:py-2 text-[10px] md:text-xs" : "px-3 py-1.5 md:px-5 md:py-2.5 text-xs md:text-sm"
+                                            }`}>
                                             <span className="whitespace-nowrap">{viewMode === 'grid' ? "Consulter" : "Voir l'annonce"}</span>
                                             <Icon icon="solar:check-circle-bold-duotone" className="w-3 h-3 md:w-4 md:h-4" />
                                         </button>

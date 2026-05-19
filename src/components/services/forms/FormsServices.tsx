@@ -11,23 +11,24 @@ import { Select2 } from "@/components/ui/Select2";
 import { Category, ServiceStatus, ServiceType, UserLocation } from "@/types/interface";
 import { useUserLocation } from "@/utils/location";
 import RichTextEditor from "@/components/ui/editor";
+import { useTranslation } from "@/utils/langue/hooks";
 
-const serviceSchema = z.object({
-    title: z.string().min(3, "Le titre doit contenir au moins 3 caractères").max(100, "Le titre est trop long"),
-    description: z.string().min(10, "La description doit contenir au moins 10 caractères").max(2000, "Description trop longue"),
+const serviceSchema = (t: any) => z.object({
+    title: z.string().min(3, t("akwaba.forms.service.errors.title_min")).max(100, t("akwaba.forms.service.errors.title_max")),
+    description: z.string().min(10, t("akwaba.forms.service.errors.desc_min")).max(2000, t("akwaba.forms.service.errors.desc_max")),
     type: z.nativeEnum(ServiceType),
     status: z.nativeEnum(ServiceStatus),
-    price: z.number().positive("Le prix doit être positif").optional(),
-    frais: z.number().nonnegative("Les frais doivent être positifs").optional(),
-    reduction: z.number().min(0, "La réduction ne peut pas être négative").max(100, "La réduction ne peut pas dépasser 100%").optional(),
+    price: z.number().positive(t("akwaba.forms.service.errors.price_positive")).optional(),
+    frais: z.number().nonnegative(t("akwaba.forms.service.errors.frais_positive")).optional(),
+    reduction: z.number().min(0, t("akwaba.forms.service.errors.reduction_range")).max(100, t("akwaba.forms.service.errors.reduction_range")).optional(),
     tags: z.array(z.string()),
-    latitude: z.number({ message: "La localisation est obligatoire" }).refine(val => val !== 0, "Veuillez renseigner votre position"),
-    longitude: z.number({ message: "La localisation est obligatoire" }).refine(val => val !== 0, "Veuillez renseigner votre position"),
-    categoryIds: z.array(z.string().uuid("Veuillez sélectionner une catégorie")).min(1, "Veuillez sélectionner au moins une catégorie"),
+    latitude: z.number({ message: t("akwaba.forms.service.errors.location_required") }).refine(val => val !== 0, t("akwaba.forms.service.errors.location_placeholder")),
+    longitude: z.number({ message: t("akwaba.forms.service.errors.location_required") }).refine(val => val !== 0, t("akwaba.forms.service.errors.location_placeholder")),
+    categoryIds: z.array(z.string().uuid(t("akwaba.forms.service.errors.cat_required"))).min(1, t("akwaba.forms.service.errors.cat_required")),
     images: z.array(z.instanceof(File)).optional(),
 });
 
-export type ServiceFormData = z.infer<typeof serviceSchema>;
+export type ServiceFormData = z.infer<ReturnType<typeof serviceSchema>>;
 
 interface FormsServicesProps {
     initialData?: Partial<ServiceFormData & { id?: string; imageUrls?: string[]; files?: any[]; categories?: any[] }>;
@@ -38,22 +39,23 @@ interface FormsServicesProps {
     onClose: () => void;
 }
 
-const SERVICE_TYPE_OPTIONS = [
-    { id: ServiceType.DEPANNAGE, label: "🔧 DÉPANNAGE" },
-    { id: ServiceType.VENTE, label: "🛒 VENTE" },
-    { id: ServiceType.LOCATION, label: "📦 LOCATION" },
-    { id: ServiceType.INSTALLATION, label: "⚙️ INSTALLATION" },
-    { id: ServiceType.CONSEIL, label: "💡 CONSEIL" },
-];
-
-const SERVICE_STATUS_OPTIONS = [
-    { id: ServiceStatus.AVAILABLE, label: "✅ DISPONIBLE" },
-    { id: ServiceStatus.UNAVAILABLE, label: "❌ INDISPONIBLE" },
-    { id: ServiceStatus.PENDING, label: "⏳ EN ATTENTE" },
-];
-
 export default function FormsServices({ initialData, onSubmit, isSubmitting = false, isEditMode = false, isOpen, onClose }: FormsServicesProps) {
+    const { t } = useTranslation();
     const { getUserLocation } = useUserLocation();
+
+    const SERVICE_TYPE_OPTIONS = [
+        { id: ServiceType.DEPANNAGE, label: t("akwaba.forms.service.types.repair") },
+        { id: ServiceType.VENTE, label: t("akwaba.forms.service.types.sale") },
+        { id: ServiceType.LOCATION, label: t("akwaba.forms.service.types.rental") },
+        { id: ServiceType.INSTALLATION, label: t("akwaba.forms.service.types.installation") },
+        { id: ServiceType.CONSEIL, label: t("akwaba.forms.service.types.consulting") },
+    ];
+
+    const SERVICE_STATUS_OPTIONS = [
+        { id: ServiceStatus.AVAILABLE, label: t("akwaba.forms.service.status.available") },
+        { id: ServiceStatus.UNAVAILABLE, label: t("akwaba.forms.service.status.unavailable") },
+        { id: ServiceStatus.PENDING, label: t("akwaba.forms.service.status.pending") },
+    ];
 
     const [categories, setCategories] = useState<Category[]>([]);
     const [isLoadingCategories, setIsLoadingCategories] = useState(false);
@@ -73,7 +75,7 @@ export default function FormsServices({ initialData, onSubmit, isSubmitting = fa
     const [address, setAddress] = useState<string>("");
 
     const { register, handleSubmit, setValue, watch, control, formState: { errors }, reset } = useForm<ServiceFormData>({
-        resolver: zodResolver(serviceSchema),
+        resolver: zodResolver(serviceSchema(t)),
         defaultValues: {
             title: initialData?.title || "",
             description: initialData?.description || "",
@@ -185,14 +187,14 @@ export default function FormsServices({ initialData, onSubmit, isSubmitting = fa
                     <div className="flex items-center justify-between mb-6">
                         <h3 className="text-sm font-black text-foreground uppercase tracking-tight flex items-center gap-2">
                             <Icon icon="solar:gallery-bold-duotone" className="w-5 h-5 text-primary" />
-                            Photos du Service
+                            {t("akwaba.forms.service.photos_title")}
                         </h3>
                         <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{existingImageUrls.length + images.length}/8</span>
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-4">
                         <label className={`h-24 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center bg-muted/30 transition-colors ${(existingImageUrls.length + images.length) >= 8 ? 'opacity-50 cursor-not-allowed' : 'border-border hover:border-primary cursor-pointer border-primary/20'}`}>
                             <Icon icon="solar:camera-add-bold-duotone" className="w-6 h-6 text-muted-foreground" />
-                            <span className="text-[10px] font-black text-muted-foreground mt-1 uppercase">Ajouter</span>
+                            <span className="text-[10px] font-black text-muted-foreground mt-1 uppercase">{t("akwaba.forms.annonce.add_photo")}</span>
                             <input type="file" accept="image/*" onChange={(e) => e.target.files && handleImageUpload(e.target.files)} multiple disabled={(existingImageUrls.length + images.length) >= 8} className="hidden" />
                         </label>
                         {existingImageUrls.map((img, i) => (
@@ -224,29 +226,29 @@ export default function FormsServices({ initialData, onSubmit, isSubmitting = fa
                         <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
                             <Icon icon="solar:info-square-bold-duotone" className="w-5 h-5 text-primary" />
                         </div>
-                        <h3 className="text-sm font-black text-foreground uppercase tracking-tight">Configuration</h3>
+                        <h3 className="text-sm font-black text-foreground uppercase tracking-tight">{t("akwaba.forms.service.config_title")}</h3>
                     </div>
 
                     <div className="space-y-1">
-                        <label className="text-[10px] font-black text-muted-foreground uppercase ml-1">Titre du service</label>
-                        <input {...register("title")} placeholder="Ex: Maintenance Climatisation" className="w-full h-12 px-4 rounded-xl border border-border bg-muted/30 outline-none focus:border-primary transition-all font-bold text-sm" />
+                        <label className="text-[10px] font-black text-muted-foreground uppercase ml-1">{t("akwaba.forms.service.title_label")}</label>
+                        <input {...register("title")} placeholder={t("akwaba.forms.service.title_placeholder")} className="w-full h-12 px-4 rounded-xl border border-border bg-muted/30 outline-none focus:border-primary transition-all font-bold text-sm" />
                         {errors.title && <p className="text-red-500 text-[10px] font-bold mt-1 uppercase">{errors.title.message}</p>}
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-1">
-                            <label className="text-[10px] font-black text-muted-foreground uppercase ml-1">Type de service</label>
-                            <Select2 options={SERVICE_TYPE_OPTIONS} labelExtractor={(o) => o.label} valueExtractor={(o) => o.id} selectedItem={watch("type")} onSelectionChange={(v) => setValue("type", v as ServiceType)} placeholder="Choisir le type..." />
+                            <label className="text-[10px] font-black text-muted-foreground uppercase ml-1">{t("akwaba.forms.annonce.type")}</label>
+                            <Select2 options={SERVICE_TYPE_OPTIONS} labelExtractor={(o) => o.label} valueExtractor={(o) => o.id} selectedItem={watch("type")} onSelectionChange={(v) => setValue("type", v as ServiceType)} placeholder={t("akwaba.forms.annonce.type_placeholder")} />
                         </div>
                         <div className="space-y-1">
-                            <label className="text-[10px] font-black text-muted-foreground uppercase ml-1">Statut</label>
-                            <Select2 options={SERVICE_STATUS_OPTIONS} labelExtractor={(o) => o.label} valueExtractor={(o) => o.id} selectedItem={watch("status")} onSelectionChange={(v) => setValue("status", v as ServiceStatus)} placeholder="Statut..." />
+                            <label className="text-[10px] font-black text-muted-foreground uppercase ml-1">{t("akwaba.forms.annonce.status_label")}</label>
+                            <Select2 options={SERVICE_STATUS_OPTIONS} labelExtractor={(o) => o.label} valueExtractor={(o) => o.id} selectedItem={watch("status")} onSelectionChange={(v) => setValue("status", v as ServiceStatus)} placeholder={t("akwaba.forms.annonce.status_placeholder")} />
                         </div>
                     </div>
 
                     <div className="space-y-1">
-                        <label className="text-[10px] font-black text-muted-foreground uppercase ml-1">Catégorie</label>
-                        <Select2 options={categories} labelExtractor={(cat) => cat.label} valueExtractor={(cat) => cat.id} placeholder="Choisir des catégories..." mode="multiple" selectedItem={selectedCategoryIds} onSelectionChange={(v) => setSelectedCategoryIds(v as string[])} />
+                        <label className="text-[10px] font-black text-muted-foreground uppercase ml-1">{t("akwaba.forms.service.category")}</label>
+                        <Select2 options={categories} labelExtractor={(cat) => cat.label} valueExtractor={(cat) => cat.id} placeholder={t("akwaba.forms.service.category_placeholder")} mode="multiple" selectedItem={selectedCategoryIds} onSelectionChange={(v) => setSelectedCategoryIds(v as string[])} />
                         {errors.categoryIds && <p className="text-red-500 text-[10px] font-bold mt-1 uppercase">{errors.categoryIds.message}</p>}
                     </div>
                 </div>
@@ -257,19 +259,19 @@ export default function FormsServices({ initialData, onSubmit, isSubmitting = fa
                         <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
                             <Icon icon="solar:tag-price-bold-duotone" className="text-emerald-600 w-5 h-5" />
                         </div>
-                        <h3 className="text-sm font-black text-foreground uppercase tracking-tight">Tarification</h3>
+                        <h3 className="text-sm font-black text-foreground uppercase tracking-tight">{t("akwaba.forms.annonce.finances")}</h3>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="space-y-1">
-                            <label className="text-[10px] font-black text-muted-foreground uppercase ml-1">Prix de base (FCFA)</label>
+                            <label className="text-[10px] font-black text-muted-foreground uppercase ml-1">{t("akwaba.forms.service.price_label")}</label>
                             <input type="number" {...register("price", { valueAsNumber: true })} placeholder="0" className="w-full h-12 px-4 rounded-xl border border-border bg-muted/30 outline-none focus:border-primary transition-all font-bold text-sm" />
                         </div>
                         <div className="space-y-1">
-                            <label className="text-[10px] font-black text-muted-foreground uppercase ml-1">Frais TP (FCFA)</label>
+                            <label className="text-[10px] font-black text-muted-foreground uppercase ml-1">{t("akwaba.forms.annonce.frais_label", "Frais TP (FCFA)")}</label>
                             <input type="number" {...register("frais", { valueAsNumber: true })} placeholder="0" className="w-full h-12 px-4 rounded-xl border border-border bg-muted/30 outline-none focus:border-primary transition-all font-bold text-sm" />
                         </div>
                         <div className="space-y-1">
-                            <label className="text-[10px] font-black text-muted-foreground uppercase ml-1">Réduction (%)</label>
+                            <label className="text-[10px] font-black text-muted-foreground uppercase ml-1">{t("akwaba.forms.annonce.reduction_label", "Réduction (%)")}</label>
                             <input type="number" {...register("reduction", { valueAsNumber: true })} placeholder="0" className="w-full h-12 px-4 rounded-xl border border-border bg-muted/30 outline-none focus:border-primary transition-all font-bold text-sm" />
                         </div>
                     </div>
@@ -279,20 +281,20 @@ export default function FormsServices({ initialData, onSubmit, isSubmitting = fa
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="bg-card rounded-[2rem] border border-border p-6  space-y-4">
                         <h3 className="text-xs font-black text-muted-foreground uppercase tracking-tight flex items-center justify-between">
-                            Localisation
-                            <button type="button" onClick={getCurrentLocation} className="text-primary hover:underline">{locationLoading ? '...' : 'Utiliser GPS'}</button>
+                            {t("akwaba.forms.annonce.location_title")}
+                            <button type="button" onClick={getCurrentLocation} className="text-primary hover:underline">{locationLoading ? '...' : t("akwaba.forms.annonce.location_gps")}</button>
                         </h3>
                         <div className="flex items-center gap-2 text-sm font-bold text-foreground">
                             <Icon icon="solar:map-point-bold-duotone" className="text-primary w-5 h-5" />
-                            {address || "Non renseignée"}
+                            {address || t("akwaba.forms.annonce.location_select")}
                         </div>
-                        {(errors.latitude || errors.longitude) && <p className="text-red-500 text-[10px] font-bold uppercase">Position requise</p>}
+                        {(errors.latitude || errors.longitude) && <p className="text-red-500 text-[10px] font-bold uppercase">{t("akwaba.forms.service.errors.location_required")}</p>}
                     </div>
 
                     <div className="bg-card rounded-[2rem] border border-border p-6  space-y-4">
-                        <h3 className="text-xs font-black text-muted-foreground uppercase tracking-tight">Mots-clés / Tags</h3>
+                        <h3 className="text-xs font-black text-muted-foreground uppercase tracking-tight">{t("akwaba.forms.annonce.tags_title")}</h3>
                         <div className="flex gap-2">
-                            <input value={tagInput} onChange={(e) => setTagInput(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())} placeholder="Nouveau tag..." className="flex-1 h-10 px-3 rounded-xl border border-border bg-muted/30 text-xs font-bold outline-none" />
+                            <input value={tagInput} onChange={(e) => setTagInput(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())} placeholder={t("akwaba.forms.annonce.tag_placeholder")} className="flex-1 h-10 px-3 rounded-xl border border-border bg-muted/30 text-xs font-bold outline-none" />
                             <button type="button" onClick={addTag} className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center"><Icon icon="solar:add-circle-bold" /></button>
                         </div>
                         <div className="flex flex-wrap gap-1.5">
@@ -308,7 +310,7 @@ export default function FormsServices({ initialData, onSubmit, isSubmitting = fa
 
                 {/* Description Section */}
                 <div className="bg-card rounded-[2rem] border border-border p-6  space-y-4">
-                    <h3 className="text-sm font-black text-foreground uppercase tracking-tight">Description détaillée</h3>
+                    <h3 className="text-sm font-black text-foreground uppercase tracking-tight">{t("akwaba.forms.service.description_title")}</h3>
                     <div className="border border-border rounded-2xl overflow-hidden min-h-[200px]">
                         <Controller name="description" control={control} render={({ field }) => (
                             <RichTextEditor content={field.value} onChange={field.onChange} editable={true} />
@@ -320,10 +322,10 @@ export default function FormsServices({ initialData, onSubmit, isSubmitting = fa
             {/* Actions */}
             <div className="sticky bottom-0 p-6 bg-card border-t border-border flex flex-col md:flex-row gap-3 z-10">
                 <button type="button" onClick={onClose} className="px-6 py-3 rounded-2xl border border-border text-xs font-bold hover:bg-muted transition-all uppercase tracking-wider h-12 flex-1">
-                    Annuler
+                    {t("akwaba.forms.service.cancel")}
                 </button>
                 <button type="submit" disabled={isSubmitting} className="bg-primary text-white px-8 py-3 rounded-2xl text-xs font-black hover:bg-secondary transition-all shadow-xl shadow-primary/20 h-12 flex-[2] flex items-center justify-center gap-2 uppercase tracking-widest">
-                    {isSubmitting ? <Icon icon="solar:refresh-bold-duotone" className="animate-spin" /> : <><Icon icon="solar:check-circle-bold" /> {isEditMode ? 'Mettre à jour' : 'Publier le service'}</>}
+                    {isSubmitting ? <Icon icon="solar:refresh-bold-duotone" className="animate-spin" /> : <><Icon icon="solar:check-circle-bold" /> {isEditMode ? t("akwaba.forms.service.submit_update") : t("akwaba.forms.service.submit_publish")}</>}
                 </button>
             </div>
         </form>

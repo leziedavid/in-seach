@@ -6,17 +6,19 @@ import { adminGetLogisticsQuotes } from "@/api/api"
 import { Quote, QuoteStatus } from "@/types/interface"
 import { toast } from "sonner"
 import { TablePagination } from "@/components/ui/table/Pagination"
-
-const STATUS_LABELS: Record<QuoteStatus, { label: string, color: string }> = {
-    PENDING: { label: "En attente", color: "bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-500" },
-    REVIEWING: { label: "En examen", color: "bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-500" },
-    PROPOSED: { label: "Offre envoyée", color: "bg-indigo-100 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-500" },
-    ACCEPTED: { label: "Accepté", color: "bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-500" },
-    REJECTED: { label: "Refusé", color: "bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-500" },
-    CANCELLED: { label: "Annulé", color: "bg-zinc-100 text-zinc-700 dark:bg-zinc-500/10 dark:text-zinc-500" },
-};
+import { useTranslation } from "@/utils/langue/hooks"
 
 export default function AdminLogisticsQuotes() {
+    const { t } = useTranslation()
+
+    const STATUS_LABELS: Record<QuoteStatus, { label: string, color: string }> = {
+        PENDING: { label: t("admin.logistics.status.PENDING"), color: "bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-500" },
+        REVIEWING: { label: t("admin.logistics.status.REVIEWING"), color: "bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-500" },
+        PROPOSED: { label: t("admin.logistics.status.PROPOSED"), color: "bg-indigo-100 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-500" },
+        ACCEPTED: { label: t("admin.logistics.status.ACCEPTED"), color: "bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-500" },
+        REJECTED: { label: t("admin.logistics.status.REJECTED"), color: "bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-500" },
+        CANCELLED: { label: t("admin.logistics.status.CANCELLED"), color: "bg-zinc-100 text-zinc-700 dark:bg-zinc-500/10 dark:text-zinc-500" },
+    };
     const [quotes, setQuotes] = useState<Quote[]>([])
     const [loading, setLoading] = useState(true)
     const [searchQuery, setSearchQuery] = useState("")
@@ -39,7 +41,7 @@ export default function AdminLogisticsQuotes() {
                 setTotalItems(res.data.total)
             }
         } catch (error) {
-            toast.error("Erreur lors du chargement des devis")
+            toast.error(t("admin.logistics.errors.load_quotes"))
         } finally {
             setLoading(false)
         }
@@ -52,7 +54,7 @@ export default function AdminLogisticsQuotes() {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" />
                     <input
                         type="text"
-                        placeholder="Rechercher un devis..."
+                        placeholder={t("admin.logistics.placeholders.search_quotes")}
                         className="w-full pl-10 pr-4 py-2 bg-zinc-50 dark:bg-zinc-800 border-none rounded-xl focus:ring-2 focus:ring-primary/20 transition-all text-sm"
                         value={searchQuery}
                         onChange={(e) => {
@@ -62,7 +64,7 @@ export default function AdminLogisticsQuotes() {
                     />
                 </div>
                 <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                    {totalItems} Devis au total
+                    {t("admin.logistics.counts.quotes", { count: totalItems })}
                 </div>
             </div>
 
@@ -71,23 +73,23 @@ export default function AdminLogisticsQuotes() {
                     {loading ? (
                         <div className="flex flex-col items-center justify-center py-20 gap-4">
                             <Loader2 className="w-8 h-8 text-primary animate-spin" />
-                            <p className="text-sm text-zinc-500">Chargement des devis...</p>
+                            <p className="text-sm text-zinc-500">{t("common.loading")}</p>
                         </div>
                     ) : quotes.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-20 gap-4">
                             <FileText className="w-12 h-12 text-zinc-300" />
-                            <p className="text-zinc-500">Aucun devis trouvé</p>
+                            <p className="text-zinc-500">{t("common.no_results")}</p>
                         </div>
                     ) : (
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="bg-zinc-50 dark:bg-zinc-800/50 text-zinc-500 dark:text-zinc-400 text-xs font-semibold uppercase tracking-wider">
-                                    <th className="px-6 py-4">Client</th>
-                                    <th className="px-6 py-4">Prestataire</th>
-                                    <th className="px-6 py-4">Trajet</th>
-                                    <th className="px-6 py-4">Montant</th>
-                                    <th className="px-6 py-4">Statut</th>
-                                    <th className="px-6 py-4 text-right">Actions</th>
+                                    <th className="px-6 py-4">{t("common.client")}</th>
+                                    <th className="px-6 py-4">{t("common.provider")}</th>
+                                    <th className="px-6 py-4">{t("common.route")}</th>
+                                    <th className="px-6 py-4">{t("common.amount")}</th>
+                                    <th className="px-6 py-4">{t("common.status")}</th>
+                                    <th className="px-6 py-4 text-right">{t("common.actions")}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">

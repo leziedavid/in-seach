@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import { Icon } from "@iconify/react";
 import Image from "next/image";
 
+import { useTranslation } from "@/utils/langue/hooks";
+
 interface LogoUploadFormProps {
     currentLogo?: string;
     onSubmit: (file: File) => Promise<void>;
@@ -12,6 +14,7 @@ interface LogoUploadFormProps {
 }
 
 export default function LogoUploadForm({ currentLogo, onSubmit, onClose, isSubmitting }: LogoUploadFormProps) {
+    const { t } = useTranslation();
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(currentLogo || null);
 
@@ -19,11 +22,11 @@ export default function LogoUploadForm({ currentLogo, onSubmit, onClose, isSubmi
         const file = e.target.files?.[0];
         if (file) {
             if (!['image/png', 'image/jpeg', 'image/jpg'].includes(file.type)) {
-                alert("Veuillez sélectionner une image PNG ou JPEG.");
+                alert(t("akwaba.settings.invalid_file_type"));
                 return;
             }
             if (file.size > 5 * 1024 * 1024) {
-                alert("L'image ne doit pas dépasser 5 Mo.");
+                alert(t("akwaba.settings.file_too_large"));
                 return;
             }
             setSelectedFile(file);
@@ -55,14 +58,14 @@ export default function LogoUploadForm({ currentLogo, onSubmit, onClose, isSubmi
                     ) : (
                         <div className="text-center p-8">
                             <Icon icon="solar:globus-bold-duotone" className="w-16 h-16 text-muted-foreground mx-auto mb-2" />
-                            <p className="text-sm text-muted-foreground font-medium">Aucun logo sélectionné</p>
+                            <p className="text-sm text-muted-foreground font-medium">{t("akwaba.settings.no_doc")}</p>
                         </div>
                     )}
                 </div>
 
                 <label className="flex items-center gap-2 px-6 py-3 bg-primary/10 text-primary rounded-xl cursor-pointer hover:bg-primary/20 transition-all font-black text-sm">
                     <Icon icon="solar:upload-minimalistic-bold-duotone" className="w-5 h-5" />
-                    Importer le logo
+                    {t("akwaba.settings.upload_logo")}
                     <input
                         type="file"
                         accept="image/*"
@@ -78,7 +81,7 @@ export default function LogoUploadForm({ currentLogo, onSubmit, onClose, isSubmi
                     onClick={onClose}
                     className="px-4 py-2 text-sm font-bold text-muted-foreground hover:bg-muted rounded-lg transition-all"
                 >
-                    Annuler
+                    {t("common.cancel")}
                 </button>
                 <button
                     type="submit"
@@ -90,7 +93,7 @@ export default function LogoUploadForm({ currentLogo, onSubmit, onClose, isSubmi
                     ) : (
                         <Icon icon="solar:check-circle-bold" className="w-4 h-4" />
                     )}
-                    Enregistrer le logo
+                    {t("akwaba.settings.save_doc")}
                 </button>
             </div>
         </form>

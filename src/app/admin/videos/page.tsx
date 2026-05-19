@@ -6,8 +6,10 @@ import { Plus, Search, MoreHorizontal, Trash2, Edit2, ExternalLink, Video, PlayC
 import { getVideos, adminCreateVideo, adminUpdateVideo, adminDeleteVideo } from "@/api/api"
 import { Video as IVideo } from "@/types/interface"
 import { toast } from "sonner"
+import { useTranslation } from "@/utils/langue/hooks"
 
 export default function AdminVideosPage() {
+  const { t } = useTranslation()
   const [videos, setVideos] = useState<IVideo[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
@@ -27,20 +29,20 @@ export default function AdminVideosPage() {
         setVideos(res.data)
       }
     } catch (error) {
-      toast.error("Erreur lors du chargement des vidéos")
+      toast.error(t("admin.videos.error_load"))
     } finally {
       setLoading(false)
     }
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Êtes-vous sûr de vouloir supprimer cette vidéo ?")) return
+    if (!confirm(t("admin.videos.confirm_delete"))) return
     try {
       await adminDeleteVideo(id)
       setVideos(videos.filter(v => v.id !== id))
-      toast.success("Vidéo supprimée avec succès")
+      toast.success(t("admin.videos.success_delete"))
     } catch (error) {
-      toast.error("Erreur lors de la suppression")
+      toast.error(t("common.error"))
     }
   }
 
@@ -55,20 +57,20 @@ export default function AdminVideosPage() {
         const res = await adminUpdateVideo(currentVideo.id, currentVideo)
         if (res.data) {
           setVideos(videos.map(v => v.id === currentVideo.id ? res.data! : v))
-          toast.success("Vidéo mise à jour")
+          toast.success(t("admin.videos.success_update"))
         }
       } else {
         // Create
         const res = await adminCreateVideo(currentVideo)
         if (res.data) {
           setVideos([res.data, ...videos])
-          toast.success("Vidéo ajoutée")
+          toast.success(t("admin.videos.success_create"))
         }
       }
       setIsModalOpen(false)
       setCurrentVideo(null)
     } catch (error) {
-      toast.error("Erreur lors de l'enregistrement")
+      toast.error(t("common.error"))
     } finally {
       setIsSubmitting(false)
     }
@@ -93,15 +95,15 @@ export default function AdminVideosPage() {
     <div className="p-6 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">Gestion des Vidéos</h1>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">Gérez les vidéos de présentation de la homepage</p>
+          <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">{t("admin.videos.title")}</h1>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">{t("admin.videos.subtitle")}</p>
         </div>
         <button
           onClick={openAddModal}
           className="flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
         >
           <Plus className="w-5 w-5" />
-          <span>Ajouter une vidéo</span>
+          <span>{t("admin.videos.new_video")}</span>
         </button>
       </div>
 
@@ -111,7 +113,7 @@ export default function AdminVideosPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" />
             <input
               type="text"
-              placeholder="Rechercher une vidéo..."
+              placeholder={t("admin.videos.search_placeholder")}
               className="w-full pl-10 pr-4 py-2 bg-zinc-50 dark:bg-zinc-800 border-none rounded-xl focus:ring-2 focus:ring-primary/20 transition-all text-sm"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -123,22 +125,22 @@ export default function AdminVideosPage() {
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20 gap-4">
               <Loader2 className="w-8 h-8 text-primary animate-spin" />
-              <p className="text-sm text-zinc-500">Chargement des vidéos...</p>
+              <p className="text-sm text-zinc-500">{t("common.loading")}</p>
             </div>
           ) : filteredVideos.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 gap-4">
               <Video className="w-12 h-12 text-zinc-300" />
-              <p className="text-zinc-500">Aucune vidéo trouvée</p>
+              <p className="text-zinc-500">{t("common.no_results")}</p>
             </div>
           ) : (
             <table className="w-full text-left">
               <thead>
                 <tr className="bg-zinc-50 dark:bg-zinc-800/50 text-zinc-500 dark:text-zinc-400 text-xs font-semibold uppercase tracking-wider">
-                  <th className="px-6 py-4">Aperçu</th>
-                  <th className="px-6 py-4">Titre</th>
-                  <th className="px-6 py-4">URL YouTube</th>
-                  <th className="px-6 py-4">Date</th>
-                  <th className="px-6 py-4 text-right">Actions</th>
+                  <th className="px-6 py-4">{t("admin.videos.preview")}</th>
+                  <th className="px-6 py-4">{t("common.title")}</th>
+                  <th className="px-6 py-4">{t("admin.videos.youtube_url")}</th>
+                  <th className="px-6 py-4">{t("common.date")}</th>
+                  <th className="px-6 py-4 text-right">{t("common.actions")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
@@ -201,7 +203,7 @@ export default function AdminVideosPage() {
             <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="relative w-full max-w-lg bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl overflow-hidden">
 
               <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-200 dark:border-zinc-800">
-                <h3 className="font-bold text-lg">{currentVideo?.id ? "Modifier la vidéo" : "Ajouter une vidéo"}</h3>
+                <h3 className="font-bold text-lg">{currentVideo?.id ? t("admin.videos.edit_video") : t("admin.videos.new_video")}</h3>
                 <button disabled={isSubmitting} onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full transition-colors">
                   <X className="w-5 h-5" />
                 </button>
@@ -209,28 +211,28 @@ export default function AdminVideosPage() {
 
               <form onSubmit={handleSubmit} className="p-6 space-y-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wider ml-1">Titre de la vidéo</label>
+                  <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wider ml-1">{t("admin.videos.video_title")}</label>
                   <input required type="text" placeholder="Ex: DJAMKO : La Révolution..." className="w-full px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-primary/20 transition-all text-sm outline-none" value={currentVideo?.title || ""} onChange={(e) => setCurrentVideo({ ...currentVideo, title: e.target.value })} />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wider ml-1">URL YouTube</label>
+                  <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wider ml-1">{t("admin.videos.youtube_url")}</label>
                   <input required type="url" placeholder="https://www.youtube.com/watch?v=..." className="w-full px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-primary/20 transition-all text-sm outline-none" value={currentVideo?.youtubeUrl || ""} onChange={(e) => setCurrentVideo({ ...currentVideo, youtubeUrl: e.target.value })} />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wider ml-1">URL de la miniature (Thumbnail)</label>
-                  <input type="url" placeholder="Laissez vide pour utiliser l'image par défaut de YouTube" className="w-full px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-primary/20 transition-all text-sm outline-none" value={currentVideo?.thumbnail || ""} onChange={(e) => setCurrentVideo({ ...currentVideo, thumbnail: e.target.value })} />
-                  <p className="text-[10px] text-zinc-400 ml-1 italic">Note: Le système extraira automatiquement l'image YouTube si ce champ est vide (à venir).</p>
+                  <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wider ml-1">{t("admin.videos.thumbnail_url")}</label>
+                  <input type="url" placeholder={t("admin.videos.thumbnail_desc")} className="w-full px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-primary/20 transition-all text-sm outline-none" value={currentVideo?.thumbnail || ""} onChange={(e) => setCurrentVideo({ ...currentVideo, thumbnail: e.target.value })} />
+                  <p className="text-[10px] text-zinc-400 ml-1 italic">{t("admin.videos.thumbnail_note")}</p>
                 </div>
 
                 <div className="pt-4 flex gap-3">
                   <button type="button" disabled={isSubmitting} onClick={() => setIsModalOpen(false)} className="flex-1 px-4 py-2.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 rounded-xl font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors disabled:opacity-50">
-                    Annuler
+                    {t("common.cancel")}
                   </button>
                   <button type="submit" disabled={isSubmitting} className="flex-1 px-4 py-2.5 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
                     {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                    <span>{currentVideo?.id ? "Mettre à jour" : "Ajouter"}</span>
+                    <span>{currentVideo?.id ? t("common.save") : t("common.add")}</span>
                   </button>
                 </div>
               </form>

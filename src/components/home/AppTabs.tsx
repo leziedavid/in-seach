@@ -8,48 +8,49 @@ import { OpportunitiesIcon, BoutiqueIcon, SearchIcon, LogisticsIcon } from "@/co
 import Info from "./Info"
 import SearchServies from "@/components/services/sections/SearchServies"
 import LogisticProvider from "@/components/logistics/sections/LogisticProvider"
-
-
-const tabs = [
-    {
-        id: "search",
-        label: "",
-        Icon: SearchIcon,
-        info: {
-            title: "Expertise à la Demande",
-            description: "Accédez instantanément aux meilleurs talents. Du dépannage d'urgence aux services experts, Djamko vous connecte avec des professionnels vérifiés."
-        }
-    },
-    {
-        id: "annonces",
-        label: "Opportunités",
-        Icon: OpportunitiesIcon,
-        info: {
-            title: "Marketplace d'Opportunités",
-            description: "Vendez, achetez ou dénichez des pépites locales. Une interface intuitive pour donner une seconde vie à vos biens en toute sécurité."
-        }
-    },
-    {
-        id: "boutique",
-        label: "Boutique",
-        Icon: BoutiqueIcon,
-        info: {
-            title: "Shopping Premium",
-            description: "Découvrez une sélection exclusive de produits. Une expérience d'achat fluide pensée pour votre confort et votre sécurité."
-        }
-    },
-    {
-        id: "logistics",
-        label: "Logistique",
-        Icon: LogisticsIcon,
-        info: {
-            title: "Logistique Globale",
-            description: "Expédiez sans frontières. Solutions de transport maritime, aérien et suivi en temps réel pour vos flux internationaux."
-        }
-    },
-]
+import { useTranslation } from "@/utils/langue/hooks"
 
 export default function AppTabs() {
+    const { t } = useTranslation();
+
+    const tabs = [
+        {
+            id: "search",
+            label: "",
+            Icon: SearchIcon,
+            info: {
+                title: t("home.tabs.expertise.title"),
+                description: t("home.tabs.expertise.description")
+            }
+        },
+        {
+            id: "annonces",
+            label: t("home.tabs.opportunities.label"),
+            Icon: OpportunitiesIcon,
+            info: {
+                title: t("home.tabs.opportunities.title"),
+                description: t("home.tabs.opportunities.description")
+            }
+        },
+        {
+            id: "boutique",
+            label: t("home.tabs.boutique.label"),
+            Icon: BoutiqueIcon,
+            info: {
+                title: t("home.tabs.boutique.title"),
+                description: t("home.tabs.boutique.description")
+            }
+        },
+        {
+            id: "logistics",
+            label: t("home.tabs.logistics.label"),
+            Icon: LogisticsIcon,
+            info: {
+                title: t("home.tabs.logistics.title"),
+                description: t("home.tabs.logistics.description")
+            }
+        },
+    ]
 
     const [active, setActive] = useState("search")
     const [showInfo, setShowInfo] = useState(true)
@@ -108,7 +109,7 @@ export default function AppTabs() {
 
                                 {/* Label - Optionnel, caché sur mobile si vide */}
                                 <span className={`text-[10px] sm:text-xs mt-3 whitespace-nowrap transition-colors duration-300 font-black uppercase tracking-tighter ${tab.id === "search" ? "hidden sm:block" : ""} ${isActive ? "text-primary" : "text-zinc-600 dark:text-zinc-400 group-hover:text-primary"} `}  >
-                                    {tab.label || "Expertise"}
+                                    {tab.label || t("home.tabs.expertise.label")}
                                 </span>
                             </button>
                         )

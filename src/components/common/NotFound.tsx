@@ -3,6 +3,7 @@
 import React from "react";
 import { Icon } from "@iconify/react";
 import { motion } from "framer-motion";
+import { useTranslation } from "@/utils/langue/hooks";
 
 interface NotFoundProps {
     title?: string;
@@ -13,12 +14,15 @@ interface NotFoundProps {
 }
 
 export default function NotFound({
-    title = "Aucun résultat trouvé",
-    description = "Nous n'avons trouvé aucun élément correspondant à votre demande.",
+    title,
+    description,
     icon = "solar:box-minimalistic-bold-duotone",
     className = "",
     action
 }: NotFoundProps) {
+    const { t } = useTranslation();
+    const finalTitle = title || t("common.no_results");
+    const finalDescription = description || t("services.not_found_description");
     return (
         <motion.div initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -56,10 +60,10 @@ export default function NotFound({
 
             <div className="space-y-3 relative z-10">
                 <h3 className="text-xl font-black text-foreground tracking-tight">
-                    {title}
+                    {finalTitle}
                 </h3>
                 <p className="text-sm text-muted-foreground leading-relaxed font-medium">
-                    {description}
+                    {finalDescription}
                 </p>
             </div>
 

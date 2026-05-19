@@ -24,10 +24,12 @@ import { GenericTable } from '@/components/ui/table/table';
 import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from "@/utils/langue/hooks";
 
 type TabType = 'annonces' | 'categories' | 'types' | 'equipments' | 'vehicle_types' | 'tech_sheets';
 
 export default function AdminAnnoncesPage() {
+    const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState<TabType>('annonces');
     const [annonces, setAnnonces] = useState<Annonce[]>([]);
     const [categories, setCategories] = useState<CategorieAnnonce[]>([]);
@@ -68,7 +70,7 @@ export default function AdminAnnoncesPage() {
                 setTotal(res.data.total || 0);
             }
         } catch (error) {
-            addNotification("Erreur lors du chargement des annonces", "error");
+            addNotification(t("admin.products.error_load"), "error");
         } finally {
             setLoading(false);
         }
@@ -82,7 +84,7 @@ export default function AdminAnnoncesPage() {
                 setCategories(res.data.data);
             }
         } catch (error) {
-            addNotification("Erreur lors du chargement des catégories", "error");
+            addNotification(t("admin.products.error_load"), "error");
         } finally {
             setLoading(false);
         }
@@ -96,7 +98,7 @@ export default function AdminAnnoncesPage() {
                 setTypes(res.data.data);
             }
         } catch (error) {
-            addNotification("Erreur lors du chargement des types", "error");
+            addNotification(t("admin.products.error_load"), "error");
         } finally {
             setLoading(false);
         }
@@ -108,7 +110,7 @@ export default function AdminAnnoncesPage() {
             const res = await adminGetEquipmentNames();
             if (res.statusCode === 200 && res.data) setEquipments(res.data);
         } catch (error) {
-            addNotification("Erreur lors du chargement des équipements", "error");
+            addNotification(t("admin.products.error_load"), "error");
         } finally {
             setLoading(false);
         }
@@ -120,7 +122,7 @@ export default function AdminAnnoncesPage() {
             const res = await adminGetVehicleTypes();
             if (res.statusCode === 200 && res.data) setVehicleTypes(res.data);
         } catch (error) {
-            addNotification("Erreur lors du chargement des types de véhicules", "error");
+            addNotification(t("admin.products.error_load"), "error");
         } finally {
             setLoading(false);
         }
@@ -132,7 +134,7 @@ export default function AdminAnnoncesPage() {
             const res = await adminGetTechnicalSheetDefaults();
             if (res.statusCode === 200 && res.data) setTechSheets(res.data);
         } catch (error) {
-            addNotification("Erreur lors du chargement des fiches techniques", "error");
+            addNotification(t("admin.products.error_load"), "error");
         } finally {
             setLoading(false);
         }
@@ -182,12 +184,12 @@ export default function AdminAnnoncesPage() {
         try {
             const res = await adminUpdateAnnonce(selectedAnnonce.id, data);
             if (res.statusCode === 200) {
-                addNotification("Annonce mise à jour avec succès", "success");
+                addNotification(t("admin.annonces.success_update"), "success");
                 setIsAnnonceModalOpen(false);
                 fetchAnnonces(page);
             }
         } catch (error) {
-            addNotification("Erreur lors de la mise à jour de l'annonce", "error");
+            addNotification(t("admin.annonces.error_update"), "error");
         } finally {
             setIsSubmitting(false);
         }
@@ -197,24 +199,24 @@ export default function AdminAnnoncesPage() {
         try {
             const res = await adminToggleAnnonceActive(annonce.id, value);
             if (res.statusCode === 200) {
-                addNotification("Statut de l'annonce mis à jour", "success");
+                addNotification(t("admin.annonces.success_update"), "success");
                 fetchAnnonces(page);
             }
         } catch (error) {
-            addNotification("Erreur lors de la modification du statut", "error");
+            addNotification(t("admin.annonces.error_status"), "error");
         }
     };
 
     const handleDeleteAnnonce = async (annonce: Annonce) => {
-        if (!confirm(`Supprimer l'annonce "${annonce.title}" ?`)) return;
+        if (!confirm(t("admin.annonces.confirm_delete_annonce", { name: annonce.title }))) return;
         try {
             const res = await adminDeleteAnnonce(annonce.id);
             if (res.statusCode === 200) {
-                addNotification("Annonce supprimée", "success");
+                addNotification(t("admin.annonces.success_delete"), "success");
                 fetchAnnonces(page);
             }
         } catch (error) {
-            addNotification("Erreur lors de la suppression", "error");
+            addNotification(t("admin.annonces.error_delete"), "error");
         }
     };
 
@@ -242,29 +244,29 @@ export default function AdminAnnoncesPage() {
             }
 
             if (res.statusCode === 200 || res.statusCode === 201) {
-                addNotification(isEditing ? "Catégorie mise à jour" : "Catégorie créée", "success");
+                addNotification(isEditing ? t("admin.products.edit_category") : t("admin.products.new_category"), "success");
                 setIsCategoryModalOpen(false);
                 fetchCategories();
             } else {
-                addNotification(res.message || "Erreur lors de l'enregistrement", "error");
+                addNotification(res.message || t("admin.annonces.error_save"), "error");
             }
         } catch (error) {
-            addNotification("Erreur réseau lors de l'enregistrement", "error");
+            addNotification(t("admin.annonces.error_network"), "error");
         } finally {
             setIsSubmitting(false);
         }
     };
 
     const handleDeleteCategory = async (category: CategorieAnnonce) => {
-        if (!confirm(`Supprimer la catégorie "${category.label}" ?`)) return;
+        if (!confirm(t("admin.products.confirm_delete_product", { name: category.label }))) return;
         try {
             const res = await adminDeleteCategorieAnnonce(category.id);
             if (res.statusCode === 200) {
-                addNotification("Catégorie supprimée", "success");
+                addNotification(t("admin.products.success_delete"), "success");
                 fetchCategories();
             }
         } catch (error) {
-            addNotification("Erreur lors de la suppression", "error");
+            addNotification(t("admin.annonces.error_delete"), "error");
         }
     };
 
@@ -292,29 +294,29 @@ export default function AdminAnnoncesPage() {
             }
 
             if (res.statusCode === 200 || res.statusCode === 201) {
-                addNotification(isEditing ? "Type mis à jour" : "Type créé", "success");
+                addNotification(isEditing ? t("admin.annonces.success_update") : t("admin.annonces.success_create"), "success");
                 setIsTypeModalOpen(false);
                 fetchTypes();
             } else {
-                addNotification(res.message || "Erreur lors de l'enregistrement", "error");
+                addNotification(res.message || t("admin.annonces.error_save"), "error");
             }
         } catch (error) {
-            addNotification("Erreur réseau lors de l'enregistrement", "error");
+            addNotification(t("admin.annonces.error_network"), "error");
         } finally {
             setIsSubmitting(false);
         }
     };
 
     const handleDeleteType = async (type: TypeAnnonce) => {
-        if (!confirm(`Supprimer le type "${type.label}" ?`)) return;
+        if (!confirm(t("admin.products.confirm_delete_product", { name: type.label }))) return;
         try {
             const res = await adminDeleteTypeAnnonce(type.id);
             if (res.statusCode === 200) {
-                addNotification("Type supprimé", "success");
+                addNotification(t("admin.annonces.success_delete"), "success");
                 fetchTypes();
             }
         } catch (error) {
-            addNotification("Erreur lors de la suppression", "error");
+            addNotification(t("admin.annonces.error_delete"), "error");
         }
     };
 
@@ -338,25 +340,25 @@ export default function AdminAnnoncesPage() {
             if (isEditing && selectedEquipment) res = await adminUpdateEquipmentName(selectedEquipment.id, data);
             else res = await adminCreateEquipmentName(data);
             if (res.statusCode === 200 || res.statusCode === 201) {
-                addNotification(isEditing ? "Équipement mis à jour" : "Équipement ajouté", "success");
+                addNotification(isEditing ? t("admin.annonces.success_update") : t("admin.annonces.success_create"), "success");
                 setIsEquipmentModalOpen(false);
                 fetchEquipments();
             }
         } catch (error) {
-            addNotification("Erreur lors de l'enregistrement", "error");
+            addNotification(t("admin.annonces.error_save"), "error");
         } finally {
             setIsSubmitting(false);
         }
     };
 
     const handleDeleteEquipment = async (eq: any) => {
-        if (!confirm(`Supprimer l'équipement "${eq.name}" ?`)) return;
+        if (!confirm(t("admin.products.confirm_delete_product", { name: eq.name }))) return;
         try {
             await adminDeleteEquipmentName(eq.id);
-            addNotification("Équipement supprimé", "success");
+            addNotification(t("admin.annonces.success_delete"), "success");
             fetchEquipments();
         } catch (error) {
-            addNotification("Erreur lors de la suppression", "error");
+            addNotification(t("admin.annonces.error_delete"), "error");
         }
     };
 
@@ -380,25 +382,25 @@ export default function AdminAnnoncesPage() {
             if (isEditing && selectedVehicleType) res = await adminUpdateVehicleType(selectedVehicleType.id, data);
             else res = await adminCreateVehicleType(data);
             if (res.statusCode === 200 || res.statusCode === 201) {
-                addNotification(isEditing ? "Type de véhicule mis à jour" : "Type de véhicule ajouté", "success");
+                addNotification(isEditing ? t("admin.annonces.success_update") : t("admin.annonces.success_create"), "success");
                 setIsVehicleTypeModalOpen(false);
                 fetchVehicleTypes();
             }
         } catch (error) {
-            addNotification("Erreur lors de l'enregistrement", "error");
+            addNotification(t("admin.annonces.error_save"), "error");
         } finally {
             setIsSubmitting(false);
         }
     };
 
     const handleDeleteVehicleType = async (vt: any) => {
-        if (!confirm(`Supprimer le type "${vt.name}" ?`)) return;
+        if (!confirm(t("admin.products.confirm_delete_product", { name: vt.name }))) return;
         try {
             await adminDeleteVehicleType(vt.id);
-            addNotification("Type de véhicule supprimé", "success");
+            addNotification(t("admin.annonces.success_delete"), "success");
             fetchVehicleTypes();
         } catch (error) {
-            addNotification("Erreur lors de la suppression", "error");
+            addNotification(t("admin.annonces.error_delete"), "error");
         }
     };
 
@@ -422,25 +424,25 @@ export default function AdminAnnoncesPage() {
             if (isEditing && selectedTechSheet) res = await adminUpdateTechnicalSheetDefault(selectedTechSheet.id, data);
             else res = await adminCreateTechnicalSheetDefault(data);
             if (res.statusCode === 200 || res.statusCode === 201) {
-                addNotification(isEditing ? "Champ technique mis à jour" : "Champ technique ajouté", "success");
+                addNotification(isEditing ? t("admin.annonces.success_update") : t("admin.annonces.success_create"), "success");
                 setIsTechSheetModalOpen(false);
                 fetchTechSheets();
             }
         } catch (error) {
-            addNotification("Erreur lors de l'enregistrement", "error");
+            addNotification(t("admin.annonces.error_save"), "error");
         } finally {
             setIsSubmitting(false);
         }
     };
 
     const handleDeleteTechSheet = async (ts: any) => {
-        if (!confirm(`Supprimer le champ "${ts.key}" ?`)) return;
+        if (!confirm(t("admin.products.confirm_delete_product", { name: ts.key }))) return;
         try {
             await adminDeleteTechnicalSheetDefault(ts.id);
-            addNotification("Champ supprimé", "success");
+            addNotification(t("admin.annonces.success_delete"), "success");
             fetchTechSheets();
         } catch (error) {
-            addNotification("Erreur lors de la suppression", "error");
+            addNotification(t("admin.annonces.error_delete"), "error");
         }
     };
 
@@ -448,7 +450,7 @@ export default function AdminAnnoncesPage() {
     const annonceColumns: ColumnDef<Annonce>[] = [
         {
             accessorKey: 'title',
-            header: 'Annonce',
+            header: t("admin.annonces.annonces"),
             cell: ({ row }) => (
                 <div className="flex items-center gap-4">
                     <div className="relative w-12 h-12 bg-muted rounded-xl overflow-hidden border border-border/50 flex-shrink-0">
@@ -464,7 +466,7 @@ export default function AdminAnnoncesPage() {
                         <div className="font-black text-sm line-clamp-1">{row.original.title}</div>
                         <div className="text-muted-foreground text-[10px] font-mono flex items-center gap-2">
                             <Plus className="w-2.5 h-2.5" />
-                            {row.original.user?.fullName || "Inconnu"}
+                            {row.original.user?.fullName || t("admin.products.unknown_seller")}
                         </div>
                     </div>
                 </div>
@@ -472,7 +474,7 @@ export default function AdminAnnoncesPage() {
         },
         {
             accessorKey: 'categorie.label',
-            header: 'Catégorie / Type',
+            header: t("admin.annonces.categories"),
             cell: ({ row }) => (
                 <div className="flex flex-col gap-1">
                     <Badge variant="secondary" className="px-1.5 py-0 text-[8px] h-4 rounded-md uppercase font-bold tracking-wider w-fit">
@@ -486,7 +488,7 @@ export default function AdminAnnoncesPage() {
         },
         {
             accessorKey: 'ville',
-            header: 'Localisation',
+            header: t("admin.annonces.localization"),
             cell: ({ row }) => (
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
                     <MapPin className="w-3 h-3 text-primary/70" />
@@ -496,7 +498,7 @@ export default function AdminAnnoncesPage() {
         },
         {
             accessorKey: 'createdAt',
-            header: 'Publié le',
+            header: t("admin.annonces.published_at"),
             cell: ({ row }) => (
                 <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium">
                     <ClipboardList className="w-3 h-3" />
@@ -510,7 +512,7 @@ export default function AdminAnnoncesPage() {
     const categoryColumns: ColumnDef<CategorieAnnonce>[] = [
         {
             accessorKey: 'label',
-            header: 'Catégorie',
+            header: t("admin.annonces.categories"),
             cell: ({ row }) => (
                 <div className="flex items-center gap-4">
                     <div className="relative w-10 h-10 bg-primary/10 rounded-xl overflow-hidden flex items-center justify-center text-primary border border-primary/20">
@@ -529,10 +531,10 @@ export default function AdminAnnoncesPage() {
         },
         {
             accessorKey: '_count.annonces',
-            header: 'Annonces liées',
+            header: t("admin.annonces.annonces"),
             cell: ({ row }) => (
                 <div className="flex items-center gap-2 px-2 py-0.5 bg-muted rounded-full text-[10px] font-black text-muted-foreground w-fit">
-                    {row.original._count?.annonces || 0} annonces
+                    {t("admin.annonces.annonces_count", { count: row.original._count?.annonces || 0 })}
                 </div>
             )
         }
@@ -541,7 +543,7 @@ export default function AdminAnnoncesPage() {
     const typeColumns: ColumnDef<TypeAnnonce>[] = [
         {
             accessorKey: 'label',
-            header: 'Type',
+            header: t("admin.annonces.types"),
             cell: ({ row }) => (
                 <div className="flex items-center gap-4">
                     <div className="w-10 h-10 bg-secondary/10 rounded-xl flex items-center justify-center text-secondary border border-secondary/20">
@@ -564,7 +566,7 @@ export default function AdminAnnoncesPage() {
         },
         {
             accessorKey: 'createdAt',
-            header: 'Ajouté le',
+            header: t("admin.annonces.published_at"),
             cell: ({ row }) => <div className="text-xs text-muted-foreground">{new Date(row.original.createdAt).toLocaleDateString()}</div>
         }
     ];
@@ -572,15 +574,15 @@ export default function AdminAnnoncesPage() {
     const techSheetColumns: ColumnDef<any>[] = [
         {
             accessorKey: 'key',
-            header: 'Champ technique',
+            header: t("admin.annonces.tech_field"),
             cell: ({ row }) => <div className="font-black text-sm">{row.original.key}</div>
         },
         {
             accessorKey: 'category',
-            header: 'Catégorie',
+            header: t("common.category"),
             cell: ({ row }) => (
                 <Badge variant="outline" className="px-1.5 py-0 text-[8px] h-4 rounded-md uppercase font-bold tracking-wider w-fit border-border/50">
-                    {row.original.category === 'vehicle' ? 'Véhicules' : row.original.category === 'real_estate' ? 'Immobilier' : 'Autre'}
+                    {row.original.category === 'vehicle' ? t("admin.annonces.vehicle") : row.original.category === 'real_estate' ? t("admin.annonces.real_estate") : t("admin.annonces.other")}
                 </Badge>
             )
         }
@@ -590,8 +592,8 @@ export default function AdminAnnoncesPage() {
         <div className="p-8 space-y-8 animate-in fade-in duration-500">
             <header className="flex flex-col xxl:flex-row xxl:items-end justify-between gap-6">
                 <div>
-                    <h1 className="text-3xl font-black tracking-tight mb-1">Annonces & Catalogue</h1>
-                    <p className="text-muted-foreground font-medium text-sm">Gestion complète du catalogue : annonces, catégories, types et spécifications.</p>
+                    <h1 className="text-3xl font-black tracking-tight mb-1">{t("admin.annonces.title")}</h1>
+                    <p className="text-muted-foreground font-medium text-sm">{t("admin.annonces.subtitle")}</p>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2 p-1 bg-muted rounded-xl w-fit">
@@ -609,7 +611,7 @@ export default function AdminAnnoncesPage() {
                             className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${activeTab === tab.id ? 'bg-card shadow-xs text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
                         >
                             <tab.icon className="w-3.5 h-3.5" />
-                            {tab.label}
+                            {t(`admin.annonces.${tab.id}`)}
                         </button>
                     ))}
                 </div>
@@ -622,7 +624,7 @@ export default function AdminAnnoncesPage() {
                     <GenericTable 
                         columns={annonceColumns} data={annonces} loading={loading} totalItems={total} currentPage={page} itemsPerPage={10} 
                         onPageChange={setPage} searchKey="title" enableSwitch={true} getActive={(row) => row.status === AnnonceStatus.ACTIVE} onToggleActive={handleToggle}
-                        actions={[{ icon: Edit2, label: "Modifier", value: "edit" }, { icon: Trash2, label: "Supprimer", value: "delete", variant: "destructive" }]} 
+                        actions={[{ icon: Edit2, label: t("common.edit"), value: "edit" }, { icon: Trash2, label: t("common.delete"), value: "delete", variant: "destructive" }]} 
                         onAction={(action, row) => action === "edit" ? handleEditAnnonceClick(row) : handleDeleteAnnonce(row)}
                     />
                 )}
@@ -640,7 +642,7 @@ export default function AdminAnnoncesPage() {
                                 }} 
                                 className="rounded-xl font-bold gap-2"
                             >
-                                <Plus className="w-4 h-4" /> Nouveau
+                                <Plus className="w-4 h-4" /> {t("admin.annonces.new")}
                             </Button>
                         </div>
                         <GenericTable
@@ -648,7 +650,7 @@ export default function AdminAnnoncesPage() {
                                 activeTab === 'categories' ? categoryColumns : 
                                 activeTab === 'types' ? typeColumns : 
                                 activeTab === 'equipments' ? entityColumns('Équipement') : 
-                                activeTab === 'vehicle_types' ? entityColumns('Type Véhicule') : 
+                                activeTab === 'vehicle_types' ? entityColumns(t("admin.annonces.vehicle_types")) : 
                                 techSheetColumns
                             }
                             data={
@@ -659,7 +661,7 @@ export default function AdminAnnoncesPage() {
                                 techSheets
                             }
                             loading={loading} searchKey={activeTab === 'tech_sheets' ? 'key' : activeTab === 'categories' || activeTab === 'types' ? 'label' : 'name'}
-                            actions={[{ icon: Edit2, label: "Modifier", value: "edit" }, { icon: Trash2, label: "Supprimer", value: "delete", variant: "destructive" }]}
+                            actions={[{ icon: Edit2, label: t("common.edit"), value: "edit" }, { icon: Trash2, label: t("common.delete"), value: "delete", variant: "destructive" }]}
                             onAction={(action, row) => {
                                 if (action === "edit") {
                                     if (activeTab === 'categories') handleEditCategoryClick(row);
@@ -684,7 +686,7 @@ export default function AdminAnnoncesPage() {
             <Modal isOpen={isAnnonceModalOpen} onClose={() => setIsAnnonceModalOpen(false)}>
                 {selectedAnnonce && (
                     <div className="p-4">
-                        <h2 className="text-xl font-black px-2 pt-2 mb-1">Modifier l'annonce</h2>
+                        <h2 className="text-xl font-black px-2 pt-2 mb-1">{t("admin.annonces.edit_annonce")}</h2>
                         <FormsAnnonce initialData={mapAnnonceToFormData(selectedAnnonce)} onSubmit={handleUpdateAnnonce} isSubmitting={isSubmitting} isEditMode={true} onClose={() => setIsAnnonceModalOpen(false)} isOpen={isAnnonceModalOpen} />
                     </div>
                 )}
@@ -692,35 +694,35 @@ export default function AdminAnnoncesPage() {
 
             <Modal isOpen={isCategoryModalOpen} onClose={() => setIsCategoryModalOpen(false)}>
                 <div className="p-6">
-                    <h2 className="text-xl font-black mb-1">{isEditing ? 'Éditer la catégorie' : 'Nouvelle catégorie'}</h2>
+                    <h2 className="text-xl font-black mb-1">{isEditing ? t("admin.products.edit_category") : t("admin.products.new_category")}</h2>
                     <CategoryAnnonceForm initialData={selectedCategory || undefined} onSubmit={handleCategorySubmit} isSubmitting={isSubmitting} isEditing={isEditing} onClose={() => setIsCategoryModalOpen(false)} />
                 </div>
             </Modal>
 
             <Modal isOpen={isTypeModalOpen} onClose={() => setIsTypeModalOpen(false)}>
                 <div className="p-6">
-                    <h2 className="text-xl font-black mb-1">{isEditing ? 'Éditer le type' : 'Nouveau type'}</h2>
+                    <h2 className="text-xl font-black mb-1">{isEditing ? t("admin.annonces.edit_annonce") : t("admin.annonces.new")}</h2>
                     <TypeAnnonceForm initialData={selectedType || undefined} onSubmit={handleTypeSubmit} isSubmitting={isSubmitting} isEditing={isEditing} onClose={() => setIsTypeModalOpen(false)} />
                 </div>
             </Modal>
 
             <Modal isOpen={isEquipmentModalOpen} onClose={() => setIsEquipmentModalOpen(false)}>
                 <div className="p-6">
-                    <h2 className="text-xl font-black mb-1">{isEditing ? 'Éditer l\'équipement' : 'Nouvel équipement'}</h2>
-                    <SimpleEntityForm initialData={selectedEquipment || undefined} onSubmit={handleEquipmentSubmit} isSubmitting={isSubmitting} isEditing={isEditing} onClose={() => setIsEquipmentModalOpen(false)} label="Nom de l'équipement" />
+                    <h2 className="text-xl font-black mb-1">{isEditing ? t("admin.annonces.edit_annonce") : t("admin.annonces.new")}</h2>
+                    <SimpleEntityForm initialData={selectedEquipment || undefined} onSubmit={handleEquipmentSubmit} isSubmitting={isSubmitting} isEditing={isEditing} onClose={() => setIsEquipmentModalOpen(false)} label={t("admin.annonces.equipments")} />
                 </div>
             </Modal>
 
             <Modal isOpen={isVehicleTypeModalOpen} onClose={() => setIsVehicleTypeModalOpen(false)}>
                 <div className="p-6">
-                    <h2 className="text-xl font-black mb-1">{isEditing ? 'Éditer le type' : 'Nouveau type de véhicule'}</h2>
-                    <SimpleEntityForm initialData={selectedVehicleType || undefined} onSubmit={handleVehicleTypeSubmit} isSubmitting={isSubmitting} isEditing={isEditing} onClose={() => setIsVehicleTypeModalOpen(false)} label="Nom du type" />
+                    <h2 className="text-xl font-black mb-1">{isEditing ? t("admin.annonces.edit_annonce") : t("admin.annonces.new")}</h2>
+                    <SimpleEntityForm initialData={selectedVehicleType || undefined} onSubmit={handleVehicleTypeSubmit} isSubmitting={isSubmitting} isEditing={isEditing} onClose={() => setIsVehicleTypeModalOpen(false)} label={t("admin.annonces.vehicle_types")} />
                 </div>
             </Modal>
 
             <Modal isOpen={isTechSheetModalOpen} onClose={() => setIsTechSheetModalOpen(false)}>
                 <div className="p-6">
-                    <h2 className="text-xl font-black mb-1">{isEditing ? 'Éditer le champ' : 'Nouveau champ technique'}</h2>
+                    <h2 className="text-xl font-black mb-1">{isEditing ? t("admin.annonces.edit_annonce") : t("admin.annonces.new")}</h2>
                     <TechnicalSheetConfigForm initialData={selectedTechSheet || undefined} onSubmit={handleTechSheetSubmit} isSubmitting={isSubmitting} isEditing={isEditing} onClose={() => setIsTechSheetModalOpen(false)} />
                 </div>
             </Modal>

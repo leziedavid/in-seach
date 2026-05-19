@@ -21,9 +21,12 @@ import { fr } from "date-fns/locale";
 
 import { Switch } from "@/components/ui/switch";
 import { useNotifications } from "@/hooks/useNotifications";
+import { useTranslation } from "@/utils/langue/hooks";
 import { SectionHeader } from "@/components/shared/SectionHeader";
+import { InputPhone } from "@/components/ui/InputPhone";
 
 export default function AccountSettings() {
+    const { t } = useTranslation();
 
     const { permission, subscribe, unsubscribe, loading, isNotificationsEnabled } = useNotifications();
 
@@ -42,12 +45,12 @@ export default function AccountSettings() {
         try {
             const res = await testWebPushNotification();
             if (res.statusCode === 201 || res.statusCode === 200) {
-                toast.success("Test Web Push envoyé !");
+                toast.success(t("akwaba.settings.test_push_sent"));
             } else {
-                toast.error(res.message || "Échec du test Web Push");
+                toast.error(res.message || t("akwaba.settings.test_push_failed"));
             }
         } catch (error) {
-            toast.error("Erreur lors du test Web Push");
+            toast.error(t("akwaba.settings.test_push_failed"));
         } finally {
             setIsTestingPush(false);
         }
@@ -58,12 +61,12 @@ export default function AccountSettings() {
         try {
             const res = await testWebSocketNotification();
             if (res.statusCode === 201 || res.statusCode === 200) {
-                toast.success("Test WebSocket envoyé !");
+                toast.success(t("akwaba.settings.test_socket_sent"));
             } else {
-                toast.error(res.message || "Échec du test WebSocket");
+                toast.error(res.message || t("akwaba.settings.test_socket_failed"));
             }
         } catch (error) {
-            toast.error("Erreur lors du test WebSocket");
+            toast.error(t("akwaba.settings.test_socket_failed"));
         } finally {
             setIsTestingSocket(false);
         }
@@ -82,6 +85,7 @@ export default function AccountSettings() {
     const [formData, setFormData] = useState({
         fullName: "",
         email: "",
+        indicatif: "+225",
         phone: "",
         companyName: "",
         siegeSocial: "",
@@ -114,6 +118,7 @@ export default function AccountSettings() {
                 setFormData({
                     fullName: userData.fullName || "",
                     email: userData.email || "",
+                    indicatif: userData.indicatif || "+225",
                     phone: userData.phone || "",
                     companyName: userData.companyName || "",
                     siegeSocial: userData.siegeSocial || "",
@@ -124,7 +129,7 @@ export default function AccountSettings() {
             }
         } catch (error) {
             console.error("Error fetching user data:", error);
-            toast.error("Impossible de charger vos informations");
+            toast.error(t("akwaba.settings.error_load"));
         } finally {
             setIsLoading(false);
         }
@@ -210,10 +215,10 @@ export default function AccountSettings() {
                 const response = await updateUserProfile(formDataToSend);
 
                 if (response?.statusCode === 200 || response?.statusCode === 201) {
-                    toast.success("Upload réussi");
+                    toast.success(t("akwaba.settings.success_upload"));
                     await fetchUserData();
                 } else {
-                    toast.error("Erreur lors de l'upload");
+                    toast.error(t("akwaba.settings.error_upload"));
                 }
                 return; // ✅ important
             }
@@ -225,28 +230,29 @@ export default function AccountSettings() {
 
             if (formData.fullName) payload.fullName = formData.fullName;
             if (formData.email) payload.email = formData.email;
+            if (formData.indicatif) payload.indicatif = formData.indicatif;
             if (formData.phone) payload.phone = formData.phone;
             if (formData.companyName) payload.companyName = formData.companyName;
             if (formData.siegeSocial) payload.siegeSocial = formData.siegeSocial;
             if (formData.boitePostale) payload.boitePostale = formData.boitePostale;
 
             if (Object.keys(payload).length === 0) {
-                toast.info("Aucune modification détectée");
+                toast.info(t("akwaba.settings.no_changes"));
                 return;
             }
 
             const response = await updateUserProfile(payload);
 
             if (response?.statusCode === 200 || response?.statusCode === 201) {
-                toast.success("Profil mis à jour");
+                toast.success(t("akwaba.settings.profile_updated"));
                 await fetchUserData();
             } else {
-                toast.error("Une erreur est survenue");
+                toast.error(t("akwaba.settings.error_update"));
             }
 
         } catch (error) {
             console.error(error);
-            toast.error("Impossible de sauvegarder les modifications");
+            toast.error(t("akwaba.settings.error_save"));
         } finally {
             setIsSubmitting(false);
         }
@@ -350,8 +356,8 @@ export default function AccountSettings() {
     return (
         <div className="max-w-4xl mx-auto space-y-8 pb-12">
             <SectionHeader
-                title="Paramètres du compte"
-                subtitle="Gérez vos informations personnelles et vos documents"
+                title={t("akwaba.settings.title")}
+                subtitle={t("akwaba.settings.subtitle")}
                 className="!text-left"
             />
 
@@ -360,21 +366,21 @@ export default function AccountSettings() {
                 {/* 1. PERSONAL INFO */}
                 <AccordionSection
                     id="personal"
-                    title="Informations personnelles"
-                    subtitle="Identité, Email et Entreprise"
+                    title={t("akwaba.settings.personal_info")}
+                    subtitle={t("akwaba.settings.personal_subtitle")}
                     icon="solar:user-id-bold-duotone"
                 >
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mt-4">
                         <div className="space-y-1.5">
-                            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Nom Complet</label>
+                            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">{t("akwaba.settings.full_name")}</label>
                             <div className="relative group">
                                 <Icon icon="solar:user-bold-duotone" className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors w-4 h-4" />
-                                <input name="fullName" value={formData.fullName} onChange={handleInputChange} className="w-full border border-border bg-muted/20 rounded-xl p-3.5 pl-11 text-xs font-bold text-foreground focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all" placeholder="Votre nom complet" />
+                                <input name="fullName" value={formData.fullName} onChange={handleInputChange} className="w-full border border-border bg-muted/20 rounded-xl p-3.5 pl-11 text-xs font-bold text-foreground focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all" placeholder={t("akwaba.settings.full_name")} />
                             </div>
                         </div>
 
                         <div className="space-y-1.5">
-                            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Email</label>
+                            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">{t("akwaba.settings.email")}</label>
                             <div className="relative group">
                                 <Icon icon="solar:letter-bold-duotone" className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors w-4 h-4" />
                                 <input name="email" value={formData.email} onChange={handleInputChange} type="email"
@@ -384,47 +390,45 @@ export default function AccountSettings() {
                         </div>
 
                         <div className="space-y-1.5">
-                            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Téléphone</label>
-                            <div className="relative group">
-                                <Icon icon="solar:phone-bold-duotone" className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors w-4 h-4" />
-                                <input
-                                    name="phone"
-                                    value={formData.phone}
-                                    onChange={handleInputChange}
-                                    className="w-full border border-border bg-muted/20 rounded-xl p-3.5 pl-11 text-xs font-bold text-foreground focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all"
-                                    placeholder="+229 00 00 00 00"
-                                />
-                            </div>
+                            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">{t("akwaba.settings.phone")}</label>
+                            <InputPhone
+                                indicatif={formData.indicatif}
+                                phone={formData.phone}
+                                onPhoneChange={({ indicatif, phone }) => {
+                                    setFormData(prev => ({ ...prev, indicatif, phone }));
+                                }}
+                                className="bg-muted/20 h-11"
+                            />
                         </div>
 
                         <div className="space-y-1.5">
-                            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Entreprise</label>
+                            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">{t("akwaba.settings.company")}</label>
                             <div className="relative group">
                                 <Icon icon="solar:case-bold-duotone" className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors w-4 h-4" />
                                 <input name="companyName"
                                     value={formData.companyName}
                                     onChange={handleInputChange}
                                     className="w-full border border-border bg-muted/20 rounded-xl p-3.5 pl-11 text-xs font-bold text-foreground focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all"
-                                    placeholder="Nom de votre entreprise"
+                                    placeholder={t("akwaba.settings.company")}
                                 />
                             </div>
                         </div>
 
                         <div className="space-y-1.5">
-                            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Siége Social</label>
+                            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">{t("akwaba.settings.headquarters")}</label>
                             <div className="relative group">
                                 <Icon icon="solar:map-point-bold-duotone" className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors w-4 h-4" />
                                 <input name="siegeSocial"
                                     value={formData.siegeSocial}
                                     onChange={handleInputChange}
                                     className="w-full border border-border bg-muted/20 rounded-xl p-3.5 pl-11 text-xs font-bold text-foreground focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all"
-                                    placeholder="Adresse du siège"
+                                    placeholder={t("akwaba.settings.headquarters")}
                                 />
                             </div>
                         </div>
 
                         <div className="space-y-1.5">
-                            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Boîte Postale</label>
+                            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">{t("akwaba.settings.po_box")}</label>
                             <div className="relative group">
                                 <Icon icon="solar:letter-bold-duotone" className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors w-4 h-4" />
                                 <input name="boitePostale"
@@ -444,7 +448,7 @@ export default function AccountSettings() {
                             ) : (
                                 <Icon icon="solar:check-circle-bold" className="w-5 h-5 group-hover:rotate-12 transition-transform" />
                             )}
-                            Sauvegarder les modifications
+                            {t("akwaba.settings.save_changes")}
                         </button>
                     </div>
                 </AccordionSection>
@@ -452,8 +456,8 @@ export default function AccountSettings() {
                 {/* 2. DOCUMENTS SECTION */}
                 <AccordionSection
                     id="documents"
-                    title="Photos & Documents"
-                    subtitle="Avatar, CNI, Logo et Signature"
+                    title={t("akwaba.settings.documents")}
+                    subtitle={t("akwaba.settings.documents_subtitle")}
                     icon="solar:folder-with-files-bold-duotone"
                 >
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
@@ -469,7 +473,7 @@ export default function AccountSettings() {
                                         <Icon icon="solar:user-bold-duotone" className="w-8 h-8 text-muted-foreground" />
                                     </div>
                                 )}
-                                <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground group-hover:text-primary transition-colors">Modifier l'avatar</span>
+                                <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground group-hover:text-primary transition-colors">{t("akwaba.settings.change_avatar")}</span>
                             </div>
                         </div>
 
@@ -485,7 +489,7 @@ export default function AccountSettings() {
                                         <Icon icon="solar:card-2-bold-duotone" className="w-8 h-8 text-muted-foreground" />
                                     </div>
                                 )}
-                                <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground group-hover:text-primary transition-colors">Pièce d'identité</span>
+                                <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground group-hover:text-primary transition-colors">{t("akwaba.settings.id_piece")}</span>
                             </div>
                         </div>
 
@@ -501,7 +505,7 @@ export default function AccountSettings() {
                                         <Icon icon="solar:globus-bold-duotone" className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors" />
                                     </div>
                                 )}
-                                <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground group-hover:text-primary transition-colors">Logo Entreprise</span>
+                                <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground group-hover:text-primary transition-colors">{t("akwaba.settings.company_logo")}</span>
                             </div>
                         </div>
 
@@ -517,7 +521,7 @@ export default function AccountSettings() {
                                         <Icon icon="solar:pen-new-square-bold-duotone" className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors" />
                                     </div>
                                 )}
-                                <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground group-hover:text-primary transition-colors">Signature Numérique</span>
+                                <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground group-hover:text-primary transition-colors">{t("akwaba.settings.digital_signature")}</span>
                             </div>
                         </div>
                     </div>
@@ -526,12 +530,12 @@ export default function AccountSettings() {
                 {/* 3. NOTIFICATIONS */}
                 <AccordionSection
                     id="notifications"
-                    title="Notifications Push"
-                    subtitle="Alertes en temps réel sur mobile et PC"
+                    title={t("akwaba.settings.notifications")}
+                    subtitle={t("akwaba.settings.notifications_subtitle")}
                     icon="solar:bell-bing-bold-duotone"
                     badge={
                         <div className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${isNotificationsEnabled ? "bg-green-500/10 text-green-500" : "bg-muted text-muted-foreground"}`}>
-                            {isNotificationsEnabled ? "Activé" : "Désactivé"}
+                            {isNotificationsEnabled ? t("akwaba.settings.notifications_enabled") : t("akwaba.settings.notifications_disabled")}
                         </div>
                     }
                 >
@@ -542,8 +546,8 @@ export default function AccountSettings() {
                                     <Icon icon="solar:notification-lines-remove-bold-duotone" className="w-5 h-5" />
                                 </div>
                                 <div>
-                                    <span className="block text-sm font-black text-foreground">Notifications Système</span>
-                                    <span className="block text-[10px] text-muted-foreground font-medium italic">Comme sur WhatsApp</span>
+                                    <span className="block text-sm font-black text-foreground">{t("akwaba.settings.system_notifications")}</span>
+                                    <span className="block text-[10px] text-muted-foreground font-medium italic">{t("akwaba.settings.notifications_desc")}</span>
                                 </div>
                             </div>
                             <div className="flex items-center gap-3">
@@ -555,12 +559,12 @@ export default function AccountSettings() {
                         <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/10 flex gap-3">
                             <Icon icon="solar:info-circle-bold-duotone" className="w-5 h-5 text-amber-600 shrink-0" />
                             <p className="text-[11px] text-amber-800 dark:text-amber-400 font-medium leading-relaxed">
-                                Les notifications de bureau et mobiles vous permettent de rester réactif face à vos clients même lorsque l'application est fermée.
+                                {t("akwaba.settings.notifications_info")}
                             </p>
                         </div>
 
                         <div className="space-y-3 pt-2">
-                            <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Test des alertes</span>
+                            <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">{t("akwaba.settings.test_alerts")}</span>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <button onClick={handleTestPush} disabled={isTestingPush || !isNotificationsEnabled} className="flex items-center justify-center gap-3 px-5 py-4 rounded-2xl bg-muted/40 border border-border hover:border-primary/50 hover:bg-primary/5 transition-all group disabled:opacity-50">
                                     {isTestingPush ? (
@@ -569,8 +573,8 @@ export default function AccountSettings() {
                                         <Icon icon="solar:plain-bold-duotone" className="w-5 h-5 text-primary group-hover:scale-110 transition-transform" />
                                     )}
                                     <div className="text-left">
-                                        <span className="block text-xs font-black text-foreground">Test Web Push</span>
-                                        <span className="block text-[9px] text-muted-foreground font-bold uppercase">Notification système</span>
+                                        <span className="block text-xs font-black text-foreground">{t("akwaba.settings.test_web_push")}</span>
+                                        <span className="block text-[9px] text-muted-foreground font-bold uppercase">{t("akwaba.settings.test_web_push_desc")}</span>
                                     </div>
                                 </button>
 
@@ -581,8 +585,8 @@ export default function AccountSettings() {
                                         <Icon icon="solar:flash-bold-duotone" className="w-5 h-5 text-secondary group-hover:scale-110 transition-transform" />
                                     )}
                                     <div className="text-left">
-                                        <span className="block text-xs font-black text-foreground">Test WebSocket</span>
-                                        <span className="block text-[9px] text-muted-foreground font-bold uppercase">Temps réel</span>
+                                        <span className="block text-xs font-black text-foreground">{t("akwaba.settings.test_socket")}</span>
+                                        <span className="block text-[9px] text-muted-foreground font-bold uppercase">{t("akwaba.settings.test_socket_desc")}</span>
                                     </div>
                                 </button>
                             </div>
@@ -593,8 +597,8 @@ export default function AccountSettings() {
                 {/* 4. PRIVACY */}
                 <AccordionSection
                     id="privacy"
-                    title="Confidentialité & CGU"
-                    subtitle="Conditions d'utilisation et protection des données"
+                    title={t("akwaba.settings.privacy")}
+                    subtitle={t("akwaba.settings.privacy_subtitle")}
                     icon="solar:shield-check-bold-duotone"
                 >
                     <div className="space-y-6 pt-4">
@@ -604,8 +608,8 @@ export default function AccountSettings() {
                                     <Icon icon="solar:verified-check-bold-duotone" className="w-5 h-5" />
                                 </div>
                                 <div>
-                                    <span className="block text-sm font-black text-foreground">Consentement légal</span>
-                                    <span className="block text-[10px] text-muted-foreground font-medium italic">Obligatoire pour utiliser les services</span>
+                                    <span className="block text-sm font-black text-foreground">{t("akwaba.settings.legal_consent")}</span>
+                                    <span className="block text-[10px] text-muted-foreground font-medium italic">{t("akwaba.settings.legal_desc")}</span>
                                 </div>
                             </div>
                             <Switch
@@ -628,12 +632,12 @@ export default function AccountSettings() {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <Link href="/terms-of-use" className="flex items-center gap-3 p-4 rounded-xl bg-muted/40 border border-border hover:border-primary/50 transition-all group">
                                 <Icon icon="solar:document-text-bold-duotone" className="w-5 h-5 text-primary" />
-                                <span className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">Conditions d'Utilisation</span>
+                                <span className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">{t("auth.login.terms_link")}</span>
                                 <Icon icon="solar:arrow-right-up-bold" className="w-3 h-3 ml-auto opacity-30 group-hover:opacity-100" />
                             </Link>
                             <Link href="/privacy-policy" className="flex items-center gap-3 p-4 rounded-xl bg-muted/40 border border-border hover:border-primary/50 transition-all group">
                                 <Icon icon="solar:lock-password-bold-duotone" className="w-5 h-5 text-primary" />
-                                <span className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">Confidentialité</span>
+                                <span className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">{t("auth.login.privacy_link")}</span>
                                 <Icon icon="solar:arrow-right-up-bold" className="w-3 h-3 ml-auto opacity-30 group-hover:opacity-100" />
                             </Link>
                         </div>
@@ -641,7 +645,7 @@ export default function AccountSettings() {
                         <div className="p-4 rounded-xl bg-blue-500/5 border border-blue-500/10 flex gap-3">
                             <Icon icon="solar:info-square-bold-duotone" className="w-5 h-5 text-blue-600 shrink-0" />
                             <p className="text-[11px] text-blue-800 dark:text-blue-400 font-medium leading-relaxed">
-                                Conformément à la loi n°2013-450 sur la protection des données en Côte d'Ivoire, vos données sont protégées.
+                                {t("akwaba.settings.privacy_info")}
                             </p>
                         </div>
                     </div>
@@ -650,8 +654,8 @@ export default function AccountSettings() {
                 {/* 5. SUBSCRIPTIONS */}
                 <AccordionSection
                     id="subscriptions"
-                    title="Mes abonnements"
-                    subtitle="Gestion de vos forfaits et renouvellements"
+                    title={t("akwaba.settings.subscriptions")}
+                    subtitle={t("akwaba.settings.subscriptions_subtitle")}
                     icon="solar:bill-list-bold-duotone"
                 >
                     <div className="space-y-4 pt-4">
@@ -661,13 +665,13 @@ export default function AccountSettings() {
                                     <Icon icon="solar:ghost-bold-duotone" className="w-8 h-8" />
                                 </div>
                                 <div className="space-y-1">
-                                    <h3 className="text-base font-black text-foreground">Aucun plan actif</h3>
+                                    <h3 className="text-base font-black text-foreground">{t("akwaba.settings.no_active_plan")}</h3>
                                     <p className="text-xs text-muted-foreground font-medium max-w-[200px]">
-                                        Passez au premium pour débloquer toutes les fonctionnalités.
+                                        {t("akwaba.settings.premium_unlock")}
                                     </p>
                                 </div>
                                 <button onClick={() => router.push('/pricing')} className="bg-primary text-white font-black px-6 py-2.5 rounded-xl transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/20 text-xs uppercase tracking-widest">
-                                    Voir les tarifs
+                                    {t("akwaba.settings.view_pricing")}
                                 </button>
                             </div>
                         ) : (
@@ -697,17 +701,17 @@ export default function AccountSettings() {
                                                 }}
                                                 className="px-4 py-2 rounded-lg bg-muted border border-border hover:bg-primary hover:text-white font-black text-[10px] transition-all uppercase tracking-widest whitespace-nowrap"
                                             >
-                                                Renouveler
+                                                {t("akwaba.settings.renew")}
                                             </button>
                                         </div>
 
                                         <div className="flex justify-between items-center text-[10px] font-bold text-muted-foreground border-t border-border/40 pt-3">
                                             <span className="flex items-center gap-1.5">
                                                 <Icon icon="solar:calendar-bold-duotone" className="w-3.5 h-3.5" />
-                                                Expire le : {format(new Date(sub.endDate), 'dd MMM yyyy', { locale: fr })}
+                                                {t("akwaba.settings.expires_on")} {format(new Date(sub.endDate), 'dd MMM yyyy', { locale: fr })}
                                             </span>
                                             <button onClick={() => router.push('/pricing')} className="text-primary hover:underline">
-                                                Détails
+                                                {t("akwaba.settings.details")}
                                             </button>
                                         </div>
                                     </div>
@@ -720,8 +724,8 @@ export default function AccountSettings() {
                 {/* 6. DANGER ZONE */}
                 <AccordionSection
                     id="danger"
-                    title="Zone de danger"
-                    subtitle="Actions irréversibles et suspension"
+                    title={t("akwaba.settings.danger_zone")}
+                    subtitle={t("akwaba.settings.danger_subtitle")}
                     icon="solar:shield-warning-bold-duotone"
                     variant="danger"
                 >
@@ -732,15 +736,15 @@ export default function AccountSettings() {
                                     <Icon icon="solar:user-block-bold-duotone" className="w-5 h-5" />
                                 </div>
                                 <div>
-                                    <span className="block text-sm font-black text-rose-900 dark:text-rose-400">Suspendre mon compte</span>
-                                    <span className="block text-[10px] text-rose-700/60 font-medium italic">Action immédiate</span>
+                                    <span className="block text-sm font-black text-rose-900 dark:text-rose-400">{t("akwaba.settings.suspend_account")}</span>
+                                    <span className="block text-[10px] text-rose-700/60 font-medium italic">{t("akwaba.settings.immediate_action")}</span>
                                 </div>
                             </div>
                             <Switch
                                 checked={false}
                                 onCheckedChange={async (checked) => {
                                     if (checked) {
-                                        const confirmed = window.confirm("ATTENTION : En suspendant votre compte, vous serez déconnecté instantanément. Vous devrez contacter l'administration pour le récupérer. Continuer ?");
+                                        const confirmed = window.confirm(t("akwaba.settings.confirm_suspension"));
                                         if (confirmed) {
                                             try {
                                                 const res = await suspendMe();
@@ -761,7 +765,7 @@ export default function AccountSettings() {
                         <div className="p-4 rounded-xl bg-rose-500/5 border border-rose-500/10 flex gap-3">
                             <Icon icon="solar:info-circle-bold-duotone" className="w-5 h-5 text-rose-600 shrink-0" />
                             <p className="text-[11px] text-rose-800 dark:text-rose-400 font-medium leading-relaxed italic">
-                                Note : La suspension désactive votre accès. Vos données sont conservées mais une validation administrative sera requise pour la réactivation.
+                                {t("akwaba.settings.suspension_note")}
                             </p>
                         </div>
                     </div>
@@ -774,10 +778,10 @@ export default function AccountSettings() {
                 <div className="px-1 py-4">
                     <div className="px-6 mb-6">
                         <h2 className="text-2xl font-black text-foreground">
-                            {modalType === 'avatar' ? "Changer l'avatar" : "Pièce d'identité"}
+                            {modalType === 'avatar' ? t("akwaba.settings.change_avatar_title") : t("akwaba.settings.id_piece_title")}
                         </h2>
                         <p className="text-sm text-muted-foreground font-medium">
-                            {modalType === 'avatar' ? "Importez une photo pour personnaliser votre profil" : "Téléversez une photo lisible de votre CNI ou Passeport"}
+                            {modalType === 'avatar' ? t("akwaba.settings.change_avatar_desc") : t("akwaba.settings.id_piece_desc")}
                         </p>
                     </div>
 

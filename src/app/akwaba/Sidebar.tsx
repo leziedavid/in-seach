@@ -7,6 +7,8 @@ import { Role } from "@/types/interface";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 
+import { useTranslation } from "@/utils/langue/hooks";
+
 export type TabType =
     | "Overview"
     | "Calendrier"
@@ -33,34 +35,34 @@ export type TabType =
 
 export interface TabConfig {
     key: TabType;
-    label: string;
+    labelKey: string;
     icon: string;
     roles: Role[];
 }
 
 export const TABS_CONFIG: TabConfig[] = [
-    { label: 'Vue d\'ensemble', icon: "solar:graph-bold-duotone", key: 'Overview', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ADMIN, Role.ENTREPRISE] },
-    { label: 'Calendrier', icon: "solar:calendar-date-bold-duotone", key: 'Calendrier', roles: [Role.PRESTATAIRE, Role.ADMIN, Role.CLIENT] },
-    { label: 'Mes Services', icon: "solar:box-bold-duotone", key: 'Services', roles: [Role.PRESTATAIRE, Role.ADMIN] },
-    { label: 'Mes Annonces', icon: "solar:eye-bold-duotone", key: 'Annonces', roles: [Role.PRESTATAIRE, Role.ADMIN] },
-    { label: 'RDV Services', icon: "solar:clipboard-list-bold-duotone", key: 'Rendez-vous', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ADMIN, Role.ENTREPRISE, Role.CHAUFFEUR] },
-    { label: 'RDV Annonces', icon: "solar:clipboard-check-bold-duotone", key: 'Rendez-vous-annonces', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ADMIN, Role.ENTREPRISE, Role.CHAUFFEUR] },
-    { label: 'Historique RDV', icon: "solar:history-bold-duotone", key: 'Historique-rdv', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ADMIN, Role.ENTREPRISE, Role.CHAUFFEUR] },
-    { label: 'Boutique', icon: "solar:shop-bold-duotone", key: 'Boutique', roles: [Role.CLIENT, Role.ADMIN, Role.PRESTATAIRE, Role.ENTREPRISE] },
-    { label: 'Commandes', icon: "solar:cart-large-bold-duotone", key: 'Commandes', roles: [Role.CLIENT, Role.ADMIN, Role.PRESTATAIRE, Role.ENTREPRISE, Role.CHAUFFEUR] },
-    { label: 'Historique-commandes', icon: "solar:history-bold-duotone", key: 'Historique-commandes', roles: [Role.CLIENT, Role.ADMIN, Role.PRESTATAIRE, Role.ENTREPRISE, Role.CHAUFFEUR] },
-    { label: 'Services logistiques', icon: "solar:delivery-bold-duotone", key: 'Services-logistiques', roles: [Role.CLIENT, Role.ADMIN] },
-    { label: 'Mes devis', icon: "solar:chat-round-money-bold-duotone", key: 'Mes-devis', roles: [Role.CLIENT, Role.ADMIN] },
-    { label: 'Mes livraisons', icon: "solar:map-point-wave-bold-duotone", key: 'Mes-livraisons', roles: [Role.CLIENT, Role.ADMIN] },
-    { label: 'Mes services', icon: "solar:box-bold-duotone", key: 'Mes-services-logistiques', roles: [Role.ENTREPRISE, Role.ADMIN] },
-    { label: 'Devis reçus', icon: "solar:chat-round-money-bold-duotone", key: 'Devis-recus', roles: [Role.ENTREPRISE, Role.ADMIN] },
-    { label: 'Livraisons', icon: "solar:delivery-bold-duotone", key: 'Livraisons', roles: [Role.ENTREPRISE, Role.ADMIN] },
-    { label: 'Mes livraisons', icon: "solar:delivery-bold-duotone", key: 'Livraisons-chauffeur', roles: [Role.CHAUFFEUR] },
-    { label: 'Ma flotte', icon: "solar:bus-bold-duotone", key: 'Ma-flotte', roles: [Role.ENTREPRISE, Role.ADMIN] },
-    { label: 'Tarifs', icon: "solar:bill-list-bold-duotone", key: 'Tarifs', roles: [Role.ENTREPRISE, Role.ADMIN, Role.PRESTATAIRE, Role.CLIENT] },
-    { label: 'Documentation API', icon: "solar:document-bold-duotone", key: 'Documentation-API', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ADMIN, Role.ENTREPRISE] },
-    { label: 'Paramètres', icon: "solar:settings-bold-duotone", key: 'Paramètres', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ADMIN, Role.ENTREPRISE, Role.CHAUFFEUR, Role.LIVREUR] },
-    { label: 'Mon Espace Livreur', icon: "solar:delivery-bold-duotone", key: 'Livreur-dashboard', roles: [Role.LIVREUR, Role.ADMIN] },
+    { labelKey: 'akwaba.sidebar.overview', icon: "solar:graph-bold-duotone", key: 'Overview', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ADMIN, Role.ENTREPRISE] },
+    { labelKey: 'akwaba.sidebar.calendar', icon: "solar:calendar-date-bold-duotone", key: 'Calendrier', roles: [Role.PRESTATAIRE, Role.ADMIN, Role.CLIENT] },
+    { labelKey: 'akwaba.sidebar.services', icon: "solar:box-bold-duotone", key: 'Services', roles: [Role.PRESTATAIRE, Role.ADMIN] },
+    { labelKey: 'akwaba.sidebar.annonces', icon: "solar:eye-bold-duotone", key: 'Annonces', roles: [Role.PRESTATAIRE, Role.ADMIN] },
+    { labelKey: 'akwaba.sidebar.rd_services', icon: "solar:clipboard-list-bold-duotone", key: 'Rendez-vous', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ADMIN, Role.ENTREPRISE, Role.CHAUFFEUR] },
+    { labelKey: 'akwaba.sidebar.rd_annonces', icon: "solar:clipboard-check-bold-duotone", key: 'Rendez-vous-annonces', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ADMIN, Role.ENTREPRISE, Role.CHAUFFEUR] },
+    { labelKey: 'akwaba.sidebar.history_rdv', icon: "solar:history-bold-duotone", key: 'Historique-rdv', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ADMIN, Role.ENTREPRISE, Role.CHAUFFEUR] },
+    { labelKey: 'akwaba.sidebar.store', icon: "solar:shop-bold-duotone", key: 'Boutique', roles: [Role.CLIENT, Role.ADMIN, Role.PRESTATAIRE, Role.ENTREPRISE] },
+    { labelKey: 'akwaba.sidebar.orders', icon: "solar:cart-large-bold-duotone", key: 'Commandes', roles: [Role.CLIENT, Role.ADMIN, Role.PRESTATAIRE, Role.ENTREPRISE, Role.CHAUFFEUR] },
+    { labelKey: 'akwaba.sidebar.history_orders', icon: "solar:history-bold-duotone", key: 'Historique-commandes', roles: [Role.CLIENT, Role.ADMIN, Role.PRESTATAIRE, Role.ENTREPRISE, Role.CHAUFFEUR] },
+    { labelKey: 'akwaba.sidebar.logistics_services', icon: "solar:delivery-bold-duotone", key: 'Services-logistiques', roles: [Role.CLIENT, Role.ADMIN] },
+    { labelKey: 'akwaba.sidebar.my_quotes', icon: "solar:chat-round-money-bold-duotone", key: 'Mes-devis', roles: [Role.CLIENT, Role.ADMIN] },
+    { labelKey: 'akwaba.sidebar.my_deliveries', icon: "solar:map-point-wave-bold-duotone", key: 'Mes-livraisons', roles: [Role.CLIENT, Role.ADMIN] },
+    { labelKey: 'akwaba.sidebar.my_logistics_services', icon: "solar:box-bold-duotone", key: 'Mes-services-logistiques', roles: [Role.ENTREPRISE, Role.ADMIN] },
+    { labelKey: 'akwaba.sidebar.received_quotes', icon: "solar:chat-round-money-bold-duotone", key: 'Devis-recus', roles: [Role.ENTREPRISE, Role.ADMIN] },
+    { labelKey: 'akwaba.sidebar.deliveries', icon: "solar:delivery-bold-duotone", key: 'Livraisons', roles: [Role.ENTREPRISE, Role.ADMIN] },
+    { labelKey: 'akwaba.sidebar.driver_deliveries', icon: "solar:delivery-bold-duotone", key: 'Livraisons-chauffeur', roles: [Role.CHAUFFEUR] },
+    { labelKey: 'akwaba.sidebar.my_fleet', icon: "solar:bus-bold-duotone", key: 'Ma-flotte', roles: [Role.ENTREPRISE, Role.ADMIN] },
+    { labelKey: 'akwaba.sidebar.pricing', icon: "solar:bill-list-bold-duotone", key: 'Tarifs', roles: [Role.ENTREPRISE, Role.ADMIN, Role.PRESTATAIRE, Role.CLIENT] },
+    { labelKey: 'akwaba.sidebar.api_doc', icon: "solar:document-bold-duotone", key: 'Documentation-API', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ADMIN, Role.ENTREPRISE] },
+    { labelKey: 'akwaba.sidebar.settings', icon: "solar:settings-bold-duotone", key: 'Paramètres', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ADMIN, Role.ENTREPRISE, Role.CHAUFFEUR, Role.LIVREUR] },
+    { labelKey: 'akwaba.sidebar.deliverer_space', icon: "solar:delivery-bold-duotone", key: 'Livreur-dashboard', roles: [Role.LIVREUR, Role.ADMIN] },
 ];
 
 interface SidebarProps {
@@ -83,6 +85,7 @@ const LOGISTICS_KEYS: TabType[] = [
 ];
 
 export default function Sidebar({ activeTab, onTabChange, user, onLogout }: SidebarProps) {
+    const { t } = useTranslation();
     const userRole = user?.role as Role;
 
     // Base menu filtered by role
@@ -105,7 +108,7 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
         return (
             <button key={item.key} onClick={() => { onTabChange(item.key); setOpen(false); }} className={`w-full flex items-center gap-3 p-3 rounded-xl text-sm transition-all duration-300 ${isActive ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-[1.02]" : "hover:bg-muted text-muted-foreground hover:text-foreground dark:text-zinc-400 dark:hover:text-white"}`} >
                 <Icon icon={item.icon} width={18} />
-                {item.label}
+                {t(item.labelKey as any)}
             </button>
         );
     };
@@ -154,9 +157,13 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
                                 </>
                             ) : (
                                 <>
-                                    <p className="font-bold text-center text-foreground dark:text-white">{user?.fullName || "Mon compte"}</p>
+                                    <p className="font-bold text-center text-foreground dark:text-white">{user?.fullName || t("akwaba.sidebar.my_account")}</p>
                                     <p className="text-sm text-muted-foreground dark:text-zinc-400">
-                                        {userRole === Role.PRESTATAIRE ? "Prestataire" : userRole === Role.ENTREPRISE ? "Entreprise Logistique" : userRole === Role.CHAUFFEUR ? "Chauffeur" : userRole === Role.LIVREUR ? "Livreur EasyDelivery" : "Client"}
+                                        {userRole === Role.PRESTATAIRE ? t("akwaba.sidebar.roles.prestataire") : 
+                                         userRole === Role.ENTREPRISE ? t("akwaba.sidebar.roles.entreprise") : 
+                                         userRole === Role.CHAUFFEUR ? t("akwaba.sidebar.roles.chauffeur") : 
+                                         userRole === Role.LIVREUR ? t("akwaba.sidebar.roles.livreur") : 
+                                         t("akwaba.sidebar.roles.client")}
                                     </p>
                                 </>
                             )}
@@ -165,7 +172,7 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
                         {user?.totalGain !== undefined && (
                             <div className="mt-4 bg-primary/10 px-4 py-2 rounded-xl text-center border border-primary/20">
                                 <p className="text-primary font-black">{user.totalGain.toLocaleString()} FCFA</p>
-                                <p className="text-[10px] text-primary/70 uppercase font-bold">Total Gains</p>
+                                <p className="text-[10px] text-primary/70 uppercase font-bold">{t("akwaba.sidebar.total_gains")}</p>
                             </div>
                         )}
                     </div>
@@ -179,7 +186,7 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
                     <div className="mt-8 pt-6 border-t border-border">
                         <button onClick={onLogout} className="w-full flex items-center gap-3 p-3 rounded-xl text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-300">
                             <Icon icon="solar:logout-bold-duotone" width={18} />
-                            Déconnexion
+                            {t("akwaba.sidebar.logout")}
                         </button>
                     </div>
                 </div>
@@ -196,7 +203,7 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
 
                     <SheetContent side="bottom" className="rounded-t-3xl p-6 max-h-[90vh] overflow-y-auto">
                         <SheetHeader className="sr-only">
-                            <SheetTitle>Mon Espace</SheetTitle>
+                            <SheetTitle>{t("akwaba.sidebar.my_account")}</SheetTitle>
                             <SheetDescription>Menu de navigation de votre compte</SheetDescription>
                         </SheetHeader>
 
@@ -204,7 +211,7 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
                             <div className="w-16 h-16 rounded-full border-2 border-primary flex items-center justify-center text-lg font-bold text-primary bg-primary/5">
                                 {user?.fullName?.charAt(0) || "P"}
                             </div>
-                            <p className="mt-2 font-semibold text-foreground dark:text-white">Mon compte</p>
+                            <p className="mt-2 font-semibold text-foreground dark:text-white">{t("akwaba.sidebar.my_account")}</p>
                         </div>
 
                         <div className="space-y-3">
@@ -215,7 +222,7 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
                             <div className="pt-2 border-t border-border mt-2">
                                 <button onClick={onLogout} className="w-full flex items-center gap-3 p-4 rounded-xl text-sm text-red-500 bg-red-50/50 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all font-bold">
                                     <Icon icon="solar:logout-bold-duotone" width={18} />
-                                    Déconnexion
+                                    {t("akwaba.sidebar.logout")}
                                 </button>
                             </div>
                         </div>

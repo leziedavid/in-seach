@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Icon } from "@iconify/react";
+import { useTranslation } from "@/utils/langue/hooks";
 
 const SKILLS = [
     { name: "Java", icon: "logos:java" },
@@ -23,9 +24,11 @@ const SKILLS = [
 ];
 
 export default function PortfolioExpertise() {
+    const { t } = useTranslation();
+
     return (
         <section id="expertise" className="py-20 px-6 max-w-5xl mx-auto border-t border-border/40">
-            <h2 className="text-4xl font-black mb-12 tracking-tight">Compétences techniques</h2>
+            <h2 className="text-4xl font-black mb-12 tracking-tight">{t("portfolio.skills.title")}</h2>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-8">
                 {SKILLS.map((skill) => (

@@ -69,8 +69,7 @@ const SimulationLoader: React.FC<SimulationLoaderProps> = ({ status }) => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.6 }}
-                        className="text-muted-foreground text-sm font-medium tracking-wide flex items-center justify-center gap-2"
-                    >
+                        className="text-muted-foreground text-sm font-medium tracking-wide flex items-center justify-center gap-2" >
                         <Icon icon="solar:shield-warning-bold-duotone" className="w-4 h-4 text-primary animate-pulse" />
                         {status}
                     </motion.p>
@@ -81,10 +80,7 @@ const SimulationLoader: React.FC<SimulationLoaderProps> = ({ status }) => {
                     {[0, 1, 2].map((i) => (
                         <motion.div
                             key={i}
-                            animate={{
-                                scale: [1, 1.5, 1],
-                                opacity: [0.3, 1, 0.3]
-                            }}
+                            animate={{ scale: [1, 1.5, 1], opacity: [0.3, 1, 0.3] }}
                             transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
                             className="w-1.5 h-1.5 rounded-full bg-primary"
                         />
