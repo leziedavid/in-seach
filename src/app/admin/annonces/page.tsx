@@ -611,7 +611,7 @@ export default function AdminAnnoncesPage() {
                             className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${activeTab === tab.id ? 'bg-card shadow-xs text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
                         >
                             <tab.icon className="w-3.5 h-3.5" />
-                            {t(`admin.annonces.${tab.id}`)}
+                            {t(`admin.annonces.${tab.id}` as Parameters<typeof t>[0])}
                         </button>
                     ))}
                 </div>
