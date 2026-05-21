@@ -7,10 +7,11 @@ import {
     adminGetTypeAnnonces, adminCreateTypeAnnonce, adminUpdateTypeAnnonce, adminDeleteTypeAnnonce,
     adminGetEquipmentNames, adminCreateEquipmentName, adminUpdateEquipmentName, adminDeleteEquipmentName,
     adminGetVehicleTypes, adminCreateVehicleType, adminUpdateVehicleType, adminDeleteVehicleType,
-    adminGetTechnicalSheetDefaults, adminCreateTechnicalSheetDefault, adminUpdateTechnicalSheetDefault, adminDeleteTechnicalSheetDefault
+    adminGetTechnicalSheetDefaults, adminCreateTechnicalSheetDefault, adminUpdateTechnicalSheetDefault, adminDeleteTechnicalSheetDefault,
+    adminGetRealEstateOptions, adminCreateRealEstateOption, adminUpdateRealEstateOption, adminDeleteRealEstateOption
 } from '@/api/api';
 
-import { Radio, MapPin, Trash2, Edit2, Plus, Layers, Tag as TagIcon, Box, Car, ShieldCheck, ClipboardList } from 'lucide-react';
+import { Radio, MapPin, Trash2, Edit2, Plus, Layers, Tag as TagIcon, Box, Car, ShieldCheck, ClipboardList, Building2 } from 'lucide-react';
 import { useNotification } from '@/components/notifications/NotificationProvider';
 import { Annonce, AnnonceStatus, CategorieAnnonce, TypeAnnonce } from '@/types/interface';
 import FormsAnnonce from '@/components/annonces/forms/FormsAnnonce';
@@ -26,7 +27,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from "@/utils/langue/hooks";
 
-type TabType = 'annonces' | 'categories' | 'types' | 'equipments' | 'vehicle_types' | 'tech_sheets';
+type TabType = 'annonces' | 'categories' | 'types' | 'equipments' | 'vehicle_types' | 'tech_sheets' | 'real_estate_options';
 
 export default function AdminAnnoncesPage() {
     const { t } = useTranslation();
@@ -37,6 +38,7 @@ export default function AdminAnnoncesPage() {
     const [equipments, setEquipments] = useState<any[]>([]);
     const [vehicleTypes, setVehicleTypes] = useState<any[]>([]);
     const [techSheets, setTechSheets] = useState<any[]>([]);
+    const [realEstateOptions, setRealEstateOptions] = useState<any[]>([]);
 
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(1);
@@ -50,6 +52,7 @@ export default function AdminAnnoncesPage() {
     const [isEquipmentModalOpen, setIsEquipmentModalOpen] = useState(false);
     const [isVehicleTypeModalOpen, setIsVehicleTypeModalOpen] = useState(false);
     const [isTechSheetModalOpen, setIsTechSheetModalOpen] = useState(false);
+    const [isRealEstateOptionModalOpen, setIsRealEstateOptionModalOpen] = useState(false);
 
     const [selectedAnnonce, setSelectedAnnonce] = useState<Annonce | null>(null);
     const [selectedCategory, setSelectedCategory] = useState<CategorieAnnonce | null>(null);
@@ -57,6 +60,7 @@ export default function AdminAnnoncesPage() {
     const [selectedEquipment, setSelectedEquipment] = useState<any | null>(null);
     const [selectedVehicleType, setSelectedVehicleType] = useState<any | null>(null);
     const [selectedTechSheet, setSelectedTechSheet] = useState<any | null>(null);
+    const [selectedRealEstateOption, setSelectedRealEstateOption] = useState<any | null>(null);
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
@@ -140,6 +144,18 @@ export default function AdminAnnoncesPage() {
         }
     };
 
+    const fetchRealEstateOptions = async () => {
+        setLoading(true);
+        try {
+            const res = await adminGetRealEstateOptions();
+            if (res.statusCode === 200 && res.data) setRealEstateOptions(res.data?.data || []);
+        } catch (error) {
+            addNotification(t("admin.products.error_load"), "error");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
         if (activeTab === 'annonces') fetchAnnonces(page);
         else if (activeTab === 'categories') fetchCategories();
@@ -147,6 +163,7 @@ export default function AdminAnnoncesPage() {
         else if (activeTab === 'equipments') fetchEquipments();
         else if (activeTab === 'vehicle_types') fetchVehicleTypes();
         else if (activeTab === 'tech_sheets') fetchTechSheets();
+        else if (activeTab === 'real_estate_options') fetchRealEstateOptions();
     }, [page, activeTab]);
 
     const mapAnnonceToFormData = (annonce: Annonce) => {
@@ -404,6 +421,48 @@ export default function AdminAnnoncesPage() {
         }
     };
 
+    // --- Real Estate Option Handlers ---
+    const handleCreateRealEstateOptionClick = () => {
+        setSelectedRealEstateOption(null);
+        setIsEditing(false);
+        setIsRealEstateOptionModalOpen(true);
+    };
+
+    const handleEditRealEstateOptionClick = (opt: any) => {
+        setSelectedRealEstateOption(opt);
+        setIsEditing(true);
+        setIsRealEstateOptionModalOpen(true);
+    };
+
+    const handleRealEstateOptionSubmit = async (data: { name: string }) => {
+        setIsSubmitting(true);
+        try {
+            let res;
+            if (isEditing && selectedRealEstateOption) res = await adminUpdateRealEstateOption(selectedRealEstateOption.id, data);
+            else res = await adminCreateRealEstateOption(data);
+            if (res.statusCode === 200 || res.statusCode === 201) {
+                addNotification(isEditing ? t("admin.annonces.success_update") : t("admin.annonces.success_create"), "success");
+                setIsRealEstateOptionModalOpen(false);
+                fetchRealEstateOptions();
+            }
+        } catch (error) {
+            addNotification(t("admin.annonces.error_save"), "error");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleDeleteRealEstateOption = async (opt: any) => {
+        if (!confirm(t("admin.products.confirm_delete_product", { name: opt.name }))) return;
+        try {
+            await adminDeleteRealEstateOption(opt.id);
+            addNotification(t("admin.annonces.success_delete"), "success");
+            fetchRealEstateOptions();
+        } catch (error) {
+            addNotification(t("admin.annonces.error_delete"), "error");
+        }
+    };
+
     // --- Technical Sheet Handlers ---
     const handleCreateTechSheetClick = () => {
         setSelectedTechSheet(null);
@@ -571,6 +630,30 @@ export default function AdminAnnoncesPage() {
         }
     ];
 
+    const realEstateOptionColumns: ColumnDef<any>[] = [
+        {
+            accessorKey: 'name',
+            header: t("admin.annonces.real_estate_options"),
+            cell: ({ row }) => (
+                <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-emerald-500/10 rounded-lg flex items-center justify-center text-emerald-600 border border-emerald-500/20">
+                        <Building2 className="w-4 h-4" />
+                    </div>
+                    <div className="font-black text-sm">{row.original.name}</div>
+                </div>
+            )
+        },
+        {
+            accessorKey: '_count.annonces',
+            header: t("admin.annonces.annonces"),
+            cell: ({ row }) => (
+                <div className="flex items-center gap-2 px-2 py-0.5 bg-muted rounded-full text-[10px] font-black text-muted-foreground w-fit">
+                    {t("admin.annonces.annonces_count", { count: row.original._count?.annonces ?? 0 })}
+                </div>
+            )
+        }
+    ];
+
     const techSheetColumns: ColumnDef<any>[] = [
         {
             accessorKey: 'key',
@@ -603,7 +686,8 @@ export default function AdminAnnoncesPage() {
                         { id: 'types', label: 'Types', icon: TagIcon },
                         { id: 'equipments', label: 'Équipements', icon: ShieldCheck },
                         { id: 'vehicle_types', label: 'Types Véhicules', icon: Car },
-                        { id: 'tech_sheets', label: 'Fiches Tech', icon: ClipboardList }
+                        { id: 'tech_sheets', label: 'Fiches Tech', icon: ClipboardList },
+                        { id: 'real_estate_options', label: 'Options Immo', icon: Building2 }
                     ].map(tab => (
                         <button
                             key={tab.id}
@@ -629,7 +713,7 @@ export default function AdminAnnoncesPage() {
                     />
                 )}
 
-                {(['categories', 'types', 'equipments', 'vehicle_types', 'tech_sheets'] as TabType[]).includes(activeTab) && (
+                {(['categories', 'types', 'equipments', 'vehicle_types', 'tech_sheets', 'real_estate_options'] as TabType[]).includes(activeTab) && (
                     <div className="space-y-4">
                         <div className="flex justify-end">
                             <Button 
@@ -639,7 +723,8 @@ export default function AdminAnnoncesPage() {
                                     else if (activeTab === 'equipments') handleCreateEquipmentClick();
                                     else if (activeTab === 'vehicle_types') handleCreateVehicleTypeClick();
                                     else if (activeTab === 'tech_sheets') handleCreateTechSheetClick();
-                                }} 
+                                    else if (activeTab === 'real_estate_options') handleCreateRealEstateOptionClick();
+                                }}
                                 className="rounded-xl font-bold gap-2"
                             >
                                 <Plus className="w-4 h-4" /> {t("admin.annonces.new")}
@@ -650,17 +735,19 @@ export default function AdminAnnoncesPage() {
                                 activeTab === 'categories' ? categoryColumns : 
                                 activeTab === 'types' ? typeColumns : 
                                 activeTab === 'equipments' ? entityColumns('Équipement') : 
-                                activeTab === 'vehicle_types' ? entityColumns(t("admin.annonces.vehicle_types")) : 
+                                activeTab === 'vehicle_types' ? entityColumns(t("admin.annonces.vehicle_types")) :
+                                activeTab === 'real_estate_options' ? realEstateOptionColumns :
                                 techSheetColumns
                             }
                             data={
                                 activeTab === 'categories' ? categories : 
                                 activeTab === 'types' ? types : 
                                 activeTab === 'equipments' ? equipments : 
-                                activeTab === 'vehicle_types' ? vehicleTypes : 
+                                activeTab === 'vehicle_types' ? vehicleTypes :
+                                activeTab === 'real_estate_options' ? realEstateOptions :
                                 techSheets
                             }
-                            loading={loading} searchKey={activeTab === 'tech_sheets' ? 'key' : activeTab === 'categories' || activeTab === 'types' ? 'label' : 'name'}
+                            loading={loading} searchKey={activeTab === 'tech_sheets' ? 'key' : (activeTab === 'categories' || activeTab === 'types') ? 'label' : 'name'}
                             actions={[{ icon: Edit2, label: t("common.edit"), value: "edit" }, { icon: Trash2, label: t("common.delete"), value: "delete", variant: "destructive" }]}
                             onAction={(action, row) => {
                                 if (action === "edit") {
@@ -669,12 +756,14 @@ export default function AdminAnnoncesPage() {
                                     else if (activeTab === 'equipments') handleEditEquipmentClick(row);
                                     else if (activeTab === 'vehicle_types') handleEditVehicleTypeClick(row);
                                     else if (activeTab === 'tech_sheets') handleEditTechSheetClick(row);
+                                    else if (activeTab === 'real_estate_options') handleEditRealEstateOptionClick(row);
                                 } else {
                                     if (activeTab === 'categories') handleDeleteCategory(row);
                                     else if (activeTab === 'types') handleDeleteType(row);
                                     else if (activeTab === 'equipments') handleDeleteEquipment(row);
                                     else if (activeTab === 'vehicle_types') handleDeleteVehicleType(row);
                                     else if (activeTab === 'tech_sheets') handleDeleteTechSheet(row);
+                                    else if (activeTab === 'real_estate_options') handleDeleteRealEstateOption(row);
                                 }
                             }}
                         />
@@ -717,6 +806,13 @@ export default function AdminAnnoncesPage() {
                 <div className="p-6">
                     <h2 className="text-xl font-black mb-1">{isEditing ? t("admin.annonces.edit_annonce") : t("admin.annonces.new")}</h2>
                     <SimpleEntityForm initialData={selectedVehicleType || undefined} onSubmit={handleVehicleTypeSubmit} isSubmitting={isSubmitting} isEditing={isEditing} onClose={() => setIsVehicleTypeModalOpen(false)} label={t("admin.annonces.vehicle_types")} />
+                </div>
+            </Modal>
+
+            <Modal isOpen={isRealEstateOptionModalOpen} onClose={() => setIsRealEstateOptionModalOpen(false)}>
+                <div className="p-6">
+                    <h2 className="text-xl font-black mb-1">{isEditing ? t("admin.annonces.edit_annonce") : t("admin.annonces.new")}</h2>
+                    <SimpleEntityForm initialData={selectedRealEstateOption || undefined} onSubmit={handleRealEstateOptionSubmit} isSubmitting={isSubmitting} isEditing={isEditing} onClose={() => setIsRealEstateOptionModalOpen(false)} label={t("admin.annonces.real_estate_options")} />
                 </div>
             </Modal>
 

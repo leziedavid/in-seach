@@ -490,7 +490,7 @@ export const getAnnonces = async (params: { page?: number; limit?: number; query
     return await response.json();
 };
 
-export const getForSelectRealEstateOptions = async (): Promise<BaseResponse<any[]>> => {
+export const getForSelectRealEstateOptions = async (): Promise<BaseResponse<any>> => {
     const response = await fetch(`${getBaseUrl()}/real-estate-option/select`);
     return await response.json();
 };
@@ -596,6 +596,33 @@ export const adminUpdateVehicleType = async (id: string, data: { name: string })
 
 export const adminDeleteVehicleType = async (id: string): Promise<BaseResponse<any>> => {
     const response = await secureFetch(`${getBaseUrl()}/vehicle-types/${id}`, { method: 'DELETE' });
+    return await response.json();
+};
+
+// Real Estate Options
+export const adminGetRealEstateOptions = async (): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/real-estate-option`, { method: 'GET' });
+    return await response.json();
+};
+
+export const adminCreateRealEstateOption = async (data: { name: string }): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/real-estate-option`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const adminUpdateRealEstateOption = async (id: string, data: { name: string }): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/real-estate-option/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const adminDeleteRealEstateOption = async (id: string): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/real-estate-option/${id}`, { method: 'DELETE' });
     return await response.json();
 };
 

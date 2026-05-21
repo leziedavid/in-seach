@@ -251,7 +251,7 @@ export default function FormsAnnonce({ initialData, onSubmit, isSubmitting = fal
                 ]);
                 setCategories(categoriesRes?.data || []);
                 setTypes(typesRes?.data || []);
-                setReOptions(reRes?.data || []);
+                setReOptions(reRes?.data?.data || []);
                 setVTypes(vRes?.data || []);
 
                 const names: string[] = (eqRes?.data || []).map((e: any) => e.name);

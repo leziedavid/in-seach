@@ -181,7 +181,7 @@ export default function CartDetailModal({ isOpen, onClose }: CartDetailModalProp
 
                                         <div className="space-y-3">
                                             <button onClick={() => { setPaymentType("LIVRAISON"); setSelectedMobileProvider(null); }}
-                                                className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all duration-300 ${paymentType === "LIVRAISON" ? "border-primary bg-primary/5 shadow-sm" : "border-border bg-muted/20 hover:border-primary/50"}`}  >
+                                                className={`w-full flex items-center   justify-between p-4 rounded-2xl border transition-all duration-300 ${paymentType === "LIVRAISON" ? "border-primary bg-primary/5 shadow-sm" : "border-border bg-muted/20 hover:border-primary/50"}`}  >
                                                 <div className="flex items-center gap-3">
                                                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${paymentType === "LIVRAISON" ? "bg-primary text-white" : "bg-muted text-muted-foreground"}`}>
                                                         <Icon icon="solar:delivery-bold-duotone" width={24} />
@@ -198,7 +198,7 @@ export default function CartDetailModal({ isOpen, onClose }: CartDetailModalProp
 
                                             <button
                                                 onClick={() => setPaymentType("MOBILE_MONEY")}
-                                                className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all duration-300 ${paymentType === "MOBILE_MONEY" ? "border-primary bg-primary/5 shadow-sm" : "border-border bg-muted/20 hover:border-primary/50"}`}
+                                                className={`w-full flex items-center opacity-50 cursor-not-allowed pointer-events-none justify-between p-4 rounded-2xl border transition-all duration-300 ${paymentType === "MOBILE_MONEY" ? "border-primary bg-primary/5 shadow-sm" : "border-border bg-muted/20 hover:border-primary/50"}`}
                                             >
                                                 <div className="flex items-center gap-3">
                                                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${paymentType === "MOBILE_MONEY" ? "bg-primary text-white" : "bg-muted text-muted-foreground"}`}>

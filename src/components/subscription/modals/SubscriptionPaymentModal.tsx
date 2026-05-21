@@ -18,7 +18,7 @@ interface SubscriptionPaymentModalProps {
 type PaymentMethod = 'card' | 'mobile' | 'admin';
 
 export default function SubscriptionPaymentModal({ isOpen, onClose, plan }: SubscriptionPaymentModalProps) {
-    const [activeTab, setActiveTab] = useState<PaymentMethod>('card');
+    const [activeTab, setActiveTab] = useState<PaymentMethod>('admin');
     const [selectedOperator, setSelectedOperator] = useState<string>('');
     const [phoneNumber, setPhoneNumber] = useState('');
     const [cardData, setCardData] = useState({ number: '', name: '', expiry: '', cvv: '' });
@@ -27,6 +27,7 @@ export default function SubscriptionPaymentModal({ isOpen, onClose, plan }: Subs
     const [success, setSuccess] = useState(false);
 
     if (!plan) return null;
+    const isFree = plan.price === 0;
 
     const operators = [
         { id: 'wave', name: 'Wave', icon: 'simple-icons:wave', color: 'bg-[#1ca9e1]' },
@@ -46,6 +47,7 @@ export default function SubscriptionPaymentModal({ isOpen, onClose, plan }: Subs
 
     const isFormValid = () => {
         if (loading) return false;
+        if (isFree) return true;
         if (activeTab === 'card') {
             return cardData.number && cardData.name && cardData.expiry && cardData.cvv;
         }
@@ -121,11 +123,11 @@ export default function SubscriptionPaymentModal({ isOpen, onClose, plan }: Subs
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-card p-4 rounded-2xl border border-border shadow-sm">
+                        <div className="bg-card p-4 rounded-2xl border border-border shadow-xs">
                             <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Prix & Durée</p>
                             <p className="font-black text-lg">{plan.price} CFA <span className="text-xs text-muted-foreground font-bold">/ {plan.durationDays} jours</span></p>
                         </div>
-                        <div className="bg-card p-4 rounded-2xl border border-border shadow-sm">
+                        <div className="bg-card p-4 rounded-2xl border border-border shadow-xs">
                             <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Limites</p>
                             <p className="font-black text-lg">{plan.serviceLimit === 999999 ? 'ILIMITÉ' : `${plan.serviceLimit} unités`}</p>
                         </div>
@@ -148,148 +150,131 @@ export default function SubscriptionPaymentModal({ isOpen, onClose, plan }: Subs
                         </div>
                     ) : (
                         <div>
-                            {/* ... (existing tabs logic) ... */}
-                            <h3 className="text-lg font-black mb-1">Moyen de Paiement</h3>
-                            <p className="text-muted-foreground text-xs font-medium mb-4">Choisissez la méthode qui vous convient le mieux</p>
+                            {!isFree ? (
+                                <>
+                                    <h3 className="text-lg font-black mb-1">Moyen de Paiement</h3>
+                                    <p className="text-muted-foreground text-xs font-medium mb-4">Choisissez la méthode qui vous convient le mieux</p>
 
-                            {/* Tab Switcher */}
-                            <div className="flex gap-2 p-1 bg-muted rounded-2xl mb-6">
-                                {(['card', 'mobile', 'admin'] as PaymentMethod[]).map((tab) => (
-                                    <button
-                                        key={tab}
-                                        onClick={() => !loading && setActiveTab(tab)}
-                                        className={`flex-1 py-3 px-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === tab ? 'bg-card text-primary shadow-sm' : 'text-muted-foreground hover:text-foreground'
-                                            }`}
-                                    >
-                                        {tab === 'card' && 'Carte'}
-                                        {tab === 'mobile' && 'Mobile Money'}
-                                        {tab === 'admin' && 'Admin'}
-                                    </button>
-                                ))}
-                            </div>
-
-                            {/* Help Alert */}
-                            <div className="bg-primary/5 border border-primary/10 p-4 rounded-2xl flex items-start gap-3 mb-6">
-                                <Icon icon="solar:info-circle-bold-duotone" className="w-5 h-5 text-primary mt-0.5" />
-                                <p className="text-[11px] font-semibold text-primary/80 leading-relaxed uppercase tracking-wider">{getHelpMessage()}</p>
-                            </div>
-
-                            {/* Tab Content */}
-                            <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                {activeTab === 'card' && (
-                                    <div className="space-y-4">
-                                        <div className="space-y-1">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Numéro de Carte</label>
-                                            <div className="relative">
-                                                <input
-                                                    type="text" placeholder="0000 0000 0000 0000"
-                                                    value={cardData.number}
-                                                    onChange={e => setCardData({ ...cardData, number: e.target.value })}
-                                                    className="w-full bg-muted/50 border border-border rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none"
-                                                />
-                                                <Icon icon="solar:card-2-bold-duotone" className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5" />
-                                            </div>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Titulaire</label>
-                                            <input
-                                                type="text" placeholder="JEAN DUPONT"
-                                                value={cardData.name}
-                                                onChange={e => setCardData({ ...cardData, name: e.target.value })}
-                                                className="w-full bg-muted/50 border border-border rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none"
-                                            />
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="space-y-1">
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Expiration</label>
-                                                <input
-                                                    type="text" placeholder="MM/YY"
-                                                    value={cardData.expiry}
-                                                    onChange={e => setCardData({ ...cardData, expiry: e.target.value })}
-                                                    className="w-full bg-muted/50 border border-border rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none"
-                                                />
-                                            </div>
-                                            <div className="space-y-1">
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">CVV</label>
-                                                <input
-                                                    type="text" placeholder="123"
-                                                    value={cardData.cvv}
-                                                    onChange={e => setCardData({ ...cardData, cvv: e.target.value })}
-                                                    className="w-full bg-muted/50 border border-border rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none"
-                                                />
-                                            </div>
-                                        </div>
+                                    {/* Tab Switcher */}
+                                    <div className="flex gap-2 p-1 bg-muted rounded-2xl mb-6">
+                                        {[
+                                            { id: 'admin' as PaymentMethod, label: 'Admin', isAvailable: true },
+                                            { id: 'mobile' as PaymentMethod, label: 'Mobile Money', isAvailable: false },
+                                            { id: 'card' as PaymentMethod, label: 'Carte', isAvailable: false }
+                                        ].map((tab) => (
+                                            <button
+                                                key={tab.id}
+                                                onClick={() => tab.isAvailable && !loading && setActiveTab(tab.id)}
+                                                disabled={!tab.isAvailable}
+                                                className={`flex-1 py-3 px-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${!tab.isAvailable ? 'opacity-40 cursor-not-allowed text-muted-foreground' : activeTab === tab.id ? 'bg-card text-primary shadow-sm' : 'text-muted-foreground hover:text-foreground'}`} >
+                                                {tab.label}
+                                                {!tab.isAvailable && <span className="block text-[8px] font-medium normal-case tracking-normal mt-0.5">Bientôt</span>}
+                                            </button>
+                                        ))}
                                     </div>
-                                )}
 
-                                {activeTab === 'mobile' && (
-                                    <div className="space-y-6">
-                                        <div className="grid grid-cols-4 gap-2">
-                                            {operators.map((op) => (
-                                                <button
-                                                    key={op.id}
-                                                    onClick={() => setSelectedOperator(op.id)}
-                                                    className={`flex flex-col items-center justify-center p-3 rounded-2xl border transition-all ${selectedOperator === op.id ? 'border-primary bg-primary/5 shadow-inner' : 'border-border bg-card'
-                                                        }`}
-                                                >
-                                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white mb-2 ${op.color}`}>
-                                                        <Icon icon={op.icon} className="w-4 h-4" />
+                                    {/* Help Alert */}
+                                    <div className="bg-primary/5 border border-primary/10 p-4 rounded-2xl flex items-start gap-3 mb-6">
+                                        <Icon icon="solar:info-circle-bold-duotone" className="w-5 h-5 text-primary mt-0.5" />
+                                        <p className="text-[11px] font-semibold text-primary/80 leading-relaxed uppercase tracking-wider">{getHelpMessage()}</p>
+                                    </div>
+
+                                    {/* Tab Content */}
+                                    <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                        {activeTab === 'card' && (
+                                            <div className="space-y-4">
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Numéro de Carte</label>
+                                                    <div className="relative">
+                                                        <input type="text" placeholder="0000 0000 0000 0000" value={cardData.number} onChange={e => setCardData({ ...cardData, number: e.target.value })} className="w-full bg-muted/50 border border-border rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none" />
+                                                        <Icon icon="solar:card-2-bold-duotone" className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5" />
                                                     </div>
-                                                    <span className="text-[8px] font-black uppercase text-center">{op.name}</span>
-                                                </button>
-                                            ))}
-                                        </div>
-                                        <div className="space-y-1">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Numéro de Téléphone</label>
-                                            <div className="relative">
-                                                <input
-                                                    type="tel" placeholder="01 02 03 04 05"
-                                                    value={phoneNumber}
-                                                    onChange={(e) => setPhoneNumber(e.target.value)}
-                                                    className="w-full bg-muted/50 border border-border rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none"
-                                                />
-                                                <Icon icon="solar:phone-bold-duotone" className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5" />
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {activeTab === 'admin' && (
-                                    <div className="space-y-6">
-                                        <div className="bg-amber-500/5 border border-amber-500/20 p-6 rounded-3xl flex items-center justify-between">
-                                            <div>
-                                                <p className="text-[10px] font-black uppercase tracking-widest text-amber-600 mb-1">Numéro Admin</p>
-                                                <p className="text-3xl font-black text-amber-700 font-mono tracking-tighter">+225 0102030405</p>
-                                            </div>
-                                            <div className="bg-amber-500 text-white p-3 rounded-2xl shadow-lg shadow-amber-500/20 cursor-pointer active:scale-95 transition-transform"
-                                                onClick={() => {
-                                                    navigator.clipboard.writeText('+225 0102030405');
-                                                    toast.success('Numéro copié !');
-                                                }}>
-                                                <Icon icon="solar:copy-bold-duotone" className="w-6 h-6" />
-                                            </div>
-                                        </div>
-
-                                        <div className="space-y-1">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Preuve de Paiement</label>
-                                            <div className="relative group">
-                                                <input
-                                                    type="file"
-                                                    onChange={(e) => setProof(e.target.files?.[0] || null)}
-                                                    className="hidden" id="proof-upload"
-                                                />
-                                                <label htmlFor="proof-upload" className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-border rounded-3xl cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all">
-                                                    <div className="p-3 bg-muted group-hover:bg-primary/10 rounded-2xl transition-colors mb-4">
-                                                        <Icon icon="solar:cloud-upload-bold-duotone" className="w-6 h-6 text-muted-foreground group-hover:text-primary" />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Titulaire</label>
+                                                    <input type="text" placeholder="JEAN DUPONT" value={cardData.name} onChange={e => setCardData({ ...cardData, name: e.target.value })} className="w-full bg-muted/50 border border-border rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none" />
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div className="space-y-1">
+                                                        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Expiration</label>
+                                                        <input type="text" placeholder="MM/YY" value={cardData.expiry} onChange={e => setCardData({ ...cardData, expiry: e.target.value })} className="w-full bg-muted/50 border border-border rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none" />
                                                     </div>
-                                                    <p className="text-xs font-black uppercase tracking-widest max-w-[200px] truncate">{proof ? proof.name : 'Choisir une image'}</p>
-                                                    <p className="text-[10px] text-muted-foreground mt-2 font-medium">PNG, JPG ou PDF jusqu'à 5MB</p>
-                                                </label>
+                                                    <div className="space-y-1">
+                                                        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">CVV</label>
+                                                        <input type="text" placeholder="123" value={cardData.cvv} onChange={e => setCardData({ ...cardData, cvv: e.target.value })} className="w-full bg-muted/50 border border-border rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none" />
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </div>
+                                        )}
+
+                                        {activeTab === 'mobile' && (
+                                            <div className="space-y-6">
+                                                <div className="grid grid-cols-4 gap-2">
+                                                    {operators.map((op) => (
+                                                        <button key={op.id} onClick={() => setSelectedOperator(op.id)} className={`flex flex-col items-center justify-center p-3 rounded-2xl border transition-all ${selectedOperator === op.id ? 'border-primary bg-primary/5 shadow-inner' : 'border-border bg-card'}`}>
+                                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white mb-2 ${op.color}`}>
+                                                                <Icon icon={op.icon} className="w-4 h-4" />
+                                                            </div>
+                                                            <span className="text-[8px] font-black uppercase text-center">{op.name}</span>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Numéro de Téléphone</label>
+                                                    <div className="relative">
+                                                        <input type="tel" placeholder="01 02 03 04 05" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} className="w-full bg-muted/50 border border-border rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none" />
+                                                        <Icon icon="solar:phone-bold-duotone" className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {activeTab === 'admin' && (
+                                            <div className="space-y-6">
+                                                <div className="bg-amber-500/5 border border-amber-500/20 p-6 rounded-3xl flex items-center justify-between">
+                                                    <div>
+                                                        <p className="text-[10px] font-black uppercase tracking-widest text-amber-600 mb-1">Numéro Admin</p>
+                                                        <p className="text-3xl font-black text-amber-700 font-mono tracking-tighter">+225 0153686819</p>
+                                                    </div>
+                                                    <div className="bg-amber-500 text-white p-3 rounded-2xl shadow-lg shadow-amber-500/20 cursor-pointer active:scale-95 transition-transform"
+                                                        onClick={() => {
+                                                            navigator.clipboard.writeText('+225 0153686819');
+                                                            toast.success('Numéro copié !');
+                                                        }}>
+                                                        <Icon icon="solar:copy-bold-duotone" className="w-6 h-6" />
+                                                    </div>
+                                                </div>
+
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Preuve de Paiement</label>
+                                                    <div className="relative group">
+                                                        <input
+                                                            type="file"
+                                                            onChange={(e) => setProof(e.target.files?.[0] || null)}
+                                                            className="hidden" id="proof-upload"
+                                                        />
+                                                        <label htmlFor="proof-upload" className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-border rounded-3xl cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all">
+                                                            <div className="p-3 bg-muted group-hover:bg-primary/10 rounded-2xl transition-colors mb-4">
+                                                                <Icon icon="solar:cloud-upload-bold-duotone" className="w-6 h-6 text-muted-foreground group-hover:text-primary" />
+                                                            </div>
+                                                            <p className="text-xs font-black uppercase tracking-widest max-w-[200px] truncate">{proof ? proof.name : 'Choisir une image'}</p>
+                                                            <p className="text-[10px] text-muted-foreground mt-2 font-medium">PNG, JPG ou PDF jusqu'à 5MB</p>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
-                                )}
-                            </div>
+                                </>
+                            ) : (
+                                <div className="py-1 flex flex-col items-center text-center space-y-0">
+                                    <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+                                        <Icon icon="solar:gift-bold-duotone" className="w-8 h-8 text-primary" />
+                                    </div>
+                                    <h3 className="text-xl font-black">Plan Gratuit</h3>
+                                    <p className="text-sm text-muted-foreground max-w-xs">Ce plan est entièrement gratuit. Cliquez sur confirmer pour activer votre abonnement immédiatement.</p>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
@@ -313,7 +298,7 @@ export default function SubscriptionPaymentModal({ isOpen, onClose, plan }: Subs
                             {loading ? (
                                 <Icon icon="solar:refresh-bold-duotone" className="w-5 h-5 animate-spin" />
                             ) : (
-                                'Confirmer le Paiement'
+                                isFree ? 'Confirmer' : 'Confirmer le Paiement'
                             )}
                         </Button>
                     </div>

@@ -95,45 +95,9 @@ export default function PricingPage() {
         return (plansRes?.data?.data || []).filter((p: SubscriptionPlan) => p.isActive);
     }, [plansRes]);
 
-    const defaultFeatures = {
-        FREE: [
-            { text: "Jusqu'à 5 services publiés", included: true },
-            { text: 'Visibilité locale standard', included: true },
-            { text: 'Messagerie basique', included: true },
-            { text: 'Analyse IA limitée', included: true },
-            { text: 'Badge vérifié', included: false },
-            { text: 'Priorité dans la recherche', included: false },
-        ],
-        PREMIUM: [
-            { text: 'Services illimités', included: true },
-            { text: 'Visibilité boostée x10', included: true },
-            { text: 'Messagerie prioritaire', included: true },
-            { text: 'Analyse IA illimitée', included: true },
-            { text: 'Badge "Expert Certifié"', included: true },
-            { text: 'Statistiques avancées', included: true },
-        ]
-    };
-
     const plans = React.useMemo<Plan[]>(() => {
         if (!apiPlans || apiPlans.length === 0) {
-            return [
-                {
-                    name: 'FREE',
-                    price: 0,
-                    description: 'Idéal pour commencer et tester la plateforme.',
-                    features: defaultFeatures.FREE,
-                    cta: 'Commencer gratuitement',
-                    highlight: false,
-                },
-                {
-                    name: 'PREMIUM',
-                    price: 29,
-                    description: 'Pour les professionnels qui veulent booster leur activité.',
-                    features: defaultFeatures.PREMIUM,
-                    cta: 'Passer au Premium',
-                    highlight: true,
-                }
-            ];
+            return [];
         }
 
         return apiPlans.map((p) => {
@@ -141,17 +105,15 @@ export default function PricingPage() {
             const isPremium = p.name.toUpperCase().includes('PREMIUM');
             const isLogistic = p.name.toUpperCase().includes('LOGISTIC');
 
-            const mappedFeatures = (p.features && p.features.length > 0)
-                ? p.features.map(f => ({ text: f, included: true }))
-                : (isFree ? defaultFeatures.FREE : defaultFeatures.PREMIUM);
+            const mappedFeatures = (p.defaultFeatures && p.defaultFeatures.length > 0)
+                ? p.defaultFeatures.map((f: any) => ({ text: f.label, included: true }))
+                : [];
 
             return {
                 id: p.id,
                 name: p.name,
                 price: p.price,
-                description: p.description || (isFree
-                    ? 'Idéal pour commencer et tester la plateforme.'
-                    : 'Pour les professionnels qui veulent booster leur activité.'),
+                description: p.description || (isFree ? 'Idéal pour commencer et tester la plateforme.' : 'Pour les professionnels qui veulent booster leur activité.'),
                 features: mappedFeatures,
                 cta: isFree ? 'Commencer gratuitement' : "S'abonner maintenant",
                 highlight: isPremium || isLogistic,
@@ -188,14 +150,7 @@ export default function PricingPage() {
             <section className="px-6 pb-20">
                 <div className={`max-w-4xl mx-auto grid grid-cols-1 ${plans.length > 1 ? 'md:grid-cols-2' : ''} gap-5`}>
                     {plans.map((plan: Plan, i: number) => (
-                        <div
-                            key={i}
-                            className={`relative rounded-2xl p-8 flex flex-col transition-all duration-200
-                                ${plan.highlight
-                                    ? 'bg-secondary text-white'
-                                    : 'bg-white dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800 hover:border-secondary/30 dark:hover:border-secondary/40'
-                                }`}
-                        >
+                        <div key={i} className={`relative rounded-2xl p-8 flex flex-col transition-all duration-200  ${plan.highlight ? 'bg-secondary text-white' : 'bg-white dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800 hover:border-secondary/30 dark:hover:border-secondary/40'}`}>
                             {plan.highlight && (
                                 <span className="absolute -top-3 left-8 inline-flex items-center gap-1.5 bg-primary text-white text-[11px] font-semibold px-3 py-1 rounded-full">
                                     <Icon icon="solar:star-bold" width={11} />
@@ -212,7 +167,7 @@ export default function PricingPage() {
                                 <div className="flex items-baseline gap-1.5 mb-3">
                                     <span className={`text-5xl font-bold tracking-tight
                                         ${plan.highlight ? 'text-white' : 'text-zinc-900 dark:text-white'}`}>
-                                        {plan.price}€
+                                        {plan.price} FCFA
                                     </span>
                                     <span className={`text-sm
                                         ${plan.highlight ? 'text-white/50' : 'text-zinc-400 dark:text-zinc-500'}`}>
@@ -234,29 +189,11 @@ export default function PricingPage() {
                                 {plan.features.map((feature: Feature, j: number) => (
                                     <li key={j} className="flex items-start gap-3">
                                         {feature.included ? (
-                                            <Icon
-                                                icon="solar:check-circle-bold"
-                                                width={17}
-                                                className={`shrink-0 mt-0.5
-                                                    ${plan.highlight ? 'text-primary' : 'text-secondary dark:text-secondary'}`}
-                                            />
+                                            <Icon icon="solar:check-circle-bold" width={17} className={`shrink-0 mt-0.5 ${plan.highlight ? 'text-primary' : 'text-secondary dark:text-secondary'}`} />
                                         ) : (
-                                            <Icon
-                                                icon="solar:close-circle-linear"
-                                                width={17}
-                                                className={`shrink-0 mt-0.5
-                                                    ${plan.highlight ? 'text-white/25' : 'text-zinc-300 dark:text-zinc-600'}`}
-                                            />
+                                            <Icon icon="solar:close-circle-linear" width={17} className={`shrink-0 mt-0.5 ${plan.highlight ? 'text-white/25' : 'text-zinc-300 dark:text-zinc-600'}`} />
                                         )}
-                                        <span className={`text-[13px] leading-snug ${
-                                            feature.included
-                                                ? plan.highlight
-                                                    ? 'text-white/90'
-                                                    : 'text-zinc-700 dark:text-zinc-300'
-                                                : plan.highlight
-                                                    ? 'text-white/30 line-through'
-                                                    : 'text-zinc-300 dark:text-zinc-600 line-through'
-                                        }`}>
+                                        <span className={`text-[13px] leading-snug ${feature.included ? plan.highlight ? 'text-white/90' : 'text-zinc-700 dark:text-zinc-300' : plan.highlight ? 'text-white/30 line-through' : 'text-zinc-300 dark:text-zinc-600 line-through'}`}>
                                             {feature.text}
                                         </span>
                                     </li>
@@ -264,17 +201,8 @@ export default function PricingPage() {
                             </ul>
 
                             {/* CTA */}
-                            <button
-                                onClick={() => {
-                                    setSelectedPlan(apiPlans.find((p: any) => p.id === plan.id) || null);
-                                    setIsModalOpen(true);
-                                }}
-                                className={`w-full py-3 rounded-xl text-[14px] font-semibold transition-all duration-150 cursor-pointer
-                                    ${plan.highlight
-                                        ? 'bg-primary text-white hover:bg-primary/90'
-                                        : 'bg-secondary text-white hover:bg-secondary/90'
-                                    }`}
-                            >
+                            <button onClick={() => { setSelectedPlan(apiPlans.find((p: any) => p.id === plan.id) || null); setIsModalOpen(true); }}
+                                className={`w-full py-3 rounded-xl text-[14px] font-semibold transition-all duration-150 cursor-pointer ${plan.highlight ? 'bg-primary text-white hover:bg-primary/90' : 'bg-secondary text-white hover:bg-secondary/90'}`} >
                                 {plan.cta}
                             </button>
                         </div>
@@ -286,10 +214,10 @@ export default function PricingPage() {
             <section className="border-y border-zinc-100 dark:border-zinc-800 py-10 px-6">
                 <div className="max-w-3xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
                     {[
-                        { icon: 'solar:shield-check-bold-duotone', label: 'Paiement sécurisé',       color: 'text-secondary' },
-                        { icon: 'solar:refresh-bold-duotone',      label: 'Résiliable à tout moment', color: 'text-primary'   },
-                        { icon: 'solar:headphones-round-bold-duotone', label: 'Support réactif',      color: 'text-secondary' },
-                        { icon: 'solar:lock-keyhole-bold-duotone', label: 'Données protégées',        color: 'text-primary'   },
+                        { icon: 'solar:shield-check-bold-duotone', label: 'Paiement sécurisé', color: 'text-secondary' },
+                        { icon: 'solar:refresh-bold-duotone', label: 'Résiliable à tout moment', color: 'text-primary' },
+                        { icon: 'solar:headphones-round-bold-duotone', label: 'Support réactif', color: 'text-secondary' },
+                        { icon: 'solar:lock-keyhole-bold-duotone', label: 'Données protégées', color: 'text-primary' },
                     ].map((item, i) => (
                         <div key={i} className="flex flex-col items-center gap-2">
                             <Icon icon={item.icon} width={24} className={item.color} />

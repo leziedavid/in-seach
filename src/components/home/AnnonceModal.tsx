@@ -9,6 +9,7 @@ import { createPortal } from "react-dom";
 import { useNotification } from "@/components/notifications/NotificationProvider";
 import BookingModal from "@/components/bookings/modals/BookingModal";
 import TextDisplayBox from "./TextDisplayBox";
+import { useTranslation } from "@/utils/langue/hooks";
 
 interface AnnonceModalProps {
     isOpen: boolean;
@@ -21,6 +22,7 @@ export default function AnnonceModal({ isOpen, onClose, annonce }: AnnonceModalP
     const [activeImageIndex, setActiveImageIndex] = useState(0);
     const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
     const { addNotification } = useNotification();
+    const { t } = useTranslation();
 
     useEffect(() => {
         setMounted(true);
@@ -228,9 +230,11 @@ export default function AnnonceModal({ isOpen, onClose, annonce }: AnnonceModalP
                                         </div>
 
                                         {/* Bottom Details Section (Under Gallery on Desktop) */}
+                                        {/* <pre>{JSON.stringify(annonce.equipments, null, 2)}</pre> */}
+
                                         <div className="md:[grid-area:bottom] p-6 md:p-8 md:pt-0 space-y-8">
                                             {/* Equipments Section */}
-                                            {annonce.equipments && annonce.equipments.length > 0 && (
+                                            {isImmo && annonce.equipments && annonce.equipments.length > 0 && (
                                                 <div className="space-y-4">
                                                     <h3 className="text-xs font-black uppercase text-muted-foreground px-1 tracking-widest">Équipements</h3>
                                                     <div className="flex flex-wrap gap-2">
@@ -251,8 +255,8 @@ export default function AnnonceModal({ isOpen, onClose, annonce }: AnnonceModalP
                                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                                         {annonce.technicalSheets.slice(0, 8).map((ts, i) => (
                                                             <div key={i} className="flex items-center justify-between p-3 bg-muted/20 rounded-xl border border-border/30">
-                                                                <span className="text-[10px] font-bold text-muted-foreground uppercase">{ts.key}</span>
-                                                                <span className="text-xs font-black">{ts.value}</span>
+                                                                <span className="text-[10px] font-bold text-muted-foreground uppercase">{t(ts.key as any)}</span>
+                                                                <span className="text-xs font-black">{t(ts.value as any)}</span>
                                                             </div>
                                                         ))}
                                                     </div>

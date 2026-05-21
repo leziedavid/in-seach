@@ -17,7 +17,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { LanguageToggle } from "./LanguageToggle";
 
 const NAVIGATION_TABS = [
-    { key: "accueil", label: "Accueil", icon: "ic:twotone-home-max", path: "/" },
+    { key: "accueil", label: "Accueil", icon: "solar:home-2-linear", path: "/" },
 ];
 
 export default function Header() {
@@ -25,7 +25,6 @@ export default function Header() {
     const [mounted, setMounted] = useState(false);
 
     /* ------------------------- EXTRA FUNCTIONALITIES ADDED ------------------------- */
-    const [gain, setGain] = useState(10000000);
     const [unreadMessages, setUnreadMessages] = useState(0);
     const [userName, setUserName] = useState<string | null>(null);
     const [userId, setUserId] = useState<string | null>(null);

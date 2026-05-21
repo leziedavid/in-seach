@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Icon } from "@iconify/react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { AdminSubscriptionPlanDto, SubscriptionPlan, PlanEntity } from "@/types/interface";
@@ -15,6 +15,7 @@ const planSchema = z.object({
     durationDays: z.number().int().min(1, "La durée doit être d'au moins 1 jour"),
     isActive: z.boolean(),
     entityIds: z.array(z.string()),
+    defaultFeatures: z.array(z.string().min(1, "La fonctionnalité ne peut pas être vide")).min(1, "Ajoutez au moins une fonctionnalité par défaut"),
 });
 
 type PlanFormData = z.infer<typeof planSchema>;
@@ -45,7 +46,13 @@ export default function FormsSubscriptionPlan({ initialData, onSubmit, isSubmitt
             durationDays: initialData?.durationDays || 30,
             isActive: initialData?.isActive ?? true,
             entityIds: initialData?.entities?.map(e => e.id) || [],
+            defaultFeatures: initialData?.defaultFeatures?.map((f: any) => f.label) || [""],
         },
+    });
+
+    const { fields, append, remove } = useFieldArray({
+        control,
+        name: "defaultFeatures" as never, // cast to never because it's a string array, react-hook-form types can be tricky
     });
 
     const selectedEntityIds = watch("entityIds");
@@ -141,6 +148,51 @@ export default function FormsSubscriptionPlan({ initialData, onSubmit, isSubmitt
                         {entities.length === 0 && (
                             <p className="text-[10px] text-muted-foreground italic">Aucune entité disponible. Créez-en d'abord dans l'onglet Entités.</p>
                         )}
+                    </div>
+
+                    {/* Features Editor */}
+                    <div className="space-y-3 pt-4 border-t border-border">
+                        <div className="flex items-center justify-between">
+                            <label className="text-xs font-bold">Fonctionnalités incluses</label>
+                            <button
+                                type="button"
+                                onClick={() => append("")}
+                                className="flex items-center gap-1 text-[10px] font-bold text-primary bg-primary/10 hover:bg-primary/20 px-2 py-1 rounded-md transition-all"
+                            >
+                                <Icon icon="solar:add-circle-bold" className="w-3 h-3" />
+                                Ajouter
+                            </button>
+                        </div>
+                        
+                        <div className="space-y-2">
+                            {fields.map((field, index) => (
+                                <div key={field.id} className="flex items-start gap-2 group animate-in fade-in slide-in-from-left-2 duration-300">
+                                    <div className="flex-1 space-y-1">
+                                        <input
+                                            {...register(`defaultFeatures.${index}` as const)}
+                                            className="w-full px-3 py-2 rounded-lg border border-border bg-muted text-sm outline-none focus:border-primary transition-all"
+                                            placeholder="ex: Jusqu'à 5 services publiés"
+                                        />
+                                        {errors?.defaultFeatures?.[index] && (
+                                            <p className="text-[10px] text-red-500">
+                                                {errors.defaultFeatures[index]?.message}
+                                            </p>
+                                        )}
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => remove(index)}
+                                        className="mt-1 p-2 text-muted-foreground hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all opacity-50 group-hover:opacity-100"
+                                        title="Supprimer"
+                                    >
+                                        <Icon icon="solar:trash-bin-trash-bold" className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            ))}
+                            {errors.defaultFeatures && typeof errors.defaultFeatures.message === 'string' && (
+                                <p className="text-[10px] text-red-500">{errors.defaultFeatures.message}</p>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>

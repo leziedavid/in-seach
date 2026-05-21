@@ -159,7 +159,7 @@ export interface SubscriptionPlan {
     durationDays: number;
     isActive: boolean;
     description?: string;
-    features?: string[];
+    defaultFeatures?: { id?: string; label: string }[];
     entities?: PlanEntity[];
     _count?: {
         subscriptions: number;
@@ -682,7 +682,7 @@ export interface AdminSubscriptionPlanDto {
     serviceLimit: number;
     durationDays: number;
     isActive: boolean;
-    features?: string[];
+    defaultFeatures?: string[];
     entityIds?: string[];
 }
 
