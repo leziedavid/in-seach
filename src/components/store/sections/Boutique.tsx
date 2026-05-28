@@ -144,7 +144,7 @@ export default function ProductsPage() {
             </div>
 
             {/* NEW FILTERS & VIEW TOGGLE */}
-            <div className="w-full max-w-3xl mx-auto mb-2 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="w-full max-w-3xl mx-auto mb-2 flex flex-col md:flex-row items-center justify-between gap-4 hide-scrollbar ">
 
                 <div className="flex w-full md:w-auto overflow-x-auto pb-2 md:pb-0 hide-scrollbar gap-2 items-center">
                     {/* Type de vente */}
@@ -170,7 +170,7 @@ export default function ProductsPage() {
                 </div>
 
                 {/* View Toggle */}
-                <div className="flex items-center bg-card border border-border/50 rounded-xl p-1 shadow-sm shrink-0 self-end md:self-auto">
+                <div className="flex items-center bg-card border border-border/50 rounded-xl p-1 shadow-sm shrink-0 self-end md:self-auto  hide-scrollbar ">
                     <button onClick={() => setViewMode("grid")} className={`p-1.5 rounded-lg transition-colors ${viewMode === "grid" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"}`} title="Vue Grille">
                         <Icon icon="solar:widget-5-bold-duotone" className="w-5 h-5" />
                     </button>
@@ -211,8 +211,8 @@ export default function ProductsPage() {
                         renderItem={(product) => (
                             <ProductCard key={product.id} product={product} viewMode={viewMode} />
                         )}
-                        className="w-full"
-                        gridClassName={viewMode === 'grid' ? "grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6" : "flex flex-col gap-4"}
+                        // className="w-full"
+                        gridClassName={viewMode === 'grid' ? "grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-6" : "grid grid-cols-1 gap-4"}
                     />
                 )}
             </div>

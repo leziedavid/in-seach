@@ -206,8 +206,8 @@ export default function StorePage(props: Props) {
                 <CategoryFilter
                     categories={[
                         { id: "all", name: "Tous" },
-                        ...categories.map(cat => ({ 
-                            id: cat.id, 
+                        ...categories.map(cat => ({
+                            id: cat.id,
                             name: cat.name,
                             subCategories: cat.subCategories
                         }))
@@ -224,8 +224,8 @@ export default function StorePage(props: Props) {
             </div>
 
             {/* NEW FILTERS & VIEW TOGGLE */}
-            <div className="w-full max-w-3xl mx-auto mb-6 flex flex-col md:flex-row items-center justify-between gap-4">
-                
+            <div className="w-full max-w-3xl mx-auto mb-6 flex flex-col md:flex-row items-center hide-scrollbar overflow-x-auto justify-between gap-4">
+
                 <div className="flex w-full md:w-auto overflow-x-auto pb-2 md:pb-0 hide-scrollbar gap-2 items-center">
                     {/* Type de vente */}
                     <div className="flex items-center bg-card border border-border/50 rounded-xl p-1 shadow-sm shrink-0">
@@ -241,7 +241,7 @@ export default function StorePage(props: Props) {
                     </div>
 
                     {/* Price Range */}
-                    <div className="flex items-center gap-2 bg-card border border-border/50 rounded-xl px-3 py-1 shadow-sm shrink-0 h-[36px]">
+                    <div className="flex items-center gap-2 bg-card border border-border/50 rounded-xl px-3 py-1 shadow-sm shrink-0 h-[36px] hide-scrollbar">
                         <Icon icon="solar:wad-of-money-bold-duotone" className="w-4 h-4 text-muted-foreground shrink-0" />
                         <input type="number" placeholder="Prix min" value={minPrice} onChange={e => setMinPrice(e.target.value)} className="w-16 bg-transparent outline-none text-xs text-foreground placeholder:text-muted-foreground font-medium" />
                         <span className="text-muted-foreground text-xs">-</span>
@@ -250,7 +250,7 @@ export default function StorePage(props: Props) {
                 </div>
 
                 {/* View Toggle */}
-                <div className="flex items-center bg-card border border-border/50 rounded-xl p-1 shadow-sm shrink-0 self-end md:self-auto">
+                <div className="flex items-center bg-card border border-border/50 rounded-xl p-1 shadow-sm shrink-0 self-end md:self-auto  hide-scrollbar">
                     <button onClick={() => setViewMode("grid")} className={`p-1.5 rounded-lg transition-colors ${viewMode === "grid" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"}`} title="Vue Grille">
                         <Icon icon="solar:widget-5-bold-duotone" className="w-5 h-5" />
                     </button>
@@ -268,31 +268,21 @@ export default function StorePage(props: Props) {
                     </h3>
                 </div>
 
-                {loading && products.length === 0 ? (
-                    <Loader
-                        title="Chargement des produits..."
-                        description="Nous préparons les produits de cette boutique, veuillez patienter."
-                        icon="solar:bag-4-bold-duotone"
-                    />
-                ) : !loading && products.length === 0 ? (
-                    <NotFound
-                        title="Aucun produit disponible"
-                        description={search || selectedCategory !== "all" ? "Aucun produit ne correspond à votre recherche. Essayez d'autres mots-clés ou une autre catégorie." : "Cette boutique n'a pas encore de produits disponibles."}
-                        icon="solar:bag-4-bold-duotone"
-                    />
+                {/* ✅ NotFound seulement si vraiment vide ET chargement terminé */}
+                {!loading && products.length === 0 ? (
+                    <NotFound title="Aucun produit disponible" description={search || selectedCategory !== "all" ? "Aucun produit ne correspond à votre recherche." : "Cette boutique n'a pas encore de produits disponibles."} icon="solar:bag-4-bold-duotone" />
                 ) : (
-                    <InfiniteScroll
+                    <InfiniteScroll<Product>
                         items={products}
                         hasMore={hasMore}
                         isLoading={loading}
                         loadMore={() => setPage(prev => prev + 1)}
-                        skeletonType="product"
-                        skeletonCount={3}
+                        skeletonCount={6}
+                        viewMode={viewMode}
                         renderItem={(product) => (
-                            <ProductCard key={product.id} product={product} viewMode={viewMode} />
+                            <ProductCard product={product} viewMode={viewMode} />
                         )}
-                        className="w-full"
-                        gridClassName={viewMode === 'grid' ? "grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6" : "flex flex-col gap-4"}
+                        gridClassName={viewMode === 'grid' ? "grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-6" : "grid grid-cols-1 gap-4"}
                     />
                 )}
             </div>
@@ -300,9 +290,9 @@ export default function StorePage(props: Props) {
             {/* Review Section */}
             {publicStore && publicStore.id && (
                 <div className="w-full max-w-4xl mx-auto px-4 mt-12">
-                    <ReviewSection 
-                        labelleServies="Boutique" 
-                        targetUserId={publicStore.id} 
+                    <ReviewSection
+                        labelleServies="Boutique"
+                        targetUserId={publicStore.id}
                         title={`Avis sur ${publicStore.storeName || 'la boutique'}`}
                     />
                 </div>

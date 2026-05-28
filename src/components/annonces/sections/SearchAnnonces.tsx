@@ -262,6 +262,7 @@ export default function SearchAnnonces() {
                         icon="solar:tag-bold-duotone"
                     />
                 ) : (
+
                     <InfiniteScroll
                         items={annonces}
                         loadMore={() => setPage(prev => prev + 1)}

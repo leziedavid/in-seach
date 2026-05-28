@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
 import SearchAnnonces from "@/components/annonces/sections/SearchAnnonces"
 import Boutique from "@/components/store/sections/Boutique"
 import { OpportunitiesIcon, BoutiqueIcon, SearchIcon, LogisticsIcon } from "@/components/layout/TabIcons"

@@ -138,7 +138,7 @@ export default function LogisticProviderList() {
                         isLoading={loading}
                         skeletonType="logistics"
                         skeletonCount={4}
-                        gridClassName={viewMode === 'grid' ? "grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-6" : "grid grid-cols-1 gap-4"}
+                        gridClassName={viewMode === 'grid' ? "grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-6" : "grid grid-cols-1 gap-4"}
                         renderItem={(provider) => (<LogisticProviderCard key={provider.id} provider={provider} viewMode={viewMode} />)}
                     />
                 )}

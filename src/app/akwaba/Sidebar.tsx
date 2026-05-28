@@ -159,11 +159,11 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
                                 <>
                                     <p className="font-bold text-center text-foreground dark:text-white">{user?.fullName || t("akwaba.sidebar.my_account")}</p>
                                     <p className="text-sm text-muted-foreground dark:text-zinc-400">
-                                        {userRole === Role.PRESTATAIRE ? t("akwaba.sidebar.roles.prestataire") : 
-                                         userRole === Role.ENTREPRISE ? t("akwaba.sidebar.roles.entreprise") : 
-                                         userRole === Role.CHAUFFEUR ? t("akwaba.sidebar.roles.chauffeur") : 
-                                         userRole === Role.LIVREUR ? t("akwaba.sidebar.roles.livreur") : 
-                                         t("akwaba.sidebar.roles.client")}
+                                        {userRole === Role.PRESTATAIRE ? t("akwaba.sidebar.roles.prestataire") :
+                                            userRole === Role.ENTREPRISE ? t("akwaba.sidebar.roles.entreprise") :
+                                                userRole === Role.CHAUFFEUR ? t("akwaba.sidebar.roles.chauffeur") :
+                                                    userRole === Role.LIVREUR ? t("akwaba.sidebar.roles.livreur") :
+                                                        t("akwaba.sidebar.roles.client")}
                                     </p>
                                 </>
                             )}
@@ -196,9 +196,12 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
             <div className="md:hidden fixed bottom-20 left-6 z-40">
                 <Sheet open={open} onOpenChange={setOpen}>
                     <SheetTrigger asChild>
-                        <Button size="icon" className="rounded-full h-14 w-14 bg-primary text-primary-foreground shadow-xl shadow-primary/30 hover:scale-110 active:scale-95 transition-all">
+                        <Button size="icon" className="rounded-full h-14 w-14 flex items-center justify-center bg-primary shadow-xl shadow-primary/30 hover:scale-110 active:scale-95 transition-all mb-2">
                             <Image src="/service.svg" alt="Menu" width={32} height={32} className="brightness-0 invert dark:brightness-100 dark:invert-0" style={{ height: 'auto' }} />
                         </Button>
+                        {/* <Button size="icon" className="relative rounded-full h-14 w-14 bg-primary shadow-xl shadow-primary/30 hover:scale-110 active:scale-95 transition-all mb-2 overflow-hidden">
+                            <Icon icon="solar:folder-with-files-bold-duotone" className="absolute inset-0 m-auto w-11 h-11 text-white/90 pointer-events-none" />
+                        </Button> */}
                     </SheetTrigger>
 
                     <SheetContent side="bottom" className="rounded-t-3xl p-6 max-h-[90vh] overflow-y-auto">
@@ -227,6 +230,7 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
                             </div>
                         </div>
                     </SheetContent>
+
                 </Sheet>
             </div>
         </>

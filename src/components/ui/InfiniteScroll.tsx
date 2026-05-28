@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { Icon } from "@iconify/react";
+import React, {
+    useEffect, useRef, useState, useMemo, useCallback, useLayoutEffect,
+} from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export type SkeletonType = 'product' | 'service' | 'annonce' | 'logistics' | 'default';
@@ -12,157 +13,281 @@ interface InfiniteScrollProps<T> {
     loadMore: () => Promise<void> | void;
     hasMore: boolean;
     isLoading: boolean;
-    windowSize?: number; // Max items in DOM at once
-    batchSize?: number; // Number of items per "lot"
+    /** Nb max d'items réels dans le DOM en même temps (défaut 20) */
+    windowSize?: number;
+    /** Nb d'items purgés / restaurés par lot (défaut 10) */
+    batchSize?: number;
     skeletonType?: SkeletonType;
     skeletonCount?: number;
     SkeletonComponent?: React.ReactNode;
     endMessage?: string;
     className?: string;
     gridClassName?: string;
+    viewMode?: 'grid' | 'list';
 }
 
-// Internal Skeleton Component
-const ListingSkeleton = ({ type, count = 3 }: { type: SkeletonType; count?: number }) => {
+// ─── Skeleton fidèle à ProductCard ───────────────────────────────────────────
+const SkeletonCard = ({ viewMode = 'grid' }: { viewMode?: 'grid' | 'list' }) => {
+    const isList = viewMode === 'list';
     return (
-        <>
-            {Array.from({ length: count }).map((_, i) => (
-                <div key={i} className="animate-pulse bg-card rounded-2xl md:rounded-[2rem] overflow-hidden border border-border/50 flex flex-col stagger-item">
-                    {/* Image Placeholder */}
-                    <div className={`w-full bg-muted/40 ${type === 'product' ? 'aspect-[4/5]' : 'aspect-square'}`} />
-
-                    {/* Content Placeholder */}
-                    <div className="p-4 space-y-3">
-                        <div className="h-3 bg-muted/40 rounded-full w-3/4" />
-                        <div className="h-3 bg-muted/20 rounded-full w-1/2" />
-                        <div className="pt-2 flex justify-between items-center">
-                            <div className="h-5 bg-muted/30 rounded-lg w-1/3" />
-                            <div className="h-8 bg-muted/40 rounded-full w-24 md:w-32" />
-                        </div>
-                    </div>
+        <div className={`animate-pulse rounded-xl p-2 md:p-4 bg-muted/20 border border-border/40 w-full flex ${isList ? 'flex-row items-center gap-3 md:gap-4' : 'flex-col'}`}>
+            <div className={`relative shrink-0 overflow-hidden rounded-lg md:rounded-2xl bg-muted ${isList ? 'w-24 h-24 md:w-32 md:h-32' : 'w-full aspect-square mb-2 md:mb-3'}`}>
+                <div className="absolute top-1 left-1 md:top-2 md:left-2 h-4 w-14 bg-muted-foreground/20 rounded-full" />
+                <div className="absolute bottom-1 left-1 md:bottom-2 md:left-2 h-3.5 w-10 bg-muted-foreground/20 rounded-md" />
+            </div>
+            <div className={`flex flex-col flex-1 min-w-0 ${isList ? 'justify-center' : 'px-0.5 w-full'}`}>
+                <div className="h-3 bg-muted-foreground/20 rounded-full w-3/4 mb-1.5" />
+                <div className="h-3 bg-muted-foreground/10 rounded-full w-1/2 mb-2 md:mb-3" />
+                <div className="flex items-center gap-1 mb-2 md:mb-3">
+                    <div className="h-2.5 w-2.5 bg-muted-foreground/20 rounded-full" />
+                    <div className="h-2.5 w-20 bg-muted-foreground/15 rounded-full" />
                 </div>
-            ))}
-        </>
+                <div className="space-y-1 mb-3">
+                    <div className="h-4 bg-muted-foreground/20 rounded-md w-1/3" />
+                    <div className="h-3 bg-muted-foreground/10 rounded-full w-1/4" />
+                </div>
+                <div className="flex justify-end w-full">
+                    <div className="h-7 md:h-8 w-20 md:w-24 bg-muted-foreground/20 rounded-full" />
+                </div>
+            </div>
+        </div>
     );
 };
 
+// ─── Helpers mesure DOM ───────────────────────────────────────────────────────
+function measureGrid(gridEl: HTMLDivElement): { cols: number; rowHeight: number } {
+    const children = Array.from(gridEl.children) as HTMLElement[];
+    if (children.length < 2) return { cols: 2, rowHeight: 320 };
 
+    let cols = 1;
+    const firstTop = children[0].offsetTop;
+    for (let i = 1; i < children.length; i++) {
+        if (children[i].offsetTop === firstTop) cols++;
+        else break;
+    }
+
+    // Hauteur d'une ligne = offsetTop de la 2ème ligne - offsetTop de la 1ère
+    let rowHeight = 320;
+    for (let i = 1; i < children.length; i++) {
+        if (children[i].offsetTop !== firstTop) {
+            rowHeight = children[i].offsetTop - firstTop;
+            break;
+        }
+    }
+
+    return { cols, rowHeight };
+}
+
+// ─── Composant principal ──────────────────────────────────────────────────────
 export default function InfiniteScroll<T extends { id: string | number }>({
     items = [],
     renderItem,
     loadMore,
     hasMore,
     isLoading,
-    windowSize = 30,
+    windowSize = 20,
     batchSize = 10,
-    skeletonType = 'default',
-    skeletonCount = 3,
+    skeletonCount = 6,
     SkeletonComponent,
     endMessage = "Fin du catalogue",
     className = "",
-    gridClassName = "grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6"
+    gridClassName = "grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6",
+    viewMode = 'grid',
 }: InfiniteScrollProps<T>) {
 
+    // ── Fenêtre glissante ───────────────────────────────────────────────────
     const [startIndex, setStartIndex] = useState(0);
-    const endIndex = useMemo(() => Math.min(startIndex + windowSize, items.length), [startIndex, windowSize, items.length]);
+    const startIndexRef = useRef(0); // ref synchrone pour les callbacks
+    const [topSpacerPx, setTopSpacerPx] = useState(0);
 
+    const endIndex = useMemo(
+        () => Math.min(startIndex + windowSize, items.length),
+        [startIndex, windowSize, items.length],
+    );
+    const visibleItems = useMemo(
+        () => items.slice(startIndex, endIndex),
+        [items, startIndex, endIndex],
+    );
+
+    // ── Refs ────────────────────────────────────────────────────────────────
+    const gridRef = useRef<HTMLDivElement>(null);
+    const topSentinelRef = useRef<HTMLDivElement>(null);
     const bottomSentinelRef = useRef<HTMLDivElement>(null);
-    const containerRef = useRef<HTMLDivElement>(null);
-    const prevScrollTop = useRef(0);
-    // Ref pour éviter que loadMore instable (inline arrow) ne reconnecte l'observer à chaque render
     const loadMoreRef = useRef(loadMore);
-    useEffect(() => {
-        loadMoreRef.current = loadMore;
-    }, [loadMore]);
+    const hasMoreRef = useRef(hasMore);
+    const isLoadingRef = useRef(isLoading);
+    const isPurgingRef = useRef(false);
 
-    // Handle Infinite Scroll Down
+    // Garder les refs à jour sans recréer les observers
+    useEffect(() => { loadMoreRef.current = loadMore; }, [loadMore]);
+    useEffect(() => { hasMoreRef.current = hasMore; }, [hasMore]);
+    useEffect(() => { isLoadingRef.current = isLoading; }, [isLoading]);
+
+    // ── Skeletons ───────────────────────────────────────────────────────────
+    const skeletons = useMemo(() => {
+        if (SkeletonComponent) return SkeletonComponent;
+        return Array.from({ length: skeletonCount }).map((_, i) => (
+            <SkeletonCard key={`sk-${i}`} viewMode={viewMode} />
+        ));
+    }, [SkeletonComponent, skeletonCount, viewMode]);
+
+    // ── tryLoadMore : déclenche loadMore si les conditions sont réunies ─────
+    // Appelé manuellement après chaque purge pour éviter le "stuck"
+    const tryLoadMore = useCallback(() => {
+        if (hasMoreRef.current && !isLoadingRef.current) {
+            loadMoreRef.current();
+        }
+    }, []);
+
+    // ── PURGE VERS LE BAS ───────────────────────────────────────────────────
+    // Règle : on purge batchSize items du haut SEULEMENT quand
+    // items.length > startIndex + windowSize + batchSize
+    // (on attend d'avoir un lot complet de buffer avant de purger)
+    useLayoutEffect(() => {
+        if (isPurgingRef.current) return;
+        if (!gridRef.current) return;
+
+        const currentStart = startIndexRef.current;
+        const threshold = currentStart + windowSize + batchSize;
+
+        if (items.length <= threshold) return;
+
+        isPurgingRef.current = true;
+
+        const { cols, rowHeight } = measureGrid(gridRef.current);
+        const purgingRows = Math.ceil(batchSize / cols);
+        const addedPx = purgingRows * rowHeight;
+        const scrollBefore = window.scrollY;
+
+        const nextStart = currentStart + batchSize;
+        startIndexRef.current = nextStart;
+        setStartIndex(nextStart);
+        setTopSpacerPx(prev => prev + addedPx);
+
+        requestAnimationFrame(() => {
+            window.scrollTo({ top: scrollBefore, behavior: 'instant' });
+            isPurgingRef.current = false;
+
+            // ⚡ Après la purge, re-check si la sentinelle bas est encore visible
+            // pour relancer loadMore si nécessaire (cas où l'observer ne re-fire pas)
+            const sentinel = bottomSentinelRef.current;
+            if (sentinel) {
+                const rect = sentinel.getBoundingClientRect();
+                const inView = rect.top < window.innerHeight + 400;
+                if (inView) tryLoadMore();
+            }
+        });
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [items.length]);
+
+    // ── Observer BAS : loadMore ─────────────────────────────────────────────
+    // Créé UNE SEULE FOIS — utilise les refs pour hasMore/isLoading
+    // pour éviter la recréation qui casse le re-fire
     useEffect(() => {
+        const el = bottomSentinelRef.current;
+        if (!el) return;
+
         const observer = new IntersectionObserver(
-            (entries) => {
-                if (entries[0].isIntersecting && hasMore && !isLoading) {
-                    loadMoreRef.current();
-                }
+            ([entry]) => {
+                if (entry.isIntersecting) tryLoadMore();
             },
-            { threshold: 0.1, rootMargin: '200px' }
+            { rootMargin: '400px', threshold: 0 },
         );
 
-        if (bottomSentinelRef.current) observer.observe(bottomSentinelRef.current);
+        observer.observe(el);
         return () => observer.disconnect();
-    }, [hasMore, isLoading]); // loadMore retiré : le ref garantit la valeur fraîche sans reconnexion
+        // tryLoadMore est stable (useCallback sans deps)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
-    // Handle Windowing memory management
+    // ── Quand isLoading passe à false : re-check si on doit charger plus ────
+    // Couvre le cas où la sentinelle était déjà visible pendant le chargement
     useEffect(() => {
-        const handleScroll = () => {
-            if (!containerRef.current) return;
-            const currentScrollTop = window.scrollY || document.documentElement.scrollTop;
-            const scrollingDown = currentScrollTop > prevScrollTop.current;
-            prevScrollTop.current = currentScrollTop;
-
-            if (scrollingDown && items.length - startIndex > windowSize + batchSize) {
-                const containerRect = containerRef.current.getBoundingClientRect();
-                if (containerRect.top < -1000) {
-                    setStartIndex(prev => prev + batchSize);
-                }
+        if (!isLoading) {
+            const sentinel = bottomSentinelRef.current;
+            if (sentinel) {
+                const rect = sentinel.getBoundingClientRect();
+                const inView = rect.top < window.innerHeight + 400;
+                if (inView && hasMore) tryLoadMore();
             }
-        };
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isLoading]);
 
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, [items.length, startIndex, windowSize, batchSize]);
+    // ── Observer HAUT : restaurer items quand l'user remonte ───────────────
+    const restoreTop = useCallback(() => {
+        const currentStart = startIndexRef.current;
+        if (currentStart === 0) return;
+        if (!gridRef.current) return;
 
-    const visibleItems = useMemo(() => items.slice(startIndex, endIndex), [items, startIndex, endIndex]);
+        const restoreCount = Math.min(batchSize, currentStart);
+        const { cols, rowHeight } = measureGrid(gridRef.current);
+        const restoreRows = Math.ceil(restoreCount / cols);
+        const removedPx = restoreRows * rowHeight;
+        const scrollBefore = window.scrollY;
+
+        const nextStart = currentStart - restoreCount;
+        startIndexRef.current = nextStart;
+        setStartIndex(nextStart);
+        setTopSpacerPx(prev => Math.max(0, prev - removedPx));
+
+        requestAnimationFrame(() => {
+            window.scrollTo({ top: scrollBefore + removedPx, behavior: 'instant' });
+        });
+    }, [batchSize]);
+
+    useEffect(() => {
+        const el = topSentinelRef.current;
+        if (!el) return;
+        const observer = new IntersectionObserver(
+            ([entry]) => { if (entry.isIntersecting) restoreTop(); },
+            { rootMargin: '300px', threshold: 0 },
+        );
+        observer.observe(el);
+        return () => observer.disconnect();
+    }, [restoreTop]);
 
     return (
-        <div ref={containerRef} className={`w-full ${className} transition-all duration-500`}>
+        <div className={`w-full ${className}`}>
 
-            {/* Top Reveal for bidirectional feel */}
-            {startIndex > 0 && (
-                <div className="w-full flex justify-center py-6">
-                    <button
-                        onClick={() => setStartIndex(Math.max(0, startIndex - batchSize))}
-                        className="group flex flex-col items-center gap-2 transition-all hover:scale-105 active:scale-95"
-                    >
-                        <div className="p-2 bg-primary/5 rounded-full text-primary group-hover:bg-primary group-hover:text-white transition-colors">
-                            <Icon icon="solar:alt-arrow-up-bold-duotone" width={20} />
-                        </div>
-                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground group-hover:text-primary">Voir les précédents</span>
-                    </button>
-                </div>
+            {/* Spacer haut */}
+            {topSpacerPx > 0 && (
+                <div style={{ height: topSpacerPx }} aria-hidden="true" />
             )}
 
-            <div className={gridClassName}>
-                <AnimatePresence mode="popLayout">
+            {/* Sentinelle haut */}
+            <div ref={topSentinelRef} aria-hidden="true" />
+
+            {/* Grille unique : items + skeletons collés */}
+            <div ref={gridRef} className={gridClassName}>
+                <AnimatePresence mode="popLayout" initial={false}>
                     {visibleItems.map((item, index) => (
                         <motion.div
                             key={item.id}
-                            initial={{ opacity: 0, y: 20 }}
+                            layout="position"
+                            initial={{ opacity: 0, y: 12 }}
                             animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            transition={{ duration: 0.4, delay: (index % 5) * 0.05 }}
+                            exit={{ opacity: 0, scale: 0.96 }}
+                            transition={{ duration: 0.25, delay: Math.min(index % batchSize, 5) * 0.04 }}
                         >
                             {renderItem(item, startIndex + index)}
                         </motion.div>
                     ))}
                 </AnimatePresence>
+
+                {/* Skeletons dans la même grille = zéro espace blanc */}
+                {isLoading && skeletons}
             </div>
 
-            {/* Centralized Skeleton Logic */}
-            {isLoading && (
-                <div className={gridClassName + " mt-4 md:mt-6"}>
-                    {SkeletonComponent ? SkeletonComponent : <ListingSkeleton type={skeletonType} count={skeletonCount} />}
-                </div>
-            )}
-
-            {/* Bottom Sentinel */}
-            <div ref={bottomSentinelRef} className="h-24 w-full flex flex-col items-center justify-center pt-8">
-                {isLoading && !SkeletonComponent && skeletonType === 'default' && (
-                    <Icon icon="line-md:loading-twotone-loop" className="w-8 h-8 text-primary" />
-                )}
-
-                {!hasMore && items.length > 0 && (
-                    <div className="flex flex-col items-center gap-2 py-8 group">
+            {/* Sentinelle bas + fin de catalogue */}
+            <div ref={bottomSentinelRef} className="w-full flex flex-col items-center justify-center py-6">
+                {!hasMore && items.length > 0 && !isLoading && (
+                    <div className="flex flex-col items-center gap-2 group">
                         <div className="h-px w-10 bg-primary/20 group-hover:w-20 transition-all duration-700" />
-                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/50">{endMessage}</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/50">
+                            {endMessage}
+                        </p>
                     </div>
                 )}
             </div>
