@@ -127,11 +127,11 @@ export default function AppTabs() {
 
 
             {/* INFO COMPONENT */}
-            <Info isOpen={showInfo}
+            {/* <Info isOpen={showInfo}
                 onClose={() => { setShowInfo(false); localStorage.setItem("infoClosed", "true") }}
                 title={tabs.find(t => t.id === active)?.info.title || ""}
                 description={tabs.find(t => t.id === active)?.info.description || ""}
-            />
+            /> */}
 
 
             {/* CONTENT */}
