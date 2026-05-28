@@ -21,12 +21,13 @@ const slugify = (text: string) => {
         .replace(/--+/g, '-');    // Replace multiple - with single -
 }
 
-export default function ProductCard({ product, onEdit, onDelete, onStatusChange, storeNames }: {
+export default function ProductCard({ product, onEdit, onDelete, onStatusChange, storeNames, viewMode = 'grid' }: {
     product: Product;
     onEdit?: (product: Product) => void;
     onDelete?: (id: string) => void;
     onStatusChange?: (product: Product, value: boolean) => void;
     storeNames?: string;
+    viewMode?: 'grid' | 'list';
 }) {
 
 
@@ -69,13 +70,15 @@ export default function ProductCard({ product, onEdit, onDelete, onStatusChange,
         if (onStatusChange) onStatusChange(product, value);
     };
 
+    const isList = viewMode === 'list';
+
     return (
 
         <>
-            <div onClick={() => setIsModalOpen(true)} className="group rounded-lg p-0 md:p-4 flex flex-col md:items-center text-left md:text-center bg-card w-full transition-all duration-300 cursor-pointer  border border-transparent ">
+            <div onClick={() => setIsModalOpen(true)} className={`group rounded-xl p-2 md:p-4 bg-card w-full transition-all duration-300 cursor-pointer  flex ${isList ? 'flex-row items-center gap-3 md:gap-4 text-left' : 'flex-col md:items-center text-left md:text-center'}`}>
                 {/* Image - Scaling on hover */}
 
-                <div className="relative w-full aspect-square mb-1.5 overflow-hidden rounded-lg md:rounded-2xl">
+                <div className={`relative shrink-0 overflow-hidden rounded-lg md:rounded-2xl ${isList ? 'w-24 h-24 md:w-32 md:h-32' : 'w-full aspect-square mb-2 md:mb-3'}`}>
                     <Image src={product.imageUrl || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=2099&auto=format&fit=crop'} alt={product.name} fill unoptimized className="object-cover group-hover:scale-110 transition-transform duration-500" />
                     <div className="absolute top-1 left-1 md:top-2 md:left-2 bg-black/70 md:bg-background/95 backdrop-blur-sm px-1.5 py-0.5 md:px-2 md:py-0.5 rounded-full text-[8px] md:text-[9px] font-black text-white md:text-foreground uppercase tracking-tighter">
                         {product.category?.name || 'Produit'}
@@ -91,13 +94,13 @@ export default function ProductCard({ product, onEdit, onDelete, onStatusChange,
                 </div>
 
                 {/* Contenu */}
-                <div className="px-0.5 pb-0 md:px-0 md:pb-0 w-full">
+                <div className={`flex flex-col flex-1 min-w-0 ${isList ? 'justify-center py-0' : 'px-0.5 pb-0 md:px-0 md:pb-0 w-full'}`}>
 
                     <h3 className="text-xs md:text-base font-black text-foreground mb-1 line-clamp-2 md:line-clamp-1 group-hover:text-primary transition-colors w-full text-left leading-tight">
                         {product.name}
                     </h3>
 
-                    <div className="flex items-center justify-start gap-1 text-primary mb-2 md:mb-4 md:justify-center">
+                    <div className={`flex items-center justify-start gap-1 text-primary mb-2 md:mb-3 ${isList ? '' : 'md:justify-center'}`}>
                         <Icon icon="solar:star-bold-duotone" className="w-2.5 h-2.5 fill-current md:w-3 md:h-3" />
                         <span className="text-[9px] md:text-xs font-black tracking-tight">4.9 • <span className="text-muted-foreground">Boutique</span></span>
                     </div>

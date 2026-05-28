@@ -27,6 +27,7 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
     const [isExpanded, setIsExpanded] = useState(false);
     const [isNegotiating, setIsNegotiating] = useState(false);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const [achatType, setAchatType] = useState<'UNITE' | 'GROS'>('UNITE');
     const { addToCart } = useCart();
     const { addNotification } = useNotification();
     const router = useRouter();
@@ -60,7 +61,10 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
         if (isOpen && product?.user?.storeName) {
             fetchPublicStoreData()
         }
-    }, [fetchPublicStoreData, isOpen, product?.user?.storeName])
+        if (isOpen && product) {
+            setAchatType('UNITE');
+        }
+    }, [fetchPublicStoreData, isOpen, product?.user?.storeName, product])
 
     if (!product || !mounted) return null;
 
@@ -75,8 +79,8 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
     };
 
     const handleAddToCart = () => {
-        addToCart(product);
-        addNotification(`"${product.name}" ajouté au panier`, "success");
+        addToCart(product, 1, achatType);
+        addNotification(`"${product.name}" ajouté au panier${achatType === 'GROS' ? ' (Gros)' : ''}`, "success");
     };
 
     const handleNegotiate = async () => {
@@ -207,15 +211,41 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
 
                                             <div>
                                                 <h2 className="text-2xl md:text-3xl font-black text-card-foreground leading-tight">{product.name}</h2>
-                                                <div className="flex items-center gap-2 mt-2">
-                                                    {product.pricePromo ? (
+                                                <div className="flex flex-col gap-2 mt-2">
+                                                    {product.typeVente === 'GROS' && (
+                                                        <div className="flex gap-4 w-full mb-2">
+                                                            <label className={`flex items-center gap-2 p-3 border rounded-xl cursor-pointer transition-all flex-1 ${achatType === 'UNITE' ? 'border-primary bg-primary/5' : 'border-border bg-muted/30'}`}>
+                                                                <input type="radio" name="achatType" value="UNITE" checked={achatType === 'UNITE'} onChange={() => setAchatType('UNITE')} className="hidden" />
+                                                                <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${achatType === 'UNITE' ? 'border-primary' : 'border-muted-foreground'}`}>
+                                                                    {achatType === 'UNITE' && <div className="w-2 h-2 rounded-full bg-primary" />}
+                                                                </div>
+                                                                <span className="text-sm font-bold text-foreground">À l'unité</span>
+                                                            </label>
+                                                            <label className={`flex items-center gap-2 p-3 border rounded-xl cursor-pointer transition-all flex-1 ${achatType === 'GROS' ? 'border-primary bg-primary/5' : 'border-border bg-muted/30'}`}>
+                                                                <input type="radio" name="achatType" value="GROS" checked={achatType === 'GROS'} onChange={() => setAchatType('GROS')} className="hidden" />
+                                                                <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${achatType === 'GROS' ? 'border-primary' : 'border-muted-foreground'}`}>
+                                                                    {achatType === 'GROS' && <div className="w-2 h-2 rounded-full bg-primary" />}
+                                                                </div>
+                                                                <span className="text-sm font-bold text-foreground">En gros</span>
+                                                            </label>
+                                                        </div>
+                                                    )}
+
+                                                    {achatType === 'GROS' && product.prixVenteGros ? (
                                                         <div className="flex items-center gap-3">
-                                                            <p className="text-2xl font-black text-primary">{product.pricePromo.toLocaleString()} <span className="text-sm">FCFA</span></p>
-                                                            <p className="text-sm font-bold text-muted-foreground/60 line-through decoration-red-500/30">{product.price.toLocaleString()} FCFA</p>
-                                                            <span className="px-2 py-0.5 bg-red-500 text-white text-[10px] font-black rounded-lg">-{product.discountPercent}%</span>
+                                                            <p className="text-2xl font-black text-primary">{product.prixVenteGros.toLocaleString()} <span className="text-sm">FCFA</span></p>
+                                                            <span className="px-2 py-0.5 bg-primary/10 text-primary text-[10px] font-black rounded-lg">PRIX DE GROS</span>
                                                         </div>
                                                     ) : (
-                                                        <p className="text-2xl font-black text-primary">{product.price.toLocaleString()} <span className="text-sm">FCFA</span></p>
+                                                        product.pricePromo ? (
+                                                            <div className="flex items-center gap-3">
+                                                                <p className="text-2xl font-black text-primary">{product.pricePromo.toLocaleString()} <span className="text-sm">FCFA</span></p>
+                                                                <p className="text-sm font-bold text-muted-foreground/60 line-through decoration-red-500/30">{product.price.toLocaleString()} FCFA</p>
+                                                                <span className="px-2 py-0.5 bg-red-500 text-white text-[10px] font-black rounded-lg">-{product.discountPercent}%</span>
+                                                            </div>
+                                                        ) : (
+                                                            <p className="text-2xl font-black text-primary">{product.price.toLocaleString()} <span className="text-sm">FCFA</span></p>
+                                                        )
                                                     )}
                                                 </div>
                                             </div>

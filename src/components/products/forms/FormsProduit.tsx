@@ -28,10 +28,12 @@ export default function FormsProduit({
     const [name, setName] = useState(initialData?.name || "");
     const [description, setDescription] = useState(initialData?.description || "");
     const [price, setPrice] = useState<string>(initialData?.price?.toString() || "");
-    const [pricePromo, setPricePromo] = useState<string>(initialData?.pricePromo?.toString() || "");
+    const [discountPercent, setDiscountPercent] = useState<string>(initialData?.discountPercent?.toString() || "");
     const [stock, setStock] = useState<string>(initialData?.stock?.toString() || "");
     const [sku, setSku] = useState(initialData?.sku || "");
     const [etat, setEtat] = useState<ProductCondition>(initialData?.etat || ProductCondition.NEUF);
+    const [typeVente, setTypeVente] = useState<'UNITE' | 'GROS'>(initialData?.typeVente || 'UNITE');
+    const [prixVenteGros, setPrixVenteGros] = useState<string>(initialData?.prixVenteGros?.toString() || "");
     const [categoryId, setCategoryId] = useState<string | null>(initialData?.categoryId || null);
     const [subCategoryId, setSubCategoryId] = useState<string | null>(initialData?.subCategoryId || null);
     const selectedCategory = React.useMemo(() => categories.find(c => c.id === categoryId), [categories, categoryId]);
@@ -65,10 +67,12 @@ export default function FormsProduit({
             setName(initialData.name || "");
             setDescription(initialData.description || "");
             setPrice(initialData.price?.toString() || "");
-            setPricePromo(initialData.pricePromo?.toString() || "");
+            setDiscountPercent(initialData.discountPercent?.toString() || "");
             setStock(initialData.stock?.toString() || "");
             setSku(initialData.sku || "");
             setEtat(initialData.etat || ProductCondition.NEUF);
+            setTypeVente(initialData.typeVente || 'UNITE');
+            setPrixVenteGros(initialData.prixVenteGros?.toString() || "");
             setCategoryId(initialData.categoryId || null);
             setSubCategoryId(initialData.subCategoryId || null);
             setImagePreviews(
@@ -104,6 +108,9 @@ export default function FormsProduit({
         if (!price || isNaN(Number(price)) || Number(price) <= 0) errs.price = "Le prix doit être positif";
         if (!stock || isNaN(Number(stock)) || Number(stock) < 0) errs.stock = "Le stock doit être ≥ 0";
         if (!categoryId) errs.categoryId = "Veuillez sélectionner une catégorie";
+        if (typeVente === 'GROS' && (!prixVenteGros || isNaN(Number(prixVenteGros)) || Number(prixVenteGros) <= 0)) {
+            errs.prixVenteGros = "Le prix de gros est requis et doit être positif";
+        }
         return errs;
     };
 
@@ -117,10 +124,12 @@ export default function FormsProduit({
         formData.append("name", name.trim());
         if (description) formData.append("description", description);
         formData.append("price", price);
-        if (pricePromo) formData.append("pricePromo", pricePromo);
+        if (discountPercent) formData.append("discountPercent", discountPercent);
         formData.append("stock", stock);
         if (sku) formData.append("sku", sku);
         formData.append("etat", etat);
+        formData.append("typeVente", typeVente);
+        if (typeVente === 'GROS' && prixVenteGros) formData.append("prixVenteGros", prixVenteGros);
         formData.append("categoryId", categoryId || "");
         if (subCategoryId) formData.append("subCategoryId", subCategoryId);
         images.forEach(file => formData.append("files", file));
@@ -226,8 +235,29 @@ export default function FormsProduit({
                 <div className="bg-card rounded-2xl border border-border p-6 shadow-sm space-y-4">
                     <h3 className="text-sm font-black flex items-center gap-2 text-foreground/80">
                         <Icon icon="solar:wad-of-money-bold-duotone" className="w-5 h-5 text-primary" />
-                        Prix & Promotion
+                        Prix & Vente
                     </h3>
+
+                    <div className="space-y-3">
+                        <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Type de vente *</label>
+                        <div className="flex gap-4">
+                            <label className={`flex items-center gap-2 p-3 border rounded-xl cursor-pointer transition-all flex-1 ${typeVente === 'UNITE' ? 'border-primary bg-primary/5' : 'border-border bg-muted/30'}`}>
+                                <input type="radio" name="typeVente" value="UNITE" checked={typeVente === 'UNITE'} onChange={() => setTypeVente('UNITE')} className="hidden" />
+                                <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${typeVente === 'UNITE' ? 'border-primary' : 'border-muted-foreground'}`}>
+                                    {typeVente === 'UNITE' && <div className="w-2 h-2 rounded-full bg-primary" />}
+                                </div>
+                                <span className="text-sm font-bold text-foreground">Vente à l'unité</span>
+                            </label>
+                            <label className={`flex items-center gap-2 p-3 border rounded-xl cursor-pointer transition-all flex-1 ${typeVente === 'GROS' ? 'border-primary bg-primary/5' : 'border-border bg-muted/30'}`}>
+                                <input type="radio" name="typeVente" value="GROS" checked={typeVente === 'GROS'} onChange={() => setTypeVente('GROS')} className="hidden" />
+                                <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${typeVente === 'GROS' ? 'border-primary' : 'border-muted-foreground'}`}>
+                                    {typeVente === 'GROS' && <div className="w-2 h-2 rounded-full bg-primary" />}
+                                </div>
+                                <span className="text-sm font-bold text-foreground">Vente en gros</span>
+                            </label>
+                        </div>
+                    </div>
+
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1">
                             <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Prix de vente (FCFA) *</label>
@@ -242,17 +272,38 @@ export default function FormsProduit({
                             {errors.price && <p className="text-[10px] text-red-500 font-bold mt-1">{errors.price}</p>}
                         </div>
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Prix promo (Optionnel)</label>
+                            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Réduction (%) (Optionnel)</label>
                             <input
                                 type="number"
                                 min="0"
-                                value={pricePromo}
-                                onChange={e => setPricePromo(e.target.value)}
+                                max="100"
+                                value={discountPercent}
+                                onChange={e => setDiscountPercent(e.target.value)}
                                 className="w-full px-4 py-2.5 rounded-xl border border-border bg-muted/30 text-sm outline-none focus:border-primary transition-all font-medium text-primary font-bold"
-                                placeholder="0"
+                                placeholder="ex: 10"
                             />
+                            {discountPercent && Number(discountPercent) > 0 && price && Number(price) > 0 && (
+                                <p className="text-[10px] text-green-600 font-bold mt-1">
+                                    Prix promo calculé : {(Number(price) - (Number(price) * Number(discountPercent)) / 100).toLocaleString()} FCFA
+                                </p>
+                            )}
                         </div>
                     </div>
+
+                    {typeVente === 'GROS' && (
+                        <div className="space-y-1 animate-in fade-in slide-in-from-top-2">
+                            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Prix de vente en gros (FCFA) *</label>
+                            <input
+                                type="number"
+                                min="0"
+                                value={prixVenteGros}
+                                onChange={e => setPrixVenteGros(e.target.value)}
+                                className="w-full px-4 py-2.5 rounded-xl border border-border bg-muted/30 text-sm outline-none focus:border-primary transition-all font-medium"
+                                placeholder="Prix pour achat en lot"
+                            />
+                            {errors.prixVenteGros && <p className="text-[10px] text-red-500 font-bold mt-1">{errors.prixVenteGros}</p>}
+                        </div>
+                    )}
                 </div>
 
                 {/* 3. Stock & SKU */}

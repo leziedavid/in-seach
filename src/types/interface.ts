@@ -568,6 +568,8 @@ export interface Product {
     stock: number
     sku: string
     etat: ProductCondition
+    typeVente?: 'UNITE' | 'GROS'
+    prixVenteGros?: number | null
     imageUrl?: string | null
     imageUrls?: string[]
     images?: string[]
@@ -588,6 +590,7 @@ export interface OrderItem {
     productId: string
     quantity: number
     price: number
+    achatType?: 'UNITE' | 'GROS'
     product?: Product
 }
 

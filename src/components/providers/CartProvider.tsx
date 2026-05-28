@@ -5,13 +5,14 @@ import { Product } from "@/types/interface";
 
 interface CartItem extends Product {
     quantity: number;
+    achatType?: 'UNITE' | 'GROS';
 }
 
 interface CartContextType {
     cart: CartItem[];
-    addToCart: (product: Product, quantity?: number) => void;
-    removeFromCart: (productId: string) => void;
-    updateQuantity: (productId: string, quantity: number) => void;
+    addToCart: (product: Product, quantity?: number, achatType?: 'UNITE' | 'GROS') => void;
+    removeFromCart: (productId: string, achatType?: 'UNITE' | 'GROS') => void;
+    updateQuantity: (productId: string, quantity: number, achatType?: 'UNITE' | 'GROS') => void;
     clearCart: () => void;
     totalItems: number;
     totalAmount: number;
@@ -39,32 +40,32 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStorage.setItem("cart", JSON.stringify(cart));
     }, [cart]);
 
-    const addToCart = useCallback((product: Product, quantity: number = 1) => {
+    const addToCart = useCallback((product: Product, quantity: number = 1, achatType: 'UNITE' | 'GROS' = 'UNITE') => {
         setCart((prevCart) => {
-            const existingItem = prevCart.find((item) => item.id === product.id);
+            const existingItem = prevCart.find((item) => item.id === product.id && item.achatType === achatType);
             if (existingItem) {
                 return prevCart.map((item) =>
-                    item.id === product.id
+                    item.id === product.id && item.achatType === achatType
                         ? { ...item, quantity: item.quantity + quantity }
                         : item
                 );
             }
-            return [...prevCart, { ...product, quantity }];
+            return [...prevCart, { ...product, quantity, achatType }];
         });
     }, []);
 
-    const removeFromCart = useCallback((productId: string) => {
-        setCart((prevCart) => prevCart.filter((item) => item.id !== productId));
+    const removeFromCart = useCallback((productId: string, achatType: 'UNITE' | 'GROS' = 'UNITE') => {
+        setCart((prevCart) => prevCart.filter((item) => !(item.id === productId && item.achatType === achatType)));
     }, []);
 
-    const updateQuantity = useCallback((productId: string, quantity: number) => {
+    const updateQuantity = useCallback((productId: string, quantity: number, achatType: 'UNITE' | 'GROS' = 'UNITE') => {
         if (quantity <= 0) {
-            setCart((prevCart) => prevCart.filter((item) => item.id !== productId));
+            setCart((prevCart) => prevCart.filter((item) => !(item.id === productId && item.achatType === achatType)));
             return;
         }
         setCart((prevCart) =>
             prevCart.map((item) =>
-                item.id === productId ? { ...item, quantity } : item
+                item.id === productId && item.achatType === achatType ? { ...item, quantity } : item
             )
         );
     }, []);
@@ -74,7 +75,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, []);
 
     const totalItems = useMemo(() => cart.reduce((sum, item) => sum + item.quantity, 0), [cart]);
-    const totalAmount = useMemo(() => cart.reduce((sum, item) => sum + item.price * item.quantity, 0), [cart]);
+    const totalAmount = useMemo(() => cart.reduce((sum, item) => {
+        if (item.achatType === 'GROS' && item.typeVente === 'GROS' && item.prixVenteGros) {
+            return sum + item.prixVenteGros;
+        }
+        return sum + item.price * item.quantity;
+    }, 0), [cart]);
 
     const value = useMemo(() => ({
         cart,

@@ -28,6 +28,10 @@ export default function StorePage(props: Props) {
     const [products, setProducts] = useState<Product[]>([])
     const [categories, setCategories] = useState<CategoryProd[]>([])
     const [page, setPage] = useState(1)
+    const [typeVente, setTypeVente] = useState("ALL")
+    const [minPrice, setMinPrice] = useState("")
+    const [maxPrice, setMaxPrice] = useState("")
+    const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
     const [hasMore, setHasMore] = useState(true)
     const [loading, setLoading] = useState(false)
     const [total, setTotal] = useState(0)
@@ -87,6 +91,9 @@ export default function StorePage(props: Props) {
                 categoryId: selectedCategory === "all" ? undefined : selectedCategory,
                 subCategoryId: selectedSubCategory === "all" ? undefined : selectedSubCategory,
                 storeName: cleanStoreName(storeName) || undefined,
+                typeVente: typeVente === "ALL" ? undefined : typeVente,
+                minPrice: minPrice ? Number(minPrice) : undefined,
+                maxPrice: maxPrice ? Number(maxPrice) : undefined,
             })
 
             if (res.statusCode === 200 && res.data) {
@@ -103,7 +110,7 @@ export default function StorePage(props: Props) {
         } finally {
             setLoading(false)
         }
-    }, [search, selectedCategory, selectedSubCategory, storeName])
+    }, [search, selectedCategory, selectedSubCategory, storeName, typeVente, minPrice, maxPrice])
 
     // Load more when page changes (infinite scroll)
     useEffect(() => {
@@ -120,7 +127,7 @@ export default function StorePage(props: Props) {
     useEffect(() => {
         setPage(1)
         fetchProducts(1, true)
-    }, [search, selectedCategory, selectedSubCategory, fetchProducts, storeName])
+    }, [search, selectedCategory, selectedSubCategory, typeVente, minPrice, maxPrice, fetchProducts, storeName])
 
 
     if (storeLoading) {
@@ -216,6 +223,43 @@ export default function StorePage(props: Props) {
                 />
             </div>
 
+            {/* NEW FILTERS & VIEW TOGGLE */}
+            <div className="w-full max-w-3xl mx-auto mb-6 flex flex-col md:flex-row items-center justify-between gap-4">
+                
+                <div className="flex w-full md:w-auto overflow-x-auto pb-2 md:pb-0 hide-scrollbar gap-2 items-center">
+                    {/* Type de vente */}
+                    <div className="flex items-center bg-card border border-border/50 rounded-xl p-1 shadow-sm shrink-0">
+                        <button onClick={() => setTypeVente("ALL")} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${typeVente === "ALL" ? "bg-primary text-white" : "text-muted-foreground hover:bg-muted"}`}>
+                            <Icon icon="solar:shop-bold-duotone" className="w-4 h-4" /> Tous
+                        </button>
+                        <button onClick={() => setTypeVente("UNITE")} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${typeVente === "UNITE" ? "bg-primary text-white" : "text-muted-foreground hover:bg-muted"}`}>
+                            <Icon icon="solar:box-minimalistic-bold-duotone" className="w-4 h-4" /> Unité
+                        </button>
+                        <button onClick={() => setTypeVente("GROS")} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${typeVente === "GROS" ? "bg-primary text-white" : "text-muted-foreground hover:bg-muted"}`}>
+                            <Icon icon="solar:boxes-bold-duotone" className="w-4 h-4" /> Gros
+                        </button>
+                    </div>
+
+                    {/* Price Range */}
+                    <div className="flex items-center gap-2 bg-card border border-border/50 rounded-xl px-3 py-1 shadow-sm shrink-0 h-[36px]">
+                        <Icon icon="solar:wad-of-money-bold-duotone" className="w-4 h-4 text-muted-foreground shrink-0" />
+                        <input type="number" placeholder="Prix min" value={minPrice} onChange={e => setMinPrice(e.target.value)} className="w-16 bg-transparent outline-none text-xs text-foreground placeholder:text-muted-foreground font-medium" />
+                        <span className="text-muted-foreground text-xs">-</span>
+                        <input type="number" placeholder="Prix max" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} className="w-16 bg-transparent outline-none text-xs text-foreground placeholder:text-muted-foreground font-medium" />
+                    </div>
+                </div>
+
+                {/* View Toggle */}
+                <div className="flex items-center bg-card border border-border/50 rounded-xl p-1 shadow-sm shrink-0 self-end md:self-auto">
+                    <button onClick={() => setViewMode("grid")} className={`p-1.5 rounded-lg transition-colors ${viewMode === "grid" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"}`} title="Vue Grille">
+                        <Icon icon="solar:widget-5-bold-duotone" className="w-5 h-5" />
+                    </button>
+                    <button onClick={() => setViewMode("list")} className={`p-1.5 rounded-lg transition-colors ${viewMode === "list" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"}`} title="Vue Liste">
+                        <Icon icon="solar:list-bold-duotone" className="w-5 h-5" />
+                    </button>
+                </div>
+            </div>
+
             {/* Results count header */}
             <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-1">
                 <div className="flex items-center justify-start md:justify-center w-full px-2 md:px-0 mb-4">
@@ -245,9 +289,10 @@ export default function StorePage(props: Props) {
                         skeletonType="product"
                         skeletonCount={3}
                         renderItem={(product) => (
-                            <ProductCard key={product.id} product={product} />
+                            <ProductCard key={product.id} product={product} viewMode={viewMode} />
                         )}
                         className="w-full"
+                        gridClassName={viewMode === 'grid' ? "grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6" : "flex flex-col gap-4"}
                     />
                 )}
             </div>

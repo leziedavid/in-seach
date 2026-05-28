@@ -1123,7 +1123,7 @@ export const reconnectUser = async (userId: string): Promise<BaseResponse<any>> 
    PRODUCTS & ORDERS API
 ======================================================= */
 
-export const getProducts = async (params: { page?: number; limit?: number; query?: string; categoryId?: string; subCategoryId?: string; storeName?: string }): Promise<BaseResponse<Pagination<Product>>> => {
+export const getProducts = async (params: { page?: number; limit?: number; query?: string; categoryId?: string; subCategoryId?: string; storeName?: string; typeVente?: string; minPrice?: number; maxPrice?: number }): Promise<BaseResponse<Pagination<Product>>> => {
     const queryString = toQueryString(params);
     const response = await fetch(`${getBaseUrl()}/products?${queryString}`);
     return await response.json();

@@ -59,7 +59,8 @@ export default function CartDetailModal({ isOpen, onClose }: CartDetailModalProp
         try {
             const items = cart.map(item => ({
                 productId: item.id,
-                quantity: item.quantity
+                quantity: item.quantity,
+                achatType: item.achatType
             }));
 
             const res = await createOrder({
@@ -126,23 +127,32 @@ export default function CartDetailModal({ isOpen, onClose }: CartDetailModalProp
                                                 </div>
                                                 <div className="flex-1 min-w-0 py-1">
                                                     <div className="flex justify-between items-start">
-                                                        <h4 className="font-black text-sm truncate pr-2 italic">{item.name}</h4>
-                                                        <button onClick={() => removeFromCart(item.id)} className="text-muted-foreground hover:text-red-500 transition-colors p-1">
+                                                        <div className="flex flex-col">
+                                                            <h4 className="font-black text-sm truncate pr-2 italic">{item.name}</h4>
+                                                            {item.achatType === 'GROS' && (
+                                                                <span className="text-[10px] font-black text-primary bg-primary/10 px-2 py-0.5 rounded w-fit mt-1">Vente en Gros</span>
+                                                            )}
+                                                        </div>
+                                                        <button onClick={() => removeFromCart(item.id, item.achatType)} className="text-muted-foreground hover:text-red-500 transition-colors p-1">
                                                             <Icon icon="solar:trash-bin-trash-bold-duotone" width={18} />
                                                         </button>
                                                     </div>
                                                     <p className="text-primary font-black text-sm mb-2">{item.price.toLocaleString()} FCFA</p>
                                                     <div className="flex items-center justify-between">
                                                         <div className="flex items-center bg-background rounded-lg border border-border/50 p-1">
-                                                            <button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="w-7 h-7 text-muted-foreground flex items-center justify-center rounded-md hover:bg-secondary hover:text-white transition-colors" >
+                                                            <button onClick={() => updateQuantity(item.id, item.quantity - 1, item.achatType)} className="w-7 h-7 text-muted-foreground flex items-center justify-center rounded-md hover:bg-secondary hover:text-white transition-colors" >
                                                                 <Icon icon="iconamoon:sign-minus-bold" width={18} />
                                                             </button>
                                                             <span className="w-8 text-center text-xs font-black">{item.quantity}</span>
-                                                            <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="w-7 h-7 text-muted-foreground flex items-center justify-center rounded-md hover:bg-secondary hover:text-white transition-colors">
+                                                            <button onClick={() => updateQuantity(item.id, item.quantity + 1, item.achatType)} className="w-7 h-7 text-muted-foreground flex items-center justify-center rounded-md hover:bg-secondary hover:text-white transition-colors">
                                                                 <Icon icon="iconamoon:sign-plus-bold" width={18} />
                                                             </button>
                                                         </div>
-                                                        <p className="text-xs font-black italic">{(item.price * item.quantity).toLocaleString()} FCFA</p>
+                                                        <p className="text-xs font-black italic">
+                                                            {item.achatType === 'GROS' && item.prixVenteGros 
+                                                                ? item.prixVenteGros.toLocaleString() 
+                                                                : (item.price * item.quantity).toLocaleString()} FCFA
+                                                        </p>
                                                     </div>
                                                 </div>
                                             </div>
