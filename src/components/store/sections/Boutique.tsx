@@ -182,36 +182,26 @@ export default function ProductsPage() {
 
             {/* Results count header */}
             <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-1">
-                <div className="flex items-center justify-start md:justify-center w-full px-2 md:px-0 mb-4">
+                <div className="flex items-center justify-start md:justify-center w-full px-2 md:px-0 mb-2">
                     <h3 className="text-xl md:text-2xl font-black text-foreground italic">
                         {!loading && products.length > 0 ? `${total} résultat${total > 1 ? 's' : ''}` : ''}
                     </h3>
                 </div>
 
-                {loading && products.length === 0 ? (
-                    <Loader
-                        title="Chargement des produits..."
-                        description="Nous préparons votre boutique, veuillez patienter."
-                        icon="solar:bag-4-bold-duotone"
-                    />
-                ) : !loading && products.length === 0 ? (
-                    <NotFound
-                        title="Aucun produit trouvé"
-                        description="Aucun produit ne correspond à votre recherche. Essayez d'autres mots-clés ou une autre catégorie."
-                        icon="solar:bag-4-bold-duotone"
-                    />
+                {/* ✅ NotFound seulement si vraiment vide ET chargement terminé */}
+                {!loading && products.length === 0 ? (
+                    <NotFound title="Aucun produit disponible" description={search || selectedCategory !== "all" ? "Aucun produit ne correspond à votre recherche." : "Cette boutique n'a pas encore de produits disponibles."} icon="solar:bag-4-bold-duotone" />
                 ) : (
-                    <InfiniteScroll
+                    <InfiniteScroll<Product>
                         items={products}
                         hasMore={hasMore}
                         isLoading={loading}
                         loadMore={() => setPage(prev => prev + 1)}
-                        skeletonType="product"
-                        skeletonCount={3}
+                        skeletonCount={6}
+                        viewMode={viewMode}
                         renderItem={(product) => (
-                            <ProductCard key={product.id} product={product} viewMode={viewMode} />
+                            <ProductCard product={product} viewMode={viewMode} />
                         )}
-                        // className="w-full"
                         gridClassName={viewMode === 'grid' ? "grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-6" : "grid grid-cols-1 gap-4"}
                     />
                 )}

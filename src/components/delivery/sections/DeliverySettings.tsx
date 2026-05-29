@@ -100,11 +100,11 @@ export default function DeliverySettingsModal({ isOpen, onClose, initialData, on
             {isOpen && (
                 <>
                     {/* Overlay */}
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 bg-black/60 backdrop-blur-xl z-[1000]" />
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="hidden md:block fixed inset-0 bg-[#0F2944]/40 backdrop-blur-sm z-[1000]" />
 
                     {/* Modal */}
                     <motion.div initial={{ y: "100%", opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: "100%", opacity: 0 }} transition={{ type: "spring", damping: 30, stiffness: 300 }} className="fixed inset-0 flex items-end md:items-center justify-center z-[1001] pointer-events-none" >
-                        <motion.div className="bg-card shadow-2xl overflow-hidden flex flex-col md:w-[90%] md:max-w-xl md:max-h-[85vh] md:rounded-3xl rounded-t-[2.5rem] w-full h-[85vh] md:h-auto pointer-events-auto">
+                        <motion.div className="bg-[#FBFAF6] text-[#0F2944] overflow-hidden flex flex-col md:w-[90%] md:max-w-xl md:max-h-[85vh] md:rounded-3xl md:shadow-[0_8px_48px_rgba(15,41,68,0.16)] rounded-none w-full h-dvh md:h-auto pointer-events-auto">
 
                             {/* Drag handle mobile */}
                             <div className="flex justify-center pt-4 pb-2 md:hidden">

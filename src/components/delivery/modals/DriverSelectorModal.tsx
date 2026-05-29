@@ -68,8 +68,8 @@ export default function DriverSelectorModal({ isOpen, onClose, orderId, onSucces
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4 bg-black/50 backdrop-blur-sm">
-            <div className="w-full md:max-w-lg bg-card rounded-t-3xl md:rounded-3xl shadow-2xl border border-border overflow-hidden flex flex-col max-h-[90vh]">
+        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4 md:bg-[#0F2944]/40 md:backdrop-blur-sm">
+            <div className="w-full md:max-w-lg bg-[#FBFAF6] text-[#0F2944] rounded-none md:rounded-3xl md:shadow-[0_8px_48px_rgba(15,41,68,0.16)] border-0 md:border md:border-[#EEF1F4] overflow-hidden flex flex-col h-dvh md:h-auto md:max-h-[90vh]">
 
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 pb-4 border-b border-border shrink-0">

@@ -43,7 +43,7 @@ export const NotificationPermissionModal = () => {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={handleDecline}
-                        className="absolute inset-0 bg-black/20 dark:bg-black/60 backdrop-blur-[2px]"
+                        className="absolute inset-0 bg-[#0F2944]/30 backdrop-blur-sm"
                     />
 
                     {/* Spacious Elegant Modal */}
@@ -56,7 +56,7 @@ export const NotificationPermissionModal = () => {
                             transition: { type: "spring", damping: 25, stiffness: 400 }
                         }}
                         exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.15 } }}
-                        className="relative w-full max-w-md bg-white dark:bg-zinc-900 rounded-3xl sm:rounded-[2rem] shadow-2xl overflow-hidden flex flex-col"
+                        className="relative w-full max-w-md bg-[#FBFAF6] text-[#0F2944] rounded-3xl sm:rounded-[2rem] shadow-[0_20px_50px_rgba(15,41,68,0.13)] border border-[#EEF1F4] overflow-hidden flex flex-col"
                     >
                         <div className="p-6 sm:p-10 flex flex-col items-center text-center">
 
@@ -68,17 +68,17 @@ export const NotificationPermissionModal = () => {
                                 </div>
                             </div>
 
-                            <h3 className="text-xl sm:text-2xl font-black text-zinc-900 dark:text-white mb-2 sm:mb-3 tracking-tight">
+                            <h3 className="text-xl sm:text-2xl font-black text-[#0F2944] mb-2 sm:mb-3 tracking-tight">
                                 Notifications
                             </h3>
 
-                            <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mb-6 sm:mb-8 px-1 sm:px-2 leading-relaxed">
+                            <p className="text-xs sm:text-sm text-[#1F3A5F] mb-6 sm:mb-8 px-1 sm:px-2 leading-relaxed">
                                 Restez informé de vos commandes, livraisons et actualités en temps réel pour ne rien manquer.
                             </p>
 
                             {/* Buttons on one line */}
                             <div className="flex w-full gap-2 sm:gap-3">
-                                <button onClick={handleDecline} className="flex-1 py-2.5 sm:py-3.5 px-3 sm:px-4 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 rounded-xl sm:rounded-[14px] font-bold text-xs sm:text-sm transition-all hover:bg-zinc-200 dark:hover:bg-zinc-700 active:scale-[0.98]">
+                                <button onClick={handleDecline} className="flex-1 py-2.5 sm:py-3.5 px-3 sm:px-4 bg-[#F2EFE7] text-[#0F2944] rounded-xl sm:rounded-[14px] font-bold text-xs sm:text-sm transition-all hover:bg-[#E8E2D6] active:scale-[0.98]">
                                     Refuser
                                 </button>
                                 <button onClick={handleAccept} className="flex-1 py-2.5 sm:py-3.5 px-3 sm:px-4 bg-primary text-white rounded-xl sm:rounded-[14px] font-bold text-xs sm:text-sm shadow-lg shadow-primary/25 transition-all hover:opacity-90 active:scale-[0.98]">

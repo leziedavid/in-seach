@@ -104,7 +104,7 @@ export default function DocumentPreviewModal({ isOpen, onClose, data, type }: Do
                         animate={{ opacity: 1 }} 
                         exit={{ opacity: 0 }} 
                         onClick={onClose} 
-                        className="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-[1000]" 
+                        className="fixed inset-0 bg-[#0F2944]/40 backdrop-blur-sm z-[1000]"
                     />
                     <motion.div 
                         initial={{ y: "100%", opacity: 0 }} 
@@ -113,7 +113,7 @@ export default function DocumentPreviewModal({ isOpen, onClose, data, type }: Do
                         className="fixed inset-0 flex items-center justify-center z-[1001] pointer-events-none p-2 md:p-4"
                     >
                         <motion.div 
-                            className="bg-white text-slate-900 shadow-2xl overflow-hidden flex flex-col w-full max-w-5xl max-h-[98vh] md:max-h-[95vh] rounded-[1.5rem] md:rounded-[2.5rem] pointer-events-auto border border-slate-200"
+                            className="bg-[#FBFAF6] text-[#0F2944] shadow-[0_8px_48px_rgba(15,41,68,0.16)] overflow-hidden flex flex-col w-full max-w-5xl max-h-[98vh] md:max-h-[95vh] rounded-[1.5rem] md:rounded-[2.5rem] pointer-events-auto border border-[#EEF1F4]"
                             initial={{ scale: 0.95 }} 
                             animate={{ scale: 1 }} 
                             transition={{ type: "spring", damping: 25 }} 

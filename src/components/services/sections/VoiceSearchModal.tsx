@@ -118,14 +118,14 @@ export default function VoiceSearchModal({ isOpen, onClose, onResult }: VoiceSea
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-xl p-4 md:p-6"
+                    className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#0F2944]/40 backdrop-blur-sm p-4 md:p-6"
                 >
                     <motion.div
                         initial={{ scale: 0.9, opacity: 0, y: 20 }}
                         animate={{ scale: 1, opacity: 1, y: 0 }}
                         exit={{ scale: 0.9, opacity: 0, y: 20 }}
                         transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                        className="relative w-full max-w-lg bg-card border border-border rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col h-auto max-h-[90vh]"
+                        className="relative w-full max-w-lg bg-[#FBFAF6] text-[#0F2944] border border-[#EEF1F4] rounded-[2.5rem] shadow-[0_20px_50px_rgba(15,41,68,0.13)] overflow-hidden flex flex-col h-auto max-h-[90vh]"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Header */}

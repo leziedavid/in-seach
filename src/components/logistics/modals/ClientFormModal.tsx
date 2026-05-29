@@ -114,8 +114,8 @@ export default function ClientFormModal({ client, isOpen, onClose, onSuccess }: 
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in duration-300">
-            <div className="bg-card border border-border w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-visible animate-in zoom-in-95 duration-300">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#0F2944]/30 backdrop-blur-sm animate-in fade-in duration-300">
+            <div className="bg-[#FBFAF6] text-[#0F2944] border border-[#EEF1F4] w-full max-w-lg rounded-[2.5rem] shadow-[0_20px_50px_rgba(15,41,68,0.13)] overflow-visible animate-in zoom-in-95 duration-300">
                 <div className="p-8 space-y-6">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
@@ -202,7 +202,7 @@ export default function ClientFormModal({ client, isOpen, onClose, onSuccess }: 
                             </div>
                         )}
 
-                        <div className="sticky bottom-0 p-6 bg-card border-t border-border flex flex-col md:flex-row gap-3">
+                        <div className="sticky bottom-0 p-6 bg-[#FBFAF6] border-t border-[#EEF1F4] flex flex-col md:flex-row gap-3">
                             <button type="button" onClick={onClose} className="px-6 py-3 rounded-2xl border border-border text-xs font-bold hover:bg-muted transition-all uppercase tracking-wider flex-1 h-12">
                                 Annuler
                             </button>

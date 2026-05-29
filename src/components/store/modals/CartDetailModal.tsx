@@ -88,14 +88,13 @@ export default function CartDetailModal({ isOpen, onClose }: CartDetailModalProp
         <AnimatePresence>
             {isOpen && (
                 <>
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 bg-black/60 backdrop-blur-xl z-[1000]" />
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="hidden md:block fixed inset-0 bg-[#0F2944]/40 backdrop-blur-sm z-[1000]" />
                     <motion.div initial={{ y: "100%", opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: "100%", opacity: 0 }}
                         transition={{ type: "spring", damping: 30, stiffness: 300 }}
                         className="fixed inset-0 flex items-end md:items-center justify-center z-[1001] pointer-events-none">
-                        <motion.div className="bg-card shadow-2xl overflow-hidden flex flex-col md:w-[90%] md:max-w-2xl md:max-h-[85vh] md:rounded-3xl rounded-t-[2.5rem] w-full h-[85vh] md:h-auto pb-safe pointer-events-auto" initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} transition={{ delay: 0.1, type: "spring", damping: 25 }} >
-                            <div className="flex justify-center pt-4 pb-2 shrink-0 md:hidden"><div className="w-12 h-1.5 bg-muted rounded-full" /></div>
-                            <div className="sticky top-0 z-50 px-6 py-4 flex items-center gap-3 border-b border-border bg-card/80 backdrop-blur-md">
-                                <button onClick={onClose} className="p-2 md:p-3 bg-muted rounded-full transition hover:bg-accent"><Icon icon="solar:alt-arrow-left-bold-duotone" width={20} /></button>
+                        <motion.div className="bg-[#FBFAF6] text-[#0F2944] overflow-hidden flex flex-col md:w-[90%] md:max-w-2xl md:max-h-[85vh] md:rounded-3xl md:shadow-[0_8px_48px_rgba(15,41,68,0.16)] rounded-none w-full h-dvh md:h-auto pb-safe pointer-events-auto" initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} transition={{ delay: 0.1, type: "spring", damping: 25 }} >
+                            <div className="sticky top-0 z-50 flex h-16 items-center gap-3 px-4 border-b border-[#EEF1F4] bg-[#FBFAF6]/95 backdrop-blur-md">
+                                <button onClick={onClose} className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F2EFE7] text-[#0F2944] hover:bg-[#E8E2D6] transition-all active:scale-90"><Icon icon="solar:alt-arrow-left-bold-duotone" width={20} /></button>
                                 <div className="flex-1 text-center"><h2 className="text-lg font-black italic">Mon Panier</h2></div>
                                 <div className="p-2 w-10 h-10" /> {/* Spacer */}
                             </div>
@@ -252,7 +251,7 @@ export default function CartDetailModal({ isOpen, onClose }: CartDetailModalProp
                                 )}
                             </div>
 
-                            <div className="sticky bottom-0 p-6 bg-card border-t border-border">
+                            <div className="sticky bottom-0 p-6 bg-[#FBFAF6] border-t border-[#EEF1F4]">
                                 {cart.length > 0 && (
                                     <button disabled={isLoading} onClick={showPaymentSection ? handleValidateOrder : () => setShowPaymentSection(true)} className="w-full py-4 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl font-black text-sm active:scale-95 transition-all shadow-lg flex items-center justify-center gap-2 group"  >
                                         {isLoading ? (

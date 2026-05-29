@@ -110,7 +110,7 @@ export default function ImageSearchModal({ isOpen, onClose, onSearch, isLoading 
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={handleClose}
-                        className="fixed inset-0 bg-black/60 backdrop-blur-xl z-[1000]"
+                        className="hidden md:block fixed inset-0 bg-[#0F2944]/40 backdrop-blur-sm z-[1000]"
                     />
 
                     <motion.div
@@ -118,18 +118,13 @@ export default function ImageSearchModal({ isOpen, onClose, onSearch, isLoading 
                         animate={{ y: 0, opacity: 1 }}
                         exit={{ y: "100%", opacity: 0 }}
                         transition={{ type: "spring", damping: 30, stiffness: 300 }}
-                        className="relative w-full md:w-[90%] md:max-w-lg bg-card rounded-t-[2.5rem] md:rounded-3xl overflow-hidden shadow-2xl h-[90vh] md:h-auto z-[1001] flex flex-col"
+                        className="relative w-full md:w-[90%] md:max-w-lg bg-[#FBFAF6] text-[#0F2944] rounded-none md:rounded-3xl overflow-hidden md:shadow-[0_8px_48px_rgba(15,41,68,0.16)] h-dvh md:h-auto z-[1001] flex flex-col"
                     >
-                        {/* Drag Handle - Mobile only */}
-                        <div className="flex justify-center pt-4 pb-2 shrink-0 md:hidden">
-                            <div className="w-12 h-1.5 bg-muted rounded-full" />
-                        </div>
-
                         {/* Header */}
-                        <div className="p-6 border-b flex items-center justify-between bg-card sticky top-0 z-10">
-                            <h2 className="text-xl font-black text-foreground">{t("home.image_search.title")}</h2>
-                            <button onClick={handleClose} className="p-2 md:p-3 bg-muted hover:bg-accent rounded-full text-muted-foreground hover:text-foreground transition-all active:scale-90 flex items-center justify-center">
-                                <Icon icon="solar:close-circle-bold-duotone" className="w-6 h-6" />
+                        <div className="sticky top-0 z-10 flex h-16 items-center justify-between px-4 border-b border-[#EEF1F4] bg-[#FBFAF6]/95 backdrop-blur-md">
+                            <h2 className="text-[15px] font-extrabold text-[#0F2944]">{t("home.image_search.title")}</h2>
+                            <button onClick={handleClose} className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F2EFE7] text-[#0F2944] hover:bg-[#E8E2D6] transition-all active:scale-90">
+                                <Icon icon="solar:close-circle-bold-duotone" className="w-5 h-5" />
                             </button>
                         </div>
 

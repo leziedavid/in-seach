@@ -176,19 +176,15 @@ export default function BookingModal({ isOpen, onClose, item, type, booking, mod
         <AnimatePresence>
             {isOpen && (
                 <>
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 bg-black/60 backdrop-blur-xl z-[1000]" />
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="hidden md:block fixed inset-0 bg-[#0F2944]/40 backdrop-blur-sm z-[1000]" />
                     <motion.div initial={{ y: "100%", opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: "100%", opacity: 0 }}
                         transition={{ type: "spring", damping: 30, stiffness: 300 }}
                         className="fixed inset-0 flex items-end md:items-center justify-center z-[1001]">
-                        <motion.div className=" bg-card shadow-2xl overflow-hidden flex flex-col md:w-[90%] md:max-w-3xl md:max-h-[88vh] md:rounded-3xl rounded-t-[2.5rem] w-full h-[90vh] md:h-auto pb-safe " initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} transition={{ delay: 0.1, type: "spring", damping: 25 }} >
-                            {/* Drag Handle - Mobile only */}
-                            <div className="flex justify-center pt-4 pb-2 shrink-0 md:hidden">
-                                <div className="w-12 h-1.5 bg-muted rounded-full" />
-                            </div>
+                        <motion.div className="bg-[#FBFAF6] text-[#0F2944] overflow-hidden flex flex-col md:w-[90%] md:max-w-3xl md:max-h-[88vh] md:rounded-3xl md:shadow-[0_8px_48px_rgba(15,41,68,0.16)] rounded-none w-full h-dvh md:h-auto pb-safe" initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} transition={{ delay: 0.1, type: "spring", damping: 25 }} >
 
                             {/* Header */}
-                            <div className="sticky top-0 z-50 px-6 md:px-8 py-4 md:py-6 flex items-center gap-3 border-b border-border bg-gradient-to-r from-card to-muted/50 backdrop-blur-md shrink-0">
-                                <button onClick={onClose} className="p-2 md:p-3 bg-muted hover:bg-accent rounded-full text-muted-foreground hover:text-foreground transition-all active:scale-90 flex items-center justify-center" >
+                            <div className="sticky top-0 z-50 flex h-16 items-center gap-3 px-4 bg-[#FBFAF6]/95 backdrop-blur-md border-b border-[#EEF1F4] shrink-0">
+                                <button onClick={onClose} className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F2EFE7] text-[#0F2944] hover:bg-[#E8E2D6] transition-all active:scale-90" >
                                     <Icon icon="solar:alt-arrow-left-bold-duotone" className="w-5 h-5" />
                                 </button>
                                 <div className="flex-1">
@@ -334,7 +330,7 @@ export default function BookingModal({ isOpen, onClose, item, type, booking, mod
                             </div>
 
                             {/* Footer */}
-                            <div className="sticky bottom-0 z-50 p-6 md:p-8 bg-card border-border">
+                            <div className="sticky bottom-0 z-50 p-6 md:p-8 bg-[#FBFAF6] border-t border-[#EEF1F4]">
                                 <div className="flex flex-col md:flex-row items-center gap-4">
                                     <div className="flex-1">
                                         <p className="text-2xl font-black">

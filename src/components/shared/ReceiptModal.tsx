@@ -82,17 +82,15 @@ export default function ReceiptModal({ isOpen, onClose, data }: ReceiptModalProp
         <AnimatePresence>
             {isOpen && (
                 <>
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 bg-black/60 backdrop-blur-xl z-[1000]" />
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 bg-[#0F2944]/30 backdrop-blur-sm z-[1000]" />
                     <motion.div initial={{ y: "100%", opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: "100%", opacity: 0 }}
                         transition={{ type: "spring", damping: 30, stiffness: 300 }}
                         className="fixed inset-0 flex items-end md:items-center justify-center z-[1001] pointer-events-none p-4">
-                        <motion.div className="bg-white text-slate-900 shadow-2xl overflow-hidden flex flex-col md:w-[90%] md:max-w-xl md:max-h-[85vh] md:rounded-3xl rounded-t-[2.5rem] w-full max-h-[90vh] pb-safe pointer-events-auto"
+                        <motion.div className="bg-white text-slate-900 md:shadow-[0_8px_48px_rgba(15,41,68,0.16)] overflow-hidden flex flex-col md:w-[90%] md:max-w-xl md:max-h-[85vh] md:rounded-3xl rounded-none w-full h-dvh md:h-auto pb-safe pointer-events-auto"
                             initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} transition={{ delay: 0.1, type: "spring", damping: 25 }} >
 
-                            <div className="flex justify-center pt-4 pb-2 shrink-0 md:hidden"><div className="w-12 h-1.5 bg-slate-200 rounded-full" /></div>
-
-                            <div className="sticky top-0 z-50 px-6 py-4 flex items-center justify-between border-b border-slate-100 bg-white/80 backdrop-blur-md">
-                                <button onClick={onClose} className="p-2 bg-slate-50 rounded-full hover:bg-slate-100 transition"><Icon icon="solar:close-circle-bold-duotone" width={20} /></button>
+                            <div className="sticky top-0 z-50 flex h-16 items-center justify-between px-4 border-b border-[#EEF1F4] bg-white/90 backdrop-blur-md">
+                                <button onClick={onClose} className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F2EFE7] text-[#0F2944] hover:bg-[#E8E2D6] transition-all active:scale-90"><Icon icon="solar:close-circle-bold-duotone" width={20} /></button>
                                 <h2 className="text-lg font-black uppercase tracking-tight">{t("akwaba.receipt.title")}</h2>
                                 <button onClick={handlePrint} className="p-2 bg-primary text-white rounded-full hover:scale-110 transition shadow-lg shadow-primary/20"><Icon icon="solar:printer-minimalistic-bold-duotone" width={20} /></button>
                             </div>

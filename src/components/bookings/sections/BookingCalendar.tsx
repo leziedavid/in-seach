@@ -416,7 +416,7 @@ const BookingCalendar: React.FC = () => {
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
                                 onClick={() => setIsDayModalOpen(false)}
-                                className="fixed inset-0 bg-black/60 backdrop-blur-xl z-[1000]"
+                                className="hidden md:block fixed inset-0 bg-[#0F2944]/40 backdrop-blur-sm z-[1000]"
                             />
                             <motion.div
                                 initial={{ y: "100%", opacity: 0 }}
@@ -425,12 +425,8 @@ const BookingCalendar: React.FC = () => {
                                 transition={{ type: "spring", damping: 30, stiffness: 300 }}
                                 className="fixed inset-0 flex items-end md:items-center justify-center z-[1001]"
                             >
-                                <div className="bg-card shadow-2xl w-full md:w-[90%] md:max-w-md rounded-t-[2.5rem] md:rounded-3xl overflow-hidden flex flex-col h-[90vh] md:h-auto border border-border">
-                                    {/* Drag Handle - Mobile only */}
-                                    <div className="flex justify-center pt-4 pb-2 shrink-0 md:hidden">
-                                        <div className="w-12 h-1.5 bg-muted rounded-full" />
-                                    </div>
-                                    <div className="p-6 border-b border-border bg-primary/5 flex items-center justify-between">
+                                <div className="bg-[#FBFAF6] text-[#0F2944] w-full md:w-[90%] md:max-w-md rounded-none md:rounded-3xl overflow-hidden flex flex-col h-dvh md:h-auto md:shadow-[0_8px_48px_rgba(15,41,68,0.16)] border-0 md:border md:border-[#EEF1F4]">
+                                    <div className="flex h-16 items-center justify-between px-4 border-b border-[#EEF1F4] bg-[#FBFAF6]/95 backdrop-blur-md">
                                         <div>
                                             <h3 className="font-black text-lg text-foreground">
                                                 {selectedDate && format(selectedDate, "dd MMMM yyyy", { locale: fr })}

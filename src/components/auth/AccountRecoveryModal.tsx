@@ -52,7 +52,7 @@ export const AccountRecoveryModal = ({ isOpen, onClose }: AccountRecoveryModalPr
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onClose}
-                        className="absolute inset-0 bg-black/10 dark:bg-black/40 backdrop-blur-sm"
+                        className="absolute inset-0 bg-[#0F2944]/30 backdrop-blur-sm"
                     />
 
                     {/* Compact iOS Style Modal */}
@@ -65,7 +65,7 @@ export const AccountRecoveryModal = ({ isOpen, onClose }: AccountRecoveryModalPr
                             transition: { type: "spring", damping: 25, stiffness: 400 }
                         }}
                         exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.15 } }}
-                        className="relative w-full max-w-[340px] bg-white dark:bg-zinc-900 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)] border border-white/20 dark:border-zinc-800/50 overflow-hidden"
+                        className="relative w-full max-w-[340px] bg-[#FBFAF6] text-[#0F2944] rounded-[2.5rem] shadow-[0_20px_50px_rgba(15,41,68,0.15)] border border-[#EEF1F4] overflow-hidden"
                     >
                         <div className="p-8 flex flex-col items-center text-center">
 
@@ -77,11 +77,11 @@ export const AccountRecoveryModal = ({ isOpen, onClose }: AccountRecoveryModalPr
                                 </div>
                             </div>
 
-                            <h3 className="text-2xl font-black text-zinc-900 dark:text-white mb-2 tracking-tight">
+                            <h3 className="text-2xl font-black text-[#0F2944] mb-2 tracking-tight">
                                 {t("auth.login.recovery_modal.title")}
                             </h3>
 
-                            <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-8 px-2 font-bold leading-relaxed">
+                            <p className="text-xs text-[#1F3A5F] mb-8 px-2 font-bold leading-relaxed">
                                 {t("auth.login.recovery_modal.desc")}
                             </p>
 
@@ -93,7 +93,7 @@ export const AccountRecoveryModal = ({ isOpen, onClose }: AccountRecoveryModalPr
                                         value={phone}
                                         onChange={(e) => setPhone(e.target.value)}
                                         placeholder={t("auth.login.recovery_modal.phone_placeholder")}
-                                        className="w-full h-12 pl-11 pr-4 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 outline-none focus:border-primary text-sm font-bold transition-all"
+                                        className="w-full h-12 pl-11 pr-4 rounded-xl bg-[#F2EFE7] border border-[#EEF1F4] outline-none focus:border-primary text-sm font-bold transition-all"
                                         style={{ fontSize: '16px' }}
                                     />
                                 </div>

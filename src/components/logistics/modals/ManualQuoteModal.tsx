@@ -232,8 +232,8 @@ export default function ManualQuoteModal({ isOpen, onClose, onSuccess, initialDa
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in duration-300">
-            <div className="bg-card border border-border w-4xl max-w-7xl rounded-[2.5rem] shadow-2xl overflow-visible animate-in zoom-in-95 duration-300">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#0F2944]/30 backdrop-blur-sm animate-in fade-in duration-300">
+            <div className="bg-[#FBFAF6] text-[#0F2944] border border-[#EEF1F4] w-4xl max-w-7xl rounded-[2.5rem] shadow-[0_20px_50px_rgba(15,41,68,0.13)] overflow-visible animate-in zoom-in-95 duration-300">
                 <div className="p-8 space-y-6">
 
                     <div className="flex items-center justify-between">
