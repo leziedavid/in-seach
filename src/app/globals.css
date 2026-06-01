@@ -9,9 +9,9 @@
   /* Brand colors */
   --brand-primary: hsl(29, 32%, 53%);
   --brand-secondary: hsl(195, 69%, 27%);
-
-  /* --brand-secondary: hsl(29, 32%, 53%);
-  --brand-primary: hsl(195, 69%, 27%); */
+  /* hsl(145 100% 20% / 1) */
+  /* --brand-secondary: hsl(145, 92%, 20%); */
+  /* --brand-primary: hsl(145, 92%, 20%); */
 
   --radius: 0.625rem;
   --background: oklch(1 0 0);
@@ -135,7 +135,6 @@
   --glow-primary: rgba(176, 123, 94, 0.08);
   --glow-secondary: rgba(14, 76, 112, 0.15);
   --grid-color: rgba(255, 255, 255, 0.03);
-  /* --bg-gradient: radial-gradient(circle at top left, var(--glow-primary), transparent 50%), radial-gradient(circle at bottom right, var(--glow-secondary), transparent 50%); */
 }
 
 @layer base {

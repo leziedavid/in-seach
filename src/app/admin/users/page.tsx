@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { getAllUsers, getSuspendedUsersAdmin, getRecoveryRequestsAdmin, suspendUserAdmin, reactivateUserAdmin, deleteUserAdmin, updateUser } from '@/api/api';
-import { Users, Shield, UserX, Mail, Phone, Calendar, Edit2, RotateCcw, Ban, Trash2, Search, AlertCircle } from 'lucide-react';
+import { getAllUsers, getSuspendedUsersAdmin, getRecoveryRequestsAdmin, suspendUserAdmin, reactivateUserAdmin, deleteUserAdmin, updateUser, resetFreePlanForUserAdmin, resetFreePlanForAllUsersAdmin } from '@/api/api';
+import { Users, Shield, UserX, Mail, Phone, Calendar, Edit2, RotateCcw, Ban, Trash2, Search, AlertCircle, RefreshCcw } from 'lucide-react';
 import { useNotification } from '@/components/notifications/NotificationProvider';
 import { User, Role } from '@/types/interface';
 import { Modal } from '@/components/ui/MotionModal';
@@ -94,6 +94,32 @@ export default function AdminUsersPage() {
             }
         } catch (error) {
             addNotification(t("admin.users.error_delete"), "error");
+        }
+    };
+
+    const handleResetFreePlan = async (user: User) => {
+        if (!confirm(`Voulez-vous réinitialiser le plan gratuit pour ${user.fullName || user.email} ?`)) return;
+        try {
+            const res = await resetFreePlanForUserAdmin(user.id);
+            if (res.statusCode === 200) {
+                addNotification("Plan gratuit réinitialisé avec succès", "success");
+                fetchUsers();
+            }
+        } catch (error) {
+            addNotification("Erreur lors de la réinitialisation du plan", "error");
+        }
+    };
+
+    const handleResetAllFreePlans = async () => {
+        if (!confirm(`Attention : Voulez-vous vraiment réinitialiser le plan gratuit pour TOUS les utilisateurs ? Cette action est irréversible.`)) return;
+        try {
+            const res = await resetFreePlanForAllUsersAdmin();
+            if (res.statusCode === 200) {
+                addNotification("Tous les plans gratuits ont été réinitialisés", "success");
+                fetchUsers();
+            }
+        } catch (error) {
+            addNotification("Erreur lors de la réinitialisation globale", "error");
         }
     };
 
@@ -223,7 +249,15 @@ export default function AdminUsersPage() {
                     <h1 className="text-4xl font-black tracking-tight mb-2">{t("admin.users.title")}</h1>
                     <p className="text-muted-foreground font-medium">{t("admin.users.subtitle")}</p>
                 </div>
-
+                <div>
+                    <button
+                        onClick={handleResetAllFreePlans}
+                        className="flex items-center gap-2 px-6 py-3 rounded-2xl font-black text-xs transition-all bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-500/20"
+                    >
+                        <RefreshCcw className="w-4 h-4" />
+                        Réinitialiser TOUS les plans Free
+                    </button>
+                </div>
             </header>
 
             <div className="flex flex-col sm:flex-row items-center gap-4">
@@ -282,12 +316,14 @@ export default function AdminUsersPage() {
                                 else handleSuspend(row);
                             }}
                             actions={[
+                                { icon: RefreshCcw, label: "Réinitialiser Plan Free", value: "reset-free-plan", className: "text-amber-600" },
                                 { icon: Edit2, label: t("common.edit"), value: "edit" },
                                 { icon: Ban, label: t("admin.users.suspend"), value: "suspend", className: "text-rose-600", disabled: (row) => row.isSuspended },
                                 { icon: RotateCcw, label: t("admin.users.reactivate"), value: "reactivate", className: "text-green-600", disabled: (row) => !row.isSuspended },
                                 { icon: Trash2, label: t("common.delete"), value: "delete", className: "text-rose-700" }
                             ]}
                             onAction={(action, row) => {
+                                if (action === "reset-free-plan") handleResetFreePlan(row);
                                 if (action === "edit") { setSelectedUser(row); setIsEditOpen(true); }
                                 if (action === "suspend") handleSuspend(row);
                                 if (action === "reactivate") handleReactivate(row);

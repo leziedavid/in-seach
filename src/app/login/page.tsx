@@ -96,7 +96,7 @@ export default function LoginPage() {
 
     /* ================= UI ================= */
     return (
-        <div className="min-h-screen flex flex-col items-center py-4 px-4 overflow-y-auto bg-transparent">
+        <div className="flex flex-col items-center py-4 px-4 overflow-y-auto bg-transparent">
             <div className="w-full max-w-sm flex-1 bg-card p-6 sm:p-8 flex flex-col">
 
                 {/* Header */}
@@ -214,8 +214,14 @@ export default function LoginPage() {
                         <p className="text-[11px] sm:text-xs text-muted-foreground mb-2">
                             <Link href="/" className="text-primary font-bold hover:underline">{t("auth.login.back_to_home")}</Link>
                         </p>
-                        <p className="text-[11px] sm:text-xs text-muted-foreground">
+                        <p className="text-[11px] sm:text-xs text-muted-foreground mb-2">
                             {t("auth.login.no_account")} <Link href="/register" className="text-primary font-bold hover:underline">{t("auth.login.register_link")}</Link>
+                        </p>
+                        <p className="text-[11px] sm:text-xs text-muted-foreground">
+                            <Link href="/forgot-password" className="text-primary font-bold hover:underline inline-flex items-center gap-1">
+                                <Icon icon="solar:lock-keyhole-bold-duotone" width={12} />
+                                Mot de passe oublié ?
+                            </Link>
                         </p>
                     </div>
 

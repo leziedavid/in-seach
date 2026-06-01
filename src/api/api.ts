@@ -107,6 +107,33 @@ export const requestRecovery = async (phone: string): Promise<BaseResponse<any>>
     return await response.json();
 };
 
+export const forgotPassword = async (phone: string): Promise<BaseResponse<any>> => {
+    const response = await fetch(`${getBaseUrl()}/auth/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone }),
+    });
+    return await response.json();
+};
+
+export const verifyResetCode = async (phone: string, code: string): Promise<BaseResponse<any>> => {
+    const response = await fetch(`${getBaseUrl()}/auth/verify-reset-code`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, code }),
+    });
+    return await response.json();
+};
+
+export const resetPassword = async (phone: string, code: string, newPassword: string): Promise<BaseResponse<any>> => {
+    const response = await fetch(`${getBaseUrl()}/auth/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, code, newPassword }),
+    });
+    return await response.json();
+};
+
 export const logout = async (): Promise<BaseResponse<any>> => {
     const response = await secureFetch(`${getBaseUrl()}/auth/logout`, {
         method: 'POST',
@@ -944,6 +971,20 @@ export const adminValidatePayment = async (id: string, success: boolean): Promis
     const response = await secureFetch(`${getBaseUrl()}/subscriptions/admin/validate-payment/${id}`, {
         method: 'PATCH',
         body: JSON.stringify({ success }),
+    });
+    return await response.json();
+};
+
+export const resetFreePlanForUserAdmin = async (userId: string): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/subscriptions/reset-free-plan/${userId}`, {
+        method: 'POST',
+    });
+    return await response.json();
+};
+
+export const resetFreePlanForAllUsersAdmin = async (): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/subscriptions/reset-free-plan-all`, {
+        method: 'POST',
     });
     return await response.json();
 };

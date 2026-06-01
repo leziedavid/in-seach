@@ -103,7 +103,7 @@ export default function RegisterPage() {
     };
 
     return (
-        <div className="min-h-screen flex flex-col items-center py-4 px-4 overflow-y-auto">
+        <div className="flex flex-col items-center py-4 px-4 overflow-y-auto">
             <div className="w-full max-w-sm flex-1 bg-white dark:bg-gray-900 p-6 sm:p-8 flex flex-col">
 
                 {/* Header */}
@@ -167,13 +167,13 @@ export default function RegisterPage() {
                     {/* Phone Input */}
                     <div className="space-y-1">
                         <label className="text-[11px] sm:text-xs font-black text-gray-600">{t("auth.register.phone_label")}</label>
-                        <InputPhone 
-                            indicatif={indicatif} 
-                            phone={phone} 
+                        <InputPhone
+                            indicatif={indicatif}
+                            phone={phone}
                             onPhoneChange={(val) => {
                                 setIndicatif(val.indicatif);
                                 setPhone(val.phone);
-                            }} 
+                            }}
                         />
                     </div>
 
