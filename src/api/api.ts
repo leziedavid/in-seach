@@ -2,7 +2,7 @@ import { getCookie } from '@/lib/cookies';
 import { BaseResponse, Booking, Category, GlobalSearchResponse, Pagination, ReverseGeocodeData, Service, UserLocation, MySpaceResponse, Annonce, BookingsCalendar, Product, CategoryProd, Order, AdminQueryParams, AdminUserUpdateDto, AdminProductUpdateDto, AdminServiceUpdateDto, AdminAnnonceUpdateDto, AdminSubscriptionPlanDto, User, AdminLog, SubscriptionPlan, PlanEntity, AdminUserSubscription, Subscription, OrdersGroupedResponse, BookingsGroupedResponse, LogisticService, Quote, Delivery, DeliveryTracking, QuoteStatus, DeliveryStatus, TransportType, LocationLog, CategorieAnnonce, TypeAnnonce, LogisticsClient, Video, StoreUserInfo, EasyDelivery, HistoryDelivery, EasyDeliveryStatus, DriverStats, SubCategoryProd, Slider } from '@/types/interface';
 
 export const getBaseUrl = (): string => {
-    return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+    return process.env.NEXT_PUBLIC_API_URL || 'https://api.djamko.com/api/v1';
 };
 
 export const useAuthMiddleware = async (): Promise<void> => {

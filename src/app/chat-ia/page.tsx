@@ -69,7 +69,7 @@ export default function ChatIAPage() {
     const setupSocket = () => {
         const userId = getUserId();
         const token = getToken();
-        const s = io(`${process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:4000'}/chat`, {
+        const s = io(`${process.env.NEXT_PUBLIC_SOCKET_URL || 'https://api.djamko.com'}/chat`, {
             query: { userId, token },
         });
 
@@ -155,7 +155,7 @@ export default function ChatIAPage() {
     }, [selectedConversation]);
 
     const loadMessages = async (id: string) => {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1'}/chat/messages/${id}`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://api.djamko.com/api/v1'}/chat/messages/${id}`, {
             headers: { Authorization: `Bearer ${getToken()}` }
         });
         const data = await res.json();
