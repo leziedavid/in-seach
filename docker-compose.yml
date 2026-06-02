@@ -1,0 +1,18 @@
+services:
+  frontend-app:
+    container_name: frontend-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: djamko/frontend-app:latest
+    env_file:
+      - .env
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    networks:
+      - ms-net
+
+networks:
+  ms-net:
+    external: true

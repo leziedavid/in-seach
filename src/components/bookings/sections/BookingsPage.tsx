@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Booking, BookingStatus, BookingsCalendar } from "@/types/interface";
-import { getAllBookings, getMyBookings, updateBookingStatus } from "@/api/api";
+import { getMyBookings, updateBookingStatus } from "@/api/api";
 import { Icon } from "@iconify/react";
 import { Button } from "@/components/ui/button";
 import AccountBookingRowSkeleton from "@/components/bookings/ui/AccountBookingRowSkeleton";
@@ -147,8 +147,7 @@ export default function BookingsPage({
     return (
         <div className="w-full mx-auto py-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                <SectionHeader
-                    title={bookingType === 'ANNONCE' ? t("akwaba.bookings.title_annonces") : t("akwaba.bookings.title_services")}
+                <SectionHeader title={bookingType === 'ANNONCE' ? t("akwaba.bookings.title_annonces") : t("akwaba.bookings.title_services")}
                     subtitle={t("akwaba.bookings.subtitle")}
                     className="!text-left"
                 />
@@ -192,12 +191,17 @@ export default function BookingsPage({
                     <>
                         <div className="space-y-4">
                             {bookings.map((booking) => {
+
                                 const isBookingClient = booking.clientId === getUserId();
                                 const isBookingProvider = (booking.service?.userId === getUserId()) || (booking.annonce?.userId === getUserId());
+
+
 
                                 return (
                                     <div key={booking.id} className="flex items-center justify-between gap-4 py-3 px-3 rounded-xl border border-border bg-card shadow-sm hover:shadow-md hover:bg-muted/50 transition" >
                                         {/* LEFT INFO */}
+                                        {/* <pre> {JSON.stringify(booking.status, null, 2)}</pre> */}
+
                                         <div className="flex-1 min-w-0">
                                             <button onClick={() => { handleAction(booking) }} className="flex items-center gap-1 text-xs text-primary font-semibold hover:underline shrink-0 truncate"  >
                                                 <Icon icon="solar:eye-bold-duotone" className="w-3.5 h-3.5" />

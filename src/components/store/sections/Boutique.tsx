@@ -182,11 +182,7 @@ export default function ProductsPage() {
 
             {/* Results count header */}
             <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-1">
-                <div className="flex items-center justify-start md:justify-center w-full px-2 md:px-0 mb-2">
-                    <h3 className="text-xl md:text-2xl font-black text-foreground italic">
-                        {!loading && products.length > 0 ? `${total} résultat${total > 1 ? 's' : ''}` : ''}
-                    </h3>
-                </div>
+
 
                 {/* ✅ NotFound seulement si vraiment vide ET chargement terminé */}
                 {!loading && products.length === 0 ? (

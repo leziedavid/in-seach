@@ -7,7 +7,6 @@ import { Product, CategoryProd, StoreUserInfo } from "@/types/interface"
 import ProductCard from "@/components/products/cards/ProductCard"
 import VoiceSearchModal from "@/components/services/sections/VoiceSearchModal"
 import InfiniteScroll from "@/components/ui/InfiniteScroll"
-import CategoryButton from "@/components/products/sections/CategoryButton"
 import { Icon } from "@iconify/react"
 import CategoryFilter from "@/components/ui/CategoryFilter"
 import Image from "next/image"
@@ -263,9 +262,7 @@ export default function StorePage(props: Props) {
             {/* Results count header */}
             <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-1">
                 <div className="flex items-center justify-start md:justify-center w-full px-2 md:px-0 mb-4">
-                    <h3 className="text-xl md:text-2xl font-black text-foreground italic">
-                        {!loading && products.length > 0 ? `${total} résultat${total > 1 ? 's' : ''}` : ''}
-                    </h3>
+                    <h3 className="text-xl md:text-2xl font-black text-foreground italic"> </h3>
                 </div>
 
                 {/* ✅ NotFound seulement si vraiment vide ET chargement terminé */}

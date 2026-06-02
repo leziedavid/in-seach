@@ -110,9 +110,7 @@ export default function LogisticProviderList() {
             {/* Results count header */}
             <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-1">
                 <div className="flex items-center justify-between w-full px-2 md:px-0 mb-4">
-                    <h3 className="text-xl md:text-2xl font-black text-foreground italic text-left md:text-center leading-tight">
-                        {providers.length > 0 ? `${total} compagnie${total > 1 ? 's' : ''} partenaire${total > 1 ? 's' : ''}` : ''}
-                    </h3>
+                    <h3 className="text-xl md:text-2xl font-black text-foreground italic text-left md:text-center leading-tight"> </h3>
                     {providers.length > 0 && (
                         <ViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />
                     )}
