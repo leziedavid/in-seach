@@ -222,7 +222,9 @@ export default function Header() {
                                 )}
                             </button>
 
-                            <QrCodeLogo user={userId} />
+                            <span className="hidden md:block">
+                                <QrCodeLogo user={userId} />
+                            </span>
 
                             <button onClick={() => handleProtectedNavigation("/chat-ia")} className="relative bg-primary p-2 rounded-full transition hover:scale-110 active:scale-95 flex items-center justify-center hover:-rotate-6">
                                 <Icon icon="solar:bell-bing-bold-duotone" className="text-white w-4 h-4 md:w-5 md:h-5" />
