@@ -21,8 +21,8 @@ export default function RegisterPage() {
         indicatif: z.string().optional(),
         phone: z.string().min(8),
         role: z.enum(['CLIENT', 'PRESTATAIRE', 'LOGISTICIAN', 'LIVREUR']),
-        otp: z.string().length(5), // @ + 4 chiffres
-        fullname: z.string().optional(),
+        password: z.string().min(5),
+        fullName: z.string().optional(),
         company: z.string().optional(),
         acceptedTerms: z.boolean().refine(val => val === true, {
             message: t("auth.register.errors.accepted_terms")
@@ -74,10 +74,10 @@ export default function RegisterPage() {
                 email: email || undefined,
                 indicatif,
                 phone: phone || undefined,
-                otp: password,
+                password,
                 role,
-                fullname: fullname || undefined,
-                company: role === 'PRESTATAIRE' || role === 'LOGISTICIAN' || role === 'LIVREUR' && company ? company : undefined,
+                fullName: fullname || undefined,
+                company: (role === 'PRESTATAIRE' || role === 'LOGISTICIAN' || role === 'LIVREUR') && company ? company : undefined,
                 acceptedTerms,
             };
 
