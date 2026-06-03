@@ -22,22 +22,29 @@ export const notificationService = {
     if (!messaging) return null;
 
     try {
-      const permission = await this.requestPermission();
+      let permission = typeof window !== "undefined" && "Notification" in window ? Notification.permission : "default";
+      if (permission === "default") {
+        permission = await this.requestPermission();
+      }
+
       if (permission !== "granted") {
         throw new Error("Permission NOT granted for notifications");
       }
 
+      // Attendre que le Service Worker soit prêt pour éviter les race conditions sur iOS/Chrome
+      let registration: ServiceWorkerRegistration | undefined;
+      if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+        registration = await navigator.serviceWorker.ready;
+      }
+
       const token = await getToken(messaging, {
         vapidKey: VAPID_KEY,
+        serviceWorkerRegistration: registration,
       });
 
       if (token) {
         console.log("FCM Token acquired:", token);
         // Sync with backend
-
-        // We structure the payload to indicate it's an FCM token.
-        // If the backend expect the old WebPush structure, we might need to adapt.
-        // For now, we send it through the existing subscribePush but we might advise a better way.
         await subscribePush(userId, { type: 'fcm', token: token, device: typeof window !== 'undefined' ? window.navigator.userAgent : 'web' });
         return token;
       } else {

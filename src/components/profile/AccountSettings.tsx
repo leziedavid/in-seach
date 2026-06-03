@@ -28,15 +28,33 @@ import { InputPhone } from "@/components/ui/InputPhone";
 export default function AccountSettings() {
     const { t } = useTranslation();
 
-    const { permission, subscribe, unsubscribe, loading, isNotificationsEnabled } = useNotifications();
-
-    // Simplification : on utilise directement isNotificationsEnabled calculé par le hook
+    const { permission, subscribe, unsubscribe, loading, isNotificationsEnabled, isPushSupported } = useNotifications();
 
     const handleToggleNotifications = async () => {
+        if (!isPushSupported) {
+            toast.error(t("akwaba.settings.notifications_not_supported") || "Les notifications ne sont pas supportées sur ce navigateur (sur iOS, veuillez installer l'application sur l'écran d'accueil).");
+            return;
+        }
+
+        if (permission === 'denied') {
+            toast.error(t("akwaba.settings.notifications_blocked") || "Les notifications sont bloquées dans les paramètres de votre navigateur. Veuillez les autoriser manuellement.");
+            return;
+        }
+
         if (isNotificationsEnabled) {
-            await unsubscribe();
+            const success = await unsubscribe();
+            if (success) {
+                toast.success(t("akwaba.settings.notifications_disabled_success") || "Notifications désactivées.");
+            } else {
+                toast.error(t("akwaba.settings.notifications_error") || "Une erreur est survenue.");
+            }
         } else {
-            await subscribe();
+            const success = await subscribe();
+            if (success) {
+                toast.success(t("akwaba.settings.notifications_enabled_success") || "Notifications activées !");
+            } else {
+                toast.error(t("akwaba.settings.notifications_error") || "Une erreur est survenue.");
+            }
         }
     };
 
@@ -562,6 +580,33 @@ export default function AccountSettings() {
                                 {t("akwaba.settings.notifications_info")}
                             </p>
                         </div>
+
+                        {/* Avertissement si bloqué dans le navigateur */}
+                        {permission === 'denied' && (
+                            <div className="p-4 rounded-xl bg-rose-500/5 border border-rose-500/10 flex gap-3">
+                                <Icon icon="solar:shield-warning-bold-duotone" className="w-5 h-5 text-rose-600 shrink-0" />
+                                <div className="text-[11px] text-rose-800 dark:text-rose-400 font-medium leading-relaxed">
+                                    <span className="font-bold block mb-1">Notifications bloquées par votre navigateur</span>
+                                    Veuillez autoriser les notifications pour ce site dans les paramètres de votre navigateur afin de pouvoir les activer.
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Avertissement si non supporté (iOS Safari) */}
+                        {!isPushSupported && (
+                            <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/10 flex gap-3">
+                                <Icon icon="solar:iphone-bold-duotone" className="w-5 h-5 text-amber-600 shrink-0" />
+                                <div className="text-[11px] text-amber-800 dark:text-amber-400 font-medium leading-relaxed">
+                                    <span className="font-bold block mb-1">Notifications non supportées sur ce navigateur</span>
+                                    Sur iPhone (iOS), vous devez installer l'application sur votre écran d'accueil pour recevoir des notifications en arrière-plan :
+                                    <ul className="list-decimal list-inside mt-2 space-y-1">
+                                        <li>Appuyez sur l'icône de partage de Safari (en bas de l'écran).</li>
+                                        <li>Choisissez "Sur l'écran d'accueil".</li>
+                                        <li>Lancez l'application installée et réessayez ici.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        )}
 
                         <div className="space-y-3 pt-2">
                             <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">{t("akwaba.settings.test_alerts")}</span>
