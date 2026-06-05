@@ -4,8 +4,7 @@ import React from "react";
 import { Icon } from "@iconify/react";
 import Image from "next/image";
 import { Role } from "@/types/interface";
-import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
+import { Modal } from "@/components/ui/MotionModal";
 
 import { useTranslation } from "@/utils/langue/hooks";
 
@@ -192,47 +191,38 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
                 </div>
             </aside>
 
-            {/* MOBILE FLOATING BUTTON & DRAWER */}
+            {/* MOBILE FLOATING BUTTON */}
             <div className="md:hidden fixed bottom-20 left-6 z-40">
-                <Sheet open={open} onOpenChange={setOpen}>
-                    <SheetTrigger asChild>
-                        <Button size="icon" className="rounded-full h-14 w-14 flex items-center justify-center bg-primary shadow-xl shadow-primary/30 hover:scale-110 active:scale-95 transition-all mb-2">
-                            <Image src="/service.svg" alt="Menu" width={32} height={32} className="brightness-0 invert dark:brightness-100 dark:invert-0" style={{ height: 'auto' }} />
-                        </Button>
-                        {/* <Button size="icon" className="relative rounded-full h-14 w-14 bg-primary shadow-xl shadow-primary/30 hover:scale-110 active:scale-95 transition-all mb-2 overflow-hidden">
-                            <Icon icon="solar:folder-with-files-bold-duotone" className="absolute inset-0 m-auto w-11 h-11 text-white/90 pointer-events-none" />
-                        </Button> */}
-                    </SheetTrigger>
-
-                    <SheetContent side="bottom" className="rounded-t-3xl p-6 max-h-[90vh] overflow-y-auto">
-                        <SheetHeader className="sr-only">
-                            <SheetTitle>{t("akwaba.sidebar.my_account")}</SheetTitle>
-                            <SheetDescription>Menu de navigation de votre compte</SheetDescription>
-                        </SheetHeader>
-
-                        <div className="flex flex-col items-center mb-6">
-                            <div className="w-16 h-16 rounded-full border-2 border-primary flex items-center justify-center text-lg font-bold text-primary bg-primary/5">
-                                {user?.fullName?.charAt(0) || "P"}
-                            </div>
-                            <p className="mt-2 font-semibold text-foreground dark:text-white">{t("akwaba.sidebar.my_account")}</p>
-                        </div>
-
-                        <div className="space-y-3">
-                            <div className="grid grid-cols-1 gap-3">
-                                {isLoading ? <MenuSkeleton count={skeletonCount} /> : menu.map(renderMenuItem)}
-                            </div>
-
-                            <div className="pt-2 border-t border-border mt-2">
-                                <button onClick={onLogout} className="w-full flex items-center gap-3 p-4 rounded-xl text-sm text-red-500 bg-red-50/50 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all font-bold">
-                                    <Icon icon="solar:logout-bold-duotone" width={18} />
-                                    {t("akwaba.sidebar.logout")}
-                                </button>
-                            </div>
-                        </div>
-                    </SheetContent>
-
-                </Sheet>
+                <button
+                    onClick={() => setOpen(true)}
+                    className="rounded-full h-14 w-14 flex items-center justify-center bg-primary shadow-xl shadow-primary/30 hover:scale-110 active:scale-95 transition-all mb-2"
+                >
+                    <Image src="/service.svg" alt="Menu" width={32} height={32} className="brightness-0 invert dark:brightness-100 dark:invert-0" style={{ height: 'auto' }} />
+                </button>
             </div>
+
+            <Modal isOpen={open} onClose={() => setOpen(false)} title={t("akwaba.sidebar.my_account")}>
+                <div className="p-6">
+                    <div className="flex flex-col items-center mb-6">
+                        <div className="w-16 h-16 rounded-full border-2 border-primary flex items-center justify-center text-lg font-bold text-primary bg-primary/5">
+                            {user?.fullName?.charAt(0) || "P"}
+                        </div>
+                    </div>
+
+                    <div className="space-y-3">
+                        <div className="grid grid-cols-1 gap-3">
+                            {isLoading ? <MenuSkeleton count={skeletonCount} /> : menu.map(renderMenuItem)}
+                        </div>
+
+                        <div className="pt-2 border-t border-border mt-2">
+                            <button onClick={onLogout} className="w-full flex items-center gap-3 p-4 rounded-xl text-sm text-red-500 bg-red-50/50 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all font-bold">
+                                <Icon icon="solar:logout-bold-duotone" width={18} />
+                                {t("akwaba.sidebar.logout")}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </Modal>
         </>
     );
 }
