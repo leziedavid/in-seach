@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useSocket } from '@/components/providers/SocketProvider';
 import { Icon } from '@iconify/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getMe, verifyChatCode, createChatConversation, uploadChatFiles, getUserConversations, markChatAsRead } from '@/api/api';
@@ -107,13 +106,21 @@ export default function ChatIAPage() {
     };
 
     const fetchMe = async () => {
-        const res = await getMe();
-        if (res.statusCode === 200) setMe(res.data);
+        try {
+            const res = await getMe();
+            if (res.statusCode === 200) setMe(res.data);
+        } catch (e) {
+            console.error("fetchMe failed:", e);
+        }
     };
 
     const fetchConversations = async () => {
-        const res = await getUserConversations();
-        if (res.statusCode === 200) setConversations(res.data || []);
+        try {
+            const res = await getUserConversations();
+            if (res.statusCode === 200) setConversations(res.data || []);
+        } catch (e) {
+            console.error("fetchConversations failed:", e);
+        }
     };
 
     // Handle pending negotiation from ProductDetailModal
@@ -155,11 +162,15 @@ export default function ChatIAPage() {
     }, [selectedConversation]);
 
     const loadMessages = async (id: string) => {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://api.djamko.com/api/v1'}/chat/messages/${id}`, {
-            headers: { Authorization: `Bearer ${getToken()}` }
-        });
-        const data = await res.json();
-        if (data.statusCode === 200) setMessages(data.data);
+        try {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://api.djamko.com/api/v1'}/chat/messages/${id}`, {
+                headers: { Authorization: `Bearer ${getToken()}` }
+            });
+            const data = await res.json();
+            if (data.statusCode === 200) setMessages(data.data);
+        } catch (e) {
+            console.error("loadMessages failed:", e);
+        }
     };
 
     const markAsRead = async (id: string) => {
@@ -218,10 +229,15 @@ export default function ChatIAPage() {
     };
 
     const formatMessageTime = (dateStr: string) => {
-        const date = new Date(dateStr);
-        if (isToday(date)) return format(date, 'HH:mm');
-        if (isYesterday(date)) return 'Hier';
-        return format(date, 'dd/MM/yy');
+        try {
+            const date = new Date(dateStr);
+            if (isNaN(date.getTime())) return '';
+            if (isToday(date)) return format(date, 'HH:mm');
+            if (isYesterday(date)) return 'Hier';
+            return format(date, 'dd/MM/yy');
+        } catch {
+            return '';
+        }
     };
 
     // 🔹 File Upload & Audio Recording (kept from previous version)
@@ -438,14 +454,16 @@ export default function ChatIAPage() {
                             <AnimatePresence initial={false}>
                                 {messages.map((msg, index) => {
                                     const isMe = msg.senderId === me?.id;
-                                    const showTimeSeparator = index === 0 || format(new Date(messages[index - 1].createdAt), 'ddMM') !== format(new Date(msg.createdAt), 'ddMM');
+                                    const msgDate = msg.createdAt ? new Date(msg.createdAt) : null;
+                                    const prevDate = index > 0 && messages[index - 1].createdAt ? new Date(messages[index - 1].createdAt) : null;
+                                    const showTimeSeparator = index === 0 || (msgDate && prevDate && !isNaN(msgDate.getTime()) && !isNaN(prevDate.getTime()) && format(prevDate, 'ddMM') !== format(msgDate, 'ddMM'));
 
                                     return (
                                         <React.Fragment key={msg.id}>
                                             {showTimeSeparator && (
                                                 <div className="flex justify-center my-6">
                                                     <span className="bg-background/50 backdrop-blur-md px-4 py-1.5 rounded-full text-[10px] font-bold text-muted-foreground uppercase tracking-widest border border-border">
-                                                        {isToday(new Date(msg.createdAt)) ? "Aujourd'hui" : isYesterday(new Date(msg.createdAt)) ? "Hier" : format(new Date(msg.createdAt), 'dd MMMM yyyy', { locale: fr })}
+                                                        {msgDate && !isNaN(msgDate.getTime()) ? (isToday(msgDate) ? "Aujourd'hui" : isYesterday(msgDate) ? "Hier" : format(msgDate, 'dd MMMM yyyy', { locale: fr })) : ''}
                                                     </span>
                                                 </div>
                                             )}
@@ -473,7 +491,7 @@ export default function ChatIAPage() {
 
                                                     <div className="flex items-center gap-1.5 justify-end mt-1.5 opacity-60">
                                                         <span className="text-[9px] font-bold tracking-tighter">
-                                                            {format(new Date(msg.createdAt), 'HH:mm')}
+                                                            {msgDate && !isNaN(msgDate.getTime()) ? format(msgDate, 'HH:mm') : ''}
                                                         </span>
                                                         {isMe && (
                                                             <Icon icon={msg.status === 'READ' ? 'solar:double-check-linear' : 'solar:check-read-linear'} className={`w-3.5 h-3.5 transition-colors ${msg.status === 'READ' ? 'text-blue-300' : ''}`} />

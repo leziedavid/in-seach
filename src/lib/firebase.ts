@@ -19,6 +19,13 @@ const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 const analytics = typeof window !== "undefined" ? isSupported().then(yes => yes ? getAnalytics(app) : null) : null;
 
 // Messaging: initialized only on client side where supported
-const messaging = typeof window !== "undefined" ? getMessaging(app) : null;
+let messaging: ReturnType<typeof getMessaging> | null = null;
+if (typeof window !== "undefined") {
+    try {
+        messaging = getMessaging(app);
+    } catch (e) {
+        console.warn("Firebase Messaging not available:", e);
+    }
+}
 
 export { app, analytics, messaging };
