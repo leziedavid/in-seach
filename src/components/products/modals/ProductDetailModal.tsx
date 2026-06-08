@@ -248,8 +248,9 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                                             </div>
 
                                             {product.user && (
-                                                <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-2xl border border-border/50">
-                                                    <Link href={`/shop/${slugify(storeInfo?.storeName || "boutique")}`}>
+                                                <Link href={`/shop/${slugify(storeInfo?.storeName || "boutique")}`}>
+
+                                                    <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-2xl border border-border/50">
                                                         <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary relative overflow-hidden cursor-pointer group">
                                                             {storeInfo?.storeLogo ? (
                                                                 <Image src={storeInfo.storeLogo} alt={storeInfo.storeName || "Boutique"} fill className="object-cover" unoptimized />
@@ -260,14 +261,15 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                                                                 <Icon icon="solar:eye-bold" className="w-3 h-3 text-primary group-hover:scale-110 transition" />
                                                             </div>
                                                         </div>
-                                                    </Link>
 
-                                                    <div>
-                                                        <p className="text-[10px] font-black uppercase text-muted-foreground leading-none mb-1">Boutique</p>
-                                                        <p className="text-sm font-black leading-none">{storeInfo?.storeName || "Officielle"}</p>
+                                                        <div>
+                                                            <p className="text-[10px] font-black uppercase text-muted-foreground leading-none mb-1">Boutique</p>
+                                                            <p className="text-sm font-black leading-none">{storeInfo?.storeName || "Officielle"}</p>
+                                                        </div>
+
                                                     </div>
+                                                </Link>
 
-                                                </div>
                                             )}
                                         </div>
 

@@ -210,19 +210,20 @@ export default function LoginPage() {
 
 
                     {/* FOOTER */}
-                    <div className="text-center">
-                        <p className="text-[11px] sm:text-xs text-muted-foreground mb-2">
-                            <Link href="/" className="text-primary font-bold hover:underline">{t("auth.login.back_to_home")}</Link>
-                        </p>
-                        <p className="text-[11px] sm:text-xs text-muted-foreground mb-2">
-                            {t("auth.login.no_account")} <Link href="/register" className="text-primary font-bold hover:underline">{t("auth.login.register_link")}</Link>
-                        </p>
-                        <p className="text-[11px] sm:text-xs text-muted-foreground">
-                            <Link href="/forgot-password" className="text-primary font-bold hover:underline inline-flex items-center gap-1">
-                                <Icon icon="solar:lock-keyhole-bold-duotone" width={12} />
-                                Mot de passe oublié ?
+                    <div className="text-center flex flex-col items-center gap-1">
+                        <Link href="/" className="text-primary font-bold hover:underline text-sm inline-flex items-center justify-center min-h-[35px] px-2">
+                            {t("auth.login.back_to_home")}
+                        </Link>
+                        <p className="text-sm text-muted-foreground flex items-center justify-center gap-1 flex-wrap min-h-[35px] px-2">
+                            {t("auth.login.no_account")}
+                            <Link href="/register" className="text-primary font-bold hover:underline">
+                                {t("auth.login.register_link")}
                             </Link>
                         </p>
+                        <Link href="/forgot-password" className="text-primary font-bold hover:underline inline-flex items-center gap-1.5 min-h-[35px] px-2 text-sm">
+                            <Icon icon="solar:lock-keyhole-bold-duotone" width={14} />
+                            Mot de passe oublié ?
+                        </Link>
                     </div>
 
 

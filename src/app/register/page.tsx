@@ -266,7 +266,7 @@ export default function RegisterPage() {
                 </form>
 
                 {/* Footer */}
-                <p className="text-center text-[11px] sm:text-xs text-gray-500 mt-6">
+                <p className="text-center text-[16px] sm:text-sm text-gray-500 mt-6">
                     {t("auth.register.already_registered")} <Link href="/login" className="text-primary font-bold">{t("auth.register.login_link")}</Link>
                 </p>
 
