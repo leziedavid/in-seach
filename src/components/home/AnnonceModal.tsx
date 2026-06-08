@@ -41,11 +41,12 @@ export default function AnnonceModal({ isOpen, onClose, annonce }: AnnonceModalP
     };
 
     const handleContact = (type: 'whatsapp' | 'phone') => {
+        const phone = annonce.user?.phone?.replace(/\D/g, '') || '';
         const message = `Bonjour, je suis intéressé par votre annonce "${annonce.title}" sur Tarafé.`;
         if (type === 'whatsapp') {
-            window.open(`https://wa.me/2250700000000?text=${encodeURIComponent(message)}`, '_blank');
+            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
         } else {
-            window.location.href = `tel:+2250700000000`;
+            window.location.href = `tel:+${phone}`;
         }
     };
 
