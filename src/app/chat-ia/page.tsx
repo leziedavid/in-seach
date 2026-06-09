@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Icon } from '@iconify/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getMe, verifyChatCode, createChatConversation, uploadChatFiles, getUserConversations, markChatAsRead } from '@/api/api';
@@ -9,6 +9,7 @@ import { fr } from 'date-fns/locale';
 import { useNotification } from '@/components/notifications/NotificationProvider';
 import { io, Socket } from 'socket.io-client';
 import { getUserId, getToken } from '@/lib/auth';
+import AudioMessage from '@/components/ui/AudioMessage';
 
 interface Conversation {
     id: string;
@@ -51,18 +52,25 @@ export default function ChatIAPage() {
     const [bookingCode, setBookingCode] = useState('');
     const [isVerifyingCode, setIsVerifyingCode] = useState(false);
 
+    // Refs to avoid stale closures in socket handlers
+    const selectedConvRef = useRef<Conversation | null>(null);
+    const meRef = useRef<any>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const audioChunksRef = useRef<Blob[]>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Keep refs in sync
+    useEffect(() => { selectedConvRef.current = selectedConversation; }, [selectedConversation]);
+    useEffect(() => { meRef.current = me; }, [me]);
 
     useEffect(() => {
         fetchMe();
         fetchConversations();
         const s = setupSocket();
-        return () => {
-            s.disconnect();
-        };
+        return () => { s.disconnect(); };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const setupSocket = () => {
@@ -77,18 +85,18 @@ export default function ChatIAPage() {
                 if (prev.find(m => m.id === msg.id)) return prev;
                 return [...prev, msg];
             });
-            fetchConversations(); // Refresh list to update last message and unread count
+            fetchConversations();
         });
 
-        s.on('user_typing', (data: { userId: string, isTyping: boolean, conversationId: string }) => {
-            if (data.userId !== userId && data.conversationId === selectedConversation?.id) {
+        s.on('user_typing', (data: { userId: string; isTyping: boolean; conversationId: string }) => {
+            if (data.userId !== userId && data.conversationId === selectedConvRef.current?.id) {
                 setIsTyping(data.isTyping);
             }
         });
 
         s.on('messages_read', (data: { conversationId: string }) => {
-            if (data.conversationId === selectedConversation?.id) {
-                setMessages(prev => prev.map(m => m.senderId !== userId ? { ...m, status: 'READ' } : m));
+            if (data.conversationId === selectedConvRef.current?.id) {
+                setMessages(prev => prev.map(m => m.senderId !== userId ? { ...m, status: 'READ' as const } : m));
             }
             fetchConversations();
         });
@@ -109,47 +117,44 @@ export default function ChatIAPage() {
         try {
             const res = await getMe();
             if (res.statusCode === 200) setMe(res.data);
-        } catch (e) {
-            console.error("fetchMe failed:", e);
-        }
+        } catch (e) { console.error("fetchMe failed:", e); }
     };
 
     const fetchConversations = async () => {
         try {
             const res = await getUserConversations();
             if (res.statusCode === 200) setConversations(res.data || []);
-        } catch (e) {
-            console.error("fetchConversations failed:", e);
-        }
+        } catch (e) { console.error("fetchConversations failed:", e); }
     };
 
     // Handle pending negotiation from ProductDetailModal
     useEffect(() => {
         if (!me || conversations.length === 0) return;
-
         const pending = sessionStorage.getItem("pending_negotiation");
         if (pending) {
             try {
                 const { conversationId, message } = JSON.parse(pending);
                 const conv = conversations.find(c => c.id === conversationId);
-
-                if (conv) {
-                    setSelectedConversation(conv);
-                    setInputValue(message);
-                    // If focusing input is needed, we could do that here
-                }
+                if (conv) { setSelectedConversation(conv); setInputValue(message); }
                 sessionStorage.removeItem("pending_negotiation");
-            } catch (e) {
-                console.error("Error parsing pending negotiation", e);
-            }
+            } catch (e) { console.error("Error parsing pending negotiation", e); }
         }
-    }, [me, conversations, setSelectedConversation]);
+    }, [me, conversations]);
 
+    // Auto-scroll to bottom on new messages
     useEffect(() => {
         if (scrollRef.current) {
             scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
         }
     }, [messages, isTyping]);
+
+    // Auto-resize textarea
+    useEffect(() => {
+        if (textareaRef.current) {
+            textareaRef.current.style.height = 'auto';
+            textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 120) + 'px';
+        }
+    }, [inputValue]);
 
     useEffect(() => {
         if (selectedConversation) {
@@ -159,7 +164,8 @@ export default function ChatIAPage() {
             setStep('HUMAN_CHAT');
             if (window.innerWidth < 768) setShowSidebar(false);
         }
-    }, [selectedConversation]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedConversation?.id]);
 
     const loadMessages = async (id: string) => {
         try {
@@ -168,9 +174,7 @@ export default function ChatIAPage() {
             });
             const data = await res.json();
             if (data.statusCode === 200) setMessages(data.data);
-        } catch (e) {
-            console.error("loadMessages failed:", e);
-        }
+        } catch (e) { console.error("loadMessages failed:", e); }
     };
 
     const markAsRead = async (id: string) => {
@@ -178,7 +182,7 @@ export default function ChatIAPage() {
         socket?.emit('mark_as_read', { conversationId: id, userId: me?.id });
     };
 
-    const handleSendMessage = async () => {
+    const handleSendMessage = useCallback(async () => {
         const content = inputValue.trim();
         if (!content) return;
 
@@ -204,23 +208,24 @@ export default function ChatIAPage() {
             }
             setInputValue('');
         }
-    };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [inputValue, step, selectedConversation, editingMessage, socket, me]);
 
     const handleVerifyCode = async (code: string) => {
         setIsVerifyingCode(true);
         try {
             const data = await verifyChatCode(code);
-            if (data.statusCode === 201 || data.statusCode === 200 && data.data) {
+            if (data.statusCode === 201 || (data.statusCode === 200 && data.data)) {
                 addNotification("Code validé !", "success");
                 const convData = await createChatConversation({ participant2Id: data.data.providerId, bookingId: data.data.id });
-                if (convData.statusCode === 201 || convData.statusCode === 200 && convData.data) {
+                if (convData.statusCode === 201 || (convData.statusCode === 200 && convData.data)) {
                     fetchConversations();
                     setSelectedConversation(convData.data);
                 }
             } else {
                 addNotification("Code invalide", "error");
             }
-        } catch (error) {
+        } catch {
             addNotification("Erreur de vérification", "error");
         } finally {
             setIsVerifyingCode(false);
@@ -235,12 +240,9 @@ export default function ChatIAPage() {
             if (isToday(date)) return format(date, 'HH:mm');
             if (isYesterday(date)) return 'Hier';
             return format(date, 'dd/MM/yy');
-        } catch {
-            return '';
-        }
+        } catch { return ''; }
     };
 
-    // 🔹 File Upload & Audio Recording (kept from previous version)
     const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const files = event.target.files;
         if (!files || files.length === 0 || !selectedConversation) return;
@@ -260,7 +262,7 @@ export default function ChatIAPage() {
                     });
                 });
             }
-        } catch (error) { addNotification("Erreur envoi fichier", "error"); }
+        } catch { addNotification("Erreur envoi fichier", "error"); }
     };
 
     const startRecording = async () => {
@@ -285,298 +287,461 @@ export default function ChatIAPage() {
                             createdAt: new Date().toISOString()
                         });
                     }
-                } catch (error) { addNotification("Erreur envoi vocal", "error"); }
+                } catch { addNotification("Erreur envoi vocal", "error"); }
             };
             mediaRecorder.start();
             setIsRecording(true);
-        } catch (err) { addNotification("Micro refusé", "warning"); }
+        } catch { addNotification("Micro refusé", "warning"); }
     };
 
     const stopRecording = () => { mediaRecorderRef.current?.stop(); setIsRecording(false); };
 
+    const goBackToList = () => {
+        setShowSidebar(true);
+        setSelectedConversation(null);
+        setMessages([]);
+    };
+
     return (
-        <div className="flex h-[calc(100vh-140px)] md:h-[calc(100vh-100px)] max-w-6xl mx-auto bg-background/60 backdrop-blur-2xl  overflow-hidden mt-4  transition-all duration-300">
+        // dvh = dynamic viewport height — s'adapte à la barre d'adresse mobile
+        <div className="flex overflow-hidden bg-background" style={{ height: 'calc(100dvh - 64px)' }}>
+            <div className="flex w-full max-w-6xl mx-auto h-full overflow-hidden md:mt-4 md:mb-4 md:rounded-3xl md:border md:border-border md:shadow-2xl bg-background">
 
-            {/* Sidebar: Conversation List border border-border rounded-3xl */}
-            <aside className={`${showSidebar ? 'flex' : 'hidden md:flex'} flex-col w-full md:w-80 border border-border bg-card/30 transition-all duration-300`}>
-                <div className="p-4 border-b border-border space-y-4">
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">Messages</h2>
-                        <button onClick={() => setStep('WAITING_CODE')} className="p-2 hover:bg-primary/20 rounded-full transition text-primary">
-                            <Icon icon="solar:chat-round-plus-bold-duotone" className="w-6 h-6" />
-                        </button>
-                    </div>
-
-                    {/* Search / Booking Code Input */}
-                    {step === 'WAITING_CODE' ? (
-                        <div className="space-y-2 animate-in slide-in-from-top duration-300">
-                            <div className="relative">
-                                <input
-                                    type="text"
-                                    placeholder="Code Booking (BK-XXXXXX)"
-                                    value={bookingCode}
-                                    onChange={(e) => setBookingCode(e.target.value.toUpperCase())}
-                                    className="w-full bg-background/50 border border-primary/30 rounded-xl px-4 py-2 text-sm focus:ring-2 ring-primary/20 outline-none"
-                                    inputMode={'text'}
-                                    style={{ fontSize: '16px' }}
-                                    suppressHydrationWarning
-                                />
-                                <button
-                                    onClick={() => handleVerifyCode(bookingCode)}
-                                    disabled={!bookingCode || isVerifyingCode}
-                                    className="absolute right-1 top-1 bg-primary text-white p-1.5 rounded-lg disabled:opacity-50"
-                                >
-                                    <Icon icon={isVerifyingCode ? "solar:spinner-bold" : "solar:check-read-bold"} className={isVerifyingCode ? "animate-spin" : ""} />
-                                </button>
-                            </div>
-                            <button onClick={() => setStep('HUMAN_CHAT')} className="text-[10px] text-muted-foreground hover:underline ml-1">Annuler</button>
-                        </div>
-                    ) : (
-                        <div className="relative">
-                            <Icon icon="solar:magnifer-linear" className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                            <input
-                                type="text"
-                                placeholder="Rechercher..."
-                                className="w-full bg-background/50 border border-border rounded-xl pl-9 pr-4 py-2 text-sm outline-none focus:border-primary/50 transition"
-                                inputMode={'text'}
-                                style={{ fontSize: '16px' }}
-                                suppressHydrationWarning
-                            />
-                        </div>
-                    )}
-                </div>
-
-                <div className="flex-1 overflow-y-auto scrollbar-hide py-2 flex flex-col">
-                    {conversations.length === 0 ? (
-                        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-6 md:hidden">
-                            <div className="relative">
-                                <div className="w-24 h-24 rounded-[2rem] bg-gradient-to-tr from-primary/20 to-primary/5 flex items-center justify-center animate-pulse">
-                                    <Icon icon="solar:chat-round-dots-bold-duotone" className="text-primary w-12 h-12" />
-                                </div>
-                                <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-xl bg-background border border-border flex items-center justify-center shadow-lg">
-                                    <Icon icon="solar:lock-password-bold-duotone" className="text-muted-foreground w-4 h-4" />
-                                </div>
-                            </div>
-                            <div className="max-w-sm space-y-2">
-                                <h2 className="text-xl font-bold">Vos conversations</h2>
-                                <p className="text-xs text-muted-foreground px-4">Utilisez votre code booking pour commencer à échanger avec votre prestataire.</p>
-                            </div>
-                            <button onClick={() => setStep('WAITING_CODE')} className="bg-primary text-white px-5 py-2 rounded-xl font-bold shadow-lg shadow-primary/20 active:scale-95 transition text-[10px] w-auto inline-flex items-center" >
-                                Nouveau message
+                {/* ── SIDEBAR ── */}
+                <aside className={`
+                    ${showSidebar ? 'flex' : 'hidden md:flex'}
+                    flex-col w-full md:w-80 shrink-0
+                    bg-card border-r border-border
+                    transition-all duration-300
+                `}>
+                    {/* Header sidebar */}
+                    <div className="px-4 pt-4 pb-3 border-b border-border space-y-3">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-lg font-black bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+                                Messages
+                            </h2>
+                            <button
+                                onClick={() => setStep('WAITING_CODE')}
+                                className="p-2 hover:bg-primary/10 rounded-full transition text-primary"
+                            >
+                                <Icon icon="solar:chat-round-plus-bold-duotone" className="w-5 h-5" />
                             </button>
                         </div>
-                    ) : (
-                        <div className="flex-1">
-                            {conversations.map((conv) => (
-                                <button
-                                    key={conv.id}
-                                    onClick={() => setSelectedConversation(conv)}
-                                    className={`w-full p-4 flex items-center gap-3 transition-all hover:bg-primary/5 relative group ${selectedConversation?.id === conv.id ? 'bg-primary/10' : ''}`}
-                                >
-                                    <div className="relative shrink-0">
-                                        <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20">
-                                            <span className="text-primary font-bold text-lg">{conv.otherParticipant.fullName.charAt(0)}</span>
-                                        </div>
-                                        <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-background rounded-full" />
-                                    </div>
-                                    <div className="flex-1 text-left min-w-0">
-                                        <div className="flex justify-between items-center mb-1">
-                                            <h3 className="font-semibold text-sm truncate pr-2">{conv.otherParticipant.fullName}</h3>
-                                            <span className="text-[10px] text-muted-foreground">{conv.lastMessage ? formatMessageTime(conv.lastMessage.createdAt) : ''}</span>
-                                        </div>
-                                        <p className="text-xs text-muted-foreground truncate flex items-center gap-1">
-                                            {conv.lastMessage?.senderId === me?.id && <Icon icon="solar:check-read-bold" className="w-3 h-3 shrink-0" />}
-                                            {conv.lastMessage?.content || (conv.lastMessage?.fileUrl ? 'Fichier envoyé' : 'Aucun message')}
-                                        </p>
-                                    </div>
-                                    {conv.unreadCount > 0 && (
-                                        <span className="bg-primary text-white text-[10px] h-5 w-5 flex items-center justify-center rounded-full font-bold shadow-lg shadow-primary/20">
-                                            {conv.unreadCount}
-                                        </span>
-                                    )}
-                                </button>
-                            ))}
-                        </div>
-                    )}
 
-                    {conversations.length > 0 && (
-                        <div className="p-2 mt-auto md:hidden flex justify-center">
-                            <button onClick={() => setStep('WAITING_CODE')} className="bg-primary/10 text-primary px-4 py-2 rounded-xl font-bold flex items-center justify-center gap-1.5 hover:bg-primary/20 transition active:scale-95 border border-primary/20 text-[10px] w-auto"  >
-                                <Icon icon="solar:chat-round-plus-bold-duotone" className="w-3.5 h-3.5" />
-                                Nouveau message
-                            </button>
-                        </div>
-                    )}
-
-                    {conversations.length === 0 && (
-                        <div className="hidden md:flex flex-col items-center justify-center h-full text-center p-6 space-y-4">
-                            <div className="w-16 h-16 rounded-3xl bg-primary/10 flex items-center justify-center">
-                                <Icon icon="solar:chat-round-dots-bold-duotone" className="text-primary w-8 h-8" />
-                            </div>
-                            <p className="text-sm text-muted-foreground">Aucune conversation. Entrez un code booking pour commencer.</p>
-                        </div>
-                    )}
-                </div>
-            </aside>
-
-            {/* Main Chat Area */}
-            <main className={`${!showSidebar ? 'flex' : 'hidden md:flex'} flex-col flex-1 bg-[url('https://w0.peakpx.com/wallpaper/580/630/wallpaper-whatsapp-dark-mode.jpg')] bg-repeat relative`}>
-                <div className="absolute inset-0 bg-background/95 dark:bg-black/80 -z-10" />
-
-                {selectedConversation ? (
-                    <>
-                        {/* Chat Header */}
-                        <header className="p-4 border-b border-border bg-background/80 backdrop-blur-md flex items-center justify-between z-10">
-                            <div className="flex items-center gap-3">
-                                <button onClick={() => { setShowSidebar(true); setSelectedConversation(null); }} className="md:hidden p-2 hover:bg-muted rounded-lg -ml-2" >
-                                    <Icon icon="solar:alt-arrow-left-bold" className="w-6 h-6" />
-                                </button>
-                                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center ring-2 ring-primary/20">
-                                    <span className="text-primary font-bold">{selectedConversation.otherParticipant.fullName.charAt(0)}</span>
-                                </div>
-                                <div>
-                                    <h2 className="font-bold text-sm tracking-tight">{selectedConversation.otherParticipant.fullName}</h2>
-                                    <div className="flex items-center gap-1.5 leading-none">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                                        <span className="text-[9px] text-muted-foreground uppercase tracking-wider font-bold">En ligne</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="flex gap-1">
-                                <button className="p-2.5 hover:bg-muted rounded-full transition text-muted-foreground"><Icon icon="solar:phone-bold-duotone" className="w-5 h-5" /></button>
-                                <button className="p-2.5 hover:bg-muted rounded-full transition text-muted-foreground"><Icon icon="solar:videocamera-record-bold-duotone" className="w-5 h-5" /></button>
-                                <button className="p-2.5 hover:bg-muted rounded-full transition text-muted-foreground"><Icon icon="solar:menu-dots-bold" className="w-5 h-5" /></button>
-                            </div>
-                        </header>
-
-                        {/* Messages Container */}
-                        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 scrollbar-hide">
-                            <AnimatePresence initial={false}>
-                                {messages.map((msg, index) => {
-                                    const isMe = msg.senderId === me?.id;
-                                    const msgDate = msg.createdAt ? new Date(msg.createdAt) : null;
-                                    const prevDate = index > 0 && messages[index - 1].createdAt ? new Date(messages[index - 1].createdAt) : null;
-                                    const showTimeSeparator = index === 0 || (msgDate && prevDate && !isNaN(msgDate.getTime()) && !isNaN(prevDate.getTime()) && format(prevDate, 'ddMM') !== format(msgDate, 'ddMM'));
-
-                                    return (
-                                        <React.Fragment key={msg.id}>
-                                            {showTimeSeparator && (
-                                                <div className="flex justify-center my-6">
-                                                    <span className="bg-background/50 backdrop-blur-md px-4 py-1.5 rounded-full text-[10px] font-bold text-muted-foreground uppercase tracking-widest border border-border">
-                                                        {msgDate && !isNaN(msgDate.getTime()) ? (isToday(msgDate) ? "Aujourd'hui" : isYesterday(msgDate) ? "Hier" : format(msgDate, 'dd MMMM yyyy', { locale: fr })) : ''}
-                                                    </span>
-                                                </div>
-                                            )}
-                                            <motion.div
-                                                initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                                                animate={{ opacity: 1, scale: 1, y: 0 }}
-                                                className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                                                <div className={`max-w-[85%] md:max-w-[70%] px-4 py-2.5 rounded-2xl shadow-sm relative group transition-all duration-300 ${isMe ? 'bg-primary text-white rounded-tr-none' : 'bg-card/90 backdrop-blur-sm text-foreground rounded-tl-none border border-border'}`}>
-                                                    {msg.fileUrl && msg.fileType === 'image' && (
-                                                        <img src={msg.fileUrl} alt="Attachment" className="rounded-xl mb-2 max-w-full h-auto cursor-pointer border border-white/10" />
-                                                    )}
-                                                    {msg.fileUrl && msg.fileType === 'audio' && (
-                                                        <audio src={msg.fileUrl} controls className="h-9 mb-1 filter invert dark:invert-0" />
-                                                    )}
-                                                    {msg.fileUrl && msg.fileType === 'file' && (
-                                                        <div className="flex items-center gap-3 bg-black/10 dark:bg-white/5 p-3 rounded-xl mb-2">
-                                                            <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
-                                                                <Icon icon="solar:document-bold-duotone" className="w-6 h-6 text-primary" />
-                                                            </div>
-                                                            <span className="text-xs font-semibold truncate flex-1">{msg.fileName}</span>
-                                                            <a href={msg.fileUrl} download className="p-2 hover:bg-black/10 rounded-lg text-primary transition"><Icon icon="solar:download-minimalistic-bold" /></a>
-                                                        </div>
-                                                    )}
-                                                    {msg.content && <p className="text-sm leading-relaxed mb-1">{msg.content}</p>}
-
-                                                    <div className="flex items-center gap-1.5 justify-end mt-1.5 opacity-60">
-                                                        <span className="text-[9px] font-bold tracking-tighter">
-                                                            {msgDate && !isNaN(msgDate.getTime()) ? format(msgDate, 'HH:mm') : ''}
-                                                        </span>
-                                                        {isMe && (
-                                                            <Icon icon={msg.status === 'READ' ? 'solar:double-check-linear' : 'solar:check-read-linear'} className={`w-3.5 h-3.5 transition-colors ${msg.status === 'READ' ? 'text-blue-300' : ''}`} />
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </motion.div>
-                                        </React.Fragment>
-                                    );
-                                })}
-                            </AnimatePresence>
-                            {isTyping && (
-                                <div className="flex justify-start">
-                                    <div className="bg-card/90 backdrop-blur-sm px-4 py-3 rounded-2xl rounded-tl-none border border-border">
-                                        <div className="flex gap-1.5">
-                                            <span className="w-1.5 h-1.5 bg-primary/50 rounded-full animate-bounce [animation-duration:1s]" />
-                                            <span className="w-1.5 h-1.5 bg-primary/50 rounded-full animate-bounce [animation-delay:0.2s] [animation-duration:1s]" />
-                                            <span className="w-1.5 h-1.5 bg-primary/50 rounded-full animate-bounce [animation-delay:0.4s] [animation-duration:1s]" />
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Message Input */}
-                        <footer className="p-4 md:p-6 bg-background/80 backdrop-blur-md border-t border-border z-10">
-                            <div className="flex items-center gap-3 bg-card border border-border rounded-2xl p-2 px-3 shadow-xl focus-within:border-primary transition duration-300">
-                                <input type="file" ref={fileInputRef} onChange={handleFileUpload} multiple className="hidden" />
-                                <button onClick={() => fileInputRef.current?.click()} className="p-2 hover:bg-primary/10 rounded-xl text-muted-foreground hover:text-primary transition">
-                                    <Icon icon="solar:paperclip-bold-duotone" className="w-6 h-6" />
-                                </button>
-
-                                <textarea className="flex-1 bg-transparent border-none focus:ring-0 text-sm py-2 resize-none max-h-32 scrollbar-hide scroll-smooth outline-none" placeholder="Écrivez un message..."
-                                    rows={1}
-                                    value={inputValue}
-                                    onChange={(e) => { setInputValue(e.target.value); socket?.emit('typing', { conversationId: selectedConversation.id, userId: me?.id, isTyping: e.target.value.length > 0 }); }}
-                                    onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }}
-                                    inputMode={'text'}
-                                    style={{ fontSize: '16px' }}
-                                    suppressHydrationWarning
-                                />
-
-                                <div className="flex items-center gap-1.5 pr-1">
-                                    {isRecording ? (
-                                        <button onClick={stopRecording} className="p-2.5 bg-red-500 text-white rounded-xl animate-pulse shadow-lg shadow-red-500/20">
-                                            <Icon icon="solar:stop-circle-bold" className="w-6 h-6" />
-                                        </button>
-                                    ) : (
-                                        <button onClick={startRecording} className="p-2.5 hover:bg-muted rounded-xl text-muted-foreground transition">
-                                            <Icon icon="solar:microphone-bold-duotone" className="w-6 h-6" />
-                                        </button>
-                                    )}
-                                    <button onClick={handleSendMessage} disabled={!inputValue.trim()}
-                                        className="p-2.5 bg-primary text-white rounded-xl shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition disabled:opacity-50 disabled:scale-100" >
-                                        <Icon icon="solar:plain-bold-duotone" className="w-6 h-6" />
+                        {/* Code booking ou recherche */}
+                        {step === 'WAITING_CODE' ? (
+                            <div className="space-y-1.5 animate-in slide-in-from-top duration-200">
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        placeholder="Code Booking (BK-XXXXXX)"
+                                        value={bookingCode}
+                                        onChange={(e) => setBookingCode(e.target.value.toUpperCase())}
+                                        className="w-full bg-muted border border-primary/30 rounded-xl px-3 py-2 text-sm focus:ring-2 ring-primary/20 outline-none"
+                                        style={{ fontSize: '16px' }}
+                                        suppressHydrationWarning
+                                    />
+                                    <button
+                                        onClick={() => handleVerifyCode(bookingCode)}
+                                        disabled={!bookingCode || isVerifyingCode}
+                                        className="absolute right-1 top-1 bg-primary text-white p-1.5 rounded-lg disabled:opacity-50 transition"
+                                    >
+                                        <Icon
+                                            icon={isVerifyingCode ? "solar:spinner-bold" : "solar:check-read-bold"}
+                                            className={`w-4 h-4 ${isVerifyingCode ? 'animate-spin' : ''}`}
+                                        />
                                     </button>
                                 </div>
+                                <button onClick={() => setStep('HUMAN_CHAT')} className="text-[10px] text-muted-foreground hover:underline ml-1">
+                                    Annuler
+                                </button>
                             </div>
-                        </footer>
-                    </>
-                ) : (
-                    <div className="h-full flex flex-col items-center justify-center p-8 text-center space-y-6">
-                        <div className="relative">
-                            <div className="w-32 h-32 rounded-[3rem] bg-gradient-to-tr from-primary/20 to-primary/5 flex items-center justify-center animate-pulse">
-                                <Icon icon="solar:chat-round-dots-bold-duotone" className="text-primary w-16 h-16" />
+                        ) : (
+                            <div className="relative">
+                                <Icon icon="solar:magnifer-linear" className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                                <input
+                                    type="text"
+                                    placeholder="Rechercher..."
+                                    className="w-full bg-muted border border-border rounded-xl pl-9 pr-4 py-2 text-sm outline-none focus:border-primary/50 transition"
+                                    style={{ fontSize: '16px' }}
+                                    suppressHydrationWarning
+                                />
                             </div>
-                            <div className="absolute -bottom-2 -right-2 w-12 h-12 rounded-2xl bg-background border border-border flex items-center justify-center shadow-lg">
-                                <Icon icon="solar:lock-password-bold-duotone" className="text-muted-foreground w-6 h-6" />
-                            </div>
-                        </div>
-                        <div className="max-w-sm space-y-2">
-                            <h2 className="text-2xl font-bold">Vos conversations</h2>
-                            <p className="text-sm text-muted-foreground">Sélectionnez une discussion à gauche pour commencer à échanger ou utilisez votre code booking.</p>
-                        </div>
-                        <button
-                            onClick={() => { setStep('WAITING_CODE'); setShowSidebar(true); }}
-                            className="bg-primary text-white px-8 py-3 rounded-2xl font-bold shadow-lg shadow-primary/20 hover:scale-105 transition"
-                        >
-                            Démarrer une conversation
-                        </button>
-                        <p className="text-[10px] text-muted-foreground flex items-center gap-1 opacity-50"><Icon icon="solar:shield-check-bold" /> Chiffrement de bout en bout</p>
+                        )}
                     </div>
-                )}
-            </main>
 
+                    {/* Liste conversations */}
+                    <div className="flex-1 overflow-y-auto scrollbar-hide">
+                        {conversations.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center h-full p-8 text-center space-y-4">
+                                <div className="w-16 h-16 rounded-3xl bg-primary/10 flex items-center justify-center">
+                                    <Icon icon="solar:chat-round-dots-bold-duotone" className="text-primary w-8 h-8" />
+                                </div>
+                                <p className="text-sm text-muted-foreground">Aucune conversation. Entrez un code booking pour commencer.</p>
+                                <button
+                                    onClick={() => setStep('WAITING_CODE')}
+                                    className="bg-primary text-white px-4 py-2 rounded-xl font-bold text-xs shadow-lg shadow-primary/20 active:scale-95 transition"
+                                >
+                                    Nouveau message
+                                </button>
+                            </div>
+                        ) : (
+                            <>
+                                {conversations.map((conv) => (
+                                    <button
+                                        key={conv.id}
+                                        onClick={() => setSelectedConversation(conv)}
+                                        className={`w-full px-4 py-3 flex items-center gap-3 transition-all hover:bg-primary/5 relative ${
+                                            selectedConversation?.id === conv.id ? 'bg-primary/10' : ''
+                                        }`}
+                                    >
+                                        {/* Avatar */}
+                                        <div className="relative shrink-0">
+                                            <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-primary/30 to-primary/10 flex items-center justify-center border border-primary/20">
+                                                <span className="text-primary font-black text-base">
+                                                    {conv.otherParticipant.fullName.charAt(0).toUpperCase()}
+                                                </span>
+                                            </div>
+                                            <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-card rounded-full" />
+                                        </div>
+
+                                        <div className="flex-1 text-left min-w-0">
+                                            <div className="flex justify-between items-baseline mb-0.5">
+                                                <h3 className="font-bold text-sm truncate pr-2 text-foreground">
+                                                    {conv.otherParticipant.fullName}
+                                                </h3>
+                                                <span className="text-[10px] text-muted-foreground shrink-0">
+                                                    {conv.lastMessage ? formatMessageTime(conv.lastMessage.createdAt) : ''}
+                                                </span>
+                                            </div>
+                                            <p className="text-xs text-muted-foreground truncate flex items-center gap-1">
+                                                {conv.lastMessage?.senderId === me?.id && (
+                                                    <Icon icon="solar:check-read-bold" className="w-3 h-3 shrink-0 text-primary" />
+                                                )}
+                                                <span className={conv.unreadCount > 0 ? 'font-bold text-foreground' : ''}>
+                                                    {conv.lastMessage?.content || (conv.lastMessage?.fileUrl ? '📎 Fichier' : 'Aucun message')}
+                                                </span>
+                                            </p>
+                                        </div>
+
+                                        {conv.unreadCount > 0 && (
+                                            <span className="bg-primary text-white text-[10px] h-5 min-w-5 px-1 flex items-center justify-center rounded-full font-black shadow-lg shadow-primary/20 shrink-0">
+                                                {conv.unreadCount}
+                                            </span>
+                                        )}
+                                    </button>
+                                ))}
+
+                                {/* Bouton nouveau message en bas */}
+                                <div className="p-3 border-t border-border">
+                                    <button
+                                        onClick={() => setStep('WAITING_CODE')}
+                                        className="w-full bg-primary/10 text-primary py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-primary/20 transition active:scale-95 border border-primary/20 text-xs"
+                                    >
+                                        <Icon icon="solar:chat-round-plus-bold-duotone" className="w-4 h-4" />
+                                        Nouveau message
+                                    </button>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </aside>
+
+                {/* ── ZONE DE CHAT ── */}
+                <main className={`
+                    ${!showSidebar ? 'flex' : 'hidden md:flex'}
+                    flex-col flex-1 min-w-0 relative overflow-hidden
+                `}>
+                    {/* Fond style WhatsApp */}
+                    <div className="absolute inset-0 bg-[url('https://w0.peakpx.com/wallpaper/580/630/wallpaper-whatsapp-dark-mode.jpg')] bg-repeat opacity-[0.03] dark:opacity-[0.06] pointer-events-none" />
+                    <div className="absolute inset-0 bg-background/98 dark:bg-background/95 pointer-events-none" />
+
+                    {selectedConversation ? (
+                        <div className="flex flex-col h-full relative z-10">
+                            {/* ── Header chat ── */}
+                            <header className="flex items-center justify-between px-4 py-3 bg-card/90 backdrop-blur-md border-b border-border shrink-0 shadow-sm">
+                                <div className="flex items-center gap-3">
+                                    <button
+                                        onClick={goBackToList}
+                                        className="md:hidden p-2 -ml-2 hover:bg-muted rounded-xl transition"
+                                    >
+                                        <Icon icon="solar:alt-arrow-left-bold" className="w-5 h-5" />
+                                    </button>
+                                    <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-primary/30 to-primary/10 flex items-center justify-center ring-2 ring-primary/20 shrink-0">
+                                        <span className="text-primary font-black text-sm">
+                                            {selectedConversation.otherParticipant.fullName.charAt(0).toUpperCase()}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <h2 className="font-black text-sm leading-tight text-foreground">
+                                            {selectedConversation.otherParticipant.fullName}
+                                        </h2>
+                                        <div className="flex items-center gap-1.5">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                                            <span className="text-[10px] text-muted-foreground font-bold">En ligne</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="flex gap-0.5">
+                                    <button className="p-2 hover:bg-muted rounded-xl transition text-muted-foreground">
+                                        <Icon icon="solar:phone-bold-duotone" className="w-5 h-5" />
+                                    </button>
+                                    <button className="p-2 hover:bg-muted rounded-xl transition text-muted-foreground">
+                                        <Icon icon="solar:videocamera-record-bold-duotone" className="w-5 h-5" />
+                                    </button>
+                                    <button className="p-2 hover:bg-muted rounded-xl transition text-muted-foreground">
+                                        <Icon icon="solar:menu-dots-bold" className="w-5 h-5" />
+                                    </button>
+                                </div>
+                            </header>
+
+                            {/* ── Messages ── */}
+                            <div
+                                ref={scrollRef}
+                                className="flex-1 overflow-y-auto px-3 py-4 md:px-6 space-y-1 scrollbar-hide"
+                            >
+                                <AnimatePresence initial={false}>
+                                    {messages.map((msg, index) => {
+                                        const isMe = msg.senderId === me?.id;
+                                        const msgDate = msg.createdAt ? new Date(msg.createdAt) : null;
+                                        const prevDate = index > 0 && messages[index - 1].createdAt
+                                            ? new Date(messages[index - 1].createdAt) : null;
+                                        const showSep = index === 0 || (msgDate && prevDate &&
+                                            !isNaN(msgDate.getTime()) && !isNaN(prevDate.getTime()) &&
+                                            format(prevDate, 'ddMM') !== format(msgDate, 'ddMM'));
+
+                                        // Group consecutive messages from same sender
+                                        const nextMsg = messages[index + 1];
+                                        const isLastInGroup = !nextMsg || nextMsg.senderId !== msg.senderId;
+
+                                        return (
+                                            <React.Fragment key={msg.id}>
+                                                {showSep && (
+                                                    <div className="flex justify-center my-4">
+                                                        <span className="bg-muted/80 backdrop-blur-md px-4 py-1 rounded-full text-[10px] font-bold text-muted-foreground uppercase tracking-widest border border-border/50">
+                                                            {msgDate && !isNaN(msgDate.getTime())
+                                                                ? (isToday(msgDate) ? "Aujourd'hui" : isYesterday(msgDate) ? "Hier" : format(msgDate, 'dd MMMM yyyy', { locale: fr }))
+                                                                : ''}
+                                                        </span>
+                                                    </div>
+                                                )}
+
+                                                <motion.div
+                                                    initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                    transition={{ duration: 0.15 }}
+                                                    className={`flex ${isMe ? 'justify-end' : 'justify-start'} ${isLastInGroup ? 'mb-2' : 'mb-0.5'}`}
+                                                >
+                                                    {/* Avatar interlocuteur sur dernier msg du groupe */}
+                                                    {!isMe && (
+                                                        <div className={`w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center shrink-0 mr-2 self-end ${isLastInGroup ? 'opacity-100' : 'opacity-0'}`}>
+                                                            <span className="text-primary font-black text-[10px]">
+                                                                {selectedConversation.otherParticipant.fullName.charAt(0).toUpperCase()}
+                                                            </span>
+                                                        </div>
+                                                    )}
+
+                                                    <div className={`
+                                                        max-w-[78%] md:max-w-[60%] relative
+                                                        ${isMe
+                                                            ? 'bg-primary text-white'
+                                                            : 'bg-card text-foreground border border-border/80'
+                                                        }
+                                                        px-3.5 py-2 shadow-sm
+                                                        ${isMe
+                                                            ? isLastInGroup ? 'rounded-2xl rounded-br-sm' : 'rounded-2xl'
+                                                            : isLastInGroup ? 'rounded-2xl rounded-bl-sm' : 'rounded-2xl'
+                                                        }
+                                                    `}>
+                                                        {/* Image */}
+                                                        {msg.fileUrl && msg.fileType === 'image' && (
+                                                            <img
+                                                                src={msg.fileUrl}
+                                                                alt="Attachment"
+                                                                className="rounded-xl mb-2 max-w-full h-auto cursor-pointer"
+                                                            />
+                                                        )}
+
+                                                        {/* Audio style WhatsApp */}
+                                                        {msg.fileUrl && msg.fileType === 'audio' && (
+                                                            <div className="mb-1">
+                                                                <AudioMessage src={msg.fileUrl} isMe={isMe} />
+                                                            </div>
+                                                        )}
+
+                                                        {/* Fichier */}
+                                                        {msg.fileUrl && msg.fileType === 'file' && (
+                                                            <div className={`flex items-center gap-2.5 p-2.5 rounded-xl mb-2 ${isMe ? 'bg-white/10' : 'bg-muted'}`}>
+                                                                <div className="w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center shrink-0">
+                                                                    <Icon icon="solar:document-bold-duotone" className="w-5 h-5 text-primary" />
+                                                                </div>
+                                                                <span className={`text-xs font-semibold truncate flex-1 ${isMe ? 'text-white/90' : 'text-foreground'}`}>
+                                                                    {msg.fileName}
+                                                                </span>
+                                                                <a
+                                                                    href={msg.fileUrl}
+                                                                    download
+                                                                    className={`p-1.5 rounded-lg transition ${isMe ? 'hover:bg-white/10 text-white' : 'hover:bg-muted-foreground/10 text-primary'}`}
+                                                                >
+                                                                    <Icon icon="solar:download-minimalistic-bold" className="w-4 h-4" />
+                                                                </a>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Texte */}
+                                                        {msg.content && (
+                                                            <p className={`text-sm leading-relaxed break-words ${isMe ? 'text-white' : 'text-foreground'}`}>
+                                                                {msg.content}
+                                                            </p>
+                                                        )}
+
+                                                        {/* Heure + statut */}
+                                                        <div className={`flex items-center gap-1 justify-end mt-1 ${isMe ? 'opacity-75' : 'opacity-50'}`}>
+                                                            <span className={`text-[10px] font-medium ${isMe ? 'text-white' : 'text-foreground'}`}>
+                                                                {msgDate && !isNaN(msgDate.getTime()) ? format(msgDate, 'HH:mm') : ''}
+                                                            </span>
+                                                            {isMe && (
+                                                                <Icon
+                                                                    icon={msg.status === 'READ' ? 'solar:double-check-linear' : 'solar:check-read-linear'}
+                                                                    className={`w-3.5 h-3.5 ${msg.status === 'READ' ? 'text-blue-200' : 'text-white/80'}`}
+                                                                />
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </motion.div>
+                                            </React.Fragment>
+                                        );
+                                    })}
+                                </AnimatePresence>
+
+                                {/* Indicateur de frappe */}
+                                {isTyping && (
+                                    <div className="flex justify-start items-end gap-2 mb-2">
+                                        <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+                                            <span className="text-primary font-black text-[10px]">
+                                                {selectedConversation.otherParticipant.fullName.charAt(0).toUpperCase()}
+                                            </span>
+                                        </div>
+                                        <div className="bg-card border border-border/80 px-4 py-3 rounded-2xl rounded-bl-sm shadow-sm">
+                                            <div className="flex gap-1">
+                                                <span className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce [animation-duration:1s]" />
+                                                <span className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce [animation-delay:0.2s] [animation-duration:1s]" />
+                                                <span className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce [animation-delay:0.4s] [animation-duration:1s]" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* ── Zone d'édition ── */}
+                            {editingMessage && (
+                                <div className="px-4 py-2 bg-primary/5 border-t border-primary/20 flex items-center justify-between gap-3 shrink-0">
+                                    <div className="flex items-center gap-2 min-w-0">
+                                        <Icon icon="solar:pen-bold-duotone" className="w-4 h-4 text-primary shrink-0" />
+                                        <p className="text-xs text-muted-foreground truncate">
+                                            Modifier : <span className="text-foreground font-medium">{editingMessage.content}</span>
+                                        </p>
+                                    </div>
+                                    <button onClick={() => setEditingMessage(null)} className="text-muted-foreground hover:text-foreground shrink-0">
+                                        <Icon icon="solar:close-circle-bold" className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* ── Input message ── */}
+                            <footer className="px-3 py-3 md:px-4 md:py-4 bg-card/90 backdrop-blur-md border-t border-border shrink-0">
+                                <div className="flex items-end gap-2 bg-background border border-border rounded-2xl px-3 py-2 shadow-lg focus-within:border-primary/50 transition duration-200">
+                                    <input type="file" ref={fileInputRef} onChange={handleFileUpload} multiple className="hidden" />
+
+                                    <button
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className="p-1.5 hover:bg-primary/10 rounded-xl text-muted-foreground hover:text-primary transition shrink-0 mb-0.5"
+                                    >
+                                        <Icon icon="solar:paperclip-bold-duotone" className="w-5 h-5" />
+                                    </button>
+
+                                    <textarea
+                                        ref={textareaRef}
+                                        className="flex-1 bg-transparent border-none focus:ring-0 text-sm py-1.5 resize-none scrollbar-hide outline-none text-foreground placeholder:text-muted-foreground leading-relaxed"
+                                        placeholder="Message..."
+                                        rows={1}
+                                        value={inputValue}
+                                        onChange={(e) => {
+                                            setInputValue(e.target.value);
+                                            socket?.emit('typing', {
+                                                conversationId: selectedConversation.id,
+                                                userId: me?.id,
+                                                isTyping: e.target.value.length > 0
+                                            });
+                                        }}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' && !e.shiftKey) {
+                                                e.preventDefault();
+                                                handleSendMessage();
+                                            }
+                                        }}
+                                        style={{ fontSize: '16px', maxHeight: '120px' }}
+                                        suppressHydrationWarning
+                                    />
+
+                                    <div className="flex items-center gap-1.5 shrink-0 mb-0.5">
+                                        {inputValue.trim() ? (
+                                            <button
+                                                onClick={handleSendMessage}
+                                                className="p-2 bg-primary text-white rounded-xl shadow-lg shadow-primary/30 hover:bg-primary/90 active:scale-95 transition"
+                                            >
+                                                <Icon icon="solar:plain-bold-duotone" className="w-5 h-5" />
+                                            </button>
+                                        ) : isRecording ? (
+                                            <button
+                                                onClick={stopRecording}
+                                                className="p-2 bg-red-500 text-white rounded-xl animate-pulse shadow-lg shadow-red-500/30"
+                                            >
+                                                <Icon icon="solar:stop-circle-bold" className="w-5 h-5" />
+                                            </button>
+                                        ) : (
+                                            <button
+                                                onClick={startRecording}
+                                                className="p-2 hover:bg-muted rounded-xl text-muted-foreground transition"
+                                            >
+                                                <Icon icon="solar:microphone-bold-duotone" className="w-5 h-5" />
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            </footer>
+                        </div>
+                    ) : (
+                        /* ── Écran vide (aucune conv sélectionnée) ── */
+                        <div className="relative z-10 h-full flex flex-col items-center justify-center p-8 text-center space-y-6">
+                            <div className="relative">
+                                <div className="w-28 h-28 rounded-[2.5rem] bg-gradient-to-tr from-primary/20 to-primary/5 flex items-center justify-center">
+                                    <Icon icon="solar:chat-round-dots-bold-duotone" className="text-primary w-14 h-14" />
+                                </div>
+                                <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-2xl bg-card border border-border flex items-center justify-center shadow-lg">
+                                    <Icon icon="solar:lock-password-bold-duotone" className="text-muted-foreground w-5 h-5" />
+                                </div>
+                            </div>
+                            <div className="max-w-xs space-y-2">
+                                <h2 className="text-xl font-black text-foreground">Vos conversations</h2>
+                                <p className="text-sm text-muted-foreground leading-relaxed">
+                                    Sélectionnez une discussion ou utilisez votre code booking pour commencer.
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => { setStep('WAITING_CODE'); setShowSidebar(true); }}
+                                className="bg-primary text-white px-6 py-3 rounded-2xl font-bold shadow-lg shadow-primary/20 hover:bg-primary/90 active:scale-95 transition text-sm"
+                            >
+                                Démarrer une conversation
+                            </button>
+                            <p className="text-[10px] text-muted-foreground flex items-center gap-1.5 opacity-60">
+                                <Icon icon="solar:shield-check-bold-duotone" className="w-3.5 h-3.5" />
+                                Chiffrement de bout en bout
+                            </p>
+                        </div>
+                    )}
+                </main>
+            </div>
         </div>
     );
 }
