@@ -184,7 +184,7 @@ export function Select2<T>(props: ComboboxProps<T>) {
                     {!disabled && selectedItems.length > 0 && (
                         <Icon
                             icon="solar:close-circle-bold-duotone"
-                            className="cursor-pointer text-black h-4 w-4 hover:text-gray-700"
+                            className="cursor-pointer text-foreground h-4 w-4 hover:text-muted-foreground"
                             onClick={(e) => handleRemoveSelection(e)}
                         />
                     )}
@@ -202,7 +202,7 @@ export function Select2<T>(props: ComboboxProps<T>) {
                     {!disabled && (
                         <Icon
                             icon="solar:close-circle-bold-duotone"
-                            className="cursor-pointer text-black h-4 w-4 hover:text-gray-700"
+                            className="cursor-pointer text-foreground h-4 w-4 hover:text-muted-foreground"
                             onClick={(e) => handleRemoveSelection(e)}
                         />
                     )}

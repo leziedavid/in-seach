@@ -146,7 +146,7 @@ export default function DeliveriesList({ role }: DeliveriesListProps) {
                                     <span className="hidden md:inline">FACTURE</span>
                                 </button>
 
-                                <button onClick={() => handleOpenDocument(delivery.id, 'BON_COMMANDE')} disabled={loadingDocId === delivery.id + 'BON_COMMANDE'} className="h-10 px-3 md:px-4 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-900 font-black text-[10px] flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50" title="Générer Bon de Commande" >
+                                <button onClick={() => handleOpenDocument(delivery.id, 'BON_COMMANDE')} disabled={loadingDocId === delivery.id + 'BON_COMMANDE'} className="h-10 px-3 md:px-4 rounded-xl bg-white dark:bg-muted border border-slate-200 dark:border-border hover:bg-slate-50 dark:hover:bg-muted/80 text-slate-900 dark:text-foreground font-black text-[10px] flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50" title="Générer Bon de Commande" >
                                     {loadingDocId === delivery.id + 'BON_COMMANDE' ? (
                                         <Icon icon="solar:refresh-bold-duotone" className="w-4 h-4 animate-spin text-primary" />
                                     ) : (

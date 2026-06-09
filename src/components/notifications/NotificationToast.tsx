@@ -50,7 +50,7 @@ export default function NotificationToast({ message, type = "success", duration 
                         {/* Icon */}
                         <div className="flex-shrink-0">{styles.icon}</div>
                         {/* Message */}
-                        <p className="text-sm font-medium text-gray-800 flex-1">
+                        <p className="text-sm font-medium text-gray-800 dark:text-foreground flex-1">
                             {message}
                         </p>
 

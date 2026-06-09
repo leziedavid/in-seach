@@ -212,7 +212,7 @@ export default function HistoriqueRdv({ data: propData, page: propPage, limit: p
 
                                         {/* RIGHT ACTIONS */}
                                         <div className="flex items-center gap-2">
-                                            <button onClick={() => handleViewReceipt(booking)} className="p-2 bg-slate-50 text-slate-900 rounded-xl transition hover:bg-slate-100 active:scale-95 flex items-center gap-2 text-xs font-black shadow-sm border border-slate-200" title="Voir le reçu" >
+                                            <button onClick={() => handleViewReceipt(booking)} className="p-2 bg-slate-50 dark:bg-muted text-slate-900 dark:text-foreground rounded-xl transition hover:bg-slate-100 dark:hover:bg-muted/80 active:scale-95 flex items-center gap-2 text-xs font-black shadow-sm border border-slate-200 dark:border-border" title="Voir le reçu" >
                                                 <Icon icon="solar:document-text-bold-duotone" className="w-5 h-5 text-primary" />
                                             </button>
                                             <button onClick={() => handleViewDetail(booking)} className="p-2 bg-muted text-card-foreground rounded-xl transition hover:bg-primary hover:text-white active:scale-95 flex items-center gap-2 text-xs font-black shadow-sm"  >

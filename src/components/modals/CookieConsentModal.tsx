@@ -64,13 +64,13 @@ export const CookieConsentModal = () => {
                         initial={{ opacity: 0, scale: 0.95, y: 20 }} 
                         animate={{ opacity: 1, scale: 1, y: 0, transition: { type: "spring", damping: 25, stiffness: 400 } }} 
                         exit={{ opacity: 0, scale: 0.95, y: 20, transition: { duration: 0.15 } }} 
-                        className="relative w-full max-w-2xl bg-[#FBFAF6] text-[#0F2944] rounded-3xl sm:rounded-[2rem] shadow-[0_20px_50px_rgba(15,41,68,0.13)] border border-[#EEF1F4] overflow-hidden flex flex-col max-h-[85vh] sm:max-h-[90vh]"
+                        className="relative w-full max-w-2xl bg-[#FBFAF6] dark:bg-zinc-900 text-[#0F2944] dark:text-white rounded-3xl sm:rounded-[2rem] shadow-[0_20px_50px_rgba(15,41,68,0.13)] border border-[#EEF1F4] dark:border-zinc-800 overflow-hidden flex flex-col max-h-[85vh] sm:max-h-[90vh]"
                     >
                         <div className="p-5 sm:p-8 flex-1 overflow-y-auto">
-                            <h2 className="text-xl sm:text-2xl font-black text-[#0F2944] mb-2 sm:mb-3 tracking-tight">
+                            <h2 className="text-xl sm:text-2xl font-black text-[#0F2944] dark:text-white mb-2 sm:mb-3 tracking-tight">
                                 Vos préférences de confidentialité
                             </h2>
-                            <p className="text-xs sm:text-sm text-[#1F3A5F] mb-5 sm:mb-8 leading-relaxed">
+                            <p className="text-xs sm:text-sm text-[#1F3A5F] dark:text-zinc-300 mb-5 sm:mb-8 leading-relaxed">
                                 Nous utilisons des cookies pour faire fonctionner le site et, avec votre accord, mesurer l'audience et personnaliser les publicités. Choisissez ce que vous acceptez. <Link href="/cookies" className="text-primary hover:underline underline-offset-4 font-medium">Politique cookies</Link> · <Link href="/privacy" className="text-primary hover:underline underline-offset-4 font-medium">Confidentialité</Link>
                             </p>
 
@@ -144,11 +144,11 @@ export const CookieConsentModal = () => {
                         </div>
 
                         {/* Footer Buttons */}
-                        <div className="p-3 sm:p-6 bg-[#FBFAF6] flex flex-col sm:flex-row items-center gap-2 sm:gap-3 border-t border-[#EEF1F4]">
-                            <button onClick={handleDeclineAll} className="w-full sm:flex-1 py-2.5 sm:py-3.5 px-4 bg-[#F2EFE7] text-[#0F2944] rounded-xl sm:rounded-[14px] font-bold text-xs sm:text-sm transition-all hover:bg-[#E8E2D6] active:scale-[0.98]">
+                        <div className="p-3 sm:p-6 bg-[#FBFAF6] dark:bg-zinc-900 flex flex-col sm:flex-row items-center gap-2 sm:gap-3 border-t border-[#EEF1F4] dark:border-zinc-800">
+                            <button onClick={handleDeclineAll} className="w-full sm:flex-1 py-2.5 sm:py-3.5 px-4 bg-[#F2EFE7] dark:bg-zinc-800 text-[#0F2944] dark:text-white rounded-xl sm:rounded-[14px] font-bold text-xs sm:text-sm transition-all hover:bg-[#E8E2D6] dark:hover:bg-zinc-700 active:scale-[0.98]">
                                 Tout refuser
                             </button>
-                            <button onClick={handleConfirm} className="w-full sm:flex-1 py-2.5 sm:py-3.5 px-4 bg-[#0F2944] text-white rounded-xl sm:rounded-[14px] font-bold text-xs sm:text-sm transition-all hover:opacity-90 active:scale-[0.98]">
+                            <button onClick={handleConfirm} className="w-full sm:flex-1 py-2.5 sm:py-3.5 px-4 bg-[#0F2944] dark:bg-zinc-700 text-white rounded-xl sm:rounded-[14px] font-bold text-xs sm:text-sm transition-all hover:opacity-90 active:scale-[0.98]">
                                 Confirmer
                             </button>
                             <button onClick={handleAcceptAll} className="w-full sm:flex-1 py-2.5 sm:py-3.5 px-4 bg-primary text-white rounded-xl sm:rounded-[14px] font-bold text-xs sm:text-sm transition-all hover:opacity-90 active:scale-[0.98] shadow-lg shadow-primary/25">

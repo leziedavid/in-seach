@@ -30,7 +30,6 @@ export default function FormsProduit({
     const [price, setPrice] = useState<string>(initialData?.price?.toString() || "");
     const [discountPercent, setDiscountPercent] = useState<string>(initialData?.discountPercent?.toString() || "");
     const [stock, setStock] = useState<string>(initialData?.stock?.toString() || "");
-    const [sku, setSku] = useState(initialData?.sku || "");
     const [etat, setEtat] = useState<ProductCondition>(initialData?.etat || ProductCondition.NEUF);
     const [typeVente, setTypeVente] = useState<'UNITE' | 'GROS'>(initialData?.typeVente || 'UNITE');
     const [prixVenteGros, setPrixVenteGros] = useState<string>(initialData?.prixVenteGros?.toString() || "");
@@ -69,7 +68,6 @@ export default function FormsProduit({
             setPrice(initialData.price?.toString() || "");
             setDiscountPercent(initialData.discountPercent?.toString() || "");
             setStock(initialData.stock?.toString() || "");
-            setSku(initialData.sku || "");
             setEtat(initialData.etat || ProductCondition.NEUF);
             setTypeVente(initialData.typeVente || 'UNITE');
             setPrixVenteGros(initialData.prixVenteGros?.toString() || "");
@@ -126,7 +124,6 @@ export default function FormsProduit({
         formData.append("price", price);
         if (discountPercent) formData.append("discountPercent", discountPercent);
         formData.append("stock", stock);
-        if (sku) formData.append("sku", sku);
         formData.append("etat", etat);
         formData.append("typeVente", typeVente);
         if (typeVente === 'GROS' && prixVenteGros) formData.append("prixVenteGros", prixVenteGros);
@@ -306,34 +303,23 @@ export default function FormsProduit({
                     )}
                 </div>
 
-                {/* 3. Stock & SKU */}
+                {/* 3. Stock */}
                 <div className="bg-card rounded-2xl border border-border p-6 shadow-sm space-y-4">
                     <h3 className="text-sm font-black flex items-center gap-2 text-foreground/80">
                         <Icon icon="solar:clipboard-list-bold-duotone" className="w-5 h-5 text-primary" />
                         Gestion des stocks
                     </h3>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1">
-                            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Quantité disponible *</label>
-                            <input
-                                type="number"
-                                min="0"
-                                value={stock}
-                                onChange={e => setStock(e.target.value)}
-                                className="w-full px-4 py-2.5 rounded-xl border border-border bg-muted/30 text-sm outline-none focus:border-primary transition-all font-medium"
-                                placeholder="0"
-                            />
-                            {errors.stock && <p className="text-[10px] text-red-500 font-bold mt-1">{errors.stock}</p>}
-                        </div>
-                        <div className="space-y-1">
-                            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Référence (SKU)</label>
-                            <input
-                                value={sku}
-                                onChange={e => setSku(e.target.value)}
-                                className="w-full px-4 py-2.5 rounded-xl border border-border bg-muted/30 text-sm outline-none focus:border-primary transition-all font-medium"
-                                placeholder="SKU-001"
-                            />
-                        </div>
+                    <div className="space-y-1">
+                        <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Quantité disponible *</label>
+                        <input
+                            type="number"
+                            min="0"
+                            value={stock}
+                            onChange={e => setStock(e.target.value)}
+                            className="w-full px-4 py-2.5 rounded-xl border border-border bg-muted/30 text-sm outline-none focus:border-primary transition-all font-medium"
+                            placeholder="0"
+                        />
+                        {errors.stock && <p className="text-[10px] text-red-500 font-bold mt-1">{errors.stock}</p>}
                     </div>
                 </div>
 

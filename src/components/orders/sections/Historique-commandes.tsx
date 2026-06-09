@@ -194,7 +194,7 @@ export default function HistoriqueCommandes() {
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <button onClick={() => handleViewReceipt(order)} className="p-2 bg-slate-50 text-slate-900 rounded-xl transition hover:bg-slate-100 active:scale-95 flex items-center gap-2 text-xs font-black shadow-sm border border-slate-200" title="Voir le reçu" >
+                                        <button onClick={() => handleViewReceipt(order)} className="p-2 bg-slate-50 dark:bg-muted text-slate-900 dark:text-foreground rounded-xl transition hover:bg-slate-100 dark:hover:bg-muted/80 active:scale-95 flex items-center gap-2 text-xs font-black shadow-sm border border-slate-200 dark:border-border" title="Voir le reçu" >
                                             <Icon icon="solar:document-text-bold-duotone" className="w-5 h-5 text-primary" />
                                         </button>
                                         <button onClick={() => { setSelectedOrder(order); setOpen(true); }} className="p-2 bg-muted hover:bg-primary hover:text-white rounded-xl transition active:scale-95 shadow-sm">

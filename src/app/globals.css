@@ -242,4 +242,48 @@
   .tracking-tightest {
     letter-spacing: -0.05em;
   }
+
+  /* Dark mode: force light text on dark/gray backgrounds */
+  .dark .text-black { color: oklch(0.92 0 0) !important; }
+  .dark .text-gray-900 { color: oklch(0.92 0 0) !important; }
+  .dark .text-gray-800 { color: oklch(0.88 0 0) !important; }
+  .dark .text-gray-700 { color: oklch(0.80 0 0) !important; }
+  .dark .text-gray-600 { color: oklch(0.72 0 0) !important; }
+  .dark .text-gray-500 { color: oklch(0.65 0 0) !important; }
+  .dark .text-slate-900 { color: oklch(0.92 0 0) !important; }
+  .dark .text-slate-800 { color: oklch(0.88 0 0) !important; }
+  .dark .text-zinc-900 { color: oklch(0.92 0 0) !important; }
+  .dark .text-zinc-800 { color: oklch(0.88 0 0) !important; }
+
+  /* Dark mode: adapt light solid backgrounds on interactive elements */
+  .dark button.bg-slate-50,
+  .dark button.bg-slate-100,
+  .dark button.bg-white {
+    background-color: oklch(0.25 0 0) !important;
+    color: oklch(0.92 0 0) !important;
+    border-color: oklch(0.30 0 0) !important;
+  }
+  .dark button.bg-slate-50:hover,
+  .dark button.bg-slate-100:hover,
+  .dark button.bg-white:hover {
+    background-color: oklch(0.30 0 0) !important;
+  }
+
+  /* Dark mode: override hardcoded hex colors used in all modals */
+  /* bg-[#FBFAF6] → fond sombre */
+  .dark .bg-\[\#FBFAF6\] { background-color: oklch(0.18 0 0) !important; }
+  /* bg-[#FBFAF6]/95 → fond sombre semi-transparent */
+  .dark .bg-\[\#FBFAF6\]\/95 { background-color: oklch(0.18 0 0 / 95%) !important; }
+  /* bg-[#F2EFE7] → bouton secondaire sombre */
+  .dark .bg-\[\#F2EFE7\] { background-color: oklch(0.28 0 0) !important; }
+  /* bg-[#0F2944] → déjà sombre, mais on éclaircit légèrement en dark */
+  .dark .bg-\[\#0F2944\] { background-color: oklch(0.32 0.05 250) !important; }
+  /* text-[#0F2944] → texte sombre → blanc en dark */
+  .dark .text-\[\#0F2944\] { color: oklch(0.95 0 0) !important; }
+  /* text-[#1F3A5F] → texte sombre → gris clair en dark */
+  .dark .text-\[\#1F3A5F\] { color: oklch(0.80 0 0) !important; }
+  /* border-[#EEF1F4] → bordure claire → bordure sombre */
+  .dark .border-\[\#EEF1F4\] { border-color: oklch(0.28 0 0) !important; }
+  /* hover states */
+  .dark .hover\:bg-\[\#E8E2D6\]:hover { background-color: oklch(0.32 0 0) !important; }
 }
