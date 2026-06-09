@@ -117,6 +117,7 @@ export interface User {
     email: string;
     fullName?: string;
     phone?: string;
+    indicatif?: string;
     avatar?: string;
     avatarUrl?: string; // Standardized field
     companyName?: string;
@@ -142,6 +143,7 @@ export interface StoreUserInfo {
     id: string;
     email?: string;
     fullName?: string;
+    indicatif?: string;
     phone?: string;
     companyName?: string;
     storeName?: string;

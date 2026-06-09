@@ -42,11 +42,12 @@ export default function AnnonceModal({ isOpen, onClose, annonce }: AnnonceModalP
 
     const handleContact = (type: 'whatsapp' | 'phone') => {
         const phone = annonce.user?.phone?.replace(/\D/g, '') || '';
+        const indicatif = annonce.user?.indicatif || '';
         const message = `Bonjour, je suis intéressé par votre annonce "${annonce.title}" sur Tarafé.`;
         if (type === 'whatsapp') {
-            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
+            window.open(`https://wa.me/${indicatif}${phone}?text=${encodeURIComponent(message)}`, '_blank');
         } else {
-            window.location.href = `tel:+${phone}`;
+            window.location.href = `tel:+${indicatif}${phone}`;
         }
     };
 
