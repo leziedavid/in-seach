@@ -14,16 +14,16 @@ const LOCAL_VIDEOS: Video[] = [
     title: "DJAMKO : La Révolution du E-commerce",
     youtubeUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
     thumbnail: "https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    createdAt: "2024-01-01T00:00:00.000Z",
+    updatedAt: "2024-01-01T00:00:00.000Z"
   },
   {
     id: "local-2",
     title: "Comment utiliser Djamko",
     youtubeUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
     thumbnail: "https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    createdAt: "2024-01-01T00:00:00.000Z",
+    updatedAt: "2024-01-01T00:00:00.000Z"
   }
 ]
 

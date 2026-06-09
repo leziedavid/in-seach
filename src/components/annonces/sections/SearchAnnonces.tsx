@@ -269,49 +269,55 @@ export default function SearchAnnonces() {
                         skeletonType="annonce"
                         skeletonCount={3}
                         gridClassName={viewMode === 'grid' ? "grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-6" : "grid grid-cols-1 gap-4"}
-                        renderItem={(annonce: Annonce) => (
-                            <div key={annonce.id} onClick={() => withAuth(() => setSelectedAnnonce(annonce))} className={`group rounded-xl transition-all duration-300 cursor-pointer bg-card border border-border/40 hover:border-primary/30 overflow-hidden ${viewMode === 'grid' ? "p-0 md:p-4 flex flex-col md:items-center text-left md:text-center" : "p-2 md:p-4 flex flex-row items-center gap-4 text-left"}`}>
-                                {/* Image */}
-                                <div className={`relative overflow-hidden rounded-lg md:rounded-2xl shrink-0 ${viewMode === 'grid' ? "w-full aspect-square mb-1.5" : "w-24 h-24 md:w-32 md:h-32"}`}>
-                                    <Image src={(annonce.images?.[0] && typeof annonce.images?.[0] === 'string') ? annonce.images[0] : (Array.isArray(annonce.images) && (annonce.images[0] as any)?.fileUrl) || 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop'} alt={annonce.title} fill unoptimized className="object-cover group-hover:scale-110 transition-transform duration-500" />
-                                    {annonce.categorie && (
-                                        <div className={`absolute bg-black/70 md:bg-background/95 backdrop-blur-sm px-1.5 py-0.5 md:px-2 md:py-0.5 rounded-full text-[8px] md:text-[9px] font-black text-white md:text-foreground shadow-sm uppercase tracking-tighter ${viewMode === 'grid' ? "top-1 left-1 md:top-2 md:left-2" : "top-1 left-1"}`}>
-                                            {annonce.categorie.label}
-                                        </div>
-                                    )}
-                                </div>
+                        renderItem={(annonce: Annonce) => {
+                            const lastImage = annonce.images?.[annonce.images.length - 1];
+                            const imageUrl = typeof lastImage === "string" ? lastImage : lastImage || "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop";
+                            return (
 
-                                {/* Contenu */}
-                                <div className={`flex flex-col flex-1 min-w-0 ${viewMode === 'grid' ? "px-0.5 pb-0 md:px-0 md:pb-0 w-full" : "h-full justify-center"}`}>
-                                    <h3 className={`font-black text-foreground mb-1 group-hover:text-primary transition-colors leading-tight truncate ${viewMode === 'grid' ? "text-xs md:text-base line-clamp-2 md:line-clamp-1 text-left md:text-center w-full" : "text-sm md:text-lg"}`}>
-                                        {annonce.title}
-                                    </h3>
+                                <div key={annonce.id} onClick={() => withAuth(() => setSelectedAnnonce(annonce))} className={`group rounded-xl transition-all duration-300 cursor-pointer bg-card border border-border/40 hover:border-primary/30 overflow-hidden ${viewMode === 'grid' ? "p-0 md:p-4 flex flex-col md:items-center text-left md:text-center" : "p-2 md:p-4 flex flex-row items-center gap-4 text-left"}`}>
+                                    {/* Image */}
+                                    <div className={`relative overflow-hidden rounded-lg md:rounded-2xl shrink-0 ${viewMode === 'grid' ? "w-full aspect-square mb-1.5" : "w-24 h-24 md:w-32 md:h-32"}`}>
+                                        {/* <Image src={(annonce.images?.[0] && typeof annonce.images?.[0] === 'string') ? annonce.images[0] : (Array.isArray(annonce.images) && (annonce.images[0] as any)?.fileUrl) || 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop'} alt={annonce.title} fill unoptimized className="object-cover group-hover:scale-110 transition-transform duration-500" /> */}
+                                        <Image src={imageUrl} alt={annonce.title} fill unoptimized className="object-cover group-hover:scale-110 transition-transform duration-500" />
+                                        {annonce.categorie && (
+                                            <div className={`absolute bg-black/70 md:bg-background/95 backdrop-blur-sm px-1.5 py-0.5 md:px-2 md:py-0.5 rounded-full text-[8px] md:text-[9px] font-black text-white md:text-foreground shadow-sm uppercase tracking-tighter ${viewMode === 'grid' ? "top-1 left-1 md:top-2 md:left-2" : "top-1 left-1"}`}>
+                                                {annonce.categorie.label}
+                                            </div>
+                                        )}
+                                    </div>
 
-                                    <div className={`flex items-center gap-1 text-primary ${viewMode === 'grid' ? "justify-start md:justify-center mb-2 md:mb-4" : "justify-start mb-1 md:mb-2"}`}>
-                                        <Icon icon="solar:star-bold-duotone" className="w-2.5 h-2.5 fill-current md:w-3 md:h-3" />
-                                        <span className="text-[9px] md:text-xs font-black tracking-tight">
-                                            4.9 • <span className="text-muted-foreground">
-                                                {annonce.type?.label || 'Annonce'}
+                                    {/* Contenu */}
+                                    <div className={`flex flex-col flex-1 min-w-0 ${viewMode === 'grid' ? "px-0.5 pb-0 md:px-0 md:pb-0 w-full" : "h-full justify-center"}`}>
+                                        <h3 className={`font-black text-foreground mb-1 group-hover:text-primary transition-colors leading-tight truncate ${viewMode === 'grid' ? "text-xs md:text-base line-clamp-2 md:line-clamp-1 text-left md:text-center w-full" : "text-sm md:text-lg"}`}>
+                                            {annonce.title}
+                                        </h3>
+
+                                        <div className={`flex items-center gap-1 text-primary ${viewMode === 'grid' ? "justify-start md:justify-center mb-2 md:mb-4" : "justify-start mb-1 md:mb-2"}`}>
+                                            <Icon icon="solar:star-bold-duotone" className="w-2.5 h-2.5 fill-current md:w-3 md:h-3" />
+                                            <span className="text-[9px] md:text-xs font-black tracking-tight">
+                                                4.9 • <span className="text-muted-foreground">
+                                                    {annonce.type?.label || 'Annonce'}
+                                                </span>
                                             </span>
-                                        </span>
-                                    </div>
-
-                                    <div className={`flex items-center justify-between w-full ${viewMode === 'grid' ? "mt-auto" : "mt-2 md:mt-4"}`}>
-                                        <div className="text-left">
-                                            <p className={`text-secondary font-black ${viewMode === 'grid' ? "text-sm md:text-lg" : "text-base md:text-xl"}`}>
-                                                {annonce.price?.toLocaleString() || '0'} <span className="text-[9px] font-bold text-muted-foreground">CFA</span>
-                                            </p>
                                         </div>
 
-                                        <button className={`flex items-center gap-1 md:gap-2 bg-secondary text-white rounded-full font-black hover:bg-primary transition-all active:scale-90 shadow-sm ${viewMode === 'grid' ? "px-2 py-1 md:px-3 md:py-2 text-[10px] md:text-xs" : "px-3 py-1.5 md:px-5 md:py-2.5 text-xs md:text-sm"
-                                            }`}>
-                                            <span className="whitespace-nowrap">{viewMode === 'grid' ? "Consulter" : "Voir l'annonce"}</span>
-                                            <Icon icon="solar:check-circle-bold-duotone" className="w-3 h-3 md:w-4 md:h-4" />
-                                        </button>
+                                        <div className={`flex items-center justify-between w-full ${viewMode === 'grid' ? "mt-auto" : "mt-2 md:mt-4"}`}>
+                                            <div className="text-left">
+                                                <p className={`text-secondary font-black ${viewMode === 'grid' ? "text-sm md:text-lg" : "text-base md:text-xl"}`}>
+                                                    {annonce.price?.toLocaleString() || '0'} <span className="text-[9px] font-bold text-muted-foreground">CFA</span>
+                                                </p>
+                                            </div>
+
+                                            <button className={`flex items-center gap-1 md:gap-2 bg-secondary text-white rounded-full font-black hover:bg-primary transition-all active:scale-90 shadow-sm ${viewMode === 'grid' ? "px-2 py-1 md:px-3 md:py-2 text-[10px] md:text-xs" : "px-3 py-1.5 md:px-5 md:py-2.5 text-xs md:text-sm"
+                                                }`}>
+                                                <span className="whitespace-nowrap">{viewMode === 'grid' ? "Consulter" : "Voir l'annonce"}</span>
+                                                <Icon icon="solar:check-circle-bold-duotone" className="w-3 h-3 md:w-4 md:h-4" />
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        )}
+                            );
+                        }}
                         className="w-full"
                     />
                 )}

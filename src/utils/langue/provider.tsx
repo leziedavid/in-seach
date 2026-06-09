@@ -13,14 +13,12 @@ const I18nContext = createContext<I18nContextProps | undefined>(undefined);
 
 export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [language, setLanguageState] = useState<Language>("fr");
-    const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
         const savedLang = localStorage.getItem("app_lang") as Language;
         if (savedLang && (savedLang === "fr" || savedLang === "en")) {
             setLanguageState(savedLang);
         }
-        setMounted(true);
     }, []);
 
     const setLanguage = (lang: Language) => {

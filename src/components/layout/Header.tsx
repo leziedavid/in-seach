@@ -23,6 +23,7 @@ const NAVIGATION_TABS = [
 export default function Header() {
     const pathname = usePathname();
     const [mounted, setMounted] = useState(false);
+    const [isDesktop, setIsDesktop] = useState(false);
 
     /* ------------------------- EXTRA FUNCTIONALITIES ADDED ------------------------- */
     const [unreadMessages, setUnreadMessages] = useState(0);
@@ -57,6 +58,10 @@ export default function Header() {
 
     useEffect(() => {
         setMounted(true);
+        const checkDesktop = () => setIsDesktop(window.innerWidth >= 768);
+        checkDesktop();
+        window.addEventListener('resize', checkDesktop);
+        return () => window.removeEventListener('resize', checkDesktop);
     }, []);
 
     // 🔄 ANIMATION AVATAR
@@ -166,7 +171,7 @@ export default function Header() {
 
             {/* Content Wrapper for Animation */}
             <AnimatePresence mode="wait">
-                {mounted && (isMenuOpen || window.innerWidth >= 768) && (
+                {mounted && (isMenuOpen || isDesktop) && (
                     <motion.div
                         key="menu-content"
                         initial={{ opacity: 0, x: -20, width: 0 }}

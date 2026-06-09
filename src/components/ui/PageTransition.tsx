@@ -1,8 +1,17 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
 
 export default function PageTransition({ children }: { children: React.ReactNode }) {
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    if (!mounted) return <>{children}</>;
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 10 }}
