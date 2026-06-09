@@ -1137,6 +1137,15 @@ export const testWebSocketNotification = async (): Promise<BaseResponse<any>> =>
     return await response.json();
 };
 
+// test-whatsapp
+export const testWhatsAppNotification = async (): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/notifications/test-whatsapp`, {
+        method: 'POST',
+    });
+    return await response.json();
+};
+
+
 
 export const updateChatMessage = async (id: string, content: string): Promise<BaseResponse<any>> => {
     const response = await secureFetch(`${getBaseUrl()}/chat/message/${id}`, {

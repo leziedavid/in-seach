@@ -11,7 +11,7 @@ import CNIUploadForm from "@/components/profile/CNIUploadForm";
 import LogoUploadForm from "@/components/profile/LogoUploadForm";
 import SignatureUploadForm from "@/components/profile/SignatureUploadForm";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getMe, updateUserProfile, testWebPushNotification, testWebSocketNotification, suspendMe } from "@/api/api";
+import { getMe, updateUserProfile, testWebPushNotification, testWebSocketNotification, suspendMe, testWhatsAppNotification } from "@/api/api";
 import { UserProfile, SubscriptionPlan, SubscriptionStatus } from "@/types/interface";
 import { toast } from "sonner";
 import SubscriptionPaymentModal from "@/components/subscription/modals/SubscriptionPaymentModal";
@@ -90,6 +90,22 @@ export default function AccountSettings() {
         }
     };
 
+    const handleTestWhatsapp = async () => {
+        setIsTestingWhatsapp(true);
+        try {
+            const res = await testWhatsAppNotification();
+            if (res.statusCode === 201 || res.statusCode === 200) {
+                toast.success("message envoyer avec susces");
+            } else {
+                toast.error(res.message || "message non envoyer ");
+            }
+        } catch (error) {
+            toast.error("message non envoyer ");
+        } finally {
+            setIsTestingWhatsapp(false);
+        }
+    };
+
     const [user, setUser] = useState<UserProfile | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -114,6 +130,7 @@ export default function AccountSettings() {
 
     const [isTestingPush, setIsTestingPush] = useState(false);
     const [isTestingSocket, setIsTestingSocket] = useState(false);
+    const [isTestingWhatsapp, setIsTestingWhatsapp] = useState(false);
 
     // Modal states
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -634,6 +651,20 @@ export default function AccountSettings() {
                                         <span className="block text-[9px] text-muted-foreground font-bold uppercase">{t("akwaba.settings.test_socket_desc")}</span>
                                     </div>
                                 </button>
+
+                                <button onClick={handleTestWhatsapp} disabled={isTestingWhatsapp} className="flex items-center justify-center gap-3 px-5 py-4 rounded-2xl bg-muted/40 border border-border hover:border-secondary/50 hover:bg-secondary/5 transition-all group disabled:opacity-50">
+                                    {isTestingWhatsapp ? (
+                                        <Icon icon="solar:refresh-bold-duotone" className="w-5 h-5 animate-spin text-secondary" />
+                                    ) : (
+                                        <Icon icon="solar:flash-bold-duotone" className="w-5 h-5 text-secondary group-hover:scale-110 transition-transform" />
+                                    )}
+                                    <div className="text-left">
+                                        <span className="block text-xs font-black text-foreground">test whatsapp</span>
+                                        <span className="block text-[9px] text-muted-foreground font-bold uppercase">test whatsapp</span>
+                                    </div>
+                                </button>
+
+
                             </div>
                         </div>
                     </div>
@@ -882,3 +913,5 @@ export default function AccountSettings() {
         </div>
     );
 }
+
+
