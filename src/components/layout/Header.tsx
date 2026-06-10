@@ -217,7 +217,7 @@ export default function Header() {
                                 if (isProtected) {
                                     return (
                                         <button key={tab.key} onClick={() => handleProtectedNavigation(tab.path)} className={commonClasses} title={tab.label} >
-                                            <Icon icon={tab.icon} className="w-6 h-6 md:w-5 md:h-5" />
+                                            <Icon icon={tab.icon} className="w-7 h-7 md:w-5 md:h-5" />
                                             <span className="hidden sm:inline">{tab.label}</span>
                                         </button>
                                     );
@@ -225,7 +225,7 @@ export default function Header() {
 
                                 return (
                                     <Link key={tab.key} href={tab.path} className={commonClasses} title={tab.label} >
-                                        <Icon icon={tab.icon} className="w-6 h-6 md:w-5 md:h-5" />
+                                        <Icon icon={tab.icon} className="w-7 h-7 md:w-5 md:h-5" />
                                         <span className="hidden sm:inline">{tab.label}</span>
                                     </Link>
                                 );
@@ -237,7 +237,7 @@ export default function Header() {
                         {/* Actions Section */}
                         <div className="flex items-center gap-3 md:gap-4 ml-2 md:ml-0">
                             <button onClick={() => setIsCartModalOpen(true)} className="relative bg-primary p-2 rounded-full transition hover:scale-110 active:scale-95 flex items-center justify-center hover:rotate-6" >
-                                <Icon icon="solar:cart-bold" className="text-white w-4 h-4 md:w-5 md:h-5" />
+                                <Icon icon="solar:cart-bold" className="text-white w-5 h-5 md:w-5 md:h-5" />
                                 {totalItems > 0 && (
                                     <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-1.5 py-0.5 text-[8px] font-black text-white bg-red-500 rounded-full border-2 border-white dark:border-zinc-900">
                                         {totalItems}
@@ -250,14 +250,14 @@ export default function Header() {
                             </span>
 
                             <button onClick={() => handleProtectedNavigation("/chat-ia")} className="relative bg-primary p-2 rounded-full transition hover:scale-110 active:scale-95 flex items-center justify-center hover:-rotate-6">
-                                <Icon icon="solar:bell-bing-bold-duotone" className="text-white w-4 h-4 md:w-5 md:h-5" />
+                                <Icon icon="solar:bell-bing-bold-duotone" className="text-white w-5 h-5 md:w-5 md:h-5" />
                                 {unreadMessages > 0 && (
                                     <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-1.5 py-0.5 text-[8px] font-black text-white bg-red-500 rounded-full border-2 border-white dark:border-zinc-900">  {unreadMessages}  </span>
                                 )}
                             </button>
 
                             <button onClick={() => handleProtectedNavigation("/akwaba")} className="relative bg-primary p-2 rounded-full transition hover:scale-110 active:scale-95 flex items-center justify-center">
-                                <Icon icon="solar:user-bold" className="text-white w-4 h-4 md:w-5 md:h-5" />
+                                <Icon icon="solar:user-bold" className="text-white w-5 h-5 md:w-5 md:h-5" />
                             </button>
 
                             <ThemeToggle />
