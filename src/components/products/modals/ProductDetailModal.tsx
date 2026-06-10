@@ -11,6 +11,7 @@ import { useNotification } from "@/components/notifications/NotificationProvider
 import { useRouter } from "next/navigation";
 import { isAuthenticated, getUserId } from "@/lib/auth";
 import { createChatConversation, getPublicStoreInfo, getStoreUserInfo } from "@/api/api";
+import ReportButton from "@/components/shared/ReportButton";
 import TextDisplayBox from "@/components/home/TextDisplayBox";
 import Link from "next/link"
 
@@ -196,13 +197,14 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                                                     </span>
                                                     <span className="px-3 py-1 bg-emerald-500/10 text-emerald-600 text-[10px] font-black uppercase rounded-full">En Stock</span>
                                                 </div>
-                                                <div className="flex gap-2">
+                                                <div className="flex items-center gap-2">
                                                     <button className="p-2 hover:bg-muted rounded-full text-muted-foreground transition-colors">
                                                         <Icon icon="solar:heart-bold-duotone" width={20} />
                                                     </button>
                                                     <button className="p-2 hover:bg-muted rounded-full text-muted-foreground transition-colors">
                                                         <Icon icon="solar:share-bold-duotone" width={20} />
                                                     </button>
+                                                    <ReportButton entityType="PRODUCT" entityId={product.id} />
                                                 </div>
                                             </div>
 

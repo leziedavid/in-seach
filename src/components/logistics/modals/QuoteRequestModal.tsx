@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { LogisticService, TransportType, UserLocation } from "@/types/interface";
 import { searchLocation, createQuote } from "@/api/api";
+import ReportButton from "@/components/shared/ReportButton";
 import { useNotification } from "@/components/notifications/NotificationProvider";
 import { useUserLocation } from "@/utils/location";
 import Image from "next/image";
@@ -298,9 +299,12 @@ export default function QuoteRequestModal({ service, isOpen, onClose, onSuccess 
                         </div>
 
                         <div className="sticky bottom-0 p-6 bg-card border-t border-border flex flex-col md:flex-row gap-3">
-                            <button type="button" onClick={onClose} className="px-6 py-3 rounded-2xl border border-border text-xs font-bold hover:bg-muted transition-all uppercase tracking-wider flex-1 h-12">
-                                Annuler
-                            </button>
+                            <div className="flex flex-col gap-1.5 flex-1">
+                                <button type="button" onClick={onClose} className="px-6 py-3 rounded-2xl border border-border text-xs font-bold hover:bg-muted transition-all uppercase tracking-wider h-12 w-full">
+                                    Annuler
+                                </button>
+                                <ReportButton entityType="LOGISTIC_SERVICE" entityId={service.id} className="justify-center" />
+                            </div>
                             <button type="submit" disabled={isSubmitting} className="bg-primary text-white px-8 py-3 rounded-2xl text-xs font-black hover:bg-secondary transition-all active:scale-95 disabled:opacity-50 shadow-xl shadow-primary/20 flex items-center justify-center gap-2 uppercase tracking-widest flex-[2] h-12">
                                 {isSubmitting ? (
                                     <Icon icon="solar:refresh-bold-duotone" className="w-5 h-5 animate-spin" />

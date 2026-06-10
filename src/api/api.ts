@@ -2140,3 +2140,58 @@ export const toggleSliderActive = async (id: string, value: boolean): Promise<Ba
     return await response.json();
 };
 
+/* =======================================================
+   REPORTS API
+======================================================= */
+
+export interface CreateReportDto {
+    entityType: 'USER' | 'SERVICE' | 'ANNONCE' | 'PRODUCT' | 'LOGISTIC_SERVICE' | 'EASY_DELIVERY';
+    entityId: string;
+    reason: 'SPAM' | 'INAPPROPRIATE_CONTENT' | 'FAKE_PROFILE' | 'FRAUD' | 'VIOLENCE' | 'HARASSMENT' | 'COPYRIGHT' | 'OTHER';
+    description?: string;
+}
+
+export interface UpdateReportDto {
+    status?: 'PENDING' | 'UNDER_REVIEW' | 'RESOLVED' | 'IGNORED' | 'ARCHIVED';
+    adminAction?: 'NO_ACTION' | 'WARNING_SENT' | 'CONTENT_DISABLED' | 'CONTENT_DELETED' | 'USER_BANNED' | 'ARCHIVED';
+    adminNote?: string;
+}
+
+export const createReport = async (data: CreateReportDto): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/reports`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const getReports = async (params: { status?: string; page?: number; limit?: number }): Promise<BaseResponse<any>> => {
+    const queryString = toQueryString(params);
+    const response = await secureFetch(`${getBaseUrl()}/reports?${queryString}`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
+export const getReportById = async (id: string): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/reports/${id}`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
+export const updateReport = async (id: string, data: UpdateReportDto): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/reports/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const deleteReport = async (id: string): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/reports/${id}`, {
+        method: 'DELETE',
+    });
+    return await response.json();
+};
+

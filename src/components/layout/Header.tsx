@@ -32,7 +32,7 @@ export default function Header() {
     const { socket } = useSocket();
     const { totalItems } = useCart();
     const [isCartModalOpen, setIsCartModalOpen] = useState(false);
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isMenuOpen, setIsMenuOpen] = useState(true);
     const { addNotification } = useNotification();
     const router = useRouter();
 
@@ -71,6 +71,13 @@ export default function Header() {
         }, 1000);
         return () => clearInterval(interval);
     }, []);
+
+    // 📍 Ferme le menu sur /akwaba (mobile)
+    useEffect(() => {
+        if (pathname === '/akwaba' && !isDesktop) {
+            setIsMenuOpen(false);
+        }
+    }, [pathname, isDesktop]);
 
     // 👤 FETCH USERNAME
     useEffect(() => {
@@ -144,11 +151,22 @@ export default function Header() {
                         ))}
                     </div>
 
-                    {/* Floating Arrow (Mobile Only UI Indicator) */}
-                    <motion.div animate={{ rotate: isMenuOpen ? 180 : 0, x: isMenuOpen ? 0 : [0, 3, 0] }}
-                        transition={{ rotate: { duration: 0.4 }, x: { repeat: Infinity, duration: 1.5, ease: "easeInOut" } }}
-                        className="absolute -right-1 -bottom-1 md:hidden w-5 h-5 bg-primary rounded-full flex items-center justify-center border-2 border-white dark:border-zinc-900 shadow-lg z-20"  >
-                        <Icon icon="solar:alt-arrow-right-bold-duotone" className="w-3 h-3 text-white" />
+                    {/* Floating indicator (Mobile Only) — indique ouvert/fermé */}
+                    <motion.div
+                        animate={{
+                            rotate: isMenuOpen ? 180 : 0,
+                            scale: isMenuOpen ? 1 : [1, 1.2, 1],
+                        }}
+                        transition={{
+                            rotate: { duration: 0.35, ease: "easeInOut" },
+                            scale: { repeat: isMenuOpen ? 0 : Infinity, duration: 1.8, ease: "easeInOut" }
+                        }}
+                        className={`absolute -right-1 -bottom-1 md:hidden w-5 h-5 rounded-full flex items-center justify-center border-2 border-white dark:border-zinc-900 shadow-lg z-20 transition-colors duration-300 ${isMenuOpen ? 'bg-primary/80' : 'bg-primary'}`}
+                    >
+                        <Icon
+                            icon={isMenuOpen ? "solar:close-circle-bold-duotone" : "solar:hamburger-menu-bold-duotone"}
+                            className="w-3 h-3 text-white"
+                        />
                     </motion.div>
                 </button>
 

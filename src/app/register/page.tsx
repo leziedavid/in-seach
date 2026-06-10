@@ -116,6 +116,11 @@ export default function RegisterPage() {
                 </div>
 
                 {/* Role Selector */}
+                <div className="mb-3">
+                    <p className="text-xs font-black uppercase tracking-widest text-muted-foreground text-center">
+                        Choisissez votre type de compte
+                    </p>
+                </div>
                 <div className="grid grid-cols-2 gap-4 mb-6">
                     <div onClick={() => setRole('CLIENT')} className={`p-4 rounded-2xl border-2 cursor-pointer transition-all flex flex-col items-center gap-2 ${role === 'CLIENT' ? 'border-primary bg-primary/20' : 'border-gray-200 bg-gray-50 hover:bg-gray-100'}`} >
                         <Icon icon="solar:user-bold-duotone" className={role === 'CLIENT' ? 'text-primary' : 'text-gray-400'} width={24} />

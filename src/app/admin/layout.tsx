@@ -94,6 +94,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             href: '/admin/logs',
             color: 'text-cyan-500'
         },
+        {
+            label: 'Signalements',
+            icon: 'solar:flag-bold-duotone',
+            href: '/admin/reports',
+            color: 'text-red-500'
+        },
     ];
 
     const [isSidebarOpen, setIsSidebarOpen] = React.useState(true);

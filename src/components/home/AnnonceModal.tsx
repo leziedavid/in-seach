@@ -10,6 +10,7 @@ import { useNotification } from "@/components/notifications/NotificationProvider
 import BookingModal from "@/components/bookings/modals/BookingModal";
 import TextDisplayBox from "./TextDisplayBox";
 import { useTranslation } from "@/utils/langue/hooks";
+import ReportButton from "@/components/shared/ReportButton";
 
 interface AnnonceModalProps {
     isOpen: boolean;
@@ -137,13 +138,14 @@ export default function AnnonceModal({ isOpen, onClose, annonce }: AnnonceModalP
                                                             {annonce.categorie?.label || 'Annonce'}
                                                         </span>
                                                     </div>
-                                                    <div className="flex gap-2">
+                                                    <div className="flex items-center gap-2">
                                                         <button className="p-2 hover:bg-muted rounded-full text-muted-foreground transition-colors">
                                                             <Icon icon="solar:heart-bold-duotone" width={20} />
                                                         </button>
                                                         <button className="p-2 hover:bg-muted rounded-full text-muted-foreground transition-colors">
                                                             <Icon icon="solar:share-bold-duotone" width={20} />
                                                         </button>
+                                                        <ReportButton entityType="ANNONCE" entityId={annonce.id} />
                                                     </div>
                                                 </div>
 

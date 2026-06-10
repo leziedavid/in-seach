@@ -7,6 +7,7 @@ import Image from 'next/image';
 import FormsIntervention, { InterventionType } from "@/components/bookings/forms/FormsIntervention";
 import { Service, Annonce } from "@/types/interface";
 import { createBooking, updateBooking } from "@/api/api";
+import ReportButton from "@/components/shared/ReportButton";
 import { useNotification } from "@/components/notifications/NotificationProvider";
 import RichTextEditor from "@/components/ui/editor";
 import { useForm, Controller } from "react-hook-form";
@@ -336,6 +337,7 @@ export default function BookingModal({ isOpen, onClose, item, type, booking, mod
                                         <p className="text-2xl font-black">
                                             {('frais' in item ? item.frais : 0) || 0} <span className="text-sm">CFA (Frais)</span>
                                         </p>
+                                        <ReportButton entityType={type} entityId={item.id} className="mt-1" />
                                     </div>
                                     <button onClick={handleBooking} className={`w-full md:w-auto py-4 px-8 rounded-xl font-black ${interventionType ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'}`} disabled={!interventionType}>
                                         {mode === 'edit' ? 'Enregistrer les modifications' : 'Confirmer la réservation'}
