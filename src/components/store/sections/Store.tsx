@@ -15,6 +15,7 @@ import VoiceSearchModal from "@/components/services/sections/VoiceSearchModal"
 import { SectionHeader } from "@/components/shared/SectionHeader"
 
 import InfiniteScroll from "@/components/ui/InfiniteScroll"
+import CreateButton from "@/components/ui/CreateButton"
 
 const ITEMS_PER_PAGE = 10
 
@@ -238,10 +239,11 @@ export default function Store() {
                     </button>
                 </div>
 
-                <button disabled={checkLoading} onClick={openCreateModal} className="w-full md:w-auto text-sm flex items-center justify-center gap-2 bg-primary text-white px-6 py-2.5 rounded-xl font-bold hover:bg-secondary transition-all active:scale-95 shadow-primary/20 disabled:opacity-50 uppercase">
-                    {checkLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-5 h-5" /> : <Icon icon="solar:widget-add-bold" width="24" height="24" />}
-                    Publier un article
-                </button>
+                <CreateButton
+                    label="Publier un article"
+                    loading={checkLoading}
+                    onClick={openCreateModal}
+                />
             </div>
 
             <SectionHeader

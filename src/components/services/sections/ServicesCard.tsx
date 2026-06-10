@@ -9,13 +9,13 @@ import { createService, getServices, handleToggleActive, updateService } from "@
 import { Modal } from "@/components/ui/MotionModal"
 import Image from "next/image"
 import { Switch } from "@/components/ui/switch"
-import { Button } from "@/components/ui/button"
 import { useNotification } from "@/components/notifications/NotificationProvider"
 import { useSubscriptionCheck } from "@/hooks/useSubscriptionCheck"
 import Delete from "@/components/logistics/modals/Delete"
 import { deleteService as apiDeleteService } from "@/api/api"
 import { SectionHeader } from "@/components/shared/SectionHeader"
 import { useTranslation } from "@/utils/langue/hooks"
+import CreateButton from "@/components/ui/CreateButton"
 
 /* =====================================================
    PAGE
@@ -247,18 +247,18 @@ export default function ServicesCard({ data: propData, page: propPage, limit: pr
                     </div>
 
 
-                    <Button disabled={checkLoading} onClick={async () => {
-                        const canCreate = await checkEligibility('Service');
-                        if (canCreate) {
-                            setIsOpen(true);
-                            setIsEditing(false);
-                            setSelectedService(null)
-                        }
-                    }}
-                        className="bg-primary text-primary-foreground hover:bg-secondary uppercase">
-                        {checkLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-6 h-6 mr-2" /> : <Icon icon="solar:widget-add-bold" width="24" height="24" />}
-                        {t("akwaba.services.publish_button")}
-                    </Button>
+                    <CreateButton
+                        label={t("akwaba.services.publish_button")}
+                        loading={checkLoading}
+                        onClick={async () => {
+                            const canCreate = await checkEligibility('Service');
+                            if (canCreate) {
+                                setIsOpen(true);
+                                setIsEditing(false);
+                                setSelectedService(null);
+                            }
+                        }}
+                    />
                 </div>
 
                 <SectionHeader

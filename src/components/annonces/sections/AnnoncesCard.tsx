@@ -11,12 +11,12 @@ import { createAnnonce, getAnnonces, handleToggleAnnonceActive, updateAnnonce, d
 import { Modal } from "@/components/ui/MotionModal"
 import { Switch } from "@/components/ui/switch"
 import { useNotification } from "@/components/notifications/NotificationProvider"
-import { Button } from "@/components/ui/button"
 import { useSubscriptionCheck } from "@/hooks/useSubscriptionCheck"
 import Delete from "@/components/logistics/modals/Delete"
 import { SectionHeader } from "@/components/shared/SectionHeader"
 import ViewToggle, { ViewMode } from "@/components/shared/ViewToggle"
 import { useTranslation } from "@/utils/langue/hooks"
+import CreateButton from "@/components/ui/CreateButton"
 
 interface AnnoncesCardProps {
     data?: Annonce[];
@@ -209,18 +209,18 @@ export default function AnnoncesCard({
                 {/* Action Bar */}
                 <div className="flex flex-col md:flex-row items-center justify-between gap-4 w-full max-w-4xl mb-6">
                     <div className="flex items-center w-full"></div>
-                    <Button disabled={checkLoading} onClick={async () => {
-                        const canCreate = await checkEligibility('Annonce');
-                        if (canCreate) {
-                            setIsOpen(true);
-                            setIsEditing(false);
-                            setSelectedAnnonce(null)
-                        }
-                    }}
-                        className="bg-primary text-primary-foreground hover:bg-secondary uppercase">
-                        {checkLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-6 h-6 mr-2" /> : <Icon icon="solar:widget-add-bold" width="24" height="24" />}
-                        {t("akwaba.annonces.publish_button")}
-                    </Button>
+                    <CreateButton
+                        label={t("akwaba.annonces.publish_button")}
+                        loading={checkLoading}
+                        onClick={async () => {
+                            const canCreate = await checkEligibility('Annonce');
+                            if (canCreate) {
+                                setIsOpen(true);
+                                setIsEditing(false);
+                                setSelectedAnnonce(null);
+                            }
+                        }}
+                    />
                 </div>
 
                 <SectionHeader
