@@ -10,8 +10,6 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { NotificationProvider } from "@/components/notifications/NotificationProvider";
 import { WebPushManager } from "@/components/notifications/webPush";
 import { Plus_Jakarta_Sans } from "next/font/google";
-import InstallPWA from "@/components/pwa/InstallPWA";
-import BackgroundDecoration from "@/components/layout/BackgroundDecoration";
 import VideoModal from "@/components/modals/VideoModal";
 import { I18nProvider } from "@/utils/langue/provider";
 
