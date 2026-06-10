@@ -56,8 +56,8 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   openGraph: {
-    title: "Djamko - Services, Biens et Logistique Globale",
-    description: "L'écosystème tout-en-un pour simplifier vos échanges globaux.",
+    title: "Djamko - L'écosystème tout-en-un",
+    description: "Pour simplifier vos échanges globaux.",
     url: "/",
     siteName: "Djamko",
     images: [
@@ -65,7 +65,7 @@ export const metadata: Metadata = {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Djamko - Plateforme de Services et Logistique",
+        alt: "Djamko - Plateforme de mise en relation ",
       },
     ],
     locale: "fr_FR",
