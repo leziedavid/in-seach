@@ -1,5 +1,5 @@
 import { getCookie } from '@/lib/cookies';
-import { BaseResponse, Booking, Category, GlobalSearchResponse, Pagination, ReverseGeocodeData, Service, UserLocation, MySpaceResponse, Annonce, BookingsCalendar, Product, CategoryProd, Order, AdminQueryParams, AdminUserUpdateDto, AdminProductUpdateDto, AdminServiceUpdateDto, AdminAnnonceUpdateDto, AdminSubscriptionPlanDto, User, AdminLog, SubscriptionPlan, PlanEntity, AdminUserSubscription, Subscription, OrdersGroupedResponse, BookingsGroupedResponse, LogisticService, Quote, Delivery, DeliveryTracking, QuoteStatus, DeliveryStatus, TransportType, LocationLog, CategorieAnnonce, TypeAnnonce, LogisticsClient, Video, StoreUserInfo, EasyDelivery, HistoryDelivery, EasyDeliveryStatus, DriverStats, SubCategoryProd, Slider } from '@/types/interface';
+import { BaseResponse, Booking, Category, GlobalSearchResponse, Pagination, ReverseGeocodeData, Service, UserLocation, MySpaceResponse, Annonce, BookingsCalendar, Product, CategoryProd, Order, AdminQueryParams, AdminUserUpdateDto, AdminProductUpdateDto, AdminServiceUpdateDto, AdminAnnonceUpdateDto, AdminSubscriptionPlanDto, User, AdminLog, SubscriptionPlan, PlanEntity, AdminUserSubscription, Subscription, OrdersGroupedResponse, BookingsGroupedResponse, LogisticService, Quote, Delivery, DeliveryTracking, QuoteStatus, DeliveryStatus, TransportType, LocationLog, CategorieAnnonce, TypeAnnonce, LogisticsClient, Video, StoreUserInfo, EasyDelivery, HistoryDelivery, EasyDeliveryStatus, DriverStats, SubCategoryProd, Slider, Live, LiveFeedResponse, LiveListResponse, LiveStatus, LiveEntityType } from '@/types/interface';
 
 export const getBaseUrl = (): string => {
     return process.env.NEXT_PUBLIC_API_URL || 'https://api.djamko.com/api/v1';
@@ -2195,3 +2195,154 @@ export const deleteReport = async (id: string): Promise<BaseResponse<any>> => {
     return await response.json();
 };
 
+
+/* =======================================================
+   LIVES / SHORTS
+======================================================= */
+
+// ─── PUBLIC ──────────────────────────────────────────────────────────────────
+
+/** Feed TikTok randomisé */
+export const getLivesFeed = async (params: {
+    page?: number;
+    limit?: number;
+    seed?: number;
+    excludeIds?: string;
+    entityType?: LiveEntityType;
+}): Promise<BaseResponse<LiveFeedResponse>> => {
+    const { page = 1, limit = 10, seed, excludeIds, entityType } = params;
+    let url = `${getBaseUrl()}/lives/feed?page=${page}&limit=${limit}`;
+    if (seed !== undefined) url += `&seed=${seed}`;
+    if (excludeIds) url += `&excludeIds=${encodeURIComponent(excludeIds)}`;
+    if (entityType) url += `&entityType=${entityType}`;
+    const response = await fetch(url);
+    return await response.json();
+};
+
+/** Liste publique avec filtres */
+export const getLives = async (params: {
+    page?: number;
+    limit?: number;
+    entityType?: LiveEntityType;
+    entityId?: string;
+    userId?: string;
+    status?: LiveStatus;
+}): Promise<BaseResponse<LiveListResponse>> => {
+    const { page = 1, limit = 10, entityType, entityId, userId, status } = params;
+    let url = `${getBaseUrl()}/lives?page=${page}&limit=${limit}`;
+    if (entityType) url += `&entityType=${entityType}`;
+    if (entityId) url += `&entityId=${entityId}`;
+    if (userId) url += `&userId=${userId}`;
+    if (status) url += `&status=${status}`;
+    const response = await fetch(url);
+    return await response.json();
+};
+
+/** Détail d'un Live */
+export const getLiveById = async (id: string): Promise<BaseResponse<Live>> => {
+    const response = await fetch(`${getBaseUrl()}/lives/${id}`);
+    return await response.json();
+};
+
+/** Lives publiés d'un utilisateur */
+export const getLivesByUser = async (userId: string, params?: { page?: number; limit?: number }): Promise<BaseResponse<LiveListResponse>> => {
+    const page = params?.page ?? 1;
+    const limit = params?.limit ?? 10;
+    const response = await fetch(`${getBaseUrl()}/lives/user/${userId}?page=${page}&limit=${limit}`);
+    return await response.json();
+};
+
+/** Liker un Live */
+export const likeLive = async (id: string): Promise<BaseResponse<Live>> => {
+    const response = await fetch(`${getBaseUrl()}/lives/${id}/like`, { method: 'POST' });
+    return await response.json();
+};
+
+/** Compter un partage */
+export const shareLive = async (id: string): Promise<BaseResponse<Live>> => {
+    const response = await fetch(`${getBaseUrl()}/lives/${id}/share`, { method: 'POST' });
+    return await response.json();
+};
+
+// ─── AUTHENTIFIÉ ─────────────────────────────────────────────────────────────
+
+/** Mes propres Lives */
+export const getMyLives = async (params: {
+    page?: number;
+    limit?: number;
+    status?: LiveStatus;
+}): Promise<BaseResponse<LiveListResponse>> => {
+    const { page = 1, limit = 10, status } = params;
+    let url = `${getBaseUrl()}/lives/my?page=${page}&limit=${limit}`;
+    if (status) url += `&status=${status}`;
+    const response = await secureFetch(url, { method: 'GET' });
+    return await response.json();
+};
+
+/** Créer un Live */
+export const createLive = async (data: {
+    title: string;
+    description?: string;
+    videoLink: string;
+    entityType?: LiveEntityType;
+    entityId?: string;
+}): Promise<BaseResponse<Live>> => {
+    const response = await secureFetch(`${getBaseUrl()}/lives`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+/** Modifier un Live */
+export const updateLive = async (id: string, data: {
+    title?: string;
+    description?: string;
+    videoLink?: string;
+    entityType?: LiveEntityType;
+    entityId?: string;
+}): Promise<BaseResponse<Live>> => {
+    const response = await secureFetch(`${getBaseUrl()}/lives/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+/** Supprimer un Live */
+export const deleteLive = async (id: string): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/lives/${id}`, { method: 'DELETE' });
+    return await response.json();
+};
+
+// ─── ADMIN ────────────────────────────────────────────────────────────────────
+
+export const adminGetLives = async (params: { page?: number; limit?: number; status?: LiveStatus; userId?: string }): Promise<BaseResponse<LiveListResponse>> => {
+    const { page = 1, limit = 20, status, userId } = params;
+    let url = `${getBaseUrl()}/lives/admin/all?page=${page}&limit=${limit}`;
+    if (status) url += `&status=${status}`;
+    if (userId) url += `&userId=${userId}`;
+    const response = await secureFetch(url, { method: 'GET' });
+    return await response.json();
+};
+
+export const adminUpdateLive = async (id: string, data: { status?: LiveStatus; title?: string; description?: string }): Promise<BaseResponse<Live>> => {
+    const response = await secureFetch(`${getBaseUrl()}/lives/admin/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const adminDeleteLive = async (id: string): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/lives/admin/${id}`, { method: 'DELETE' });
+    return await response.json();
+};
+
+export const adminGetLiveStats = async (): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/lives/admin/stats`, { method: 'GET' });
+    return await response.json();
+};

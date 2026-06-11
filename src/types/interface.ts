@@ -998,3 +998,62 @@ export interface Slider {
     createdAt: string;
     updatedAt: string;
 }
+
+// ===============================
+// LIVE / SHORTS
+// ===============================
+
+export enum LiveEntityType {
+    PRODUCT = 'PRODUCT',
+    ANNONCE = 'ANNONCE',
+    SERVICE = 'SERVICE',
+    SERVICE_LOGISTIQUE = 'SERVICE_LOGISTIQUE',
+    PROFILE = 'PROFILE',
+}
+
+export enum LiveStatus {
+    DRAFT = 'DRAFT',
+    PENDING = 'PENDING',
+    PUBLISHED = 'PUBLISHED',
+    REJECTED = 'REJECTED',
+    SUSPENDED = 'SUSPENDED',
+}
+
+export interface LiveUser {
+    id: string;
+    fullName?: string;
+    storeName?: string;
+    companyName?: string;
+    role: string;
+}
+
+export interface Live {
+    id: string;
+    title: string;
+    description?: string;
+    videoLink: string;
+    userId: string;
+    user: LiveUser;
+    entityType?: LiveEntityType;
+    entityId?: string;
+    status: LiveStatus;
+    viewsCount: number;
+    likesCount: number;
+    sharesCount: number;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface LiveFeedResponse {
+    data: Live[];
+    total: number;
+    hasMore: boolean;
+}
+
+export interface LiveListResponse {
+    data: Live[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+}

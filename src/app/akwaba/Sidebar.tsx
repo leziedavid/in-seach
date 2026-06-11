@@ -29,7 +29,8 @@ export type TabType =
     | "Livraisons-chauffeur"
     | "Documentation-API"
     | "Ma-flotte"
-    | "Livreur-dashboard";
+    | "Livreur-dashboard"
+    | "Mes-lives";
 
 export interface TabConfig {
     key: TabType;
@@ -44,6 +45,7 @@ export const TABS_CONFIG: TabConfig[] = [
     { labelKey: 'akwaba.sidebar.calendar', icon: "solar:calendar-date-bold-duotone", key: 'Calendrier', roles: [Role.PRESTATAIRE, Role.ADMIN, Role.CLIENT] },
     { labelKey: 'akwaba.sidebar.services', icon: "solar:box-bold-duotone", key: 'Services', roles: [Role.PRESTATAIRE, Role.ADMIN] },
     { labelKey: 'akwaba.sidebar.annonces', icon: "solar:eye-bold-duotone", key: 'Annonces', roles: [Role.PRESTATAIRE, Role.ADMIN] },
+    { labelKey: 'akwaba.sidebar.my_lives', icon: "solar:play-circle-bold-duotone", key: 'Mes-lives', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ADMIN, Role.ENTREPRISE] },
     { labelKey: 'akwaba.sidebar.rd_services', icon: "solar:clipboard-list-bold-duotone", key: 'Rendez-vous', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ADMIN, Role.ENTREPRISE, Role.CHAUFFEUR] },
     { labelKey: 'akwaba.sidebar.rd_annonces', icon: "solar:clipboard-check-bold-duotone", key: 'Rendez-vous-annonces', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ADMIN, Role.ENTREPRISE, Role.CHAUFFEUR] },
     { labelKey: 'akwaba.sidebar.history_rdv', icon: "solar:history-bold-duotone", key: 'Historique-rdv', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ADMIN, Role.ENTREPRISE, Role.CHAUFFEUR] },
@@ -79,7 +81,7 @@ const LOGISTICS_KEYS: TabType[] = [
 // Groupes pour la vue mobile style Yango
 const MOBILE_GROUPS = [
     { keys: ['Overview', 'Calendrier'] },
-    { keys: ['Services', 'Annonces', 'Boutique', 'Commandes', 'Historique-commandes'] },
+    { keys: ['Services', 'Annonces', 'Boutique', 'Mes-lives', 'Commandes', 'Historique-commandes'] },
     { keys: ['Rendez-vous', 'Rendez-vous-annonces', 'Historique-rdv'] },
     { keys: ['Mes-devis', 'Mes-livraisons', 'Mes-services-logistiques', 'Devis-recus', 'Livraisons', 'Livraisons-chauffeur', 'Ma-flotte', 'Livreur-dashboard'] },
     { keys: ['Tarifs', 'Documentation-API', 'Paramètres'] },
@@ -105,9 +107,9 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
 
     const roleLabel = userRole === Role.PRESTATAIRE ? t("akwaba.sidebar.roles.prestataire") :
         userRole === Role.ENTREPRISE ? t("akwaba.sidebar.roles.entreprise") :
-        userRole === Role.CHAUFFEUR ? t("akwaba.sidebar.roles.chauffeur") :
-        userRole === Role.LIVREUR ? t("akwaba.sidebar.roles.livreur") :
-        t("akwaba.sidebar.roles.client");
+            userRole === Role.CHAUFFEUR ? t("akwaba.sidebar.roles.chauffeur") :
+                userRole === Role.LIVREUR ? t("akwaba.sidebar.roles.livreur") :
+                    t("akwaba.sidebar.roles.client");
 
     // ── Desktop menu item ──
     const renderMenuItem = (item: TabConfig) => {
@@ -116,11 +118,10 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
             <button
                 key={item.key}
                 onClick={() => { onTabChange(item.key); setOpen(false); }}
-                className={`w-full flex items-center gap-3 p-3 rounded-xl text-sm transition-all duration-300 ${
-                    isActive
+                className={`w-full flex items-center gap-3 p-3 rounded-xl text-sm transition-all duration-300 ${isActive
                         ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-[1.02]"
                         : "hover:bg-muted text-muted-foreground hover:text-foreground dark:text-zinc-400 dark:hover:text-white"
-                }`}
+                    }`}
             >
                 <Icon icon={item.icon} width={18} />
                 {t(item.labelKey as any)}
@@ -135,15 +136,14 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
             <button
                 key={item.key}
                 onClick={() => { onTabChange(item.key); setOpen(false); }}
-                className="w-full flex items-center gap-4 px-4 py-3.5 active:bg-muted/60 transition-colors"
+                className="w-full flex items-center gap-3 px-3 py-2.5 active:bg-muted/60 transition-colors"
             >
                 {/* Icône dans un cercle */}
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
-                    isActive ? 'bg-primary/15' : 'bg-muted'
-                }`}>
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${isActive ? 'bg-primary/15' : 'bg-muted'
+                    }`}>
                     <Icon
                         icon={item.icon}
-                        width={20}
+                        width={19}
                         className={isActive ? 'text-primary' : 'text-foreground/70'}
                     />
                 </div>
@@ -185,42 +185,90 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
             `}</style>
 
             {/* ═══════════════════════════════
-                DESKTOP SIDEBAR (inchangé)
+                DESKTOP SIDEBAR — même UI que mobile
             ═══════════════════════════════ */}
             <aside className="hidden md:block md:col-span-4 lg:col-span-3">
-                <div className="bg-card/50 backdrop-blur-xl rounded-3xl border border-border p-6 sticky top-24">
-                    <div className="flex flex-col items-center mb-8">
-                        <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-white shadow-xl shrink-0 bg-muted/30">
-                            {user && <Image src={user?.avatar || "/avatars/user2.png"} fill className="object-cover" alt="User Avatar" unoptimized />}
+                <div className="bg-card/50 backdrop-blur-xl rounded-3xl border border-border p-3 sticky top-24 overflow-y-auto max-h-[calc(100vh-7rem)] scrollbar-hide [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+
+                    {/* Profil */}
+                    <div className="flex flex-col items-center px-2 pb-3">
+                        <div className="relative w-16 h-16 rounded-full overflow-hidden bg-muted border-2 border-border shadow-lg shrink-0">
+                            {user?.avatar ? (
+                                <Image src={user.avatar} fill className="object-cover" alt="Avatar" unoptimized />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center">
+                                    <Icon icon="solar:user-bold-duotone" className="w-8 h-8 text-muted-foreground" />
+                                </div>
+                            )}
                         </div>
-                        <div className="flex flex-col items-center mt-3 gap-1">
+                        <div className="mt-2 text-center">
                             {isLoading ? (
                                 <>
-                                    <div className="h-4 w-28 bg-muted/50 rounded-full animate-pulse" />
-                                    <div className="h-3 w-20 bg-muted/40 rounded-full animate-pulse" />
+                                    <div className="h-4 w-28 bg-muted rounded-full animate-pulse mx-auto" />
+                                    <div className="h-3 w-20 bg-muted/60 rounded-full animate-pulse mx-auto mt-1.5" />
                                 </>
                             ) : (
                                 <>
-                                    <p className="font-bold text-center text-foreground dark:text-white">{user?.fullName || t("akwaba.sidebar.my_account")}</p>
-                                    <p className="text-sm text-muted-foreground dark:text-zinc-400">{roleLabel}</p>
+                                    <div className="flex items-center justify-center gap-1">
+                                        <span className="text-sm font-black text-foreground">
+                                            {user?.fullName || t("akwaba.sidebar.my_account")}
+                                        </span>
+                                        <Icon icon="solar:arrow-right-bold-duotone" className="w-3.5 h-3.5 text-primary" />
+                                    </div>
+                                    <p className="text-xs text-muted-foreground">
+                                        {user?.indicatif ? `${user.indicatif} ` : ''}{user?.phone || roleLabel}
+                                    </p>
                                 </>
                             )}
                         </div>
                         {user?.totalGain !== undefined && (
-                            <div className="mt-4 bg-primary/10 px-4 py-2 rounded-xl text-center border border-primary/20">
-                                <p className="text-primary font-black">{user.totalGain.toLocaleString()} FCFA</p>
-                                <p className="text-[10px] text-primary/70 uppercase font-bold">{t("akwaba.sidebar.total_gains")}</p>
+                            <div className="mt-2.5 bg-primary/10 px-4 py-1.5 rounded-xl text-center border border-primary/20">
+                                <p className="text-primary font-black text-sm">{user.totalGain.toLocaleString()} FCFA</p>
+                                <p className="text-[9px] text-primary/70 uppercase font-bold">{t("akwaba.sidebar.total_gains")}</p>
                             </div>
                         )}
                     </div>
-                    <div className="space-y-2">
-                        {isLoading ? <MenuSkeleton count={skeletonCount} /> : menu.map(renderMenuItem)}
-                    </div>
-                    <div className="mt-8 pt-6 border-t border-border">
-                        <button onClick={onLogout} className="w-full flex items-center gap-3 p-3 rounded-xl text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-300">
-                            <Icon icon="solar:logout-bold-duotone" width={18} />
-                            {t("akwaba.sidebar.logout")}
-                        </button>
+
+                    {/* Menu groupé — même style que mobile */}
+                    <div className="space-y-2 pb-2">
+                        {isLoading ? (
+                            <MenuSkeleton count={skeletonCount} />
+                        ) : (
+                            <>
+                                {MOBILE_GROUPS.map((group, gi) => {
+                                    const groupItems = menu.filter(item => group.keys.includes(item.key));
+                                    if (groupItems.length === 0) return null;
+                                    return (
+                                        <div key={gi} className="bg-muted/40 dark:bg-zinc-800/40 rounded-2xl overflow-hidden border border-border/40">
+                                            {groupItems.map((item, idx) => (
+                                                <React.Fragment key={item.key}>
+                                                    {renderMobileRow(item, idx === groupItems.length - 1)}
+                                                    {idx < groupItems.length - 1 && (
+                                                        <div className="h-px bg-border/40 mx-4" />
+                                                    )}
+                                                </React.Fragment>
+                                            ))}
+                                        </div>
+                                    );
+                                })}
+
+                                {/* Déconnexion */}
+                                <div className="bg-muted/40 dark:bg-zinc-800/40 rounded-2xl overflow-hidden border border-border/40">
+                                    <button
+                                        onClick={onLogout}
+                                        className="w-full flex items-center gap-3 px-3 py-2.5 active:bg-red-50/60 dark:active:bg-red-900/20 transition-colors"
+                                    >
+                                        <div className="w-9 h-9 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center shrink-0">
+                                            <Icon icon="solar:logout-bold-duotone" width={19} className="text-red-500" />
+                                        </div>
+                                        <span className="flex-1 text-left text-sm font-semibold text-red-500">
+                                            {t("akwaba.sidebar.logout")}
+                                        </span>
+                                        <Icon icon="solar:alt-arrow-right-bold" className="w-4 h-4 text-red-400/60 shrink-0" />
+                                    </button>
+                                </div>
+                            </>
+                        )}
                     </div>
                 </div>
             </aside>
@@ -265,10 +313,10 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
                             animate={{ x: 0 }}
                             exit={{ x: '100%' }}
                             transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-                            className="fixed inset-0 z-[61] bg-background md:hidden overflow-y-auto flex flex-col"
+                            className="fixed inset-0 z-[61] bg-background md:hidden overflow-y-auto flex flex-col scrollbar-hide [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
                         >
                             {/* ── Header avec flèche retour ── */}
-                            <div className="flex items-center px-4 pt-12 pb-4">
+                            <div className="flex items-center px-4 pt-10 pb-2">
                                 <button
                                     onClick={() => setOpen(false)}
                                     className="p-2 -ml-2 rounded-full hover:bg-muted active:scale-90 transition-all"
@@ -278,8 +326,8 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
                             </div>
 
                             {/* ── Profil centré ── */}
-                            <div className="flex flex-col items-center px-6 pb-6">
-                                <div className="relative w-20 h-20 rounded-full overflow-hidden bg-muted border-2 border-border shadow-lg shrink-0">
+                            <div className="flex flex-col items-center px-6 pb-3">
+                                <div className="relative w-16 h-16 rounded-full overflow-hidden bg-muted border-2 border-border shadow-lg shrink-0">
                                     {user?.avatar ? (
                                         <Image src={user.avatar} fill className="object-cover" alt="Avatar" unoptimized />
                                     ) : (
@@ -289,38 +337,37 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
                                     )}
                                 </div>
 
-                                <div className="mt-3 text-center">
+                                <div className="mt-2 text-center">
                                     {isLoading ? (
                                         <>
-                                            <div className="h-5 w-32 bg-muted rounded-full animate-pulse mx-auto" />
-                                            <div className="h-3 w-24 bg-muted/60 rounded-full animate-pulse mx-auto mt-2" />
+                                            <div className="h-4 w-28 bg-muted rounded-full animate-pulse mx-auto" />
+                                            <div className="h-3 w-20 bg-muted/60 rounded-full animate-pulse mx-auto mt-1.5" />
                                         </>
                                     ) : (
                                         <>
-                                            <div className="flex items-center justify-center gap-1.5">
-                                                <span className="text-lg font-black text-foreground">
+                                            <div className="flex items-center justify-center gap-1">
+                                                <span className="text-sm font-black text-foreground">
                                                     {user?.fullName || t("akwaba.sidebar.my_account")}
                                                 </span>
-                                                <Icon icon="solar:arrow-right-bold-duotone" className="w-4 h-4 text-primary" />
+                                                <Icon icon="solar:arrow-right-bold-duotone" className="w-3.5 h-3.5 text-primary" />
                                             </div>
-                                            <p className="text-sm text-muted-foreground mt-0.5">
+                                            <p className="text-xs text-muted-foreground">
                                                 {user?.indicatif ? `+${user.indicatif} ` : ''}{user?.phone || roleLabel}
                                             </p>
                                         </>
                                     )}
                                 </div>
 
-                                {/* Gains si disponibles */}
                                 {user?.totalGain !== undefined && (
-                                    <div className="mt-4 bg-primary/10 px-5 py-2.5 rounded-2xl text-center border border-primary/20">
-                                        <p className="text-primary font-black text-base">{user.totalGain.toLocaleString()} FCFA</p>
-                                        <p className="text-[10px] text-primary/70 uppercase font-bold">{t("akwaba.sidebar.total_gains")}</p>
+                                    <div className="mt-2.5 bg-primary/10 px-4 py-1.5 rounded-xl text-center border border-primary/20">
+                                        <p className="text-primary font-black text-sm">{user.totalGain.toLocaleString()} FCFA</p>
+                                        <p className="text-[9px] text-primary/70 uppercase font-bold">{t("akwaba.sidebar.total_gains")}</p>
                                     </div>
                                 )}
                             </div>
 
                             {/* ── Menu groupé ── */}
-                            <div className="flex-1 px-4 pb-8 space-y-4">
+                            <div className="flex-1 px-4 pb-4 space-y-2">
                                 {isLoading ? (
                                     <MenuSkeleton count={skeletonCount} />
                                 ) : (

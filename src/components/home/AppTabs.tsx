@@ -85,7 +85,8 @@ export default function AppTabs() {
     }, [active])
 
     return (
-        <div className="flex flex-col items-center w-full px-0 sm:px-4 py-2 sm:py-4">
+        <div className="relative flex flex-col items-center w-full px-0 sm:px-4 py-2 sm:py-4">
+
 
             {/* TABS RESPONSIVE AVEC SCROLL + CENTRÉ */}
             <div ref={scrollContainerRef} className="w-full overflow-x-auto scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -116,7 +117,6 @@ export default function AppTabs() {
                     })}
                 </div>
             </div>
-
 
             {/* INDICATEURS DE SCROLL (optionnel) */}
             <div className="flex sm:hidden items-center justify-center gap-1 mt-2">

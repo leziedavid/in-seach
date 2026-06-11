@@ -160,7 +160,8 @@
             "settings": "Settings",
             "location_logs": "Location logs",
             "system_logs": "System Logs",
-            "logout": "Logout"
+            "logout": "Logout",
+            "lives": "Lives"
         },
         "dashboard": {
             "welcome": "Welcome to AdminHub",
@@ -563,6 +564,46 @@
         "sidebar": {
             "expand": "Expand menu",
             "collapse": "Collapse menu"
+        },
+        "lives": {
+            "title": "Lives Management",
+            "subtitle": "Moderate and manage short videos published by users.",
+            "view_feed": "View feed",
+            "view_video": "View video",
+            "actions": "Actions",
+            "search_placeholder": "Search by title or author...",
+            "success_update": "Live updated successfully.",
+            "success_delete": "Live deleted successfully.",
+            "confirm_delete": "Permanently delete this Live?",
+            "error_load": "Error loading Lives.",
+            "filter": {
+                "all": "All statuses",
+                "published": "Published",
+                "pending": "Pending",
+                "rejected": "Rejected",
+                "suspended": "Suspended",
+                "draft": "Drafts"
+            },
+            "stats": {
+                "total": "Total",
+                "published": "Published",
+                "pending": "Pending",
+                "rejected": "Rejected"
+            },
+            "col": {
+                "video": "Video",
+                "author": "Author",
+                "entity": "Entity",
+                "stats": "Stats",
+                "status": "Status"
+            },
+            "status": {
+                "draft": "Draft",
+                "pending": "Pending",
+                "published": "Published",
+                "rejected": "Rejected",
+                "suspended": "Suspended"
+            }
         }
     },
     "auth": {
@@ -669,7 +710,8 @@
                 "chauffeur": "Driver",
                 "livreur": "EasyDelivery Deliverer",
                 "client": "Client"
-            }
+            },
+            "my_lives": "My Lives"
         },
         "overview": {
             "title": "Dashboard",
@@ -1043,10 +1085,6 @@
             "secure_share": "Secure share",
             "copy": "Copy",
             "is_copied": "Copied"
-        },
-        "view_toggle": {
-            "grid": "Grid",
-            "list": "List"
         },
         "seed": {
             "title": "Dynamic Seed Management",

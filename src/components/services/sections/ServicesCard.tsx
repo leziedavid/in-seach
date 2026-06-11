@@ -16,6 +16,9 @@ import { deleteService as apiDeleteService } from "@/api/api"
 import { SectionHeader } from "@/components/shared/SectionHeader"
 import { useTranslation } from "@/utils/langue/hooks"
 import CreateButton from "@/components/ui/CreateButton"
+import LiveFormModal from "@/components/lives/LiveFormModal"
+import LiveButtonInline from "@/components/lives/LiveButtonInline"
+import { LiveEntityType } from "@/types/interface"
 
 /* =====================================================
    PAGE
@@ -49,6 +52,10 @@ export default function ServicesCard({ data: propData, page: propPage, limit: pr
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
     const [serviceToDelete, setServiceToDelete] = useState<Service | null>(null)
     const [isDeleting, setIsDeleting] = useState(false)
+
+    // Live Modal State
+    const [isLiveModalOpen, setIsLiveModalOpen] = useState(false)
+    const [liveService, setLiveService] = useState<Service | null>(null)
 
     const loading = propLoading ?? internalLoading;
     const listes = propData ?? internalListes;
@@ -239,27 +246,46 @@ export default function ServicesCard({ data: propData, page: propPage, limit: pr
 
                 {/* CARD GRID */}
 
+
+
                 {/* Action Bar */}
-                <div className="flex flex-col md:flex-row items-center justify-between gap-4 w-full max-w-4xl mb-6">
-                    <div className="flex items-center w-full md:max-w-md bg-card border border-border rounded-xl px-4 py-2.5 shadow-sm focus-within:border-primary transition-all">
-                        <Icon icon="solar:magnifer-bold-duotone" className="w-5 h-5 text-muted-foreground mr-3 flex-shrink-0" />
-                        <input type="text" placeholder={t("akwaba.services.search_placeholder")} className="flex-1 bg-transparent text-foreground outline-none text-sm placeholder:text-muted-foreground" />
+                <div className="flex flex-col items-center w-full max-w-7xl mx-auto px-4 py-2">
+                    <div className="flex flex-col md:flex-row items-center justify-between gap-4 w-full max-w-4xl mb-6">
+
+                        {/* Zone recherche - cachée en mobile */}
+                        <div className="hidden md:flex flex-col gap-1 flex-1">
+                        </div>
+
+                        {/* Boutons */}
+                        <div className="flex flex-col md:flex-row w-full md:w-auto gap-2 md:gap-4">
+
+                            <div className="w-full md:min-w-[240px]">
+                                <CreateButton
+                                    label={t("akwaba.services.publish_button")}
+                                    loading={checkLoading}
+                                    onClick={async () => {
+                                        const canCreate = await checkEligibility('Service');
+                                        if (canCreate) {
+                                            setIsOpen(true);
+                                            setIsEditing(false);
+                                            setSelectedService(null);
+                                        }
+                                    }}
+                                />
+                            </div>
+
+                            <div className="w-full md:min-w-[200px]">
+                                <CreateButton
+                                    label="Créer un Live"
+                                    icon="solar:play-circle-bold-duotone"
+                                    onClick={() => { setLiveService(null); setIsLiveModalOpen(true); }}
+                                />
+                            </div>
+                        </div>
+
                     </div>
-
-
-                    <CreateButton
-                        label={t("akwaba.services.publish_button")}
-                        loading={checkLoading}
-                        onClick={async () => {
-                            const canCreate = await checkEligibility('Service');
-                            if (canCreate) {
-                                setIsOpen(true);
-                                setIsEditing(false);
-                                setSelectedService(null);
-                            }
-                        }}
-                    />
                 </div>
+
 
                 <SectionHeader
                     title={t("akwaba.services.boost_title")}
@@ -267,6 +293,10 @@ export default function ServicesCard({ data: propData, page: propPage, limit: pr
                     className="mb-8"
                 />
 
+                <div className="flex items-center w-full  bg-card border border-border rounded-xl px-4 py-2.5 shadow-sm focus-within:border-primary transition-all">
+                    <Icon icon="solar:magnifer-bold-duotone" className="w-5 h-5 text-muted-foreground mr-3 flex-shrink-0" />
+                    <input type="text" placeholder={t("akwaba.services.search_placeholder")} className="flex-1 bg-transparent text-foreground outline-none text-sm placeholder:text-muted-foreground" />
+                </div>
 
                 {!loading && listes.length === 0 && <div className="text-center py-10 text-muted-foreground/60">{t("akwaba.services.no_services")}</div>}
 
@@ -279,16 +309,21 @@ export default function ServicesCard({ data: propData, page: propPage, limit: pr
                                 <div className="grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-6">
                                     {paginatedData.map((service: Service) => (
                                         <div key={service.id} className="group rounded-lg p-0 md:p-4 flex flex-col md:items-center text-left md:text-center transition-all w-full">
-                                            {/* Image - Pleine largeur sans padding */}
+                                            {/* Image */}
                                             <div className="relative w-full aspect-square mb-1.5 overflow-hidden rounded-lg md:rounded-2xl">
                                                 <Image src={(service.images?.[0] && service.images?.[0] !== "") ? service.images[0] : (service.imageUrls?.[0] && service.imageUrls?.[0] !== "") ? service.imageUrls[0] : 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop'} alt={service.title} fill
                                                     unoptimized className="object-cover group-hover:scale-110 transition-transform duration-500" />
                                                 <div className="absolute top-2 left-2 bg-background/80 backdrop-blur-sm px-2 py-0.5 rounded-full text-[9px] font-black text-foreground shadow-sm uppercase">
                                                     {service.category?.label || 'Expert'}
                                                 </div>
+                                                {/* Badge LIVE flottant — style TikTok */}
+                                                <LiveButtonInline
+                                                    onClick={e => { e.stopPropagation(); setLiveService(service); setIsLiveModalOpen(true); }}
+                                                    title="Créer un Live pour ce service"
+                                                />
                                             </div>
 
-                                            {/* Contenu - Padding minimal */}
+                                            {/* Contenu */}
                                             <div className="px-0.5 pb-0 md:px-0 md:pb-0 w-full">
                                                 <h3 className="text-xs md:text-base font-black text-foreground mb-1 line-clamp-2 md:line-clamp-1 group-hover:text-primary transition-colors w-full text-left leading-tight">
                                                     {service.title}
@@ -311,29 +346,17 @@ export default function ServicesCard({ data: propData, page: propPage, limit: pr
                                                 </div>
 
 
-                                                <div className="w-full flex items-center justify-between mt-auto">
-
-
-                                                    <div className="flex items-center justify-center w-full mt-3 gap-3">
-                                                        {/* SWITCH */}
-                                                        <Switch checked={service.status === "AVAILABLE"} onCheckedChange={(value) => handleToggleActiv(service, value)} />
-
-                                                        {/* ACTION ICONS */}
-                                                        <div className="flex items-center gap-2">
-                                                            <button onClick={() => handleAction("edit", service)} className="p-2 rounded-lg hover:bg-muted transition"  >
-                                                                <Icon icon="solar:pen-new-square-bold-duotone" width={18} height={18} />
-                                                            </button>
-
-                                                            <button onClick={() => handleAction("duplicate", service)} className="p-2 rounded-lg hover:bg-muted transition"  >
-                                                                <Icon icon="solar:copy-bold-duotone" width={18} height={18} />
-                                                            </button>
-
-                                                            <button onClick={() => handleAction("delete", service)} className="p-2 rounded-lg hover:bg-destructive/10 text-destructive transition"  >
-                                                                <Icon icon="solar:trash-bin-trash-bold-duotone" width={18} height={18} />
-                                                            </button>
-                                                        </div>
-                                                    </div>
-
+                                                <div className="flex items-center justify-center w-full mt-2 gap-1.5">
+                                                    <Switch checked={service.status === "AVAILABLE"} onCheckedChange={(value) => handleToggleActiv(service, value)} />
+                                                    <button onClick={() => handleAction("edit", service)} className="p-1.5 rounded-lg hover:bg-muted transition">
+                                                        <Icon icon="solar:pen-new-square-bold-duotone" className="w-4 h-4" />
+                                                    </button>
+                                                    <button onClick={() => handleAction("duplicate", service)} className="p-1.5 rounded-lg hover:bg-muted transition">
+                                                        <Icon icon="solar:copy-bold-duotone" className="w-4 h-4" />
+                                                    </button>
+                                                    <button onClick={() => handleAction("delete", service)} className="p-1.5 rounded-lg hover:bg-destructive/10 text-destructive transition">
+                                                        <Icon icon="solar:trash-bin-trash-bold-duotone" className="w-4 h-4" />
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
@@ -374,6 +397,17 @@ export default function ServicesCard({ data: propData, page: propPage, limit: pr
                 }}
                 onConfirm={handleDeleteConfirm}
                 isDeleting={isDeleting}
+            />
+
+            {/* LIVE FORM MODAL */}
+            <LiveFormModal
+                isOpen={isLiveModalOpen}
+                onClose={() => { setIsLiveModalOpen(false); setLiveService(null); }}
+                onSuccess={() => { setIsLiveModalOpen(false); setLiveService(null); }}
+                defaultEntityType={LiveEntityType.SERVICE}
+                defaultEntityId={liveService?.id}
+                lockedEntity={!!liveService}
+                entityLabel={liveService?.title}
             />
         </>
     )

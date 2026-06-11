@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import LogisticsServiceDetailModal from "@/components/logistics/modals/LogisticsServiceDetailModal";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { ViewMode } from "@/components/shared/ViewToggle";
+import LiveButtonInline from "@/components/lives/LiveButtonInline";
 
 interface LogisticsServicesCardProps {
     service: LogisticService;
@@ -16,6 +17,7 @@ interface LogisticsServicesCardProps {
     onDelete?: (id: string) => void;
     onToggleStatus?: (id: string, value: boolean) => void;
     onRequestQuote?: (service: LogisticService) => void;
+    onCreateLive?: (service: LogisticService) => void;
     isUpdating?: boolean;
     viewMode?: ViewMode;
 }
@@ -29,7 +31,7 @@ const TRANSPORT_TYPE_LABELS: Record<TransportType, { label: string; icon: string
     [TransportType.DOUANE]: { label: "Douane", icon: "solar:shield-user-bold-duotone", color: "text-indigo-600 bg-indigo-50 dark:bg-indigo-500/10" },
 };
 
-export default function LogisticsServicesCard({ service, isOwner = false, onEdit, onDelete, onToggleStatus, onRequestQuote, isUpdating = false, viewMode = "grid" }: LogisticsServicesCardProps) {
+export default function LogisticsServicesCard({ service, isOwner = false, onEdit, onDelete, onToggleStatus, onRequestQuote, onCreateLive, isUpdating = false, viewMode = "grid" }: LogisticsServicesCardProps) {
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
     const transportInfo = TRANSPORT_TYPE_LABELS[service.transportType] || TRANSPORT_TYPE_LABELS[TransportType.MARITIME];
     const { withAuth } = useRequireAuth();
@@ -71,6 +73,13 @@ export default function LogisticsServicesCard({ service, isOwner = false, onEdit
                         <Icon icon={transportInfo.icon} className="w-2 h-2 md:w-3 md:h-3" />
                         {transportInfo.label}
                     </div>
+                    {/* Badge LIVE flottant — style TikTok */}
+                    {isOwner && onCreateLive && (
+                        <LiveButtonInline
+                            onClick={e => { e.stopPropagation(); onCreateLive(service); }}
+                            title="Créer un Live pour ce service"
+                        />
+                    )}
                 </div>
 
                 {/* Content Section */}
@@ -94,16 +103,14 @@ export default function LogisticsServicesCard({ service, isOwner = false, onEdit
                     </div>
 
                     {isOwner ? (
-                        <div className={`flex items-center w-full gap-3 ${viewMode === 'grid' ? "justify-center" : "justify-end mt-auto"}`}>
+                        <div className={`flex items-center w-full gap-1.5 ${viewMode === 'grid' ? "justify-center" : "justify-end mt-auto"}`}>
                             <Switch checked={service.isActive} onCheckedChange={(val) => onToggleStatus?.(service.id, val)} disabled={isUpdating} onClick={(e) => e.stopPropagation()} />
-                            <div className="flex items-center gap-2">
-                                <button onClick={handleEdit} className="p-2 rounded-lg hover:bg-muted transition" title="Modifier" >
-                                    <Icon icon="solar:pen-new-square-bold-duotone" width={18} height={18} />
-                                </button>
-                                <button onClick={handleDelete} className="p-2 rounded-lg hover:bg-destructive/10 text-destructive transition" title="Supprimer">
-                                    <Icon icon="solar:trash-bin-trash-bold-duotone" width={18} height={18} />
-                                </button>
-                            </div>
+                            <button onClick={handleEdit} className="p-1.5 rounded-lg hover:bg-muted transition" title="Modifier">
+                                <Icon icon="solar:pen-new-square-bold-duotone" className="w-4 h-4" />
+                            </button>
+                            <button onClick={handleDelete} className="p-1.5 rounded-lg hover:bg-destructive/10 text-destructive transition" title="Supprimer">
+                                <Icon icon="solar:trash-bin-trash-bold-duotone" className="w-4 h-4" />
+                            </button>
                         </div>
                     ) : (
                         <div className={`flex w-full ${viewMode === 'grid' ? "justify-center" : "justify-end mt-auto"}`}>

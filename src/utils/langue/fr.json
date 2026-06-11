@@ -160,7 +160,8 @@
             "settings": "Paramètres",
             "location_logs": "Logs location",
             "system_logs": "Logs Système",
-            "logout": "Quitter l'admin"
+            "logout": "Quitter l'admin",
+            "lives": "Lives"
         },
         "dashboard": {
             "welcome": "Bienvenue sur AdminHub",
@@ -563,6 +564,46 @@
         "sidebar": {
             "expand": "Déplier le menu",
             "collapse": "Réduire le menu"
+        },
+        "lives": {
+            "title": "Gestion des Lives",
+            "subtitle": "Modérez et gérez les vidéos courtes publiées par les utilisateurs.",
+            "view_feed": "Voir le feed",
+            "view_video": "Voir la vidéo",
+            "actions": "Actions",
+            "search_placeholder": "Rechercher par titre ou auteur...",
+            "success_update": "Live mis à jour avec succès.",
+            "success_delete": "Live supprimé avec succès.",
+            "confirm_delete": "Supprimer ce Live définitivement ?",
+            "error_load": "Erreur lors du chargement des Lives.",
+            "filter": {
+                "all": "Tous les statuts",
+                "published": "Publiés",
+                "pending": "En attente",
+                "rejected": "Refusés",
+                "suspended": "Suspendus",
+                "draft": "Brouillons"
+            },
+            "stats": {
+                "total": "Total",
+                "published": "Publiés",
+                "pending": "En attente",
+                "rejected": "Refusés"
+            },
+            "col": {
+                "video": "Vidéo",
+                "author": "Auteur",
+                "entity": "Entité",
+                "stats": "Statistiques",
+                "status": "Statut"
+            },
+            "status": {
+                "draft": "Brouillon",
+                "pending": "En attente",
+                "published": "Publié",
+                "rejected": "Refusé",
+                "suspended": "Suspendu"
+            }
         }
     },
     "auth": {
@@ -669,7 +710,8 @@
                 "chauffeur": "Chauffeur",
                 "livreur": "Livreur EasyDelivery",
                 "client": "Client"
-            }
+            },
+            "my_lives": "Mes Lives"
         },
         "overview": {
             "title": "Tableau de bord",
@@ -1043,10 +1085,6 @@
             "secure_share": "Partage sécurisé",
             "copy": "Copier",
             "is_copied": "Copié"
-        },
-        "view_toggle": {
-            "grid": "Grille",
-            "list": "Liste"
         },
         "seed": {
             "title": "Gestion du Seed Dynamique",

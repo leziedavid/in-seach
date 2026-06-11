@@ -19,6 +19,8 @@ import dynamic from "next/dynamic";
 import Image from "next/image"
 import ViewToggle, { ViewMode } from "@/components/shared/ViewToggle";
 import CategoryFilter from "@/components/ui/CategoryFilter"
+import LiveFormModal from "@/components/lives/LiveFormModal";
+import { LiveEntityType } from "@/types/interface";
 
 // Lazy-load des composants lourds non nécessaires au premier rendu
 const FormsLogistics = dynamic(() => import("@/components/logistics/forms/FormsLogistics"), { ssr: false });
@@ -58,6 +60,8 @@ export default function LogisticsServicesList({ mode = "marketplace", companyNam
     const { checkEligibility, loading: checkLoading } = useSubscriptionCheck()
     const [providerInfo, setProviderInfo] = useState<LogisticProvider | null>(null)
     const [copied, setCopied] = useState(false);
+    const [isLiveModalOpen, setIsLiveModalOpen] = useState(false)
+    const [liveLogisticService, setLiveLogisticService] = useState<LogisticService | null>(null)
 
     const openEditModal = (service: LogisticService) => {
         setEditingService(service);
@@ -282,10 +286,17 @@ export default function LogisticsServicesList({ mode = "marketplace", companyNam
                                 subtitle="Gérez vos offres de transport et de logistique publiées sur la plateforme."
                                 className="!text-left"
                             />
-                            <CreateButton
-                                label="Publier un service"
-                                onClick={() => openCreateModal()}
-                            />
+                            <div className="flex flex-col gap-2">
+                                <CreateButton
+                                    label="Publier un service"
+                                    onClick={() => openCreateModal()}
+                                />
+                                <CreateButton
+                                    label="Créer un Live"
+                                    icon="solar:play-circle-bold-duotone"
+                                    onClick={() => { setLiveLogisticService(null); setIsLiveModalOpen(true); }}
+                                />
+                            </div>
                         </div>
                     </div>
 
@@ -372,6 +383,7 @@ export default function LogisticsServicesList({ mode = "marketplace", companyNam
                                 isOwner={isManagement}
                                 onEdit={() => openEditModal(service)}
                                 onDelete={handleDelete}
+                                onCreateLive={(s) => { setLiveLogisticService(s); setIsLiveModalOpen(true); }}
                                 onToggleStatus={handleToggle}
                                 onRequestQuote={onRequestQuote}
                                 isUpdating={updatingId === service.id}
@@ -432,6 +444,17 @@ export default function LogisticsServicesList({ mode = "marketplace", companyNam
                 isOpen={isVoiceModalOpen}
                 onClose={() => setIsVoiceModalOpen(false)}
                 onResult={handleVoiceResult}
+            />
+
+            {/* LIVE FORM MODAL */}
+            <LiveFormModal
+                isOpen={isLiveModalOpen}
+                onClose={() => { setIsLiveModalOpen(false); setLiveLogisticService(null); }}
+                onSuccess={() => { setIsLiveModalOpen(false); setLiveLogisticService(null); }}
+                defaultEntityType={LiveEntityType.SERVICE_LOGISTIQUE}
+                defaultEntityId={liveLogisticService?.id}
+                lockedEntity={!!liveLogisticService}
+                entityLabel={liveLogisticService?.label}
             />
         </div>
     );

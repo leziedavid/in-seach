@@ -239,6 +239,36 @@
     animation: spin-slow 30s linear infinite;
   }
 
+  /* FAB Live — lévitation verticale douce */
+  @keyframes live-fab-float {
+    0%   { transform: translateY(0px) scale(1); }
+    25%  { transform: translateY(-6px) scale(1.03); }
+    50%  { transform: translateY(-10px) scale(1.05); }
+    75%  { transform: translateY(-6px) scale(1.03); }
+    100% { transform: translateY(0px) scale(1); }
+  }
+
+  /* Ping lent pour le halo du bouton Live */
+  @keyframes ping-slow {
+    0%   { transform: scale(1);   opacity: 0.6; }
+    80%  { transform: scale(2.2); opacity: 0; }
+    100% { transform: scale(2.2); opacity: 0; }
+  }
+  .animate-ping-slow {
+    animation: ping-slow 2.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+
+  /* Indicateur son — apparaît puis disparaît */
+  @keyframes fade-in-out {
+    0%   { opacity: 0; transform: translateY(-4px); }
+    15%  { opacity: 1; transform: translateY(0); }
+    75%  { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-4px); }
+  }
+  .animate-fade-in-out {
+    animation: fade-in-out 3s ease forwards;
+  }
+
   .tracking-tightest {
     letter-spacing: -0.05em;
   }

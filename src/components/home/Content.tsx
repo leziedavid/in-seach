@@ -1,26 +1,32 @@
 "use client";
 
-import AfricaGlobeWithLocation from "../common/AfricaGlobeWithLocation";
 import AppTabs from "./AppTabs";
 import HomeSlider from "./HomeSlider";
+import LiveEntryButton from "./LiveEntryButton";
+import LiveFAB from "./LiveFAB";
 
 export default function Content() {
     return (
         <div className="flex flex-col items-center w-full relative">
-            {/* Mobile Native App Header Background - Solid Secondary Color */}
-            {/* <div className="md:hidden absolute top-0 left-0 w-full h-[233px] bg-primary/50 rounded-b-[20px] -z-10" /> */}
 
-            {/* Simulated Status Bar Space & Logo Area */}
+            {/* Slider */}
             <div className="flex w-full justify-center pt-5 md:pt-5 px-4 z-10">
                 <div className="w-full max-w-xl">
                     <HomeSlider />
                 </div>
             </div>
-            {/* <AfricaGlobeWithLocation /> */}
 
-            <div className="md:px-10 w-full mb-10 md:mb-0 z-10 mt-4 md:mt-4">
+            {/* Live — section séparée, au-dessus de AppTabs, alignée à droite */}
+            <div className="w-full flex justify-end px-2 sm:px-4 md:px-10 z-10 mt-3" style={{ animation: "live-fab-float 3s ease-in-out infinite" }}>
+                {/* <LiveFAB inline /> */}
+                <LiveEntryButton />
+            </div>
+
+            {/* Tabs */}
+            <div className="md:px-10 w-full mb-10 md:mb-0 z-10 ">
                 <AppTabs />
             </div>
+
         </div>
     );
 }

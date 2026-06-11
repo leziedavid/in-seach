@@ -59,6 +59,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             color: 'text-rose-500'
         },
         {
+            label: t("admin.menu.lives"),
+            icon: 'solar:play-circle-bold-duotone',
+            href: '/admin/lives',
+            color: 'text-red-500'
+        },
+        {
             label: t("admin.menu.sliders"),
             icon: 'solar:gallery-bold-duotone',
             href: '/admin/sliders',

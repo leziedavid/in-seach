@@ -17,6 +17,9 @@ import { SectionHeader } from "@/components/shared/SectionHeader"
 import ViewToggle, { ViewMode } from "@/components/shared/ViewToggle"
 import { useTranslation } from "@/utils/langue/hooks"
 import CreateButton from "@/components/ui/CreateButton"
+import LiveFormModal from "@/components/lives/LiveFormModal"
+import LiveButtonInline from "@/components/lives/LiveButtonInline"
+import { LiveEntityType } from "@/types/interface"
 
 interface AnnoncesCardProps {
     data?: Annonce[];
@@ -55,6 +58,8 @@ export default function AnnoncesCard({
     const [annonceToDelete, setAnnonceToDelete] = useState<Annonce | null>(null)
     const [isDeleting, setIsDeleting] = useState(false)
     const [viewMode, setViewMode] = useState<ViewMode>("grid")
+    const [isLiveModalOpen, setIsLiveModalOpen] = useState(false)
+    const [liveAnnonce, setLiveAnnonce] = useState<Annonce | null>(null)
 
     const loading = propLoading ?? internalLoading;
     const listes = propData ?? internalListes;
@@ -206,21 +211,40 @@ export default function AnnoncesCard({
         <>
             <div className="flex flex-col w-full px-0">
 
+
                 {/* Action Bar */}
-                <div className="flex flex-col md:flex-row items-center justify-between gap-4 w-full max-w-4xl mb-6">
-                    <div className="flex items-center w-full"></div>
-                    <CreateButton
-                        label={t("akwaba.annonces.publish_button")}
-                        loading={checkLoading}
-                        onClick={async () => {
-                            const canCreate = await checkEligibility('Annonce');
-                            if (canCreate) {
-                                setIsOpen(true);
-                                setIsEditing(false);
-                                setSelectedAnnonce(null);
-                            }
-                        }}
-                    />
+                <div className="flex flex-col items-center w-full max-w-7xl mx-auto px-4 py-2">
+                    <div className="flex flex-col md:flex-row items-center justify-between gap-4 w-full max-w-4xl mb-6">
+                        {/* Zone recherche - cachée en mobile */}
+                        <div className="hidden md:flex flex-col gap-1 flex-1"> </div>
+                        {/* Boutons */}
+                        <div className="flex flex-col md:flex-row w-full md:w-auto gap-2 md:gap-4">
+
+                            <div className="w-full md:min-w-[240px]">
+                                <CreateButton
+                                    label={t("akwaba.annonces.publish_button")}
+                                    loading={checkLoading}
+                                    onClick={async () => {
+                                        const canCreate = await checkEligibility('Annonce');
+                                        if (canCreate) {
+                                            setIsOpen(true);
+                                            setIsEditing(false);
+                                            setSelectedAnnonce(null);
+                                        }
+                                    }}
+                                />
+                            </div>
+
+                            <div className="w-full md:min-w-[200px]">
+                                <CreateButton
+                                    label="Créer un Live"
+                                    icon="solar:play-circle-bold-duotone"
+                                    onClick={() => { setLiveAnnonce(null); setIsLiveModalOpen(true); }}
+                                />
+                            </div>
+                        </div>
+
+                    </div>
                 </div>
 
                 <SectionHeader
@@ -254,6 +278,11 @@ export default function AnnoncesCard({
                                             <div className={`absolute bg-background/80 backdrop-blur-sm px-2 py-0.5 rounded-full text-[9px] font-black text-foreground shadow-sm uppercase ${viewMode === 'grid' ? "top-2 left-2" : "top-1 left-1"}`}>
                                                 {annonce.categorie?.label || 'Annonce'}
                                             </div>
+                                            {/* Badge LIVE flottant — style TikTok */}
+                                            <LiveButtonInline
+                                                onClick={e => { e.stopPropagation(); setLiveAnnonce(annonce); setIsLiveModalOpen(true); }}
+                                                title="Créer un Live pour cette annonce"
+                                            />
                                         </div>
 
                                         <div className={`flex flex-col flex-1 min-w-0 ${viewMode === 'grid' ? "px-0.5 w-full" : "h-full justify-center"}`}>
@@ -272,19 +301,17 @@ export default function AnnoncesCard({
                                                 </p>
                                             </div>
 
-                                            <div className={`flex items-center w-full gap-3 ${viewMode === 'grid' ? "justify-center" : "justify-end mt-auto"}`}>
+                                            <div className={`flex items-center w-full gap-1.5 ${viewMode === 'grid' ? "justify-center" : "justify-end mt-auto"}`}>
                                                 <Switch checked={annonce.status === "ACTIVE"} onCheckedChange={(value) => handleToggleActiv(annonce, value)} />
-                                                <div className="flex items-center gap-2">
-                                                    <button onClick={() => handleAction("edit", annonce)} className="p-2 rounded-lg hover:bg-muted transition">
-                                                        <Icon icon="solar:pen-new-square-bold-duotone" width={18} height={18} />
-                                                    </button>
-                                                    <button onClick={() => handleAction("duplicate", annonce)} className="p-2 rounded-lg hover:bg-muted transition">
-                                                        <Icon icon="solar:copy-bold-duotone" width={18} height={18} />
-                                                    </button>
-                                                    <button onClick={() => handleAction("delete", annonce)} className="p-2 rounded-lg hover:bg-destructive/10 text-destructive transition">
-                                                        <Icon icon="solar:trash-bin-trash-bold-duotone" width={18} height={18} />
-                                                    </button>
-                                                </div>
+                                                <button onClick={() => handleAction("edit", annonce)} className="p-1.5 rounded-lg hover:bg-muted transition">
+                                                    <Icon icon="solar:pen-new-square-bold-duotone" className="w-4 h-4" />
+                                                </button>
+                                                <button onClick={() => handleAction("duplicate", annonce)} className="p-1.5 rounded-lg hover:bg-muted transition">
+                                                    <Icon icon="solar:copy-bold-duotone" className="w-4 h-4" />
+                                                </button>
+                                                <button onClick={() => handleAction("delete", annonce)} className="p-1.5 rounded-lg hover:bg-destructive/10 text-destructive transition">
+                                                    <Icon icon="solar:trash-bin-trash-bold-duotone" className="w-4 h-4" />
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -321,6 +348,17 @@ export default function AnnoncesCard({
                 }}
                 onConfirm={handleDeleteConfirm}
                 isDeleting={isDeleting}
+            />
+
+            {/* LIVE FORM MODAL */}
+            <LiveFormModal
+                isOpen={isLiveModalOpen}
+                onClose={() => { setIsLiveModalOpen(false); setLiveAnnonce(null); }}
+                onSuccess={() => { setIsLiveModalOpen(false); setLiveAnnonce(null); }}
+                defaultEntityType={LiveEntityType.ANNONCE}
+                defaultEntityId={liveAnnonce?.id}
+                lockedEntity={!!liveAnnonce}
+                entityLabel={liveAnnonce?.title}
             />
         </>
     )

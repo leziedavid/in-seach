@@ -179,6 +179,9 @@ export const logout = () => {
     // 4. Supprimer le cookie de session
     deleteCookie('token');
 
+    // Réinitialiser les préférences de session (ex: LiveEntryButton masqué)
+    sessionStorage.removeItem('live-entry-hidden');
+
     // 5. Notifier les composants de la déconnexion via un événement
     window.dispatchEvent(new Event('auth-logout'));
 

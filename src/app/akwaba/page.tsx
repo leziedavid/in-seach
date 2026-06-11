@@ -29,6 +29,7 @@ import QuoteRequestModal from '@/components/logistics/modals/QuoteRequestModal';
 import ApiDocumentation from '@/components/profile/ApiDocumentation';
 import { Modal } from '@/components/ui/MotionModal';
 import Overview from '@/components/profile/Overview';
+import MyLivesList from '@/components/lives/MyLivesList';
 
 
 import { useTranslation } from '@/utils/langue/hooks';
@@ -244,6 +245,8 @@ export default function Page() {
                 return <AccountSettings />;
             case 'Documentation-API':
                 return <ApiDocumentation />;
+            case 'Mes-lives':
+                return <MyLivesList />;
             case 'Livreur-dashboard':
                 return <EasyDeliveryPage />;
             default:

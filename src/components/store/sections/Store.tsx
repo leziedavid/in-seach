@@ -16,6 +16,8 @@ import { SectionHeader } from "@/components/shared/SectionHeader"
 
 import InfiniteScroll from "@/components/ui/InfiniteScroll"
 import CreateButton from "@/components/ui/CreateButton"
+import LiveFormModal from "@/components/lives/LiveFormModal"
+import { LiveEntityType } from "@/types/interface"
 
 const ITEMS_PER_PAGE = 10
 
@@ -36,6 +38,11 @@ export default function Store() {
     const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false)
     const { addNotification } = useNotification()
     const { checkEligibility, loading: checkLoading } = useSubscriptionCheck()
+
+    // Live Modal State
+    const [isLiveModalOpen, setIsLiveModalOpen] = useState(false)
+    const [liveEntityId, setLiveEntityId] = useState<string | undefined>(undefined)
+    const [liveEntityLabel, setLiveEntityLabel] = useState<string | undefined>(undefined)
 
     // Store Info State
     const [storeInfo, setStoreInfo] = useState<StoreUserInfo | null>(null)
@@ -177,6 +184,12 @@ export default function Store() {
         }
     }
 
+    const openLiveModal = (product?: Product) => {
+        setLiveEntityId(product?.id)
+        setLiveEntityLabel(product?.name)
+        setIsLiveModalOpen(true)
+    }
+
     const openEditModal = (product: Product) => {
         setIsEditing(true)
         setSelectedProduct(product)
@@ -230,20 +243,34 @@ export default function Store() {
     return (
         <div className="flex flex-col items-center w-full max-w-7xl mx-auto px-4 py-2">
             {/* Action Bar */}
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4 w-full max-w-4xl mb-6">
-                <div className="flex items-center w-full md:max-w-md bg-card border border-border rounded-xl px-4 py-2.5 shadow-sm focus-within:border-primary transition-all">
-                    <Icon icon="solar:magnifer-bold-duotone" className="w-5 h-5 text-muted-foreground mr-3 flex-shrink-0" />
-                    <input type="text" placeholder="Rechercher dans mes produits..." className="flex-1 bg-transparent text-foreground outline-none text-sm placeholder:text-muted-foreground" value={search} onChange={(e) => setSearch(e.target.value)} />
-                    <button type="button" onClick={() => setIsVoiceModalOpen(true)} className="p-1 text-muted-foreground hover:text-primary transition-colors hover:scale-110 active:scale-90" title="Recherche vocale" >
-                        <Icon icon="solar:microphone-bold-duotone" className="w-5 h-5" />
-                    </button>
-                </div>
+            <div className="flex flex-col items-center w-full max-w-7xl mx-auto px-4 py-2">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-4 w-full max-w-4xl mb-6">
 
-                <CreateButton
-                    label="Publier un article"
-                    loading={checkLoading}
-                    onClick={openCreateModal}
-                />
+                    {/* Zone recherche - cachée en mobile */}
+                    <div className="hidden md:flex flex-col gap-1 flex-1">
+                    </div>
+
+                    {/* Boutons */}
+                    <div className="flex flex-col md:flex-row w-full md:w-auto gap-2 md:gap-4">
+
+                        <div className="w-full md:min-w-[240px]">
+                            <CreateButton
+                                label="Publier un article"
+                                loading={checkLoading}
+                                onClick={openCreateModal}
+                            />
+                        </div>
+
+                        <div className="w-full md:min-w-[200px]">
+                            <CreateButton
+                                label="Créer un Live"
+                                icon="solar:play-circle-bold-duotone"
+                                onClick={() => openLiveModal()}
+                            />
+                        </div>
+                    </div>
+
+                </div>
             </div>
 
             <SectionHeader
@@ -253,6 +280,8 @@ export default function Store() {
                 Achetez, vendez ou échangez tous types de produits d'occasion en toute simplicité"
                 className="mb-8"
             />
+
+
 
             {/* Store Information Section */}
             <div className="w-full max-w-4xl mx-auto mb-2 px-0 md:px-4">
@@ -288,6 +317,7 @@ export default function Store() {
 
                     </div>
 
+
                     <div className="flex items-center gap-2">
 
                         <button onClick={() => handleCopy(`${process.env.NEXT_PUBLIC_BASE_URL}/shop/${slugify(storeInfo?.storeName || "")}`)} className="w-8 h-8 md:w-10 md:h-10 rounded-2xl bg-muted flex items-center justify-center hover:bg-primary/20 hover:text-primary transition-all active:scale-90 shrink-0">
@@ -308,6 +338,9 @@ export default function Store() {
                 </div>
             </div>
 
+
+
+
             <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-2">
                 <div className="flex items-center justify-between w-full px-2 md:px-0 mb-6 border-b border-border pb-4">
                     <h3 className="text-lg font-black text-foreground">
@@ -315,6 +348,13 @@ export default function Store() {
                     </h3>
                 </div>
 
+                <div className="flex w-full bg-card border border-border rounded-xl px-4 py-2.5 shadow-sm focus-within:border-primary transition-all">
+                    <Icon icon="solar:magnifer-bold-duotone" className="w-5 h-5 text-muted-foreground mr-3 flex-shrink-0" />
+                    <input type="text" placeholder="Rechercher dans mes produits..." className="flex-1 bg-transparent text-foreground outline-none text-sm placeholder:text-muted-foreground" value={search} onChange={(e) => setSearch(e.target.value)} />
+                    <button type="button" onClick={() => setIsVoiceModalOpen(true)} className="p-1 text-muted-foreground hover:text-primary transition-colors hover:scale-110 active:scale-90" title="Recherche vocale" >
+                        <Icon icon="solar:microphone-bold-duotone" className="w-5 h-5" />
+                    </button>
+                </div>
                 <InfiniteScroll
                     items={products}
                     hasMore={hasMore}
@@ -322,6 +362,7 @@ export default function Store() {
                     loadMore={() => setPage(prev => prev + 1)}
                     skeletonType="product"
                     skeletonCount={3}
+                    gridClassName="grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-6"
                     renderItem={(product) => (
                         <ProductCard
                             key={product.id}
@@ -329,6 +370,7 @@ export default function Store() {
                             onEdit={openEditModal}
                             onDelete={handleDeleteProduct}
                             onStatusChange={handleToggleStatus}
+                            onCreateLive={(p) => openLiveModal(p)}
                             storeNames={storeInfo?.storeName || ""}
                         />
                     )}
@@ -408,6 +450,17 @@ export default function Store() {
                     </div>
                 </div>
             </Modal>
+
+            {/* Live Form Modal */}
+            <LiveFormModal
+                isOpen={isLiveModalOpen}
+                onClose={() => { setIsLiveModalOpen(false); setLiveEntityId(undefined); setLiveEntityLabel(undefined); }}
+                onSuccess={() => { setIsLiveModalOpen(false); setLiveEntityId(undefined); setLiveEntityLabel(undefined); }}
+                defaultEntityType={LiveEntityType.PRODUCT}
+                defaultEntityId={liveEntityId}
+                lockedEntity={!!liveEntityId}
+                entityLabel={liveEntityLabel}
+            />
         </div>
     )
 }

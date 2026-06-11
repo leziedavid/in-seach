@@ -32,7 +32,7 @@ export default function CreateButton({
                         <Icon icon={icon} className="w-5 h-5 text-foreground" />
                     )}
                 </span>
-                <span>{label}</span>
+                <span className="whitespace-nowrap">{label}</span>
             </span>
 
             {/* Right: chevron */}

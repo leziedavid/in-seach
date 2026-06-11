@@ -10,6 +10,7 @@ import { useNotification } from "@/components/notifications/NotificationProvider
 import Delete from "@/components/logistics/modals/Delete"
 import { Switch } from "@/components/ui/switch"
 import { Share } from "@/components/shared/Share"
+import LiveButtonInline from "@/components/lives/LiveButtonInline"
 
 const slugify = (text: string) => {
     return text
@@ -21,11 +22,12 @@ const slugify = (text: string) => {
         .replace(/--+/g, '-');    // Replace multiple - with single -
 }
 
-export default function ProductCard({ product, onEdit, onDelete, onStatusChange, storeNames, viewMode = 'grid' }: {
+export default function ProductCard({ product, onEdit, onDelete, onStatusChange, onCreateLive, storeNames, viewMode = 'grid' }: {
     product: Product;
     onEdit?: (product: Product) => void;
     onDelete?: (id: string) => void;
     onStatusChange?: (product: Product, value: boolean) => void;
+    onCreateLive?: (product: Product) => void;
     storeNames?: string;
     viewMode?: 'grid' | 'list';
 }) {
@@ -92,6 +94,20 @@ export default function ProductCard({ product, onEdit, onDelete, onStatusChange,
                             -{product.discountPercent}%
                         </div>
                     )}
+                    {/* Badge LIVE flottant — visible uniquement en mode gestion */}
+                    {onCreateLive && !product.discountPercent && (
+                        <LiveButtonInline
+                            onClick={e => { e.stopPropagation(); onCreateLive(product); }}
+                            title="Créer un Live pour ce produit"
+                        />
+                    )}
+                    {onCreateLive && product.discountPercent && (
+                        <LiveButtonInline
+                            onClick={e => { e.stopPropagation(); onCreateLive(product); }}
+                            title="Créer un Live pour ce produit"
+                            className="absolute bottom-2 right-2"
+                        />
+                    )}
                 </div>
 
                 {/* Contenu */}
@@ -125,23 +141,21 @@ export default function ProductCard({ product, onEdit, onDelete, onStatusChange,
 
                     {onEdit || onDelete ? (
 
-                        <div className="flex items-center justify-center w-full gap-3">
+                        <div className="flex items-center justify-center w-full gap-1.5 flex-wrap">
                             <Switch checked={product.isActive} onCheckedChange={handleToggle} onClick={(e) => e.stopPropagation()} />
-                            <div className="flex items-center gap-2">
-                                {onEdit && (
-                                    <button onClick={handleEdit} className="p-2 rounded-lg hover:bg-muted transition" title="Modifier" >
-                                        <Icon icon="solar:pen-new-square-bold-duotone" width={18} height={18} />
-                                    </button>
-                                )}
-                                {onDelete && (
-                                    <button onClick={handleDelete} className="p-2 rounded-lg hover:bg-destructive/10 text-destructive transition" title="Supprimer">
-                                        <Icon icon="solar:trash-bin-trash-bold-duotone" width={18} height={18} />
-                                    </button>
-                                )}
-                                <button onClick={handleShare} className="p-2 hover:bg-muted rounded-full text-muted-foreground transition-colors">
-                                    <Icon icon="solar:share-bold-duotone" width={20} />
+                            {onEdit && (
+                                <button onClick={handleEdit} className="p-1.5 rounded-lg hover:bg-muted transition" title="Modifier">
+                                    <Icon icon="solar:pen-new-square-bold-duotone" className="w-4 h-4" />
                                 </button>
-                            </div>
+                            )}
+                            {onDelete && (
+                                <button onClick={handleDelete} className="p-1.5 rounded-lg hover:bg-destructive/10 text-destructive transition" title="Supprimer">
+                                    <Icon icon="solar:trash-bin-trash-bold-duotone" className="w-4 h-4" />
+                                </button>
+                            )}
+                            <button onClick={handleShare} className="p-1.5 hover:bg-muted rounded-lg text-muted-foreground transition-colors">
+                                <Icon icon="solar:share-bold-duotone" className="w-4 h-4" />
+                            </button>
                         </div>
                     ) : (
                         <div className="flex justify-end w-full">
