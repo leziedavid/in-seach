@@ -15,6 +15,7 @@ import { Role } from "@/types/interface";
 import { useRealTimeUpdate } from "@/hooks/useRealTimeUpdate";
 import { SectionHeader } from "@/components/shared/SectionHeader";
 import { useTranslation } from "@/utils/langue/hooks";
+import { useSubscriptionCheck } from "@/hooks/useSubscriptionCheck";
 
 interface BookingsPageProps {
     data?: Booking[];
@@ -64,6 +65,7 @@ export default function BookingsPage({
     const totalPages = propTotalPages ?? (activeTab === 'recues' ? receivedTotalPages : placedTotalPages);
     const total = propTotal ?? (bookings.length > 0 ? totalPages * limit : 0);
     const { showNotification } = useNotification();
+    const { checkFeatureAccess, loading: subscriptionLoading } = useSubscriptionCheck();
 
     // 🔄 SYNCHRONISATION TEMPS RÉEL
     useRealTimeUpdate('Booking', () => {
@@ -96,14 +98,15 @@ export default function BookingsPage({
     }, [page, propData]);
 
     /* ================= STATUS ================= */
-    const handleChangeStatus = async (bookingId: string, newStatus: BookingStatus) => {
+    const handleChangeStatus = async (bookingId: string, newStatus: BookingStatus, requiresSubscription = false) => {
+        // Vérification d'abonnement uniquement pour les actions prestataire (isBookingProvider)
+        if (requiresSubscription) {
+            const canProceed = await checkFeatureAccess();
+            if (!canProceed) return;
+        }
+
         try {
-            let response;
-            if (bookingType === 'ANNONCE') {
-                response = await updateBookingStatus(bookingId, newStatus);
-            } else {
-                response = await updateBookingStatus(bookingId, newStatus);
-            }
+            const response = await updateBookingStatus(bookingId, newStatus);
 
             if (response.statusCode === 200 || response.statusCode === 201) {
                 showNotification(t("akwaba.bookings.success_update"), "success");
@@ -117,7 +120,6 @@ export default function BookingsPage({
         } catch (error: any) {
             showNotification(error.message || "Erreur de connexion", "error");
         }
-
     };
 
     /* ================= COLORS ================= */
@@ -237,23 +239,24 @@ export default function BookingsPage({
                                                 </div>
                                             )}
 
+                                            {/* Provider Actions — subscription check required */}
                                             {isBookingProvider && (
                                                 <div className="flex items-center gap-2">
                                                     {booking.status === BookingStatus.PENDING && (
-                                                        <Button size="sm" className="h-8 px-3 text-[10px] font-black bg-blue-600 hover:bg-blue-700 flex items-center gap-1.5" onClick={() => handleChangeStatus(booking.id, BookingStatus.ACCEPTED)} >
-                                                            <Icon icon="solar:check-circle-bold" className="w-4 h-4" />
+                                                        <Button size="sm" disabled={subscriptionLoading} className="h-8 px-3 text-[10px] font-black bg-blue-600 hover:bg-blue-700 flex items-center gap-1.5" onClick={() => handleChangeStatus(booking.id, BookingStatus.ACCEPTED, true)} >
+                                                            {subscriptionLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:check-circle-bold" className="w-4 h-4" />}
                                                             <span className="hidden sm:inline">{t("akwaba.bookings.actions.accept")}</span>
                                                         </Button>
                                                     )}
                                                     {booking.status === BookingStatus.ACCEPTED && (
-                                                        <Button size="sm" className="h-8 px-3 text-[10px] font-black bg-indigo-600 hover:bg-indigo-700 flex items-center gap-1.5" onClick={() => handleChangeStatus(booking.id, BookingStatus.IN_PROGRESS)} >
-                                                            <Icon icon="solar:play-bold" className="w-4 h-4" />
+                                                        <Button size="sm" disabled={subscriptionLoading} className="h-8 px-3 text-[10px] font-black bg-indigo-600 hover:bg-indigo-700 flex items-center gap-1.5" onClick={() => handleChangeStatus(booking.id, BookingStatus.IN_PROGRESS, true)} >
+                                                            {subscriptionLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:play-bold" className="w-4 h-4" />}
                                                             <span className="hidden sm:inline">{t("akwaba.bookings.actions.start")}</span>
                                                         </Button>
                                                     )}
                                                     {booking.status === BookingStatus.IN_PROGRESS && (
-                                                        <Button size="sm" className="h-8 px-3 text-[10px] font-black bg-green-600 hover:bg-green-700 flex items-center gap-1.5" onClick={() => handleChangeStatus(booking.id, BookingStatus.COMPLETED)} >
-                                                            <Icon icon="solar:check-read-bold" className="w-4 h-4" />
+                                                        <Button size="sm" disabled={subscriptionLoading} className="h-8 px-3 text-[10px] font-black bg-green-600 hover:bg-green-700 flex items-center gap-1.5" onClick={() => handleChangeStatus(booking.id, BookingStatus.COMPLETED, true)} >
+                                                            {subscriptionLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:check-read-bold" className="w-4 h-4" />}
                                                             <span className="hidden sm:inline">{t("akwaba.bookings.actions.finish")}</span>
                                                         </Button>
                                                     )}

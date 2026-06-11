@@ -15,6 +15,7 @@ import { getUserId } from "@/lib/auth";
 import { useRealTimeUpdate } from "@/hooks/useRealTimeUpdate";
 import { SectionHeader } from "@/components/shared/SectionHeader";
 import DriverSelectorModal from "@/components/delivery/modals/DriverSelectorModal";
+import { useSubscriptionCheck } from "@/hooks/useSubscriptionCheck";
 
 interface CommandesProps {
     data?: Order[];
@@ -46,6 +47,7 @@ export default function Commandes({ data: propData, page: propPage, limit: propL
     const [orderForDriver, setOrderForDriver] = useState<Order | null>(null);
     const [userRole, setUserRole] = useState<Role | null>(null);
     const { showNotification } = useNotification();
+    const { checkFeatureAccess, loading: subscriptionLoading } = useSubscriptionCheck();
 
     useEffect(() => {
         setUserRole(getUserRole() as Role);
@@ -56,9 +58,7 @@ export default function Commandes({ data: propData, page: propPage, limit: propL
     const totalPages = propTotalPages ?? (activeTab === 'recues' ? receivedTotalPages : placedTotalPages);
 
     // 🔄 SYNCHRONISATION TEMPS RÉEL
-    useRealTimeUpdate('Order', () => {
-        if (!propData) fetchOrders();
-    });
+    useRealTimeUpdate('Order', () => { if (!propData) fetchOrders(); });
 
     const fetchOrders = async () => {
         if (propData) return;
@@ -85,7 +85,13 @@ export default function Commandes({ data: propData, page: propPage, limit: propL
         }
     }, [page, propData]);
 
-    const handleStatusChange = async (orderId: string, newStatus: string) => {
+    const handleStatusChange = async (orderId: string, newStatus: string, requiresSubscription = false) => {
+        // Vérification d'abonnement uniquement pour les actions vendeur (ownsSomeProducts)
+        if (requiresSubscription) {
+            const canProceed = await checkFeatureAccess();
+            if (!canProceed) return;
+        }
+
         try {
             const response = await updateOrderStatus(orderId, newStatus);
             if (response.statusCode === 200) {
@@ -132,8 +138,8 @@ export default function Commandes({ data: propData, page: propPage, limit: propL
     return (
         <div className="w-full mx-auto py-4">
 
-            <SectionHeader 
-                title="Mes Commandes" 
+            <SectionHeader
+                title="Mes Commandes"
                 subtitle="Consultez et suivez l'historique de vos commandes passées et reçues."
                 className="mb-8"
             />
@@ -237,33 +243,33 @@ export default function Commandes({ data: propData, page: propPage, limit: propL
                                                 </div>
                                             )}
 
-                                            {/* 2. Provider Actions: Status transitions */}
+                                            {/* 2. Provider Actions: Status transitions — subscription check required */}
                                             {ownsSomeProducts && (
                                                 <div className="flex items-center gap-2">
                                                     {order.status === OrderStatus.PENDING && (
-                                                        <Button size="sm" className="h-8 px-3 text-[10px] font-black bg-orange-600 hover:bg-orange-700 flex items-center gap-1.5" onClick={() => handleStatusChange(order.id, OrderStatus.PROCESSING)} >
-                                                            <Icon icon="solar:play-bold" className="w-4 h-4" />
+                                                        <Button size="sm" disabled={subscriptionLoading} className="h-8 px-3 text-[10px] font-black bg-orange-600 hover:bg-orange-700 flex items-center gap-1.5" onClick={() => handleStatusChange(order.id, OrderStatus.PROCESSING, true)} >
+                                                            {subscriptionLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:play-bold" className="w-4 h-4" />}
                                                             <span className="hidden sm:inline">Traiter</span>
                                                         </Button>
                                                     )}
                                                     {order.status === OrderStatus.PROCESSING && (
-                                                        <Button size="sm" className="h-8 px-3 text-[10px] font-black bg-blue-600 hover:bg-blue-700 flex items-center gap-1.5" onClick={() => handleStatusChange(order.id, OrderStatus.VALIDATED)} >
-                                                            <Icon icon="solar:check-read-bold" className="w-4 h-4" />
+                                                        <Button size="sm" disabled={subscriptionLoading} className="h-8 px-3 text-[10px] font-black bg-blue-600 hover:bg-blue-700 flex items-center gap-1.5" onClick={() => handleStatusChange(order.id, OrderStatus.VALIDATED, true)} >
+                                                            {subscriptionLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:check-read-bold" className="w-4 h-4" />}
                                                             <span className="hidden sm:inline">Valider</span>
                                                         </Button>
                                                     )}
 
                                                     {order.status === OrderStatus.VALIDATED && (
-                                                        <Button size="sm" className="h-8 px-3 text-[10px] font-black bg-purple-600 hover:bg-purple-700 flex items-center gap-1.5" onClick={() => handleStatusChange(order.id, OrderStatus.PAID)} >
-                                                            <Icon icon="solar:wallet-2-bold" className="w-4 h-4" />
+                                                        <Button size="sm" disabled={subscriptionLoading} className="h-8 px-3 text-[10px] font-black bg-purple-600 hover:bg-purple-700 flex items-center gap-1.5" onClick={() => handleStatusChange(order.id, OrderStatus.PAID, true)} >
+                                                            {subscriptionLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:wallet-2-bold" className="w-4 h-4" />}
                                                             <span className="hidden sm:inline">Payer a la livraison</span>
                                                         </Button>
                                                     )}
 
                                                     {order.status === OrderStatus.PAID && (
                                                         <>
-                                                            <Button size="sm" className="h-8 px-3 text-[10px] font-black bg-purple-600 hover:bg-purple-700 flex items-center gap-1.5" onClick={() => handleStatusChange(order.id, OrderStatus.SHIPPED)} >
-                                                                <Icon icon="solar:delivery-bold" className="w-4 h-4" />
+                                                            <Button size="sm" disabled={subscriptionLoading} className="h-8 px-3 text-[10px] font-black bg-purple-600 hover:bg-purple-700 flex items-center gap-1.5" onClick={() => handleStatusChange(order.id, OrderStatus.SHIPPED, true)} >
+                                                                {subscriptionLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:delivery-bold" className="w-4 h-4" />}
                                                                 <span className="hidden sm:inline">Expédier</span>
                                                             </Button>
                                                             <Button size="sm" variant="outline" className="h-8 px-3 text-[10px] font-black flex items-center gap-1.5 border-primary text-primary hover:bg-primary hover:text-white" onClick={() => { setOrderForDriver(order); setDriverModalOpen(true); }} >
@@ -273,8 +279,8 @@ export default function Commandes({ data: propData, page: propPage, limit: propL
                                                         </>
                                                     )}
                                                     {order.status === OrderStatus.SHIPPED && (
-                                                        <Button size="sm" className="h-8 px-3 text-[10px] font-black bg-indigo-600 hover:bg-indigo-700 flex items-center gap-1.5" onClick={() => handleStatusChange(order.id, OrderStatus.DELIVERED)} >
-                                                            <Icon icon="solar:box-bold" className="w-4 h-4" />
+                                                        <Button size="sm" disabled={subscriptionLoading} className="h-8 px-3 text-[10px] font-black bg-indigo-600 hover:bg-indigo-700 flex items-center gap-1.5" onClick={() => handleStatusChange(order.id, OrderStatus.DELIVERED, true)} >
+                                                            {subscriptionLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:box-bold" className="w-4 h-4" />}
                                                             <span className="hidden sm:inline">Livrer</span>
                                                         </Button>
                                                     )}
