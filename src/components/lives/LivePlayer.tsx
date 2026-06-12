@@ -52,7 +52,8 @@ function buildEmbedUrl(videoLink: string, type: EmbedType): string {
             music_info: "0",
             description: "0",
             loop: "0",
-            autoplay: "1",      // TikTok Player V1 n'exige pas mute=1
+            autoplay: "1",
+            mute: "1",          // Obligatoire pour que le navigateur autorise l'autoplay
             controls: "1",
             from: "embed",
             lang: "fr",
@@ -66,6 +67,7 @@ function buildEmbedUrl(videoLink: string, type: EmbedType): string {
             show_text: "false",
             autoplay: "true",
             allowfullscreen: "true",
+            app_id: "26851350967894514",
         });
         return `https://www.facebook.com/plugins/video.php?${p}`;
     }
@@ -109,13 +111,12 @@ const ENTITY_LABELS: Record<LiveEntityType, string> = {
 export default function LivePlayer({ live, isActive, onNext, onPrev, showNav }: LivePlayerProps) {
     const iframeRef = useRef<HTMLIFrameElement>(null);
 
-    // Son : YouTube démarre muet (obligatoire pour autoplay), les autres non
     const embedType = getEmbedType(live.videoLink);
     const platform = detectPlatform(live.videoLink);
     const platformInfo = PLATFORM_INFO[platform] ?? PLATFORM_INFO.other;
 
-    // Son : YouTube démarre muet (autoplay l'exige)
-    const [isMuted, setIsMuted] = useState(embedType === "youtube");
+    // Toutes les plateformes démarrent muettes (obligatoire pour l'autoplay navigateur)
+    const [isMuted, setIsMuted] = useState(true);
     // Overlay fin de vidéo — bloque l'UI TikTok "More videos" et les écrans de fin YouTube
     const [videoEnded, setVideoEnded] = useState(false);
 
@@ -135,9 +136,8 @@ export default function LivePlayer({ live, isActive, onNext, onPrev, showNav }: 
     useEffect(() => {
         const iframe = iframeRef.current;
         if (!iframe) return;
-
         if (isActive) {
-            setVideoEnded(false); // Reset overlay quand on revient sur cette vidéo
+            setVideoEnded(false);
             if (embedType === "youtube") sendYouTubeCommand(iframe, "playVideo");
             if (embedType === "tiktok-player") sendTikTokCommand(iframe, "play");
         } else {
@@ -178,8 +178,9 @@ export default function LivePlayer({ live, isActive, onNext, onPrev, showNav }: 
     // ─── Mute / Unmute via postMessage (pas de remontage) ─────────────────
 
     const toggleMute = () => {
+        const unmuting = isMuted;
         if (embedType === "youtube") {
-            if (isMuted) {
+            if (unmuting) {
                 sendYouTubeCommand(iframeRef.current, "unMute");
                 sendYouTubeCommand(iframeRef.current, "setVolume", [100]);
             } else {
@@ -187,7 +188,7 @@ export default function LivePlayer({ live, isActive, onNext, onPrev, showNav }: 
             }
         }
         if (embedType === "tiktok-player") {
-            sendTikTokCommand(iframeRef.current, isMuted ? "unmute" : "mute");
+            sendTikTokCommand(iframeRef.current, unmuting ? "unmute" : "mute");
         }
         setIsMuted(m => !m);
     };
@@ -226,15 +227,7 @@ export default function LivePlayer({ live, isActive, onNext, onPrev, showNav }: 
             <div className="absolute inset-0">
                 {embedUrl ? (
                     <iframe
-                        /**
-                         * YouTube  → key inclut isMuted : remonte UNIQUEMENT quand l'utilisateur
-                         *            change le son (pas à chaque scroll). Nécessaire car YouTube
-                         *            ne supporte pas mute/unmute via postMessage de façon fiable.
-                         * TikTok   → key = live.id uniquement : JAMAIS remonté (évite le 429).
-                         *            Le son est contrôlé via postMessage.
-                         * Facebook → key = live.id uniquement.
-                         */
-                        key={embedType === "youtube" ? `${live.id}-yt-${isMuted}` : live.id}
+                        key={live.id}
                         ref={iframeRef}
                         src={embedUrl}
                         className="w-full h-full border-0"

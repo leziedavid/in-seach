@@ -141,6 +141,22 @@ export default function BookingsPage({
     };
 
 
+    const getMobileHint = (booking: Booking, isClient: boolean, isProvider: boolean): { text: string; color: string } | null => {
+        if (isClient) {
+            if (booking.status === BookingStatus.PENDING || booking.status === BookingStatus.ACCEPTED)
+                return { text: "Cliquez sur 🔴 pour annuler", color: "text-red-500" };
+        }
+        if (isProvider) {
+            if (booking.status === BookingStatus.PENDING)
+                return { text: "Cliquez sur 🔵 pour accepter", color: "text-blue-500" };
+            if (booking.status === BookingStatus.ACCEPTED)
+                return { text: "Cliquez sur 🟣 pour démarrer", color: "text-indigo-500" };
+            if (booking.status === BookingStatus.IN_PROGRESS)
+                return { text: "Cliquez sur 🟢 pour terminer", color: "text-green-500" };
+        }
+        return null;
+    };
+
     const handleAction = (row: Booking) => {
         setSelectedService(row);
         setOpen(true);
@@ -214,6 +230,15 @@ export default function BookingsPage({
                                                 {booking.scheduledDate ? new Date(booking.scheduledDate).toLocaleDateString() : t("akwaba.bookings.not_scheduled")} •{" "}
                                                 {booking.price ? t("akwaba.services.price_fcfa", { price: booking.price.toLocaleString() }) : "-"}
                                             </p>
+                                            {(() => {
+                                                const hint = getMobileHint(booking, isBookingClient, isBookingProvider);
+                                                return hint ? (
+                                                    <p className={`text-[8px] font-semibold mt-0.5 sm:hidden flex items-center gap-0.5 whitespace-nowrap ${hint.color}`}>
+                                                        {hint.text}
+                                                        <Icon icon="solar:arrow-right-up-bold" className="w-2.5 h-2.5 shrink-0" />
+                                                    </p>
+                                                ) : null;
+                                            })()}
                                         </div>
 
                                         {/* RIGHT ACTIONS */}

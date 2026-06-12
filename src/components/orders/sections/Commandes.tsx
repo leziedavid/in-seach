@@ -130,6 +130,24 @@ export default function Commandes({ data: propData, page: propPage, limit: propL
         }
     };
 
+    const getMobileHint = (order: Order, isClient: boolean, isSeller: boolean): { text: string; color: string } | null => {
+        if (isClient) {
+            if (order.status === OrderStatus.PENDING || order.status === OrderStatus.PROCESSING)
+                return { text: "Cliquez sur l'icône 🔴 pour annuler la commande", color: "text-red-500" };
+        }
+        if (isSeller) {
+            if (order.status === OrderStatus.PENDING)
+                return { text: "Cliquez sur l'icône 🟠 pour accepter la commande", color: "text-orange-500" };
+            if (order.status === OrderStatus.VALIDATED)
+                return { text: "Cliquez sur l'icône 🔵 pour traiter la commande", color: "text-blue-500" };
+            if (order.status === OrderStatus.PROCESSING || order.status === OrderStatus.PAID)
+                return { text: "Cliquez sur l'icône 🟣 pour expédier la commande", color: "text-purple-500" };
+            if (order.status === OrderStatus.SHIPPED)
+                return { text: "Cliquez sur l'icône 📦 pour livrer la commande", color: "text-indigo-500" };
+        }
+        return null;
+    };
+
     const handleViewOrder = (order: Order) => {
         setSelectedOrder(order);
         setOpen(true);
@@ -208,17 +226,20 @@ export default function Commandes({ data: propData, page: propPage, limit: propL
                                                 </span>
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                <p className="text-sm font-black text-card-foreground">
-                                                    {order.totalAmount.toLocaleString()} FCFA
-                                                </p>
+                                                <p className="text-sm font-black text-card-foreground">{order.totalAmount.toLocaleString()} FCFA</p>
                                                 <span className="text-muted-foreground">•</span>
-                                                <p className="text-xs text-muted-foreground">
-                                                    {new Date(order.createdAt).toLocaleDateString()}
-                                                </p>
+                                                <p className="text-xs text-muted-foreground">  {new Date(order.createdAt).toLocaleDateString()}  </p>
                                             </div>
-                                            <p className="text-[10px] text-muted-foreground mt-1">
-                                                {order.items?.length || 0} article(s)
-                                            </p>
+                                            <p className="text-[10px] text-muted-foreground mt-1">  {order.items?.length || 0} article(s)  </p>
+                                            {(() => {
+                                                const hint = getMobileHint(order, isOrderClient, ownsSomeProducts);
+                                                return hint ? (
+                                                    <p className={`text-[8.5px] font-semibold mt-0.5 sm:hidden flex items-center gap-0.5 whitespace-nowrap ${hint.color}`}>
+                                                        {hint.text}
+                                                        <Icon icon="solar:arrow-right-up-bold" className="w-2.5 h-2.5 shrink-0" />
+                                                    </p>
+                                                ) : null;
+                                            })()}
                                         </div>
 
                                         {/* RIGHT ACTIONS */}
@@ -231,15 +252,17 @@ export default function Commandes({ data: propData, page: propPage, limit: propL
                                                     {(order.status === OrderStatus.PENDING || order.status === OrderStatus.PROCESSING) && (
                                                         <Button size="sm" variant="destructive" className="h-8 px-3 text-[10px] font-black flex items-center gap-1.5" onClick={() => handleStatusChange(order.id, OrderStatus.CANCELLED)} >
                                                             <Icon icon="solar:close-circle-bold" className="w-4 h-4" />
-                                                            <span className="hidden sm:inline">Annuler</span>
+                                                            <span className="hidden sm:inline">Annuler la commande</span>
                                                         </Button>
                                                     )}
-                                                    {order.status === OrderStatus.VALIDATED && (
+
+                                                    {/* {order.status === OrderStatus.VALIDATED && (
                                                         <Button size="sm" className="h-8 px-3 text-[10px] font-black flex items-center gap-1.5" onClick={() => handleStatusChange(order.id, OrderStatus.PAID)} >
                                                             <Icon icon="solar:wallet-2-bold" className="w-4 h-4" />
-                                                            <span className="hidden sm:inline">Payer</span>
+                                                            <span className="hidden sm:inline">Payer la commande</span>
                                                         </Button>
-                                                    )}
+                                                    )} */}
+
                                                 </div>
                                             )}
 
@@ -247,41 +270,41 @@ export default function Commandes({ data: propData, page: propPage, limit: propL
                                             {ownsSomeProducts && (
                                                 <div className="flex items-center gap-2">
                                                     {order.status === OrderStatus.PENDING && (
-                                                        <Button size="sm" disabled={subscriptionLoading} className="h-8 px-3 text-[10px] font-black bg-orange-600 hover:bg-orange-700 flex items-center gap-1.5" onClick={() => handleStatusChange(order.id, OrderStatus.PROCESSING, true)} >
+                                                        <Button size="sm" disabled={subscriptionLoading} className="h-8 px-3 text-[10px] font-black bg-orange-600 hover:bg-orange-700 flex items-center gap-1.5" onClick={() => handleStatusChange(order.id, OrderStatus.VALIDATED, true)} >
                                                             {subscriptionLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:play-bold" className="w-4 h-4" />}
-                                                            <span className="hidden sm:inline">Traiter</span>
+                                                            <span className="hidden sm:inline">Accepter la commande</span>
                                                         </Button>
                                                     )}
-                                                    {order.status === OrderStatus.PROCESSING && (
-                                                        <Button size="sm" disabled={subscriptionLoading} className="h-8 px-3 text-[10px] font-black bg-blue-600 hover:bg-blue-700 flex items-center gap-1.5" onClick={() => handleStatusChange(order.id, OrderStatus.VALIDATED, true)} >
+                                                    {order.status === OrderStatus.VALIDATED && (
+                                                        <Button size="sm" disabled={subscriptionLoading} className="h-8 px-3 text-[10px] font-black bg-blue-600 hover:bg-blue-700 flex items-center gap-1.5" onClick={() => handleStatusChange(order.id, OrderStatus.PROCESSING, true)} >
                                                             {subscriptionLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:check-read-bold" className="w-4 h-4" />}
-                                                            <span className="hidden sm:inline">Valider</span>
+                                                            <span className="hidden sm:inline"> Traiter la commande</span>
                                                         </Button>
                                                     )}
 
-                                                    {order.status === OrderStatus.VALIDATED && (
+                                                    {/* {order.status === OrderStatus.PROCESSING  && (
                                                         <Button size="sm" disabled={subscriptionLoading} className="h-8 px-3 text-[10px] font-black bg-purple-600 hover:bg-purple-700 flex items-center gap-1.5" onClick={() => handleStatusChange(order.id, OrderStatus.PAID, true)} >
                                                             {subscriptionLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:wallet-2-bold" className="w-4 h-4" />}
-                                                            <span className="hidden sm:inline">Payer a la livraison</span>
+                                                            <span className="hidden sm:inline">Traiter la commande</span>
                                                         </Button>
-                                                    )}
+                                                    )} */}
 
-                                                    {order.status === OrderStatus.PAID && (
+                                                    {order.status === OrderStatus.PROCESSING || order.status === OrderStatus.PAID && (
                                                         <>
                                                             <Button size="sm" disabled={subscriptionLoading} className="h-8 px-3 text-[10px] font-black bg-purple-600 hover:bg-purple-700 flex items-center gap-1.5" onClick={() => handleStatusChange(order.id, OrderStatus.SHIPPED, true)} >
                                                                 {subscriptionLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:delivery-bold" className="w-4 h-4" />}
-                                                                <span className="hidden sm:inline">Expédier</span>
+                                                                <span className="hidden sm:inline">Expédier la commande</span>
                                                             </Button>
-                                                            <Button size="sm" variant="outline" className="h-8 px-3 text-[10px] font-black flex items-center gap-1.5 border-primary text-primary hover:bg-primary hover:text-white" onClick={() => { setOrderForDriver(order); setDriverModalOpen(true); }} >
+                                                            {/* <Button size="sm" variant="outline" className="h-8 px-3 text-[10px] font-black flex items-center gap-1.5 border-primary text-primary hover:bg-primary hover:text-white" onClick={() => { setOrderForDriver(order); setDriverModalOpen(true); }} >
                                                                 <Icon icon="solar:scooter-bold-duotone" className="w-4 h-4" />
-                                                                <span className="hidden sm:inline">Livreur</span>
-                                                            </Button>
+                                                                <span className="hidden sm:inline">Livreur de la commande</span>
+                                                            </Button> */}
                                                         </>
                                                     )}
                                                     {order.status === OrderStatus.SHIPPED && (
                                                         <Button size="sm" disabled={subscriptionLoading} className="h-8 px-3 text-[10px] font-black bg-indigo-600 hover:bg-indigo-700 flex items-center gap-1.5" onClick={() => handleStatusChange(order.id, OrderStatus.DELIVERED, true)} >
                                                             {subscriptionLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:box-bold" className="w-4 h-4" />}
-                                                            <span className="hidden sm:inline">Livrer</span>
+                                                            <span className="hidden sm:inline">Commande livrée</span>
                                                         </Button>
                                                     )}
                                                 </div>
@@ -291,6 +314,7 @@ export default function Commandes({ data: propData, page: propPage, limit: propL
                                                 <Icon icon="solar:eye-bold-duotone" className="w-5 h-5" />
                                                 <span className="hidden sm:inline">Détails</span>
                                             </button>
+
                                         </div>
                                     </div>
                                 );

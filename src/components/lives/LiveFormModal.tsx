@@ -8,6 +8,7 @@ import { Live, LiveEntityType } from "@/types/interface";
 import { useNotification } from "@/components/notifications/NotificationProvider";
 import { useSubscriptionCheck } from "@/hooks/useSubscriptionCheck";
 import { Button } from "@/components/ui/button";
+import { Select2 } from "@/components/ui/Select2";
 
 interface LiveFormModalProps {
     isOpen: boolean;
@@ -28,12 +29,11 @@ interface LiveFormModalProps {
 }
 
 const ENTITY_TYPE_OPTIONS = [
-    { value: "", label: "Aucune (promo boutique générale)", icon: "solar:shop-bold-duotone" },
-    { value: LiveEntityType.PRODUCT, label: "Produit", icon: "solar:box-bold-duotone" },
-    { value: LiveEntityType.SERVICE, label: "Service", icon: "solar:widget-bold-duotone" },
-    { value: LiveEntityType.ANNONCE, label: "Annonce", icon: "solar:eye-bold-duotone" },
-    { value: LiveEntityType.SERVICE_LOGISTIQUE, label: "Service Logistique", icon: "solar:delivery-bold-duotone" },
-    { value: LiveEntityType.PROFILE, label: "Profil", icon: "solar:user-bold-duotone" },
+    { value: LiveEntityType.PRODUCT, label: "Produit" },
+    { value: LiveEntityType.SERVICE, label: "Service" },
+    { value: LiveEntityType.ANNONCE, label: "Annonce" },
+    { value: LiveEntityType.SERVICE_LOGISTIQUE, label: "Service Logistique" },
+    { value: LiveEntityType.PROFILE, label: "Profil" },
 ];
 
 const VIDEO_SOURCE_HINTS = [
@@ -125,7 +125,7 @@ export default function LiveFormModal({
 
     return (
         <Modal isOpen={isOpen} onClose={onClose}>
-            <div className="w-full max-w-lg p-6 space-y-5">
+            <div className="w-full p-6 space-y-5">
                 {/* Header */}
                 <div className="flex items-center gap-3 mb-2">
                     <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
@@ -217,23 +217,14 @@ export default function LiveFormModal({
                         <label className="text-xs font-bold text-foreground">
                             Associer à <span className="font-normal text-muted-foreground">(optionnel)</span>
                         </label>
-                        <select
-                            value={form.entityType}
-                            onChange={e => handleChange("entityType", e.target.value)}
-                            className="w-full h-10 px-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:border-primary transition"
-                        >
-                            {ENTITY_TYPE_OPTIONS.map(opt => (
-                                <option key={opt.value} value={opt.value}>{opt.label}</option>
-                            ))}
-                        </select>
-                        {form.entityType && form.entityType !== "" && (
-                            <input
-                                value={form.entityId}
-                                onChange={e => handleChange("entityId", e.target.value)}
-                                placeholder={`ID du ${form.entityType.toLowerCase()} concerné`}
-                                className="w-full h-10 px-3 rounded-xl border border-border bg-background text-sm placeholder:text-muted-foreground focus:outline-none focus:border-primary transition mt-2"
-                            />
-                        )}
+                        <Select2
+                            options={ENTITY_TYPE_OPTIONS}
+                            labelExtractor={opt => opt.label}
+                            valueExtractor={opt => opt.value}
+                            selectedItem={form.entityType !== "" ? form.entityType : null}
+                            onSelectionChange={val => handleChange("entityType", val ?? "")}
+                            placeholder="Aucune (promo boutique générale)"
+                        />
                     </div>
                 )}
 
