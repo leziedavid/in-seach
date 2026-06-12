@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Icon } from "@iconify/react";
 import Image from 'next/image';
@@ -10,11 +10,10 @@ import { useCart } from "@/components/providers/CartProvider";
 import { useNotification } from "@/components/notifications/NotificationProvider";
 import { useRouter } from "next/navigation";
 import { isAuthenticated, getUserId } from "@/lib/auth";
-import { createChatConversation, getPublicStoreInfo, getStoreUserInfo } from "@/api/api";
+import { createChatConversation, getPublicStoreInfo } from "@/api/api";
 import ReportButton from "@/components/shared/ReportButton";
 import TextDisplayBox from "@/components/home/TextDisplayBox";
-import Link from "next/link"
-
+import Link from "next/link";
 
 interface ProductDetailModalProps {
     isOpen: boolean;
@@ -23,65 +22,75 @@ interface ProductDetailModalProps {
 }
 
 export default function ProductDetailModal({ isOpen, onClose, product }: ProductDetailModalProps) {
-
     const [mounted, setMounted] = useState(false);
-    const [isExpanded, setIsExpanded] = useState(false);
-    const [isNegotiating, setIsNegotiating] = useState(false);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [achatType, setAchatType] = useState<'UNITE' | 'GROS'>('UNITE');
+    const [isNegotiating, setIsNegotiating] = useState(false);
+    const [lightboxOpen, setLightboxOpen] = useState(false);
+    const [storeInfo, setStoreInfo] = useState<StoreUserInfo | null>(null);
+    const touchStartX = useRef<number>(0);
+
     const { addToCart } = useCart();
     const { addNotification } = useNotification();
     const router = useRouter();
 
-    const [storeInfo, setStoreInfo] = useState<StoreUserInfo | null>(null)
-    const [newStoreName, setNewStoreName] = useState("")
+    const slugify = (name: string) =>
+        name.trim().replace(/\s+/g, "-").replace(/[^\w\-]+/g, "");
 
-    const slugify = (name: string) => {
-        return name
-            .trim()
-            .replace(/\s+/g, "-")        // remplace les espaces par -
-            .replace(/[^\w\-]+/g, "")    // supprime les caractères spéciaux
-    }
+    const imagesList = product?.images && product.images.length > 0
+        ? product.images
+        : product?.imageUrl ? [product.imageUrl] : [];
 
-
-    const imagesList = product?.images && product.images.length > 0 ? product.images : (product?.imageUrl ? [product.imageUrl] : []);
     useEffect(() => { setMounted(true); }, []);
 
     const fetchPublicStoreData = useCallback(async () => {
         try {
-            const res = await getPublicStoreInfo(product?.user?.storeName || "")
-            if (res.statusCode === 200 && res.data) {
-                setStoreInfo(res.data)
-            }
-        } catch (error) {
-            console.error("Error fetching public store info:", error)
-        }
-    }, [product?.user?.storeName])
+            const res = await getPublicStoreInfo(product?.user?.storeName || "");
+            if (res.statusCode === 200 && res.data) setStoreInfo(res.data);
+        } catch { /* silent */ }
+    }, [product?.user?.storeName]);
 
     useEffect(() => {
-        if (isOpen && product?.user?.storeName) {
-            fetchPublicStoreData()
-        }
-        if (isOpen && product) {
-            setAchatType('UNITE');
-        }
-    }, [fetchPublicStoreData, isOpen, product?.user?.storeName, product])
+        if (isOpen && product?.user?.storeName) fetchPublicStoreData();
+        if (isOpen && product) { setAchatType('UNITE'); setCurrentImageIndex(0); }
+    }, [fetchPublicStoreData, isOpen, product]);
 
     if (!product || !mounted) return null;
 
-    const nextImage = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        setCurrentImageIndex((prev) => (prev + 1) % imagesList.length);
+    // ── Navigation images ────────────────────────────────────────────────
+    const nextImage = (e?: React.MouseEvent) => {
+        e?.stopPropagation();
+        setCurrentImageIndex(p => (p + 1) % imagesList.length);
+    };
+    const prevImage = (e?: React.MouseEvent) => {
+        e?.stopPropagation();
+        setCurrentImageIndex(p => (p - 1 + imagesList.length) % imagesList.length);
     };
 
-    const prevImage = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        setCurrentImageIndex((prev) => (prev - 1 + imagesList.length) % imagesList.length);
+    // ── Touch swipe ──────────────────────────────────────────────────────
+    const onTouchStart = (e: React.TouchEvent) => { touchStartX.current = e.touches[0].clientX; };
+    const onTouchEnd = (e: React.TouchEvent) => {
+        const diff = touchStartX.current - e.changedTouches[0].clientX;
+        if (Math.abs(diff) > 50) diff > 0 ? nextImage() : prevImage();
     };
 
+    // ── Prix affiché ─────────────────────────────────────────────────────
+    const displayPrice = achatType === 'GROS' && product.prixVenteGros
+        ? product.prixVenteGros
+        : product.pricePromo ?? product.price;
+    const originalPrice = achatType === 'GROS' ? null : (product.pricePromo ? product.price : null);
+    const discount = achatType !== 'GROS' ? product.discountPercent : null;
+
+    // ── Actions ──────────────────────────────────────────────────────────
     const handleAddToCart = () => {
         addToCart(product, 1, achatType);
         addNotification(`"${product.name}" ajouté au panier${achatType === 'GROS' ? ' (Gros)' : ''}`, "success");
+    };
+
+    const handleBuyNow = () => {
+        addToCart(product, 1, achatType);
+        onClose();
+        router.push('/cart');
     };
 
     const handleNegotiate = async () => {
@@ -90,223 +99,440 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
             router.push("/login");
             return;
         }
-
         const currentUserId = getUserId();
         const ownerId = product.user?.id || product.userId;
         if (currentUserId === ownerId) {
             addNotification("Vous ne pouvez pas négocier votre propre produit", "warning");
             return;
         }
-
         setIsNegotiating(true);
         try {
             const participant2Id = product.user?.id || product.userId;
-            if (!participant2Id) {
-                addNotification("Impossible d'identifier le propriétaire du produit.", "error");
-                return;
-            }
-
-            const res = await createChatConversation({
-                participant2Id: participant2Id,
-            });
-
+            if (!participant2Id) { addNotification("Impossible d'identifier le propriétaire.", "error"); return; }
+            const res = await createChatConversation({ participant2Id });
             if (res.statusCode === 200 || res.statusCode === 201) {
                 const initialMessage = `Bonjour, je suis intéressé par votre produit "${product.name}" (Prix: ${product.price.toLocaleString()} FCFA). Pouvons-nous en discuter ?`;
-                sessionStorage.setItem("pending_negotiation", JSON.stringify({
-                    conversationId: res.data.id,
-                    message: initialMessage,
-                    productId: product.id
-                }));
+                sessionStorage.setItem("pending_negotiation", JSON.stringify({ conversationId: res.data.id, message: initialMessage, productId: product.id }));
                 router.push("/chat-ia");
             } else {
                 addNotification("Erreur lors de la création de la conversation", "error");
             }
-        } catch (error) {
-            console.error("Negotiation error:", error);
-            addNotification("Une erreur est survenue", "error");
-        } finally {
-            setIsNegotiating(false);
-        }
+        } catch { addNotification("Une erreur est survenue", "error"); }
+        finally { setIsNegotiating(false); }
     };
+
+    // ── IMAGE SECTION (partagée mobile + desktop) ─────────────────────────
+    const ImageCarousel = ({ className = "" }: { className?: string }) => (
+        <div
+            className={`relative overflow-hidden bg-muted/20 ${className}`}
+            onTouchStart={onTouchStart}
+            onTouchEnd={onTouchEnd}
+        >
+            <AnimatePresence mode="wait">
+                {imagesList.length > 0 ? (
+                    <motion.div key={currentImageIndex} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} className="absolute inset-0" >
+                        <Image src={imagesList[currentImageIndex]} fill unoptimized className="object-cover blur-3xl opacity-30 scale-110" alt="" aria-hidden />
+                        <Image src={imagesList[currentImageIndex]} fill unoptimized className="object-contain z-10 p-3 cursor-zoom-in" alt={`${product.name} - ${currentImageIndex + 1}`} onClick={() => setLightboxOpen(true)} />
+                    </motion.div>
+                ) : (
+                    <div className="absolute inset-0 flex items-center justify-center text-muted-foreground/20">
+                        <Icon icon="solar:box-bold-duotone" width={80} />
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Discount badge */}
+            {discount && (
+                <div className="absolute top-3 left-3 z-20 bg-red-500 text-white text-xs font-black px-2.5 py-1 rounded-lg shadow">
+                    -{discount}%
+                </div>
+            )}
+
+            {/* Back button */}
+            <button onClick={onClose} className="absolute top-3 left-3 z-30 w-9 h-9 bg-black/25 backdrop-blur-md rounded-full text-white flex items-center justify-center hover:bg-black/40 transition md:hidden">
+                <Icon icon="solar:alt-arrow-left-bold-duotone" width={20} />
+            </button>
+            {discount && (
+                <div className="absolute top-3 left-14 z-20 bg-red-500 text-white text-xs font-black px-2.5 py-1 rounded-lg shadow md:left-3">
+                    -{discount}%
+                </div>
+            )}
+
+            {/* Nav arrows */}
+            {imagesList.length > 1 && (
+                <>
+                    <button onClick={prevImage} className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-black/25 backdrop-blur-md rounded-full text-white flex items-center justify-center hover:bg-black/40 transition">
+                        <Icon icon="solar:alt-arrow-left-bold" width={16} />
+                    </button>
+                    <button onClick={nextImage} className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-black/25 backdrop-blur-md rounded-full text-white flex items-center justify-center hover:bg-black/40 transition">
+                        <Icon icon="solar:alt-arrow-right-bold" width={16} />
+                    </button>
+                    {/* Dots */}
+                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex gap-1.5">
+                        {imagesList.slice(0, 8).map((_, idx) => (
+                            <button key={idx} onClick={e => { e.stopPropagation(); setCurrentImageIndex(idx); }} className={`rounded-full transition-all duration-300 ${currentImageIndex === idx ? "w-5 h-2 bg-white" : "w-2 h-2 bg-white/40"}`} />
+                        ))}
+                    </div>
+                </>
+            )}
+        </div>
+    );
+
+    // ── SELLER CARD ───────────────────────────────────────────────────────
+    const SellerCard = () => (
+        <Link href={`/shop/${slugify(storeInfo?.storeName || "boutique")}`}>
+            <div className="p-4 bg-muted/30 rounded-2xl border border-border/50 space-y-3 hover:border-primary/30 transition">
+                <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary relative overflow-hidden shrink-0 ring-2 ring-primary/20">
+                        {storeInfo?.storeLogo ? (
+                            <Image src={storeInfo.storeLogo} alt={storeInfo.storeName || "Boutique"} fill className="object-cover" unoptimized />
+                        ) : (
+                            <Icon icon="solar:shop-bold-duotone" className="w-7 h-7 text-primary" />
+                        )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <p className="text-[10px] font-black uppercase text-muted-foreground">Boutique</p>
+                        <p className="text-sm font-black truncate">{storeInfo?.storeName || "Officielle"}</p>
+                    </div>
+                    <Icon icon="solar:alt-arrow-right-bold" className="w-4 h-4 text-muted-foreground shrink-0" />
+                </div>
+                {storeInfo?.productCount !== undefined && (
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground border-t border-border/40 pt-2">
+                        <span className="flex items-center gap-1">
+                            <Icon icon="solar:box-bold-duotone" className="w-3.5 h-3.5 text-primary" />
+                            <strong className="text-foreground">{storeInfo.productCount}</strong> articles
+                        </span>
+                    </div>
+                )}
+            </div>
+        </Link>
+    );
+
+    // ── PRICE SECTION ─────────────────────────────────────────────────────
+    const PriceSection = () => (
+        <div className="space-y-3">
+            {product.typeVente === 'GROS' && (
+                <div className="flex gap-2">
+                    {(['UNITE', 'GROS'] as const).map(t => (
+                        <label key={t} className={`flex items-center gap-2 p-2.5 border rounded-xl cursor-pointer transition-all flex-1 ${achatType === t ? 'border-primary bg-primary/5' : 'border-border bg-muted/30'}`}>
+                            <input type="radio" name="achatType" value={t} checked={achatType === t} onChange={() => setAchatType(t)} className="hidden" />
+                            <div className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center shrink-0 ${achatType === t ? 'border-primary' : 'border-muted-foreground'}`}>
+                                {achatType === t && <div className="w-2 h-2 rounded-full bg-primary" />}
+                            </div>
+                            <span className="text-xs font-bold">{t === 'UNITE' ? "À l'unité" : "En gros"}</span>
+                        </label>
+                    ))}
+                </div>
+            )}
+            <div className="flex items-end gap-3 flex-wrap">
+                <span className="text-3xl font-black text-emerald-600 leading-none">
+                    {displayPrice.toLocaleString()} <span className="text-base">FCFA</span>
+                </span>
+                {originalPrice && (
+                    <span className="text-base font-bold text-muted-foreground/60 line-through leading-none">
+                        {originalPrice.toLocaleString()} FCFA
+                    </span>
+                )}
+                {achatType === 'GROS' && product.prixVenteGros && (
+                    <span className="px-2 py-0.5 bg-primary/10 text-primary text-[10px] font-black rounded-lg">PRIX GROS</span>
+                )}
+            </div>
+        </div>
+    );
+
+    // ── SPECS ─────────────────────────────────────────────────────────────
+    const Specs = () => (
+        <div className="grid grid-cols-2 gap-2">
+            <div className="p-3 bg-muted/50 rounded-xl">
+                <p className="text-[10px] font-black uppercase text-muted-foreground mb-0.5">État</p>
+                <p className="text-xs font-black">{productConditionLabels[product.etat] || product.etat}</p>
+            </div>
+            <div className="p-3 bg-muted/50 rounded-xl">
+                <p className="text-[10px] font-black uppercase text-muted-foreground mb-0.5">Référence</p>
+                <p className="text-xs font-black truncate uppercase">{product.sku || product.id.slice(0, 8)}</p>
+            </div>
+            <div className="p-3 bg-muted/50 rounded-xl">
+                <p className="text-[10px] font-black uppercase text-muted-foreground mb-0.5">Catégorie</p>
+                <p className="text-xs font-black truncate">{product.category?.name || "—"}</p>
+            </div>
+            <div className="p-3 bg-muted/50 rounded-xl">
+                <p className="text-[10px] font-black uppercase text-muted-foreground mb-0.5">Stock</p>
+                <p className={`text-xs font-black ${product.stock > 0 ? "text-emerald-600" : "text-red-500"}`}>
+                    {product.stock > 0 ? `${product.stock} dispo` : "Épuisé"}
+                </p>
+            </div>
+        </div>
+    );
+
+    // ── ACTION BUTTONS ────────────────────────────────────────────────────
+    const ActionButtons = ({ layout = "row" }: { layout?: "row" | "col" }) => (
+        <div className={`flex ${layout === "col" ? "flex-col" : "flex-row"} gap-2`}>
+            <button onClick={handleAddToCart}
+                className="flex-1 py-3.5 px-4 bg-muted hover:bg-accent text-card-foreground rounded-2xl font-black text-sm active:scale-95 transition-all flex items-center justify-center gap-2 border border-border">
+                <Icon icon="solar:cart-large-bold-duotone" width={18} className="text-primary" />
+                <span>Ajouter au panier</span>
+            </button>
+            <button onClick={handleBuyNow}
+                className="flex-1 py-3.5 px-4 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl font-black text-sm active:scale-95 transition-all shadow-lg flex items-center justify-center gap-2">
+                <Icon icon="solar:bag-bold-duotone" width={18} />
+                <span>Acheter</span>
+            </button>
+        </div>
+    );
 
     return createPortal(
         <AnimatePresence>
             {isOpen && (
                 <>
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="hidden md:block fixed inset-0 bg-[#0F2944]/40 backdrop-blur-sm z-[1000]" />
-                    <motion.div initial={{ y: "100%", opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: "100%", opacity: 0 }}
+                    {/* Backdrop */}
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                        onClick={onClose}
+                        className="hidden md:block fixed inset-0 bg-[#0F2944]/40 backdrop-blur-sm z-[1000]" />
+
+                    <motion.div
+                        initial={{ y: "100%", opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: "100%", opacity: 0 }}
                         transition={{ type: "spring", damping: 30, stiffness: 300 }}
                         className="fixed inset-0 flex items-end md:items-center justify-center z-[1001] pointer-events-none">
-                        <motion.div className="bg-[#FBFAF6] text-[#0F2944] overflow-hidden flex flex-col md:w-[90%] md:max-w-4xl md:max-h-[85vh] md:rounded-3xl md:shadow-[0_8px_48px_rgba(15,41,68,0.16)] rounded-none w-full h-dvh md:h-auto pb-safe pointer-events-auto" initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} transition={{ delay: 0.1, type: "spring", damping: 25 }} >
 
+                        <motion.div
+                            initial={{ scale: 0.97, y: 20 }} animate={{ scale: 1, y: 0 }} transition={{ delay: 0.05, type: "spring", damping: 25 }}
+                            className="bg-[#FBFAF6] text-[#0F2944] overflow-hidden flex flex-col w-full h-dvh rounded-none md:w-[92%] md:max-w-4xl md:max-h-[88vh] md:rounded-3xl md:shadow-[0_8px_48px_rgba(15,41,68,0.16)] md:h-auto pointer-events-auto">
+
+                            {/* ══════════════════════ DESKTOP HEADER ══════════════════════ */}
+                            <div className="hidden md:flex h-14 shrink-0 items-center justify-between px-5 bg-[#FBFAF6]/95 border-b border-[#EEF1F4]">
+                                <button onClick={onClose} className="flex h-9 w-9 items-center justify-center rounded-full bg-muted hover:bg-accent transition">
+                                    <Icon icon="solar:alt-arrow-left-bold-duotone" width={18} />
+                                </button>
+                                <h2 className="absolute left-1/2 -translate-x-1/2 text-sm font-black truncate max-w-[50%]">{product.name}</h2>
+                                <div className="flex items-center gap-1">
+                                    <button className="p-2 hover:bg-muted rounded-full text-muted-foreground transition-colors">
+                                        <Icon icon="solar:heart-bold-duotone" width={18} />
+                                    </button>
+                                    <button className="p-2 hover:bg-muted rounded-full text-muted-foreground transition-colors">
+                                        <Icon icon="solar:share-bold-duotone" width={18} />
+                                    </button>
+                                    <ReportButton entityType="PRODUCT" entityId={product.id} />
+                                </div>
+                            </div>
+
+                            {/* ══════════════════════ SCROLLABLE BODY ══════════════════════ */}
                             <div className="flex-1 overflow-y-auto">
-                                <div className="grid md:grid-cols-2 gap-0 md:gap-6">
-                                    {/* Image Section / Carousel */}
-                                    <div className="bg-muted/20 md:h-full">
-                                        <div className="relative aspect-square w-full overflow-hidden group bg-muted/40">
+
+                                {/* ── DESKTOP LAYOUT (grid 2 cols) ── */}
+                                <div className="hidden md:grid md:grid-cols-2 gap-0">
+                                    {/* Left: image */}
+                                    <div className="flex flex-col bg-muted/20">
+                                        {/* Zone image principale */}
+                                        <div className="relative w-full overflow-hidden" style={{ height: 420 }}>
                                             <AnimatePresence mode="wait">
                                                 {imagesList.length > 0 ? (
-                                                    <motion.div key={currentImageIndex} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }} className="absolute inset-0" >
-                                                        {/* Blurred Ambient Background */}
-                                                        <Image src={imagesList[currentImageIndex]} fill unoptimized className="object-cover blur-3xl opacity-40 scale-110" alt="" aria-hidden="true" />
-                                                        {/* Main Content Image */}
-                                                        <Image src={imagesList[currentImageIndex]} fill unoptimized className="object-contain relative z-10 p-4" alt={`${product.name} - ${currentImageIndex + 1}`} />
+                                                    <motion.div key={currentImageIndex} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} className="absolute inset-0">
+                                                        <Image src={imagesList[currentImageIndex]} fill unoptimized className="object-cover blur-3xl opacity-30 scale-110" alt="" aria-hidden />
+                                                        <Image src={imagesList[currentImageIndex]} fill unoptimized className="object-contain z-10 p-4 cursor-zoom-in" alt={product.name} onClick={() => setLightboxOpen(true)} />
                                                     </motion.div>
                                                 ) : (
-                                                    <div className="w-full h-full flex items-center justify-center text-muted-foreground/20">
+                                                    <div className="absolute inset-0 flex items-center justify-center text-muted-foreground/20">
                                                         <Icon icon="solar:box-bold-duotone" width={80} />
                                                     </div>
                                                 )}
                                             </AnimatePresence>
-
-                                            <button onClick={onClose} className="absolute top-4 left-4 p-2 bg-black/20 backdrop-blur-md rounded-full text-white transition hover:bg-black/40 z-30">
-                                                <Icon icon="solar:alt-arrow-left-bold-duotone" width={24} />
-                                            </button>
-
+                                            {discount && (
+                                                <div className="absolute top-3 left-3 z-20 bg-red-500 text-white text-xs font-black px-2.5 py-1 rounded-lg shadow">-{discount}%</div>
+                                            )}
                                             {imagesList.length > 1 && (
                                                 <>
-                                                    <div className="absolute inset-y-0 left-0 flex items-center p-2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
-                                                        <button onClick={prevImage} className="p-1.5 bg-black/20 hover:bg-black/40 backdrop-blur-md rounded-full text-white transition">
-                                                            <Icon icon="solar:alt-arrow-left-bold" width={20} />
-                                                        </button>
-                                                    </div>
-                                                    <div className="absolute inset-y-0 right-0 flex items-center p-2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
-                                                        <button onClick={nextImage} className="p-1.5 bg-black/20 hover:bg-black/40 backdrop-blur-md rounded-full text-white transition">
-                                                            <Icon icon="solar:alt-arrow-right-bold" width={20} />
-                                                        </button>
-                                                    </div>
-
-                                                    {/* Vertical Dots for consistency */}
-                                                    <div className="absolute top-1/2 right-4 -translate-y-1/2 flex flex-col gap-2 z-30">
-                                                        {imagesList.slice(0, 8).map((_, idx) => (
-                                                            <button key={idx} onClick={(e) => { e.stopPropagation(); setCurrentImageIndex(idx); }} className={`w-1.5 rounded-full transition-all duration-500 ${currentImageIndex === idx ? "bg-primary h-8 ring-4 ring-primary/20" : "bg-white/30 hover:bg-white/60 h-1.5"}`} />
-                                                        ))}
-                                                    </div>
+                                                    <button onClick={prevImage} className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-black/25 backdrop-blur-md rounded-full text-white flex items-center justify-center hover:bg-black/40 transition">
+                                                        <Icon icon="solar:alt-arrow-left-bold" width={16} />
+                                                    </button>
+                                                    <button onClick={nextImage} className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-black/25 backdrop-blur-md rounded-full text-white flex items-center justify-center hover:bg-black/40 transition">
+                                                        <Icon icon="solar:alt-arrow-right-bold" width={16} />
+                                                    </button>
                                                 </>
                                             )}
                                         </div>
+                                        {/* Miniatures */}
+                                        {imagesList.length > 1 && (
+                                            <div className="flex gap-2 p-3 flex-wrap">
+                                                {imagesList.slice(0, 6).map((img, idx) => (
+                                                    <button key={idx} onClick={() => setCurrentImageIndex(idx)}
+                                                        className={`w-12 h-12 rounded-lg overflow-hidden border-2 transition-all shrink-0 relative ${currentImageIndex === idx ? "border-primary scale-105" : "border-transparent opacity-60 hover:opacity-100"}`}>
+                                                        <Image src={img} fill unoptimized className="object-cover" alt="" />
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
 
-                                    {/* Details Section */}
-                                    <div className="p-6 md:p-8 space-y-6">
-                                        <div className="space-y-4">
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-2">
-                                                    <span className="px-3 py-1 bg-primary/10 text-primary text-[10px] font-black uppercase rounded-full">
-                                                        {product.category?.name || "Produit"}
-                                                    </span>
-                                                    <span className="px-3 py-1 bg-emerald-500/10 text-emerald-600 text-[10px] font-black uppercase rounded-full">En Stock</span>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <button className="p-2 hover:bg-muted rounded-full text-muted-foreground transition-colors">
-                                                        <Icon icon="solar:heart-bold-duotone" width={20} />
-                                                    </button>
-                                                    <button className="p-2 hover:bg-muted rounded-full text-muted-foreground transition-colors">
-                                                        <Icon icon="solar:share-bold-duotone" width={20} />
-                                                    </button>
-                                                    <ReportButton entityType="PRODUCT" entityId={product.id} />
-                                                </div>
-                                            </div>
+                                    {/* Right: details */}
+                                    <div className="p-6 overflow-y-auto space-y-5 max-h-[calc(88vh-56px-72px)]">
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                            <span className="px-3 py-1 bg-primary/10 text-primary text-[10px] font-black uppercase rounded-full">
+                                                {product.category?.name || "Produit"}
+                                            </span>
+                                            <span className="px-3 py-1 bg-emerald-500/10 text-emerald-600 text-[10px] font-black uppercase rounded-full">En Stock</span>
+                                        </div>
+                                        <h2 className="text-2xl font-black leading-tight">{product.name}</h2>
+                                        <PriceSection />
+                                        {product.user && <SellerCard />}
+                                        <TextDisplayBox text={product.description || "Aucune description disponible."} expandable isHtml />
+                                        <Specs />
+                                    </div>
+                                </div>
 
-                                            <div>
-                                                <h2 className="text-2xl md:text-3xl font-black text-card-foreground leading-tight">{product.name}</h2>
-                                                <div className="flex flex-col gap-2 mt-2">
-                                                    {product.typeVente === 'GROS' && (
-                                                        <div className="flex gap-4 w-full mb-2">
-                                                            <label className={`flex items-center gap-2 p-3 border rounded-xl cursor-pointer transition-all flex-1 ${achatType === 'UNITE' ? 'border-primary bg-primary/5' : 'border-border bg-muted/30'}`}>
-                                                                <input type="radio" name="achatType" value="UNITE" checked={achatType === 'UNITE'} onChange={() => setAchatType('UNITE')} className="hidden" />
-                                                                <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${achatType === 'UNITE' ? 'border-primary' : 'border-muted-foreground'}`}>
-                                                                    {achatType === 'UNITE' && <div className="w-2 h-2 rounded-full bg-primary" />}
-                                                                </div>
-                                                                <span className="text-sm font-bold text-foreground">À l'unité</span>
-                                                            </label>
-                                                            <label className={`flex items-center gap-2 p-3 border rounded-xl cursor-pointer transition-all flex-1 ${achatType === 'GROS' ? 'border-primary bg-primary/5' : 'border-border bg-muted/30'}`}>
-                                                                <input type="radio" name="achatType" value="GROS" checked={achatType === 'GROS'} onChange={() => setAchatType('GROS')} className="hidden" />
-                                                                <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${achatType === 'GROS' ? 'border-primary' : 'border-muted-foreground'}`}>
-                                                                    {achatType === 'GROS' && <div className="w-2 h-2 rounded-full bg-primary" />}
-                                                                </div>
-                                                                <span className="text-sm font-bold text-foreground">En gros</span>
-                                                            </label>
-                                                        </div>
-                                                    )}
+                                {/* ── MOBILE LAYOUT (full screen scroll) ── */}
+                                <div className="md:hidden flex flex-col">
+                                    {/* Floating top actions */}
+                                    <div className="absolute top-3 right-3 z-30 flex items-center gap-2">
+                                        <button className="w-9 h-9 bg-black/20 backdrop-blur-md rounded-full text-white flex items-center justify-center">
+                                            <Icon icon="solar:heart-bold-duotone" width={18} />
+                                        </button>
+                                        <button className="w-9 h-9 bg-black/20 backdrop-blur-md rounded-full text-white flex items-center justify-center">
+                                            <Icon icon="solar:share-bold-duotone" width={18} />
+                                        </button>
+                                    </div>
 
-                                                    {achatType === 'GROS' && product.prixVenteGros ? (
-                                                        <div className="flex items-center gap-3">
-                                                            <p className="text-2xl font-black text-primary">{product.prixVenteGros.toLocaleString()} <span className="text-sm">FCFA</span></p>
-                                                            <span className="px-2 py-0.5 bg-primary/10 text-primary text-[10px] font-black rounded-lg">PRIX DE GROS</span>
-                                                        </div>
-                                                    ) : (
-                                                        product.pricePromo ? (
-                                                            <div className="flex items-center gap-3">
-                                                                <p className="text-2xl font-black text-primary">{product.pricePromo.toLocaleString()} <span className="text-sm">FCFA</span></p>
-                                                                <p className="text-sm font-bold text-muted-foreground/60 line-through decoration-red-500/30">{product.price.toLocaleString()} FCFA</p>
-                                                                <span className="px-2 py-0.5 bg-red-500 text-white text-[10px] font-black rounded-lg">-{product.discountPercent}%</span>
-                                                            </div>
-                                                        ) : (
-                                                            <p className="text-2xl font-black text-primary">{product.price.toLocaleString()} <span className="text-sm">FCFA</span></p>
-                                                        )
-                                                    )}
-                                                </div>
-                                            </div>
+                                    {/* Image carousel */}
+                                    <div className="relative w-full" style={{ height: "46vh" }}>
+                                        <ImageCarousel className="h-full" />
+                                    </div>
 
-                                            {product.user && (
-                                                <Link href={`/shop/${slugify(storeInfo?.storeName || "boutique")}`}>
 
-                                                    <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-2xl border border-border/50">
-                                                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary relative overflow-hidden cursor-pointer group">
-                                                            {storeInfo?.storeLogo ? (
-                                                                <Image src={storeInfo.storeLogo} alt={storeInfo.storeName || "Boutique"} fill className="object-cover" unoptimized />
-                                                            ) : (
-                                                                <Icon icon="solar:shop-bold-duotone" className="w-8 h-8 md:w-10 md:h-10 text-primary" />
-                                                            )}
-                                                            <div className="absolute bottom-0 right-0 bg-background/80 backdrop-blur-sm rounded-full p-1 shadow-sm">
-                                                                <Icon icon="solar:eye-bold" className="w-3 h-3 text-primary group-hover:scale-110 transition" />
-                                                            </div>
-                                                        </div>
+                                    {/* Content */}
+                                    <div className="flex-1 bg-white px-4 pt-4 pb-2 space-y-4">
 
-                                                        <div>
-                                                            <p className="text-[10px] font-black uppercase text-muted-foreground leading-none mb-1">Boutique</p>
-                                                            <p className="text-sm font-black leading-none">{storeInfo?.storeName || "Officielle"}</p>
-                                                        </div>
-
-                                                    </div>
-                                                </Link>
-
-                                            )}
+                                        {/* Price + name */}
+                                        <div className="space-y-1">
+                                            <PriceSection />
+                                            <h1 className="text-lg font-black leading-snug text-[#0F2944]">{product.name}</h1>
                                         </div>
 
-                                        <TextDisplayBox text={product.description || "Aucune description disponible."} expandable={true} isHtml={true} />
-                                        <div className="grid grid-cols-2 gap-3">
-                                            <div className="p-3 bg-muted/50 rounded-xl">
-                                                <p className="text-[10px] font-black uppercase text-muted-foreground mb-0.5">État</p>
-                                                <p className="text-xs font-black">{productConditionLabels[product.etat] || product.etat}</p>
-                                            </div>
-                                            <div className="p-3 bg-muted/50 rounded-xl">
-                                                <p className="text-[10px] font-black uppercase text-muted-foreground mb-0.5">Référence</p>
-                                                <p className="text-xs font-black truncate uppercase">{product.sku || product.id.slice(0, 8)}</p>
-                                            </div>
+                                        {/* Badges catégorie / stock */}
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                            <span className="px-2.5 py-1 bg-primary/10 text-primary text-[10px] font-black uppercase rounded-full">
+                                                {product.category?.name || "Produit"}
+                                            </span>
+                                            <span className="px-2.5 py-1 bg-emerald-500/10 text-emerald-600 text-[10px] font-black uppercase rounded-full">
+                                                {product.stock > 0 ? "En Stock" : "Épuisé"}
+                                            </span>
+                                        </div>
+
+                                        {/* Seller */}
+                                        {product.user && (
+                                            <Link href={`/shop/${slugify(storeInfo?.storeName || "boutique")}`}>
+                                                <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-2xl border border-border/50">
+                                                    <div className="w-11 h-11 rounded-full bg-primary/10 relative overflow-hidden shrink-0 ring-2 ring-primary/10">
+                                                        {storeInfo?.storeLogo ? (
+                                                            <Image src={storeInfo.storeLogo} alt="" fill className="object-cover" unoptimized />
+                                                        ) : (
+                                                            <div className="w-full h-full flex items-center justify-center">
+                                                                <Icon icon="solar:shop-bold-duotone" className="w-6 h-6 text-primary" />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-sm font-black truncate">{storeInfo?.storeName || "Boutique officielle"}</p>
+                                                        {storeInfo?.productCount !== undefined && (
+                                                            <p className="text-[11px] text-muted-foreground">
+                                                                {storeInfo.productCount} articles
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                    <Icon icon="solar:alt-arrow-right-bold" className="w-4 h-4 text-muted-foreground shrink-0" />
+                                                </div>
+                                            </Link>
+                                        )}
+
+                                        {/* Contact vendeur */}
+                                        <button onClick={handleNegotiate} disabled={isNegotiating}
+                                            className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-muted hover:bg-accent border border-border font-black text-sm transition active:scale-95">
+                                            {isNegotiating
+                                                ? <Icon icon="line-md:loading-twotone-loop" width={18} />
+                                                : <Icon icon="solar:chat-round-dots-bold-duotone" width={18} className="text-primary" />}
+                                            Contacter le vendeur
+                                        </button>
+
+                                        {/* Description */}
+                                        <div className="space-y-1">
+                                            <p className="text-xs font-black uppercase text-muted-foreground">Description</p>
+                                            <TextDisplayBox text={product.description || "Aucune description disponible."} expandable isHtml />
+                                        </div>
+
+                                        {/* Specs */}
+                                        <div className="space-y-1">
+                                            <p className="text-xs font-black uppercase text-muted-foreground">Détails</p>
+                                            <Specs />
+                                        </div>
+
+                                        {/* Report */}
+                                        <div className="flex justify-end pb-2">
+                                            <ReportButton entityType="PRODUCT" entityId={product.id} />
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Actions Footer */}
-                            <div className="sticky bottom-0 p-6 bg-[#FBFAF6] border-t border-[#EEF1F4] flex flex-col md:flex-row gap-3">
-                                <button onClick={handleNegotiate} disabled={isNegotiating} className="flex-1 py-4 px-6 bg-muted hover:bg-accent text-card-foreground rounded-2xl font-black text-sm active:scale-95 transition-all shadow-sm flex items-center justify-center gap-2">
-                                    {isNegotiating ? (
-                                        <Icon icon="line-md:loading-twotone-loop" width={20} />
-                                    ) : (
-                                        <Icon icon="solar:chat-round-dots-bold-duotone" width={20} className="text-primary" />
-                                    )}
-                                    Discuter
-                                </button>
-                                <button onClick={handleAddToCart} className="flex-[2] py-4 px-6 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl font-black text-sm active:scale-95 transition-all shadow-lg flex items-center justify-center gap-2">
-                                    <Icon icon="solar:cart-large-bold-duotone" width={20} />
-                                    Ajouter au panier
-                                </button>
+                            {/* ══════════════════════ FOOTER ACTIONS ══════════════════════ */}
+                            <div className="shrink-0 px-4 py-3 bg-[#FBFAF6] border-t border-[#EEF1F4]">
+                                {/* Desktop: 2 boutons */}
+                                <div className="hidden md:flex gap-3">
+                                    <button onClick={handleNegotiate} disabled={isNegotiating}
+                                        className="py-3 px-5 bg-muted hover:bg-accent text-card-foreground rounded-2xl font-black text-sm active:scale-95 transition-all flex items-center gap-2">
+                                        {isNegotiating ? <Icon icon="line-md:loading-twotone-loop" width={18} /> : <Icon icon="solar:chat-round-dots-bold-duotone" width={18} className="text-primary" />}
+                                        Discuter
+                                    </button>
+                                    <button onClick={handleAddToCart}
+                                        className="flex-1 py-3 px-5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl font-black text-sm active:scale-95 transition-all shadow-lg flex items-center justify-center gap-2">
+                                        <Icon icon="solar:cart-large-bold-duotone" width={18} />
+                                        Ajouter au panier
+                                    </button>
+                                </div>
+                                {/* Mobile: 1 bouton */}
+                                <div className="flex md:hidden">
+                                    <button onClick={handleAddToCart}
+                                        className="flex-1 py-3.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl font-black text-sm active:scale-95 transition-all shadow-lg flex items-center justify-center gap-2">
+                                        <Icon icon="solar:cart-large-bold-duotone" width={18} />
+                                        Ajouter au panier
+                                    </button>
+                                </div>
                             </div>
                         </motion.div>
                     </motion.div>
+
+                    {/* ══════════════════════ LIGHTBOX ══════════════════════ */}
+                    <AnimatePresence>
+                        {lightboxOpen && (
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                                className="fixed inset-0 z-[1100] bg-black/95 flex items-center justify-center"
+                                onClick={() => setLightboxOpen(false)}>
+                                <button className="absolute top-4 right-4 w-10 h-10 bg-white/10 rounded-full flex items-center justify-center text-white hover:bg-white/20 transition z-10">
+                                    <Icon icon="solar:close-bold" width={20} />
+                                </button>
+                                {imagesList.length > 1 && (
+                                    <>
+                                        <button onClick={e => { e.stopPropagation(); prevImage(); }} className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/10 rounded-full flex items-center justify-center text-white hover:bg-white/20 transition z-10">
+                                            <Icon icon="solar:alt-arrow-left-bold" width={20} />
+                                        </button>
+                                        <button onClick={e => { e.stopPropagation(); nextImage(); }} className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/10 rounded-full flex items-center justify-center text-white hover:bg-white/20 transition z-10">
+                                            <Icon icon="solar:alt-arrow-right-bold" width={20} />
+                                        </button>
+                                    </>
+                                )}
+                                <motion.div key={currentImageIndex} initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }}
+                                    onClick={e => e.stopPropagation()}
+                                    className="relative w-full h-full max-w-3xl max-h-[90vh] mx-4">
+                                    <Image src={imagesList[currentImageIndex]} fill unoptimized className="object-contain" alt={product.name} />
+                                </motion.div>
+                                {imagesList.length > 1 && (
+                                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                                        {imagesList.slice(0, 8).map((_, idx) => (
+                                            <button key={idx} onClick={e => { e.stopPropagation(); setCurrentImageIndex(idx); }}
+                                                className={`rounded-full transition-all ${currentImageIndex === idx ? "w-5 h-2 bg-white" : "w-2 h-2 bg-white/30"}`} />
+                                        ))}
+                                    </div>
+                                )}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </>
             )}
         </AnimatePresence>,
