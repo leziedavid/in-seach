@@ -296,10 +296,10 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
 
                         <motion.div
                             initial={{ scale: 0.97, y: 20 }} animate={{ scale: 1, y: 0 }} transition={{ delay: 0.05, type: "spring", damping: 25 }}
-                            className="bg-[#FBFAF6] text-[#0F2944] overflow-hidden flex flex-col w-full h-dvh rounded-none md:w-[92%] md:max-w-4xl md:max-h-[88vh] md:rounded-3xl md:shadow-[0_8px_48px_rgba(15,41,68,0.16)] md:h-auto pointer-events-auto">
+                            className="bg-[#FBFAF6] dark:bg-zinc-900 text-[#0F2944] dark:text-white overflow-hidden flex flex-col w-full h-dvh rounded-none md:w-[92%] md:max-w-4xl md:max-h-[88vh] md:rounded-3xl md:shadow-[0_8px_48px_rgba(15,41,68,0.16)] md:h-auto pointer-events-auto">
 
                             {/* ══════════════════════ DESKTOP HEADER ══════════════════════ */}
-                            <div className="hidden md:flex h-14 shrink-0 items-center justify-between px-5 bg-[#FBFAF6]/95 border-b border-[#EEF1F4]">
+                            <div className="hidden md:flex h-14 shrink-0 items-center justify-between px-5 bg-[#FBFAF6]/95 dark:bg-zinc-900/95 border-b border-[#EEF1F4] dark:border-zinc-800">
                                 <button onClick={onClose} className="flex h-9 w-9 items-center justify-center rounded-full bg-muted hover:bg-accent transition">
                                     <Icon icon="solar:alt-arrow-left-bold-duotone" width={18} />
                                 </button>
@@ -398,7 +398,7 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
 
 
                                     {/* Content */}
-                                    <div className="flex-1 bg-white px-4 pt-4 pb-2 space-y-4">
+                                    <div className="flex-1 bg-white dark:bg-zinc-900 px-4 pt-4 pb-2 space-y-4">
 
                                         {/* Price + name */}
                                         <div className="space-y-1">
@@ -472,7 +472,7 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                             </div>
 
                             {/* ══════════════════════ FOOTER ACTIONS ══════════════════════ */}
-                            <div className="shrink-0 px-4 py-3 bg-[#FBFAF6] border-t border-[#EEF1F4]">
+                            <div className="shrink-0 px-4 py-3 bg-[#FBFAF6] dark:bg-zinc-900 border-t border-[#EEF1F4] dark:border-zinc-800">
                                 {/* Desktop: 2 boutons */}
                                 <div className="hidden md:flex gap-3">
                                     <button onClick={handleNegotiate} disabled={isNegotiating}
