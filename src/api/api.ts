@@ -186,6 +186,13 @@ export const getStoreUserInfo = async (): Promise<BaseResponse<StoreUserInfo>> =
     return await response.json();
 };
 
+export const resolveStoreByUserId = async (sellerId: string): Promise<BaseResponse<{ sellerId: string; storeName: string; slug: string }>> => {
+    const response = await fetch(`${getBaseUrl()}/users/store/resolve/${sellerId}`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
 export const getPublicStoreInfo = async (storeName: string): Promise<BaseResponse<StoreUserInfo & { productCount: number }>> => {
     const response = await fetch(`${getBaseUrl()}/users/store/${storeName}`, {
         method: 'GET',

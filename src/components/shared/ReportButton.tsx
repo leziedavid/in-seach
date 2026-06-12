@@ -116,25 +116,25 @@ export default function ReportButton({ entityType, entityId, className }: Report
                                     transition={{ delay: 0.06, type: "spring", damping: 28 }}
                                     className={[
                                         "pointer-events-auto",
-                                        "bg-[#FBFAF6] text-[#0F2944]",
+                                        "bg-[#FBFAF6] dark:bg-zinc-900 text-[#0F2944] dark:text-white",
                                         "w-full h-dvh rounded-none",
                                         "md:h-auto md:max-h-[88vh] md:w-[90%] md:max-w-lg md:rounded-3xl md:shadow-[0_8px_48px_rgba(15,41,68,0.16)]",
                                         "flex flex-col overflow-hidden",
                                     ].join(" ")}
                                 >
                                     {/* Header */}
-                                    <div className="relative flex h-16 shrink-0 items-center justify-between px-4 bg-[#FBFAF6]/95 backdrop-blur-md border-b border-[#EEF1F4]">
+                                    <div className="relative flex h-16 shrink-0 items-center justify-between px-4 bg-[#FBFAF6]/95 dark:bg-zinc-900/95 backdrop-blur-md border-b border-[#EEF1F4] dark:border-zinc-800">
                                         <button
                                             onClick={handleClose}
                                             type="button"
-                                            className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F2EFE7] text-[#0F2944] hover:bg-[#E8E2D6] active:scale-90 transition-all"
+                                            className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F2EFE7] dark:bg-zinc-800 text-[#0F2944] dark:text-white hover:bg-[#E8E2D6] dark:hover:bg-zinc-700 active:scale-90 transition-all"
                                         >
                                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                                                 <path d="m12 19-7-7 7-7" />
                                                 <path d="M19 12H5" />
                                             </svg>
                                         </button>
-                                        <h2 className="absolute left-1/2 -translate-x-1/2 text-[15px] font-extrabold tracking-[-0.01em] text-[#0F2944] whitespace-nowrap flex items-center gap-2">
+                                        <h2 className="absolute left-1/2 -translate-x-1/2 text-[15px] font-extrabold tracking-[-0.01em] text-[#0F2944] dark:text-white whitespace-nowrap flex items-center gap-2">
                                             <Icon icon="solar:flag-bold-duotone" width={18} className="text-red-500" />
                                             Signaler ce contenu
                                         </h2>
@@ -143,13 +143,13 @@ export default function ReportButton({ entityType, entityId, className }: Report
 
                                     {/* Content */}
                                     <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto overscroll-contain p-6 space-y-5">
-                                        <p className="text-[13px] text-[#0F2944]/60 leading-relaxed">
+                                        <p className="text-[13px] text-[#0F2944]/60 dark:text-white/60 leading-relaxed">
                                             Aidez-nous à maintenir une communauté saine en signalant les contenus problématiques.
                                         </p>
 
                                         {/* Reason select */}
                                         <div className="space-y-2">
-                                            <label className="text-[12px] font-bold text-[#0F2944] uppercase tracking-wider">
+                                            <label className="text-[12px] font-bold text-[#0F2944] dark:text-white uppercase tracking-wider">
                                                 Motif <span className="text-red-500">*</span>
                                             </label>
                                             <div className="relative">
@@ -157,7 +157,7 @@ export default function ReportButton({ entityType, entityId, className }: Report
                                                     value={reason}
                                                     onChange={(e) => setReason(e.target.value as CreateReportDto['reason'])}
                                                     required
-                                                    className="w-full appearance-none bg-white border border-[#EEF1F4] rounded-2xl px-4 py-3 text-[13px] font-medium text-[#0F2944] focus:outline-none focus:ring-2 focus:ring-[#0F2944]/20 cursor-pointer"
+                                                    className="w-full appearance-none bg-white dark:bg-zinc-800 border border-[#EEF1F4] dark:border-zinc-700 rounded-2xl px-4 py-3 text-[13px] font-medium text-[#0F2944] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0F2944]/20 dark:focus:ring-white/20 cursor-pointer"
                                                 >
                                                     <option value="">— Choisir un motif —</option>
                                                     {REASONS.map((r) => (
@@ -170,24 +170,24 @@ export default function ReportButton({ entityType, entityId, className }: Report
 
                                         {/* Description textarea */}
                                         <div className="space-y-2">
-                                            <label className="text-[12px] font-bold text-[#0F2944] uppercase tracking-wider">
-                                                Description <span className="text-[#0F2944]/40 font-normal normal-case">(optionnel)</span>
+                                            <label className="text-[12px] font-bold text-[#0F2944] dark:text-white uppercase tracking-wider">
+                                                Description <span className="text-[#0F2944]/40 dark:text-white/40 font-normal normal-case">(optionnel)</span>
                                             </label>
                                             <textarea
                                                 value={description}
                                                 onChange={(e) => setDescription(e.target.value.slice(0, 500))}
                                                 rows={4}
                                                 placeholder="Décrivez le problème en quelques mots..."
-                                                className="w-full bg-white border border-[#EEF1F4] rounded-2xl px-4 py-3 text-[13px] text-[#0F2944] placeholder-[#0F2944]/30 focus:outline-none focus:ring-2 focus:ring-[#0F2944]/20 resize-none"
+                                                className="w-full bg-white dark:bg-zinc-800 border border-[#EEF1F4] dark:border-zinc-700 rounded-2xl px-4 py-3 text-[13px] text-[#0F2944] dark:text-white placeholder-[#0F2944]/30 dark:placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#0F2944]/20 dark:focus:ring-white/20 resize-none"
                                             />
-                                            <p className="text-[10px] text-[#0F2944]/40 text-right">{description.length}/500</p>
+                                            <p className="text-[10px] text-[#0F2944]/40 dark:text-white/40 text-right">{description.length}/500</p>
                                         </div>
 
                                         {/* Submit */}
                                         <button
                                             type="submit"
                                             disabled={isSubmitting || !reason}
-                                            className="w-full bg-[#0F2944] text-white rounded-2xl py-4 text-[13px] font-extrabold tracking-wide hover:bg-[#0F2944]/90 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                            className="w-full bg-[#0F2944] dark:bg-white text-white dark:text-[#0F2944] rounded-2xl py-4 text-[13px] font-extrabold tracking-wide hover:bg-[#0F2944]/90 dark:hover:bg-white/90 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                         >
                                             {isSubmitting ? (
                                                 <Icon icon="solar:refresh-bold-duotone" width={16} className="animate-spin" />

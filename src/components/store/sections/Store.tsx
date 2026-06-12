@@ -6,6 +6,7 @@ import { Product, StoreUserInfo } from "@/types/interface"
 import Image from "next/image"
 import ProductCard from "@/components/products/cards/ProductCard"
 import { Icon } from "@iconify/react"
+import { QRCodeCanvas } from "qrcode.react"
 import { useNotification } from "@/components/notifications/NotificationProvider"
 import { Modal } from "@/components/ui/MotionModal"
 import FormsProduit from "@/components/products/forms/FormsProduit"
@@ -341,6 +342,11 @@ export default function Store() {
 
 
 
+            {/* QR Code Section */}
+            {storeInfo?.id && (
+                <QRCodeSection storeInfo={storeInfo} />
+            )}
+
             <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-2">
                 <div className="flex items-center justify-between w-full px-2 md:px-0 mb-6 border-b border-border pb-4">
                     <h3 className="text-lg font-black text-foreground">
@@ -461,6 +467,163 @@ export default function Store() {
                 lockedEntity={!!liveEntityId}
                 entityLabel={liveEntityLabel}
             />
+        </div>
+    )
+}
+
+// ─── QR Code Section ───────────────────────────────────────────────────────────
+
+function QRCodeSection({ storeInfo }: { storeInfo: StoreUserInfo }) {
+    const { addNotification } = useNotification()
+    const canvasRef = useRef<HTMLCanvasElement | null>(null)
+    const [baseUrl, setBaseUrl] = useState("")
+
+    useEffect(() => {
+        setBaseUrl(typeof window !== "undefined" ? window.location.origin : "")
+    }, [])
+
+    const qrUrl = baseUrl ? `${baseUrl}/qr/store/${storeInfo.id}` : ""
+
+    const handleDownload = () => {
+        const canvas = document.getElementById("store-qr-canvas") as HTMLCanvasElement | null
+        if (!canvas) return
+        const link = document.createElement("a")
+        link.download = `qr-boutique-${(storeInfo.storeName || "boutique").replace(/\s+/g, "-").toLowerCase()}.png`
+        link.href = canvas.toDataURL("image/png")
+        link.click()
+        addNotification("QR Code téléchargé", "success")
+    }
+
+    const handlePrint = () => {
+        const canvas = document.getElementById("store-qr-canvas") as HTMLCanvasElement | null
+        if (!canvas) return
+        const dataUrl = canvas.toDataURL("image/png")
+        const storeName = storeInfo.storeName || "Ma Boutique"
+        const logoSrc = storeInfo.storeLogo || "/logo.png"
+
+        const win = window.open("", "_blank")
+        if (!win) return
+
+        win.document.write(`<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>QR Code – ${storeName}</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #fff; display: flex; align-items: center; justify-content: center; min-height: 100vh; font-family: 'Segoe UI', Arial, sans-serif; }
+    .card {
+      width: 340px;
+      padding: 40px 32px 36px;
+      border-radius: 24px;
+      border: 1.5px solid #e5e7eb;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.08);
+      display: flex; flex-direction: column; align-items: center; gap: 20px;
+      background: #fff;
+    }
+    .logo-wrap { width: 72px; height: 72px; border-radius: 18px; overflow: hidden; border: 2px solid #f3f4f6; }
+    .logo-wrap img { width: 100%; height: 100%; object-fit: cover; }
+    .store-name { font-size: 18px; font-weight: 900; text-align: center; color: #111; letter-spacing: -0.5px; text-transform: uppercase; max-width: 260px; word-break: break-word; }
+    .qr-wrap { width: 200px; height: 200px; border-radius: 16px; overflow: hidden; border: 2px solid #dbeafe; padding: 8px; background: #fff; }
+    .qr-wrap img { width: 100%; height: 100%; }
+    .tagline { font-size: 11px; font-weight: 700; text-align: center; color: #6b7280; text-transform: uppercase; letter-spacing: 0.12em; max-width: 220px; }
+    .divider { width: 40px; height: 3px; border-radius: 99px; background: #1D4ED8; }
+    @media print {
+      * { -webkit-print-color-adjust: exact !important; color-adjust: exact !important; print-color-adjust: exact !important; }
+      body { margin: 0; }
+      .card { box-shadow: none; border: 1.5px solid #dbeafe; }
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo-wrap"><img src="${logoSrc}" alt="Logo" onerror="this.src='/logo.png'" /></div>
+    <p class="store-name">${storeName}</p>
+    <div class="divider"></div>
+    <div class="qr-wrap"><img src="${dataUrl}" alt="QR Code" /></div>
+    <p class="tagline">Scannez pour découvrir notre boutique</p>
+  </div>
+  <script>window.onload = () => { window.print(); }<\/script>
+</body>
+</html>`)
+        win.document.close()
+    }
+
+    if (!qrUrl) return null
+
+    return (
+        <div className="w-full max-w-4xl mx-auto mb-2 px-0 md:px-4">
+            <div className="bg-card border-b p-6">
+                <div className="flex items-center gap-3 mb-5">
+                    <div className="p-2 bg-primary/10 rounded-xl">
+                        <Icon icon="solar:qr-code-bold-duotone" className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                        <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Affichage physique</p>
+                        <h3 className="text-base font-black text-foreground">QR Code de votre boutique</h3>
+                    </div>
+                </div>
+
+                <div className="flex flex-col md:flex-row items-center gap-6 md:gap-10">
+                    {/* QR Preview card */}
+                    <div className="flex flex-col items-center gap-3 bg-white dark:bg-white rounded-2xl p-5 shadow-sm border border-border shrink-0">
+                        {/* Logo above QR */}
+                        <div className="w-12 h-12 rounded-xl overflow-hidden border border-gray-100 bg-gray-50 relative shrink-0">
+                            {storeInfo.storeLogo ? (
+                                <Image src={storeInfo.storeLogo} alt={storeInfo.storeName || "Logo"} fill className="object-cover" unoptimized />
+                            ) : (
+                                <Image src="/logo.png" alt="Logo" fill className="object-cover" unoptimized />
+                            )}
+                        </div>
+                        <p className="text-[11px] font-black text-gray-800 uppercase tracking-wide text-center max-w-[160px] truncate">
+                            {storeInfo.storeName || "Ma Boutique"}
+                        </p>
+                        <QRCodeCanvas
+                            id="store-qr-canvas"
+                            value={qrUrl}
+                            size={160}
+                            level="H"
+                            bgColor="#ffffff"
+                            fgColor="#1D4ED8"
+                            style={{ borderRadius: 8 }}
+                        />
+                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest text-center">
+                            Scannez pour découvrir<br />notre boutique
+                        </p>
+                    </div>
+
+                    {/* Info + actions */}
+                    <div className="flex flex-col gap-4 w-full">
+                        <div className="bg-muted/50 rounded-2xl p-4 space-y-1">
+                            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Ce QR Code pointe vers</p>
+                            <p className="text-xs font-mono text-foreground break-all">{qrUrl}</p>
+                        </div>
+                        <div className="bg-primary/5 border border-primary/10 rounded-2xl p-4 space-y-1">
+                            <p className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-1">
+                                <Icon icon="solar:shield-check-bold-duotone" className="w-3 h-3" />
+                                QR Code permanent
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                                Ce QR Code reste valide même si vous modifiez le nom, le logo ou la description de votre boutique.
+                            </p>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row gap-3">
+                            <button onClick={handleDownload}
+                                className="flex-1 flex items-center justify-center gap-2 bg-primary text-white font-black text-xs uppercase tracking-widest py-3.5 rounded-2xl shadow-sm shadow-primary/20 hover:bg-secondary transition-all active:scale-95" >
+                                <Icon icon="solar:download-bold-duotone" className="w-4 h-4" />
+                                Télécharger PNG
+                            </button>
+                            <button onClick={handlePrint}
+                                className="flex-1 flex items-center justify-center gap-2 bg-muted text-foreground font-black text-xs uppercase tracking-widest py-3.5 rounded-2xl hover:bg-primary/10 hover:text-primary transition-all active:scale-95"
+                            >
+                                <Icon icon="solar:printer-bold-duotone" className="w-4 h-4" />
+                                Imprimer
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     )
 }
