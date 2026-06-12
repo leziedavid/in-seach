@@ -109,7 +109,9 @@ const ENTITY_LABELS: Record<LiveEntityType, string> = {
 // ─── COMPONENT ───────────────────────────────────────────────────────────────
 
 export default function LivePlayer({ live, isActive, onNext, onPrev, showNav }: LivePlayerProps) {
-    const iframeRef = useRef<HTMLIFrameElement>(null);
+    const iframeRef   = useRef<HTMLIFrameElement>(null);
+    const isActiveRef = useRef(isActive);
+    useEffect(() => { isActiveRef.current = isActive; }, [isActive]);
 
     const embedType = getEmbedType(live.videoLink);
     const platform = detectPlatform(live.videoLink);
@@ -149,12 +151,11 @@ export default function LivePlayer({ live, isActive, onNext, onPrev, showNav }: 
     // ─── Écoute des messages de l'iframe (fin de vidéo) ──────────────────
 
     const handleVideoEnd = useCallback(() => {
-        // 1. Afficher IMMÉDIATEMENT l'overlay — bloque l'UI TikTok "More videos" / YouTube end screen
         setVideoEnded(true);
-        // 2. Passer à la vidéo suivante après 1.2s
         setTimeout(() => {
             setVideoEnded(false);
-            onNext?.();
+            // N'avancer que si l'utilisateur n'a pas déjà scrollé manuellement
+            if (isActiveRef.current) onNext?.();
         }, 1200);
     }, [onNext]);
 
