@@ -2353,3 +2353,38 @@ export const adminGetLiveStats = async (): Promise<BaseResponse<any>> => {
     const response = await secureFetch(`${getBaseUrl()}/lives/admin/stats`, { method: 'GET' });
     return await response.json();
 };
+
+// ─── Product Returns / SAV ──────────────────────────────────────────────────
+
+export const createProductReturn = async (formData: FormData): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/product-returns`, { method: 'POST', body: formData });
+    return await response.json();
+};
+
+export const getMyProductReturns = async (params?: { status?: string; page?: number; limit?: number }): Promise<BaseResponse<any>> => {
+    const query = new URLSearchParams();
+    if (params?.status) query.set('status', params.status);
+    if (params?.page) query.set('page', String(params.page));
+    if (params?.limit) query.set('limit', String(params.limit));
+    const response = await secureFetch(`${getBaseUrl()}/product-returns?${query.toString()}`, { method: 'GET' });
+    return await response.json();
+};
+
+export const getProductReturnById = async (id: string): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/product-returns/${id}`, { method: 'GET' });
+    return await response.json();
+};
+
+export const updateProductReturnStatus = async (id: string, body: { status: string; sellerNote?: string }): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/product-returns/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+    });
+    return await response.json();
+};
+
+export const confirmReturnReception = async (id: string): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/product-returns/${id}/confirm-reception`, { method: 'PATCH' });
+    return await response.json();
+};

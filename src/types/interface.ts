@@ -1057,3 +1057,53 @@ export interface LiveListResponse {
     limit: number;
     totalPages: number;
 }
+// ─── Product Return / SAV ───────────────────────────────────────────────────
+
+export enum ProductReturnStatus {
+    PENDING = 'PENDING',
+    APPROVED = 'APPROVED',
+    EXCHANGE_PROPOSED = 'EXCHANGE_PROPOSED',
+    REJECTED = 'REJECTED',
+    REPLACEMENT_SENT = 'REPLACEMENT_SENT',
+    COMPLETED = 'COMPLETED',
+    REFUNDED = 'REFUNDED',
+}
+
+export enum ProductReturnReason {
+    DEFECTIVE = 'DEFECTIVE',
+    WRONG_ITEM = 'WRONG_ITEM',
+    NOT_AS_DESCRIBED = 'NOT_AS_DESCRIBED',
+    DAMAGED_IN_TRANSIT = 'DAMAGED_IN_TRANSIT',
+    MISSING_PARTS = 'MISSING_PARTS',
+    OTHER = 'OTHER',
+}
+
+export interface ProductReturnMediaFile {
+    id: number;
+    fileUrl: string;
+    fileMimeType: string;
+    fileName: string;
+}
+
+export interface ProductReturn {
+    id: string;
+    orderId: string;
+    orderItemId: string;
+    productId: string;
+    customerId: string;
+    sellerId: string;
+    reason: ProductReturnReason;
+    description?: string;
+    status: ProductReturnStatus;
+    refundAmount: number;
+    replacementCount: number;
+    sellerNote?: string;
+    createdAt: string;
+    updatedAt: string;
+    product?: { id: string; name: string };
+    customer?: { id: string; fullName: string; phone: string };
+    seller?: { id: string; fullName: string; storeName: string };
+    order?: { id: string; code: string };
+    orderItem?: { id: string; quantity: number; price: number };
+    mediaFiles?: ProductReturnMediaFile[];
+}

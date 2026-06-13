@@ -30,6 +30,7 @@ import ApiDocumentation from '@/components/profile/ApiDocumentation';
 import { Modal } from '@/components/ui/MotionModal';
 import Overview from '@/components/profile/Overview';
 import MyLivesList from '@/components/lives/MyLivesList';
+import RetoursSAV from '@/components/returns/sections/RetoursSAV';
 
 
 import { useTranslation } from '@/utils/langue/hooks';
@@ -249,6 +250,8 @@ export default function Page() {
                 return <MyLivesList />;
             case 'Livreur-dashboard':
                 return <EasyDeliveryPage />;
+            case 'Retours-SAV':
+                return <RetoursSAV />;
             default:
                 return null;
         }

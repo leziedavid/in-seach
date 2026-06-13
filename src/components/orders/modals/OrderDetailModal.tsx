@@ -4,8 +4,9 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Icon } from "@iconify/react";
 import Image from 'next/image';
-import { Order, OrderItem } from "@/types/interface";
+import { Order, OrderItem, OrderStatus } from "@/types/interface";
 import { createPortal } from "react-dom";
+import ReturnRequestModal from "@/components/returns/modals/ReturnRequestModal";
 
 interface OrderDetailModalProps {
     isOpen: boolean;
@@ -25,14 +26,28 @@ const statusConfig: Record<string, { label: string; color: string; bg: string; i
 
 export default function OrderDetailModal({ isOpen, onClose, order }: OrderDetailModalProps) {
     const [mounted, setMounted] = useState(false);
+    const [returnItem, setReturnItem] = useState<OrderItem | null>(null);
 
     useEffect(() => { setMounted(true); }, []);
 
+    // Le retour est possible uniquement si la commande est livrée
+    const canReturn = order?.status === OrderStatus.DELIVERED;
+
     if (!order || !mounted) return null;
+
+    const returnModal = returnItem ? (
+        <ReturnRequestModal
+            isOpen={!!returnItem}
+            onClose={() => setReturnItem(null)}
+            orderId={order.id}
+            item={returnItem}
+            onSuccess={() => setReturnItem(null)}
+        />
+    ) : null;
 
     const status = statusConfig[order.status] || statusConfig.PENDING;
 
-    return createPortal(
+    const portal = createPortal(
         <AnimatePresence>
             {isOpen && (
                 <>
@@ -69,21 +84,32 @@ export default function OrderDetailModal({ isOpen, onClose, order }: OrderDetail
                                     <h3 className="text-xs font-black uppercase text-muted-foreground px-1">Articles ({order.items?.length || 0})</h3>
                                     <div className="space-y-2">
                                         {order.items?.map((item: OrderItem) => (
-                                            <div key={item.id} className="flex items-center gap-3 p-3 rounded-2xl bg-muted/20 border border-border/50">
-                                                <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-muted shrink-0 border border-border/10">
-                                                    {item.product?.imageUrl ? (
-                                                        <Image src={item.product.imageUrl} fill className="object-cover" alt={item.product.name} />
-                                                    ) : (
-                                                        <div className="w-full h-full flex items-center justify-center text-muted-foreground"><Icon icon="solar:box-bold-duotone" width={24} /></div>
-                                                    )}
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="text-sm font-black text-card-foreground truncate">{item.product?.name || "Produit inconnu"}</p>
-                                                    <div className="flex items-center justify-between mt-1">
-                                                        <p className="text-[11px] font-medium text-muted-foreground">Qté: {item.quantity}</p>
-                                                        <p className="text-xs font-black text-primary">{(item.price * item.quantity).toLocaleString()} FCFA</p>
+                                            <div key={item.id} className="flex flex-col gap-2 p-3 rounded-2xl bg-muted/20 border border-border/50">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-muted shrink-0 border border-border/10">
+                                                        {item.product?.imageUrl ? (
+                                                            <Image src={item.product.imageUrl} fill className="object-cover" alt={item.product.name} />
+                                                        ) : (
+                                                            <div className="w-full h-full flex items-center justify-center text-muted-foreground"><Icon icon="solar:box-bold-duotone" width={24} /></div>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-sm font-black text-card-foreground truncate">{item.product?.name || "Produit inconnu"}</p>
+                                                        <div className="flex items-center justify-between mt-1">
+                                                            <p className="text-[11px] font-medium text-muted-foreground">Qté: {item.quantity}</p>
+                                                            <p className="text-xs font-black text-primary">{(item.price * item.quantity).toLocaleString()} FCFA</p>
+                                                        </div>
                                                     </div>
                                                 </div>
+                                                {canReturn && (
+                                                    <button
+                                                        onClick={() => setReturnItem(item)}
+                                                        className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl bg-red-500/8 text-red-600 hover:bg-red-500/15 transition-all text-[11px] font-black uppercase tracking-wide active:scale-95"
+                                                    >
+                                                        <Icon icon="solar:refresh-back-bold-duotone" className="w-3.5 h-3.5" />
+                                                        Retourner l&apos;article
+                                                    </button>
+                                                )}
                                             </div>
                                         ))}
                                     </div>
@@ -104,4 +130,7 @@ export default function OrderDetailModal({ isOpen, onClose, order }: OrderDetail
         </AnimatePresence>,
         document.body
     );
+
+    return <>{portal}{returnModal}</>;
+
 }

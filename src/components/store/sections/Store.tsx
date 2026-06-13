@@ -642,20 +642,20 @@ function QRCodeSection({ storeInfo }: { storeInfo: StoreUserInfo }) {
                             {/* ── Carte style Wave ── */}
                             <div className="w-full md:flex-[3] flex justify-center">
                                 <div
-                                    className="w-full max-w-[280px] md:max-w-[300px] rounded-3xl overflow-hidden shadow-lg flex flex-col items-center py-6 px-5 gap-4"
+                                    className="w-full max-w-[260px] md:max-w-[280px] rounded-3xl overflow-hidden shadow-lg flex flex-col items-center py-8 px-5 gap-2"
                                     style={{ backgroundColor: SECONDARY_HEX }}
                                 >
-                                    {/* Logo */}
-                                    <div className="w-16 h-16 rounded-2xl overflow-hidden border-2 border-white/20 bg-white/10 relative shrink-0">
+                                    {/* Logo — sans fond, taille généreuse */}
+                                    <div className="w-32 h-32 relative shrink-0">
                                         {storeInfo.storeLogo ? (
-                                            <Image src={storeInfo.storeLogo} alt={storeName} fill className="object-cover" unoptimized />
+                                            <Image src={storeInfo.storeLogo} alt={storeName} fill className="object-contain" unoptimized />
                                         ) : (
-                                            <Image src="/logo.png" alt="Logo" fill className="object-cover" unoptimized />
+                                            <Image src="/logo.png" alt="Logo" fill className="object-contain" unoptimized />
                                         )}
                                     </div>
 
-                                    {/* Nom boutique */}
-                                    <p className="text-white font-black text-lg uppercase tracking-wide text-center leading-tight line-clamp-2">
+                                    {/* Nom boutique — collé au logo */}
+                                    <p className="text-white font-black text-base uppercase tracking-wide text-center leading-tight line-clamp-2 -mt-1">
                                         {storeName}
                                     </p>
 

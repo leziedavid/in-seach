@@ -30,7 +30,8 @@ export type TabType =
     | "Documentation-API"
     | "Ma-flotte"
     | "Livreur-dashboard"
-    | "Mes-lives";
+    | "Mes-lives"
+    | "Retours-SAV";
 
 export interface TabConfig {
     key: TabType;
@@ -52,6 +53,7 @@ export const TABS_CONFIG: TabConfig[] = [
     { labelKey: 'akwaba.sidebar.store', icon: "solar:shop-bold-duotone", key: 'Boutique', roles: [Role.CLIENT, Role.ADMIN, Role.PRESTATAIRE, Role.ENTREPRISE] },
     { labelKey: 'akwaba.sidebar.orders', icon: "solar:cart-large-bold-duotone", key: 'Commandes', roles: [Role.CLIENT, Role.ADMIN, Role.PRESTATAIRE, Role.ENTREPRISE, Role.CHAUFFEUR] },
     { labelKey: 'akwaba.sidebar.history_orders', icon: "solar:history-bold-duotone", key: 'Historique-commandes', roles: [Role.CLIENT, Role.ADMIN, Role.PRESTATAIRE, Role.ENTREPRISE, Role.CHAUFFEUR] },
+    { labelKey: 'akwaba.sidebar.returns_sav', icon: "solar:refresh-back-bold-duotone", key: 'Retours-SAV', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ENTREPRISE, Role.ADMIN] },
     { labelKey: 'akwaba.sidebar.my_quotes', icon: "solar:chat-round-money-bold-duotone", key: 'Mes-devis', roles: [Role.CLIENT, Role.ADMIN] },
     { labelKey: 'akwaba.sidebar.my_deliveries', icon: "solar:map-point-wave-bold-duotone", key: 'Mes-livraisons', roles: [Role.CLIENT, Role.ADMIN] },
     { labelKey: 'akwaba.sidebar.my_logistics_services', icon: "solar:box-bold-duotone", key: 'Mes-services-logistiques', roles: [Role.ENTREPRISE, Role.ADMIN] },
@@ -81,7 +83,7 @@ const LOGISTICS_KEYS: TabType[] = [
 // Groupes pour la vue mobile style Yango
 const MOBILE_GROUPS = [
     { keys: ['Overview', 'Calendrier'] },
-    { keys: ['Services', 'Annonces', 'Boutique', 'Mes-lives', 'Commandes', 'Historique-commandes'] },
+    { keys: ['Services', 'Annonces', 'Boutique', 'Mes-lives', 'Commandes', 'Historique-commandes', 'Retours-SAV'] },
     { keys: ['Rendez-vous', 'Rendez-vous-annonces', 'Historique-rdv'] },
     { keys: ['Mes-devis', 'Mes-livraisons', 'Mes-services-logistiques', 'Devis-recus', 'Livraisons', 'Livraisons-chauffeur', 'Ma-flotte', 'Livreur-dashboard'] },
     { keys: ['Tarifs', 'Documentation-API', 'Paramètres'] },
