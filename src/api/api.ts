@@ -701,6 +701,28 @@ export const buyCredits = async (amount: number): Promise<BaseResponse<any>> => 
 /* =======================================================
    USERS API
 ======================================================= */
+export const getDeliveryInfo = async (): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/users/me/delivery-info`, { method: 'GET' });
+    return await response.json();
+};
+
+export const updateDeliveryInfo = async (data: {
+    deliveryFullName?: string;
+    deliveryPhone?: string;
+    usePersonalPhone?: boolean;
+    deliveryAddress?: string;
+    deliveryCity?: string;
+    deliveryDistrict?: string;
+    deliveryLandmark?: string;
+    deliveryInstructions?: string;
+}): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/users/me/delivery-info`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
 export const getUserProfile = async (): Promise<BaseResponse<any>> => {
     const response = await secureFetch(`${getBaseUrl()}/users/profile`, {
         method: 'GET',

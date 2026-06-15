@@ -24,16 +24,33 @@ const statusConfig: Record<string, { label: string; color: string; bg: string; i
     CANCELLED: { label: "Annulé", color: "text-red-600", bg: "bg-red-500/10", icon: "solar:close-circle-bold-duotone" },
 };
 
+function InfoRow({ icon, label, value }: { icon: string; label: string; value?: string | null }) {
+    if (!value?.trim()) return null;
+    return (
+        <div className="flex items-start gap-2.5">
+            <Icon icon={icon} width={14} className="text-muted-foreground shrink-0 mt-0.5" />
+            <div className="min-w-0">
+                <p className="text-[10px] font-black uppercase text-muted-foreground">{label}</p>
+                <p className="text-xs font-bold text-card-foreground break-words">{value}</p>
+            </div>
+        </div>
+    );
+}
+
 export default function OrderDetailModal({ isOpen, onClose, order }: OrderDetailModalProps) {
     const [mounted, setMounted] = useState(false);
     const [returnItem, setReturnItem] = useState<OrderItem | null>(null);
 
     useEffect(() => { setMounted(true); }, []);
 
-    // Le retour est possible uniquement si la commande est livrée
     const canReturn = order?.status === OrderStatus.DELIVERED;
 
     if (!order || !mounted) return null;
+
+    const { user } = order as any;
+    const hasDeliveryInfo = user && (user.deliveryAddress || user.deliveryCity || user.deliveryFullName);
+    const effectivePhone = user?.usePersonalPhone ? user?.phone : (user?.deliveryPhone || user?.phone);
+    const effectiveName = user?.deliveryFullName || user?.fullName;
 
     const returnModal = returnItem ? (
         <ReturnRequestModal
@@ -78,6 +95,48 @@ export default function OrderDetailModal({ isOpen, onClose, order }: OrderDetail
                                     <div className="p-3 bg-muted/50 rounded-xl"><p className="text-[10px] font-black uppercase text-muted-foreground">Date</p><p className="text-sm font-black">{new Date(order.createdAt).toLocaleDateString()}</p></div>
                                     <div className="p-3 bg-muted/50 rounded-xl"><p className="text-[10px] font-black uppercase text-muted-foreground">Total</p><p className="text-sm font-black text-primary">{order.totalAmount.toLocaleString()} FCFA</p></div>
                                 </div>
+
+                                {/* Bloc client + livraison — visible si les données user sont incluses */}
+                                {user && (
+                                    <div className="rounded-2xl border border-border/60 overflow-hidden">
+                                        {/* Infos client */}
+                                        <div className="px-4 py-3 bg-muted/20 border-b border-border/40">
+                                            <p className="text-[10px] font-black uppercase text-muted-foreground flex items-center gap-1.5 mb-3">
+                                                <Icon icon="solar:user-bold-duotone" width={13} className="text-primary" />
+                                                Informations client
+                                            </p>
+                                            <div className="space-y-2">
+                                                <InfoRow icon="solar:user-bold-duotone" label="Nom" value={user.fullName} />
+                                                <InfoRow icon="solar:letter-bold-duotone" label="Email" value={user.email} />
+                                                <InfoRow icon="solar:phone-bold-duotone" label="Téléphone" value={user.indicatif ? `${user.indicatif} ${user.phone}` : user.phone} />
+                                            </div>
+                                        </div>
+
+                                        {/* Infos livraison */}
+                                        <div className="px-4 py-3">
+                                            <p className="text-[10px] font-black uppercase text-muted-foreground flex items-center gap-1.5 mb-3">
+                                                <Icon icon="solar:delivery-bold-duotone" width={13} className="text-primary" />
+                                                Informations de livraison
+                                            </p>
+                                            {hasDeliveryInfo ? (
+                                                <div className="space-y-2">
+                                                    <InfoRow icon="solar:user-bold-duotone" label="Destinataire" value={effectiveName} />
+                                                    <InfoRow icon="solar:phone-bold-duotone" label="Téléphone de livraison" value={effectivePhone} />
+                                                    <InfoRow icon="solar:map-point-bold-duotone" label="Adresse" value={user.deliveryAddress} />
+                                                    <InfoRow icon="solar:buildings-bold-duotone" label="Ville" value={user.deliveryCity} />
+                                                    <InfoRow icon="solar:buildings-2-bold-duotone" label="Commune / Quartier" value={user.deliveryDistrict} />
+                                                    <InfoRow icon="solar:flag-bold-duotone" label="Repère" value={user.deliveryLandmark} />
+                                                    <InfoRow icon="solar:document-text-bold-duotone" label="Instructions" value={user.deliveryInstructions} />
+                                                </div>
+                                            ) : (
+                                                <div className="flex items-center gap-2 py-2">
+                                                    <Icon icon="solar:info-circle-bold-duotone" width={15} className="text-muted-foreground shrink-0" />
+                                                    <p className="text-xs text-muted-foreground">Aucune adresse de livraison renseignée par le client.</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
 
                                 {/* Items List */}
                                 <div className="space-y-3">
@@ -132,5 +191,4 @@ export default function OrderDetailModal({ isOpen, onClose, order }: OrderDetail
     );
 
     return <>{portal}{returnModal}</>;
-
 }
