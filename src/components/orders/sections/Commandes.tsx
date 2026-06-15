@@ -161,7 +161,7 @@ export default function Commandes({ data: propData, page: propPage, limit: propL
                 return { text: "Cliquez sur l'icône 🟠 pour accepter la commande", color: "text-orange-500" };
             if (order.status === OrderStatus.VALIDATED)
                 return { text: "Cliquez sur l'icône 🔵 pour traiter la commande", color: "text-blue-500" };
-            if (order.status === OrderStatus.PROCESSING || order.status === OrderStatus.PAID)
+            if (order.status === OrderStatus.PROCESSING || order.status === OrderStatus.PAID || order.status === OrderStatus.DELIVERED)
                 return { text: "Cliquez sur l'icône 🟣 pour expédier la commande", color: "text-purple-500" };
             if (order.status === OrderStatus.SHIPPED)
                 return { text: "Cliquez sur l'icône 📦 pour livrer la commande", color: "text-indigo-500" };
@@ -272,6 +272,18 @@ export default function Commandes({ data: propData, page: propPage, limit: propL
                                                         </Button>
                                                     )}
 
+
+                                                    {/* <pre>{JSON.stringify(order.status, null, 2)}</pre>
+                                                    {(order.status === OrderStatus.PROCESSING || order.status === OrderStatus.PAID) && (
+                                                        <>
+                                                            <Button size="sm" disabled={subscriptionLoading} className="h-8 px-3 text-[10px] font-black bg-purple-600 hover:bg-purple-700 flex items-center gap-1.5"
+                                                                onClick={(e) => { e.stopPropagation(); openConfirm(order.id, OrderStatus.SHIPPED, true, { title: "Expédier la commande", message: "Confirmez-vous l'expédition de cette commande ? L'acheteur sera notifié.", confirmLabel: "Oui, expédier", variant: "indigo", icon: "solar:delivery-bold-duotone" }); }}>
+                                                                {subscriptionLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:delivery-bold" className="w-4 h-4" />}
+                                                                <span className="hidden sm:inline">Expédier la commande</span>
+                                                            </Button>
+                                                        </>
+                                                    )} */}
+
                                                     {/* {order.status === OrderStatus.VALIDATED && (
                                                         <Button size="sm" className="h-8 px-3 text-[10px] font-black flex items-center gap-1.5" onClick={() => handleStatusChange(order.id, OrderStatus.PAID)} >
                                                             <Icon icon="solar:wallet-2-bold" className="w-4 h-4" />
@@ -307,7 +319,7 @@ export default function Commandes({ data: propData, page: propPage, limit: propL
                                                         </Button>
                                                     )} */}
 
-                                                    {order.status === OrderStatus.PROCESSING || order.status === OrderStatus.PAID && (
+                                                    {(order.status === OrderStatus.PROCESSING || order.status === OrderStatus.PAID) && (
                                                         <>
                                                             <Button size="sm" disabled={subscriptionLoading} className="h-8 px-3 text-[10px] font-black bg-purple-600 hover:bg-purple-700 flex items-center gap-1.5"
                                                                 onClick={(e) => { e.stopPropagation(); openConfirm(order.id, OrderStatus.SHIPPED, true, { title: "Expédier la commande", message: "Confirmez-vous l'expédition de cette commande ? L'acheteur sera notifié.", confirmLabel: "Oui, expédier", variant: "indigo", icon: "solar:delivery-bold-duotone" }); }}>
