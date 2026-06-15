@@ -17,7 +17,6 @@ import AccountSettings from '@/components/profile/AccountSettings';
 import { Service, Annonce, Booking, GlobalStats, Role } from '@/types/interface';
 import { getUserRole, logout } from '@/lib/auth';
 import BookingCalendar from '@/components/bookings/sections/BookingCalendar';
-import Image from "next/image";
 import Commandes from '@/components/orders/sections/Commandes';
 import Store from '@/components/store/sections/Store';
 import HistoriqueCommandes from '@/components/orders/sections/Historique-commandes';
@@ -26,7 +25,8 @@ import LogisticsServicesList from '@/components/logistics/sections/LogisticsServ
 import QuotesList from '@/components/logistics/sections/QuotesList';
 import DeliveriesList from '@/components/logistics/sections/DeliveriesList';
 import QuoteRequestModal from '@/components/logistics/modals/QuoteRequestModal';
-import ApiDocumentation from '@/components/profile/ApiDocumentation';
+import dynamic from 'next/dynamic';
+const ApiDocumentation = dynamic(() => import('@/components/profile/ApiDocumentation'), { ssr: false });
 import { Modal } from '@/components/ui/MotionModal';
 import Overview from '@/components/profile/Overview';
 import MyLivesList from '@/components/lives/MyLivesList';

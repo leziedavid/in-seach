@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useEffect, useRef, useCallback } from "react"
+import { useState, useEffect, useRef, useCallback, memo } from "react"
+import { useDebounce } from "@/hooks/useDebounce"
 import { getMyProducts, createProduct, updateProduct, deleteProduct, handleToggleProductActive, getStoreUserInfo, updateStoreNameLogo } from "@/api/api"
 import { Product, StoreUserInfo } from "@/types/interface"
 import Image from "next/image"
@@ -25,6 +26,8 @@ const ITEMS_PER_PAGE = 10
 export default function Store() {
 
     const [search, setSearch] = useState("")
+    // [PERF] Debounce 400ms : évite une requête API à chaque frappe clavier
+    const debouncedSearch = useDebounce(search, 400)
     const [products, setProducts] = useState<Product[]>([])
     const [page, setPage] = useState(1)
     const [hasMore, setHasMore] = useState(true)
@@ -209,7 +212,7 @@ export default function Store() {
             const res = await getMyProducts({
                 page: pageNum,
                 limit: ITEMS_PER_PAGE,
-                query: search || undefined,
+                query: debouncedSearch || undefined,
             })
 
             if (res.statusCode === 200 && res.data) {
@@ -226,7 +229,7 @@ export default function Store() {
         } finally {
             setLoading(false)
         }
-    }, [search])
+    }, [debouncedSearch])
 
     // Load more when page changes (infinite scroll)
     useEffect(() => {
@@ -235,11 +238,11 @@ export default function Store() {
         }
     }, [page, fetchProducts])
 
-    // Reset and fetch when filters change
+    // [PERF] Utilise debouncedSearch : re-fetch déclenché 400ms après la fin de la frappe
     useEffect(() => {
         setPage(1)
         fetchProducts(1, true)
-    }, [search, fetchProducts])
+    }, [debouncedSearch, fetchProducts])
 
     return (
         <div className="flex flex-col items-center w-full max-w-7xl mx-auto px-4 py-2">
@@ -595,22 +598,22 @@ function QRCodeSection({ storeInfo }: { storeInfo: StoreUserInfo }) {
         const win = window.open("", "_blank")
         if (!win) return
         win.document.write(`<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8"/>
-  <title>QR Code – ${storeName}</title>
-  <style>
-    * { margin:0; padding:0; box-sizing:border-box; -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
-    body { background:#e0e0e0; display:flex; align-items:center; justify-content:center; min-height:100vh; }
-    img { width:420px; height:560px; object-fit:contain; border-radius:20px; box-shadow:0 8px 40px rgba(0,0,0,0.18); display:block; }
-    @media print { body { background:#fff; } img { box-shadow:none; } }
-  </style>
-</head>
-<body>
-  <img src="${dataUrl}" alt="QR Code ${storeName}" />
-  <script>window.onload=()=>{ window.print(); }<\/script>
-</body>
-</html>`)
+        <html lang="fr">
+        <head>
+        <meta charset="UTF-8"/>
+        <title>QR Code – ${storeName}</title>
+        <style>
+            * { margin:0; padding:0; box-sizing:border-box; -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+            body { background:#e0e0e0; display:flex; align-items:center; justify-content:center; min-height:100vh; }
+            img { width:420px; height:560px; object-fit:contain; border-radius:20px; box-shadow:0 8px 40px rgba(0,0,0,0.18); display:block; }
+            @media print { body { background:#fff; } img { box-shadow:none; } }
+        </style>
+        </head>
+        <body>
+        <img src="${dataUrl}" alt="QR Code ${storeName}" />
+        <script>window.onload=()=>{ window.print(); }<\/script>
+        </body>
+        </html>`)
         win.document.close()
     }
 

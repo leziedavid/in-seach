@@ -46,20 +46,12 @@ export default function FormsIntervention({
             {/* Options côte à côte - layout optimisé pour mobile */}
             <div className="grid grid-cols-2 gap-3">
                 {/* Option Urgence */}
-                <div
-                    className={`relative border rounded-md p-3 cursor-pointer transition-all duration-200 min-h-[90px] flex flex-col justify-between ${selectedType === "urgence" ? "border-red-500 bg-red-500/10 shadow-md transform scale-[1.02]" : "border-border bg-card hover:border-red-500/50 hover:bg-muted"}`}
-                    onClick={() => handleSelect("urgence")}
-                >
+                <div className={`relative border rounded-md p-3 cursor-pointer transition-all duration-200 min-h-[90px] flex flex-col justify-between ${selectedType === "urgence" ? "border-red-500 bg-red-500/10 shadow-md transform scale-[1.02]" : "border-border bg-card hover:border-red-500/50 hover:bg-muted"}`} onClick={() => handleSelect("urgence")}>
                     <div className="flex flex-col h-full">
                         {/* En-tête avec icône et badge */}
                         <div className="flex items-start justify-between mb-2">
                             <div className="flex items-center gap-1.5">
-                                <div
-                                    className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${selectedType === "urgence"
-                                        ? "border-red-500 bg-red-500"
-                                        : "border-muted-foreground/30"
-                                        }`}
-                                >
+                                <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${selectedType === "urgence" ? "border-red-500 bg-red-500" : "border-muted-foreground/30"}`}  >
                                     {selectedType === "urgence" && (
                                         <div className="w-1.5 h-1.5 rounded-full bg-white"></div>
                                     )}

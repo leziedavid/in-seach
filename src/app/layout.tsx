@@ -1,38 +1,42 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import QueryProvider from "@/components/providers/QueryProvider";
 import { SocketProvider } from "@/components/providers/SocketProvider";
 import { CartProvider } from "@/components/providers/CartProvider";
 import ClientLayout from "@/components/layout/ClientLayout";
-import { Jost } from "next/font/google"
+import { Jost, Montserrat, Plus_Jakarta_Sans } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider";
 import { NotificationProvider } from "@/components/notifications/NotificationProvider";
 import { WebPushManager } from "@/components/notifications/webPush";
-import { Plus_Jakarta_Sans } from "next/font/google";
-import VideoModal from "@/components/modals/VideoModal";
 import { I18nProvider } from "@/utils/langue/provider";
+import VideoModal from "@/components/modals/VideoModal";
 
-const inter = Inter({ subsets: ["latin"] });
-import { Montserrat } from 'next/font/google'
-
-const montserrat = Montserrat({
-  subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700'],
-  variable: '--font-montserrat', // optionnel (très utile)
+// [PERF] Police principale uniquement, display:swap pour éviter le FOIT
+const jost = Jost({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-jost",
+  display: "swap",
+  preload: true,
 })
 
+// [PERF] Montserrat : weights réduits à l'essentiel, display:swap
+const montserrat = Montserrat({
+  subsets: ['latin'],
+  weight: ['400', '600', '700'],
+  variable: '--font-montserrat',
+  display: 'swap',
+  preload: false,
+})
+
+// [PERF] Plus Jakarta Sans : display:swap, pas de preload (police secondaire)
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-plus-jakarta",
   subsets: ["latin"],
-});
-
-const jost = Jost({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  variable: "--font-jost",
+  weight: ["400", "600"],
   display: "swap",
-})
+  preload: false,
+});
 
 export const metadata: Metadata = {
   title: {
@@ -105,7 +109,7 @@ export default function RootLayout({ children, }: Readonly<{ children: React.Rea
     <html lang="fr" suppressHydrationWarning>
       <head />
       {/* <body className={inter.className}> */}
-      <body className={`${jost.variable} font-sans antialiased`}>
+      <body className={`${jost.variable} ${montserrat.variable} ${plusJakartaSans.variable} font-sans antialiased`}>
         {/* <BackgroundDecoration /> */}
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange >
           <I18nProvider>

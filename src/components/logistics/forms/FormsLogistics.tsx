@@ -8,7 +8,8 @@ import { z } from "zod";
 import Image from "next/image";
 import { Select2 } from "@/components/ui/Select2";
 import { TransportType } from "@/types/interface";
-import RichTextEditor from "@/components/ui/editor";
+import dynamic from 'next/dynamic';
+const RichTextEditor = dynamic(() => import("@/components/ui/editor"), { ssr: false, loading: () => <div className="min-h-[200px] border rounded-lg animate-pulse bg-muted" /> });
 
 const logisticsSchema = z.object({
     label: z.string().min(3, "Le libellé doit contenir au moins 3 caractères").max(100, "Le libellé est trop long"),

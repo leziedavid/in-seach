@@ -1,13 +1,19 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import ComingSoon from "@/components/home/ComingSoon";
 import PageTransition from "@/components/ui/PageTransition";
 import { NotificationPermissionModal } from "@/components/modals/NotificationPermissionModal";
+import { storage } from "@/lib/storage";
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
+
+    // [PERF] Nettoie les entrées localStorage expirées au démarrage (1 fois par session)
+    useEffect(() => {
+        storage.purgeExpired();
+    }, []);
 
     // Check if the current route is an admin or portfolio route
     const isIsolatedRoute = pathname?.startsWith("/admin") || pathname?.startsWith("/me");

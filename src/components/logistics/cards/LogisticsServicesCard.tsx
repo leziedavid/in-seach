@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { memo, useState } from "react";
 import { Icon } from "@iconify/react";
 import Image from "next/image";
 import { LogisticService, TransportType } from "@/types/interface";
@@ -31,7 +31,8 @@ const TRANSPORT_TYPE_LABELS: Record<TransportType, { label: string; icon: string
     [TransportType.DOUANE]: { label: "Douane", icon: "solar:shield-user-bold-duotone", color: "text-indigo-600 bg-indigo-50 dark:bg-indigo-500/10" },
 };
 
-export default function LogisticsServicesCard({ service, isOwner = false, onEdit, onDelete, onToggleStatus, onRequestQuote, onCreateLive, isUpdating = false, viewMode = "grid" }: LogisticsServicesCardProps) {
+// [PERF] memo : évite les re-renders dans les listes logistiques paginées
+const LogisticsServicesCard = memo(function LogisticsServicesCard({ service, isOwner = false, onEdit, onDelete, onToggleStatus, onRequestQuote, onCreateLive, isUpdating = false, viewMode = "grid" }: LogisticsServicesCardProps) {
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
     const transportInfo = TRANSPORT_TYPE_LABELS[service.transportType] || TRANSPORT_TYPE_LABELS[TransportType.MARITIME];
     const { withAuth } = useRequireAuth();
@@ -135,4 +136,6 @@ export default function LogisticsServicesCard({ service, isOwner = false, onEdit
             />
         </>
     );
-}
+});
+
+export default LogisticsServicesCard;

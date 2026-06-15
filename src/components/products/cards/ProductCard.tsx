@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, memo } from "react"
 import Image from "next/image"
 import { Icon } from "@iconify/react"
 import { Product, productConditionLabels } from "@/types/interface"
@@ -22,7 +22,9 @@ const slugify = (text: string) => {
         .replace(/--+/g, '-');    // Replace multiple - with single -
 }
 
-export default function ProductCard({ product, onEdit, onDelete, onStatusChange, onCreateLive, storeNames, viewMode = 'grid' }: {
+// [PERF] memo : évite le re-render des cartes produit quand le parent se re-rend
+// sans que ce produit spécifique ait changé (critique dans les listes infinies)
+const ProductCard = memo(function ProductCard({ product, onEdit, onDelete, onStatusChange, onCreateLive, storeNames, viewMode = 'grid' }: {
     product: Product;
     onEdit?: (product: Product) => void;
     onDelete?: (id: string) => void;
@@ -193,4 +195,6 @@ export default function ProductCard({ product, onEdit, onDelete, onStatusChange,
             />
         </>
     )
-}
+});
+
+export default ProductCard;

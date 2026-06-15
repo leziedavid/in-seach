@@ -9,7 +9,8 @@ import { Service, Annonce } from "@/types/interface";
 import { createBooking, updateBooking } from "@/api/api";
 import ReportButton from "@/components/shared/ReportButton";
 import { useNotification } from "@/components/notifications/NotificationProvider";
-import RichTextEditor from "@/components/ui/editor";
+import dynamic from 'next/dynamic';
+const RichTextEditor = dynamic(() => import("@/components/ui/editor"), { ssr: false, loading: () => <div className="min-h-[200px] border rounded-lg animate-pulse bg-muted" /> });
 import { useForm, Controller } from "react-hook-form";
 import { createPortal } from "react-dom";
 import { Booking, BookingsCalendar } from "@/types/interface";
@@ -158,7 +159,7 @@ export default function BookingModal({ isOpen, onClose, item, type, booking, mod
         }
 
         try {
-            const res = mode === 'create' 
+            const res = mode === 'create'
                 ? await createBooking(payload)
                 : await updateBooking((booking as any).id, payload);
 
@@ -219,22 +220,13 @@ export default function BookingModal({ isOpen, onClose, item, type, booking, mod
                                         {/* Slider Controls */}
                                         {imageGallery.length > 1 && (
                                             <>
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        setActiveImageIndex((prev) => (prev - 1 + imageGallery.length) % imageGallery.length);
-                                                    }}
-                                                    className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/30 backdrop-blur-md text-white border border-white/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-black/50 active:scale-90 z-30"
-                                                >
+                                                <button onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setActiveImageIndex((prev) => (prev - 1 + imageGallery.length) % imageGallery.length);
+                                                }} className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/30 backdrop-blur-md text-white border border-white/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-black/50 active:scale-90 z-30">
                                                     <Icon icon="solar:alt-arrow-left-bold" className="w-5 h-5" />
                                                 </button>
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        setActiveImageIndex((prev) => (prev + 1) % imageGallery.length);
-                                                    }}
-                                                    className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/30 backdrop-blur-md text-white border border-white/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-black/50 active:scale-90 z-30"
-                                                >
+                                                <button onClick={(e) => { e.stopPropagation(); setActiveImageIndex((prev) => (prev + 1) % imageGallery.length); }} className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/30 backdrop-blur-md text-white border border-white/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-black/50 active:scale-90 z-30">
                                                     <Icon icon="solar:alt-arrow-right-bold" className="w-5 h-5" />
                                                 </button>
                                             </>
@@ -252,14 +244,10 @@ export default function BookingModal({ isOpen, onClose, item, type, booking, mod
                                             {imageGallery.length > 1 && (
                                                 <div className="flex gap-1.5 p-1.5 bg-black/40 backdrop-blur-xl rounded-2xl border border-white/10">
                                                     {imageGallery.map((image, index) => (
-                                                        <button
-                                                            key={index}
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                setActiveImageIndex(index);
-                                                            }}
-                                                            className={`relative w-10 h-10 rounded-xl overflow-hidden border-2 transition-all ${activeImageIndex === index ? 'border-primary ring-2 ring-primary/20 scale-105' : 'border-white/10 opacity-50 hover:opacity-100'} `}
-                                                        >
+                                                        <button key={index} onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setActiveImageIndex(index);
+                                                        }} className={`relative w-10 h-10 rounded-xl overflow-hidden border-2 transition-all ${activeImageIndex === index ? 'border-primary ring-2 ring-primary/20 scale-105' : 'border-white/10 opacity-50 hover:opacity-100'} `}>
                                                             <Image src={image.url} alt={`${item.title} - ${index + 1}`} fill unoptimized className="object-cover" />
                                                         </button>
                                                     ))}

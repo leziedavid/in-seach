@@ -11,7 +11,8 @@ import { getForSelectCategorieAnnonces, getForSelectTypeAnnonces, getForSelectRe
 import { Select2 } from "@/components/ui/Select2";
 import { AnnonceStatus, TypeAnnonce, CategorieAnnonce, TechnicalSheet, Equipment } from "@/types/interface";
 import { useUserLocation } from "@/utils/location";
-import RichTextEditor from "@/components/ui/editor";
+import dynamic from 'next/dynamic';
+const RichTextEditor = dynamic(() => import("@/components/ui/editor"), { ssr: false, loading: () => <div className="min-h-[200px] border rounded-lg animate-pulse bg-muted" /> });
 import { useTranslation } from "@/utils/langue/hooks";
 
 // ─── Pre-defined technical sheet fields ───────────────────────────────────────

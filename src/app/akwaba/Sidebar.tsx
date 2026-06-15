@@ -62,7 +62,7 @@ export const TABS_CONFIG: TabConfig[] = [
     { labelKey: 'akwaba.sidebar.driver_deliveries', icon: "solar:delivery-bold-duotone", key: 'Livraisons-chauffeur', roles: [Role.CHAUFFEUR] },
     { labelKey: 'akwaba.sidebar.my_fleet', icon: "solar:bus-bold-duotone", key: 'Ma-flotte', roles: [Role.ENTREPRISE, Role.ADMIN] },
     { labelKey: 'akwaba.sidebar.pricing', icon: "solar:bill-list-bold-duotone", key: 'Tarifs', roles: [Role.ENTREPRISE, Role.ADMIN, Role.PRESTATAIRE, Role.CLIENT] },
-    { labelKey: 'akwaba.sidebar.api_doc', icon: "solar:document-bold-duotone", key: 'Documentation-API', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ADMIN, Role.ENTREPRISE] },
+    // { labelKey: 'akwaba.sidebar.api_doc', icon: "solar:document-bold-duotone", key: 'Documentation-API', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ADMIN, Role.ENTREPRISE] },
     { labelKey: 'akwaba.sidebar.settings', icon: "solar:settings-bold-duotone", key: 'Paramètres', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ADMIN, Role.ENTREPRISE, Role.CHAUFFEUR, Role.LIVREUR] },
     { labelKey: 'akwaba.sidebar.deliverer_space', icon: "solar:delivery-bold-duotone", key: 'Livreur-dashboard', roles: [Role.LIVREUR, Role.ADMIN] },
 ];
@@ -117,14 +117,7 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
     const renderMenuItem = (item: TabConfig) => {
         const isActive = activeTab === item.key;
         return (
-            <button
-                key={item.key}
-                onClick={() => { onTabChange(item.key); setOpen(false); }}
-                className={`w-full flex items-center gap-3 p-3 rounded-xl text-sm transition-all duration-300 ${isActive
-                        ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-[1.02]"
-                        : "hover:bg-muted text-muted-foreground hover:text-foreground dark:text-zinc-400 dark:hover:text-white"
-                    }`}
-            >
+            <button key={item.key} onClick={() => { onTabChange(item.key); setOpen(false); }} className={`w-full flex items-center gap-3 p-3 rounded-xl text-sm transition-all duration-300 ${isActive ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-[1.02]" : "hover:bg-muted text-muted-foreground hover:text-foreground dark:text-zinc-400 dark:hover:text-white"}`}>
                 <Icon icon={item.icon} width={18} />
                 {t(item.labelKey as any)}
             </button>
@@ -135,19 +128,9 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
     const renderMobileRow = (item: TabConfig, isLast: boolean) => {
         const isActive = activeTab === item.key;
         return (
-            <button
-                key={item.key}
-                onClick={() => { onTabChange(item.key); setOpen(false); }}
-                className="w-full flex items-center gap-3 px-3 py-2.5 active:bg-muted/60 transition-colors"
-            >
+            <button key={item.key} onClick={() => { onTabChange(item.key); setOpen(false); }} className="w-full flex items-center gap-3 px-3 py-2.5 active:bg-muted/60 transition-colors">
                 {/* Icône dans un cercle */}
-                <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${isActive ? 'bg-primary/15' : 'bg-muted'
-                    }`}>
-                    <Icon
-                        icon={item.icon}
-                        width={19}
-                        className={isActive ? 'text-primary' : 'text-foreground/70'}
-                    />
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${isActive ? 'bg-primary/15' : 'bg-muted'}`}> <Icon icon={item.icon} width={19} className={isActive ? 'text-primary' : 'text-foreground/70'} />
                 </div>
 
                 {/* Label */}
@@ -158,10 +141,7 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
                 </div>
 
                 {/* Chevron */}
-                <Icon
-                    icon="solar:alt-arrow-right-bold"
-                    className={`w-4 h-4 shrink-0 ${isActive ? 'text-primary' : 'text-muted-foreground'}`}
-                />
+                <Icon icon="solar:alt-arrow-right-bold" className={`w-4 h-4 shrink-0 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
             </button>
         );
     };
@@ -182,9 +162,7 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
 
     return (
         <>
-            <style jsx global>{`
-                @keyframes shimmer { 100% { transform: translateX(100%); } }
-            `}</style>
+            <style jsx global>{`  @keyframes shimmer { 100% { transform: translateX(100%); } } `}</style>
 
             {/* ═══════════════════════════════
                 DESKTOP SIDEBAR — même UI que mobile
@@ -256,12 +234,8 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
 
                                 {/* Déconnexion */}
                                 <div className="bg-muted/40 dark:bg-zinc-800/40 rounded-2xl overflow-hidden border border-border/40">
-                                    <button
-                                        onClick={onLogout}
-                                        className="w-full flex items-center gap-3 px-3 py-2.5 active:bg-red-50/60 dark:active:bg-red-900/20 transition-colors"
-                                    >
-                                        <div className="w-9 h-9 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center shrink-0">
-                                            <Icon icon="solar:logout-bold-duotone" width={19} className="text-red-500" />
+                                    <button onClick={onLogout} className="w-full flex items-center gap-3 px-3 py-2.5 active:bg-red-50/60 dark:active:bg-red-900/20 transition-colors">
+                                        <div className="w-9 h-9 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center shrink-0"><Icon icon="solar:logout-bold-duotone" width={19} className="text-red-500" />
                                         </div>
                                         <span className="flex-1 text-left text-sm font-semibold text-red-500">
                                             {t("akwaba.sidebar.logout")}
@@ -279,18 +253,8 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
                 MOBILE — FAB trigger
             ═══════════════════════════════ */}
             <div className="md:hidden fixed bottom-20 left-6 z-40">
-                <button
-                    onClick={() => setOpen(true)}
-                    className="rounded-full h-14 w-14 flex items-center justify-center bg-primary shadow-xl shadow-primary/30 hover:scale-110 active:scale-95 transition-all"
-                >
-                    <Image
-                        src="/service.svg"
-                        alt="Menu"
-                        width={32}
-                        height={32}
-                        className="brightness-0 invert dark:brightness-100 dark:invert-0"
-                        style={{ height: 'auto' }}
-                    />
+                <button onClick={() => setOpen(true)} className="rounded-full h-14 w-14 flex items-center justify-center bg-primary shadow-xl shadow-primary/30 hover:scale-110 active:scale-95 transition-all">
+                    <Image src="/service.svg" alt="Menu" width={32} height={32} className="brightness-0 invert dark:brightness-100 dark:invert-0" style={{ height: 'auto' }} />
                 </button>
             </div>
 
@@ -319,10 +283,7 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
                         >
                             {/* ── Header avec flèche retour ── */}
                             <div className="flex items-center px-4 pt-10 pb-2">
-                                <button
-                                    onClick={() => setOpen(false)}
-                                    className="p-2 -ml-2 rounded-full hover:bg-muted active:scale-90 transition-all"
-                                >
+                                <button onClick={() => setOpen(false)} className="p-2 -ml-2 rounded-full hover:bg-muted active:scale-90 transition-all">
                                     <Icon icon="solar:alt-arrow-left-bold" className="w-6 h-6 text-foreground" />
                                 </button>
                             </div>
@@ -393,16 +354,11 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
 
                                         {/* ── Bouton déconnexion ── */}
                                         <div className="bg-muted/40 dark:bg-zinc-800/40 rounded-2xl overflow-hidden border border-border/40">
-                                            <button
-                                                onClick={onLogout}
-                                                className="w-full flex items-center gap-4 px-4 py-3.5 active:bg-red-50/60 dark:active:bg-red-900/20 transition-colors"
-                                            >
+                                            <button onClick={onLogout} className="w-full flex items-center gap-4 px-4 py-3.5 active:bg-red-50/60 dark:active:bg-red-900/20 transition-colors">
                                                 <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center shrink-0">
                                                     <Icon icon="solar:logout-bold-duotone" width={20} className="text-red-500" />
                                                 </div>
-                                                <span className="flex-1 text-left text-sm font-semibold text-red-500">
-                                                    {t("akwaba.sidebar.logout")}
-                                                </span>
+                                                <span className="flex-1 text-left text-sm font-semibold text-red-500"> {t("akwaba.sidebar.logout")}</span>
                                                 <Icon icon="solar:alt-arrow-right-bold" className="w-4 h-4 text-red-400/60 shrink-0" />
                                             </button>
                                         </div>

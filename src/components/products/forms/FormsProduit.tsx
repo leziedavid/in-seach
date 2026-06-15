@@ -5,7 +5,8 @@ import { Icon } from "@iconify/react";
 import Image from "next/image";
 import { getProductCategories } from "@/api/api";
 import { Select2 } from "@/components/ui/Select2";
-import RichTextEditor from "@/components/ui/editor";
+import dynamic from 'next/dynamic';
+const RichTextEditor = dynamic(() => import("@/components/ui/editor"), { ssr: false, loading: () => <div className="min-h-[200px] border rounded-lg animate-pulse bg-muted" /> });
 import { Product, CategoryProd, ProductCondition, productConditionLabels, SubCategoryProd } from "@/types/interface";
 
 interface FormsProduitProps {

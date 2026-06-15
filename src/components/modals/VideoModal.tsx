@@ -50,7 +50,11 @@ export default function VideoModal() {
     }
   }, [emblaApi, onSelect])
 
+  // [PERF] Fetch déclenché uniquement à la première ouverture, pas au montage
+  const hasFetchedRef = React.useRef(false)
   useEffect(() => {
+    if (!isOpen || hasFetchedRef.current) return
+    hasFetchedRef.current = true
     const fetchVideos = async () => {
       try {
         const response = await getVideos()
@@ -64,7 +68,7 @@ export default function VideoModal() {
       }
     }
     fetchVideos()
-  }, [])
+  }, [isOpen])
 
   const openModal = () => setIsOpen(true)
   const closeModal = () => setIsOpen(false)
