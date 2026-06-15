@@ -86,14 +86,44 @@ export const metadata: Metadata = {
       { url: "/favicon.svg", type: "image/svg+xml" },
     ],
     apple: [
-      { url: "/favicon.png" },
+      { url: "/icons/pwa/apple-touch-icon.png", sizes: "180x180" },
+      { url: "/icons/pwa/apple-touch-icon-167.png", sizes: "167x167" },
+      { url: "/icons/pwa/apple-touch-icon-152.png", sizes: "152x152" },
     ],
   },
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent",
     title: "Djamko",
+    startupImage: [
+      // iPhone SE (1st gen) — 640×1136
+      { url: "/icons/pwa/splash-iphone-se.png", media: "(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" },
+      // iPhone 6/7/8 — 750×1334
+      { url: "/icons/pwa/splash-iphone-8.png", media: "(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" },
+      // iPhone 6+/7+/8+ — 1242×2208
+      { url: "/icons/pwa/splash-iphone-8plus.png", media: "(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" },
+      // iPhone X/XS/11 Pro — 1125×2436
+      { url: "/icons/pwa/splash-iphone-x.png", media: "(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" },
+      // iPhone XS Max/11 Pro Max — 1242×2688
+      { url: "/icons/pwa/splash-iphone-xsmax.png", media: "(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" },
+      // iPhone XR/11 — 828×1792
+      { url: "/icons/pwa/splash-iphone-xr.png", media: "(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" },
+      // iPhone 12/13/14 — 1170×2532
+      { url: "/icons/pwa/splash-iphone-12.png", media: "(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" },
+      // iPhone 12/13/14 Pro Max — 1284×2778
+      { url: "/icons/pwa/splash-iphone-12max.png", media: "(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" },
+      // iPhone 14/15 Pro — 1179×2556
+      { url: "/icons/pwa/splash-iphone-14pro.png", media: "(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" },
+      // iPhone 14/15 Pro Max — 1290×2796
+      { url: "/icons/pwa/splash-iphone-14promax.png", media: "(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" },
+      // iPad (2x) — 1536×2048
+      { url: "/icons/pwa/splash-ipad.png", media: "(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" },
+      // iPad Pro 11" — 1668×2388
+      { url: "/icons/pwa/splash-ipad-pro-11.png", media: "(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" },
+      // iPad Pro 12.9" — 2048×2732
+      { url: "/icons/pwa/splash-ipad-pro-129.png", media: "(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" },
+    ],
   },
 };
 
