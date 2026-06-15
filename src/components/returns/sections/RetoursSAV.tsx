@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Icon } from "@iconify/react";
 import Image from "next/image";
 import { getMyProductReturns, updateProductReturnStatus, confirmReturnReception } from "@/api/api";
@@ -9,41 +9,42 @@ import { getUserRole } from "@/lib/auth";
 import { useNotification } from "@/components/notifications/NotificationProvider";
 import { SectionHeader } from "@/components/shared/SectionHeader";
 import AccountBookingRowSkeleton from "@/components/bookings/ui/AccountBookingRowSkeleton";
+import ConfirmAction, { ConfirmVariant } from "@/components/ui/ConfirmAction";
 
 // ─── Config statuts ───────────────────────────────────────────────────────────
 const STATUS_CONFIG: Record<ProductReturnStatus, { label: string; color: string; bg: string; icon: string }> = {
-    [ProductReturnStatus.PENDING]:           { label: "En attente",         color: "text-amber-600",   bg: "bg-amber-500/10",   icon: "solar:clock-circle-bold-duotone" },
-    [ProductReturnStatus.APPROVED]:          { label: "Accepté",            color: "text-emerald-600", bg: "bg-emerald-500/10", icon: "solar:check-circle-bold-duotone" },
-    [ProductReturnStatus.EXCHANGE_PROPOSED]: { label: "Échange proposé",    color: "text-blue-600",    bg: "bg-blue-500/10",    icon: "solar:refresh-bold-duotone" },
-    [ProductReturnStatus.REJECTED]:          { label: "Refusé",             color: "text-red-600",     bg: "bg-red-500/10",     icon: "solar:close-circle-bold-duotone" },
-    [ProductReturnStatus.REPLACEMENT_SENT]:  { label: "Remplacement expédié", color: "text-purple-600", bg: "bg-purple-500/10", icon: "solar:delivery-bold-duotone" },
-    [ProductReturnStatus.COMPLETED]:         { label: "Terminé",            color: "text-teal-600",    bg: "bg-teal-500/10",    icon: "solar:verified-check-bold-duotone" },
-    [ProductReturnStatus.REFUNDED]:          { label: "Remboursé",          color: "text-indigo-600",  bg: "bg-indigo-500/10",  icon: "solar:wallet-money-bold-duotone" },
+    [ProductReturnStatus.PENDING]: { label: "En attente", color: "text-amber-600", bg: "bg-amber-500/10", icon: "solar:clock-circle-bold-duotone" },
+    [ProductReturnStatus.APPROVED]: { label: "Accepté", color: "text-emerald-600", bg: "bg-emerald-500/10", icon: "solar:check-circle-bold-duotone" },
+    [ProductReturnStatus.EXCHANGE_PROPOSED]: { label: "Échange proposé", color: "text-blue-600", bg: "bg-blue-500/10", icon: "solar:refresh-bold-duotone" },
+    [ProductReturnStatus.REJECTED]: { label: "Refusé", color: "text-red-600", bg: "bg-red-500/10", icon: "solar:close-circle-bold-duotone" },
+    [ProductReturnStatus.REPLACEMENT_SENT]: { label: "Remplacement expédié", color: "text-purple-600", bg: "bg-purple-500/10", icon: "solar:delivery-bold-duotone" },
+    [ProductReturnStatus.COMPLETED]: { label: "Terminé", color: "text-teal-600", bg: "bg-teal-500/10", icon: "solar:verified-check-bold-duotone" },
+    [ProductReturnStatus.REFUNDED]: { label: "Remboursé", color: "text-indigo-600", bg: "bg-indigo-500/10", icon: "solar:wallet-money-bold-duotone" },
 };
 
 const REASON_LABELS: Record<ProductReturnReason, string> = {
-    [ProductReturnReason.DEFECTIVE]:          "Produit défectueux",
-    [ProductReturnReason.WRONG_ITEM]:         "Mauvais article",
-    [ProductReturnReason.NOT_AS_DESCRIBED]:   "Non conforme",
+    [ProductReturnReason.DEFECTIVE]: "Produit défectueux",
+    [ProductReturnReason.WRONG_ITEM]: "Mauvais article",
+    [ProductReturnReason.NOT_AS_DESCRIBED]: "Non conforme",
     [ProductReturnReason.DAMAGED_IN_TRANSIT]: "Endommagé (transport)",
-    [ProductReturnReason.MISSING_PARTS]:      "Pièces manquantes",
-    [ProductReturnReason.OTHER]:              "Autre",
+    [ProductReturnReason.MISSING_PARTS]: "Pièces manquantes",
+    [ProductReturnReason.OTHER]: "Autre",
 };
 
 // ─── Actions vendeur disponibles par statut ───────────────────────────────────
 const SELLER_ACTIONS: Partial<Record<ProductReturnStatus, { status: ProductReturnStatus; label: string; icon: string; variant: "primary" | "danger" | "muted" }[]>> = {
     [ProductReturnStatus.PENDING]: [
-        { status: ProductReturnStatus.APPROVED,          label: "Accepter",          icon: "solar:check-circle-bold-duotone",  variant: "primary" },
-        { status: ProductReturnStatus.EXCHANGE_PROPOSED, label: "Proposer échange",  icon: "solar:refresh-bold-duotone",       variant: "muted" },
-        { status: ProductReturnStatus.REJECTED,          label: "Refuser",           icon: "solar:close-circle-bold-duotone",  variant: "danger" },
+        { status: ProductReturnStatus.APPROVED, label: "Accepter", icon: "solar:check-circle-bold-duotone", variant: "primary" },
+        { status: ProductReturnStatus.EXCHANGE_PROPOSED, label: "Proposer échange", icon: "solar:refresh-bold-duotone", variant: "muted" },
+        { status: ProductReturnStatus.REJECTED, label: "Refuser", icon: "solar:close-circle-bold-duotone", variant: "danger" },
     ],
     [ProductReturnStatus.APPROVED]: [
         { status: ProductReturnStatus.REPLACEMENT_SENT, label: "Confirmer expédition", icon: "solar:delivery-bold-duotone", variant: "primary" },
-        { status: ProductReturnStatus.REFUNDED,          label: "Rembourser",           icon: "solar:wallet-money-bold-duotone", variant: "muted" },
+        { status: ProductReturnStatus.REFUNDED, label: "Rembourser", icon: "solar:wallet-money-bold-duotone", variant: "muted" },
     ],
     [ProductReturnStatus.EXCHANGE_PROPOSED]: [
         { status: ProductReturnStatus.REPLACEMENT_SENT, label: "Confirmer expédition", icon: "solar:delivery-bold-duotone", variant: "primary" },
-        { status: ProductReturnStatus.REFUNDED,          label: "Rembourser à la place", icon: "solar:wallet-money-bold-duotone", variant: "muted" },
+        { status: ProductReturnStatus.REFUNDED, label: "Rembourser à la place", icon: "solar:wallet-money-bold-duotone", variant: "muted" },
     ],
 };
 
@@ -53,6 +54,28 @@ function ReturnCard({ ret, role, onRefresh }: { ret: ProductReturn; role: Role; 
     const [loading, setLoading] = useState(false);
     const [noteInput, setNoteInput] = useState("");
     const [expanded, setExpanded] = useState(false);
+    const pendingAction = useRef<(() => Promise<void>) | null>(null);
+    const [confirmState, setConfirmState] = useState<{
+        isOpen: boolean;
+        title: string; message: string; confirmLabel: string; variant: ConfirmVariant; icon: string;
+    }>({ isOpen: false, title: "", message: "", confirmLabel: "Confirmer", variant: "info", icon: "" });
+    const [isConfirming, setIsConfirming] = useState(false);
+
+    const openConfirm = (action: () => Promise<void>, cfg: { title: string; message: string; confirmLabel: string; variant: ConfirmVariant; icon: string }) => {
+        pendingAction.current = action;
+        setConfirmState({ isOpen: true, ...cfg });
+    };
+    const closeConfirm = () => {
+        pendingAction.current = null;
+        setConfirmState(s => ({ ...s, isOpen: false }));
+    };
+    const executeAction = async () => {
+        if (isConfirming || !confirmState.isOpen || !pendingAction.current) return;
+        setIsConfirming(true);
+        await pendingAction.current();
+        setIsConfirming(false);
+        closeConfirm();
+    };
     const status = STATUS_CONFIG[ret.status];
     const isClient = role === Role.CLIENT;
     const isSeller = role === Role.PRESTATAIRE || role === Role.ENTREPRISE;
@@ -60,6 +83,7 @@ function ReturnCard({ ret, role, onRefresh }: { ret: ProductReturn; role: Role; 
 
     const handleAction = async (newStatus: ProductReturnStatus) => {
         setLoading(true);
+
         try {
             const res = await updateProductReturnStatus(ret.id, { status: newStatus, sellerNote: noteInput || undefined });
             if (res.statusCode === 200) {
@@ -190,11 +214,13 @@ function ReturnCard({ ret, role, onRefresh }: { ret: ProductReturn; role: Role; 
                     {actions.length > 0 && (
                         <div className="flex flex-wrap gap-2">
                             {actions.map(a => (
-                                <button key={a.status} onClick={() => handleAction(a.status)} disabled={loading}
+                                <button key={a.status}
+                                    onClick={(e) => { e.stopPropagation(); openConfirm(() => handleAction(a.status), { title: a.label, message: `Confirmez-vous l'action "${a.label}" pour ce retour produit ?`, confirmLabel: `Oui, ${a.label.toLowerCase()}`, variant: a.variant === "danger" ? "danger" : a.variant === "primary" ? "success" : "info", icon: a.icon }); }}
+                                    disabled={loading}
                                     className={`flex-1 min-w-[120px] flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl font-black text-[11px] uppercase tracking-wide transition-all active:scale-95 disabled:opacity-50
                                     ${a.variant === "primary" ? "bg-primary text-white shadow-sm shadow-primary/20 hover:bg-secondary" :
-                                        a.variant === "danger" ? "bg-red-500/10 text-red-600 hover:bg-red-500/20" :
-                                            "bg-muted text-foreground hover:bg-muted/80"}`}>
+                                            a.variant === "danger" ? "bg-red-500/10 text-red-600 hover:bg-red-500/20" :
+                                                "bg-muted text-foreground hover:bg-muted/80"}`}>
                                     <Icon icon={a.icon} className="w-3.5 h-3.5 shrink-0" />
                                     {a.label}
                                 </button>
@@ -204,12 +230,26 @@ function ReturnCard({ ret, role, onRefresh }: { ret: ProductReturn; role: Role; 
 
                     {/* Action client : confirmer réception */}
                     {canConfirmReception && (
-                        <button onClick={handleConfirmReception} disabled={loading}
+                        <button
+                            onClick={(e) => { e.stopPropagation(); openConfirm(() => handleConfirmReception(), { title: "Confirmer la réception", message: "Confirmez-vous avoir bien reçu votre remplacement ? Cette action est définitive.", confirmLabel: "Oui, confirmer", variant: "success", icon: "solar:check-circle-bold-duotone" }); }}
+                            disabled={loading}
                             className="w-full flex items-center justify-center gap-2 py-3 bg-emerald-500/10 text-emerald-600 font-black text-xs uppercase tracking-wide rounded-xl hover:bg-emerald-500/20 transition-all active:scale-95 disabled:opacity-50">
                             {loading ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:check-circle-bold-duotone" className="w-4 h-4" />}
                             Confirmer la réception
                         </button>
                     )}
+
+                    <ConfirmAction
+                        isOpen={confirmState.isOpen}
+                        onClose={closeConfirm}
+                        onConfirm={executeAction}
+                        title={confirmState.title}
+                        message={confirmState.message}
+                        confirmLabel={confirmState.confirmLabel}
+                        variant={confirmState.variant}
+                        icon={confirmState.icon}
+                        isLoading={isConfirming}
+                    />
                 </div>
             )}
         </div>

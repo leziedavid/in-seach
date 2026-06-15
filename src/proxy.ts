@@ -59,9 +59,5 @@ export function proxy(request: NextRequest) {
 
 // Configurer les matchers pour optimiser les performances
 export const config = {
-    matcher: [
-        '/akwaba/:path*',
-        '/chat-ia/:path*',
-        '/admin/:path*',
-    ],
+    matcher: ['/akwaba/:path*', '/chat-ia/:path*', '/admin/:path*',],
 };

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Icon } from "@iconify/react";
 import { Quote, QuoteStatus, TransportType } from "@/types/interface";
 import { getSentQuotes, getReceivedQuotes, updateQuoteStatus, createDeliveryFromQuote, createChatConversation } from "@/api/api";
@@ -10,9 +10,11 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { getUserId, isAuthenticated } from "@/lib/auth";
 import { useSubscriptionCheck } from "@/hooks/useSubscriptionCheck";
+import ConfirmAction, { ConfirmVariant } from "@/components/ui/ConfirmAction";
 
 import ClientsManager from "@/components/logistics/sections/ClientsManager";
 import ManualQuoteModal from "@/components/logistics/modals/ManualQuoteModal";
+
 
 interface QuotesListProps {
     role: "CLIENT" | "ENTREPRISE";
@@ -38,6 +40,35 @@ export default function QuotesList({ role }: QuotesListProps) {
     const [proposingPriceId, setProposingPriceId] = useState<string | null>(null);
     const [tempPrice, setTempPrice] = useState<string>("");
     const [isNegotiating, setIsNegotiating] = useState<Record<string, boolean>>({});
+
+    // ── Confirmation dialog state ─────────────────────────────────
+    const pendingAction = useRef<(() => Promise<void>) | null>(null);
+    const [confirmState, setConfirmState] = useState<{
+        isOpen: boolean;
+        title: string; message: string; confirmLabel: string; variant: ConfirmVariant; icon: string;
+    }>({ isOpen: false, title: "", message: "", confirmLabel: "Confirmer", variant: "info", icon: "" });
+    const [isConfirming, setIsConfirming] = useState(false);
+
+    const openConfirm = (
+        action: () => Promise<void>,
+        cfg: { title: string; message: string; confirmLabel: string; variant: ConfirmVariant; icon: string }
+    ) => {
+        pendingAction.current = action;
+        setConfirmState({ isOpen: true, ...cfg });
+    };
+
+    const closeConfirm = () => {
+        pendingAction.current = null;
+        setConfirmState(s => ({ ...s, isOpen: false }));
+    };
+
+    const executeAction = async () => {
+        if (isConfirming || !confirmState.isOpen || !pendingAction.current) return;
+        setIsConfirming(true);
+        await pendingAction.current();
+        setIsConfirming(false);
+        closeConfirm();
+    };
 
     // Attachment Preview
     const [previewImage, setPreviewImage] = useState<string | null>(null);
@@ -377,10 +408,12 @@ export default function QuotesList({ role }: QuotesListProps) {
                                             {canClientAction && quote.status === QuoteStatus.PROPOSED && (
                                                 <div className="flex flex-col gap-2">
                                                     <div className="flex gap-2">
-                                                        <Button size="sm" className="rounded-xl h-10 bg-emerald-500 hover:bg-emerald-600 text-white font-black text-[10px] gap-2 px-6 shadow-lg shadow-emerald-500/20" onClick={() => handleUpdateStatus(quote.id, QuoteStatus.ACCEPTED)} >
+                                                        <Button size="sm" className="rounded-xl h-10 bg-emerald-500 hover:bg-emerald-600 text-white font-black text-[10px] gap-2 px-6 shadow-lg shadow-emerald-500/20"
+                                                            onClick={(e) => { e.stopPropagation(); openConfirm(() => handleUpdateStatus(quote.id, QuoteStatus.ACCEPTED), { title: "Accepter le devis", message: `Confirmez-vous l'acceptation du devis #${quote.id.slice(0, 8)} ? La livraison pourra ensuite être initialisée.`, confirmLabel: "Oui, accepter", variant: "success", icon: "solar:check-circle-bold-duotone" }); }}>
                                                             ACCEPTER
                                                         </Button>
-                                                        <Button variant="outline" size="sm" className="rounded-xl h-10 border-red-100 text-red-500 hover:bg-red-50 font-black text-[10px] px-4" onClick={() => handleUpdateStatus(quote.id, QuoteStatus.REJECTED)} >
+                                                        <Button variant="outline" size="sm" className="rounded-xl h-10 border-red-100 text-red-500 hover:bg-red-50 font-black text-[10px] px-4"
+                                                            onClick={(e) => { e.stopPropagation(); openConfirm(() => handleUpdateStatus(quote.id, QuoteStatus.REJECTED), { title: "Refuser le devis", message: `Êtes-vous sûr de vouloir refuser ce devis #${quote.id.slice(0, 8)} ?`, confirmLabel: "Oui, refuser", variant: "danger", icon: "solar:close-circle-bold-duotone" }); }}>
                                                             REFUSER
                                                         </Button>
                                                     </div>
@@ -396,7 +429,8 @@ export default function QuotesList({ role }: QuotesListProps) {
                                             )}
 
                                             {canEnterpriseAction && quote.status === QuoteStatus.ACCEPTED && !quote.delivery && (
-                                                <Button size="sm" className="rounded-xl h-10 bg-primary hover:bg-secondary text-white font-black text-[10px] gap-2 px-6 shadow-lg shadow-primary/20" onClick={() => handleCreateDelivery(quote.id)} >
+                                                <Button size="sm" className="rounded-xl h-10 bg-primary hover:bg-secondary text-white font-black text-[10px] gap-2 px-6 shadow-lg shadow-primary/20"
+                                                    onClick={(e) => { e.stopPropagation(); openConfirm(() => handleCreateDelivery(quote.id), { title: "Initialiser la livraison", message: `Confirmez-vous la création de la livraison pour le devis #${quote.id.slice(0, 8)} ?`, confirmLabel: "Oui, initialiser", variant: "indigo", icon: "solar:delivery-bold-duotone" }); }}>
                                                     <Icon icon="solar:delivery-bold-duotone" className="w-4 h-4" />
                                                     INITIALISER LIVRAISON
                                                 </Button>
@@ -452,6 +486,18 @@ export default function QuotesList({ role }: QuotesListProps) {
                     )}
                 </div>
             )}
+
+            <ConfirmAction
+                isOpen={confirmState.isOpen}
+                onClose={closeConfirm}
+                onConfirm={executeAction}
+                title={confirmState.title}
+                message={confirmState.message}
+                confirmLabel={confirmState.confirmLabel}
+                variant={confirmState.variant}
+                icon={confirmState.icon}
+                isLoading={isConfirming}
+            />
 
             <ManualQuoteModal
                 isOpen={isManualModalOpen}

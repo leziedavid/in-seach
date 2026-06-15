@@ -171,16 +171,9 @@ const ProductCard = memo(function ProductCard({ product, onEdit, onDelete, onSta
 
             </div>
 
-
             <ProductDetailModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} product={product} />
 
-            <Delete
-                isOpen={isDeleteModalOpen}
-                onClose={() => setIsDeleteModalOpen(false)}
-                onConfirm={confirmDelete}
-                // ProductCard relies on the parent to handle the actual API call and loading state via onDelete
-                isDeleting={false}
-            />
+            <Delete isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} onConfirm={confirmDelete} isDeleting={false} />
 
             <Share
                 isOpen={isShareOpen}

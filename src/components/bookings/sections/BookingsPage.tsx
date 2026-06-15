@@ -16,6 +16,7 @@ import { useRealTimeUpdate } from "@/hooks/useRealTimeUpdate";
 import { SectionHeader } from "@/components/shared/SectionHeader";
 import { useTranslation } from "@/utils/langue/hooks";
 import { useSubscriptionCheck } from "@/hooks/useSubscriptionCheck";
+import ConfirmAction, { ConfirmVariant } from "@/components/ui/ConfirmAction";
 
 interface BookingsPageProps {
     data?: Booking[];
@@ -67,6 +68,41 @@ export default function BookingsPage({
     const { showNotification } = useNotification();
     const { checkFeatureAccess, loading: subscriptionLoading } = useSubscriptionCheck();
 
+    // ── Confirmation dialog state ─────────────────────────────────
+    const [confirmState, setConfirmState] = useState<{
+        isOpen: boolean;
+        bookingId: string;
+        newStatus: BookingStatus;
+        requiresSubscription: boolean;
+        title: string;
+        message: string;
+        confirmLabel: string;
+        variant: ConfirmVariant;
+        icon: string;
+    }>({
+        isOpen: false, bookingId: "", newStatus: BookingStatus.CANCELLED,
+        requiresSubscription: false, title: "", message: "",
+        confirmLabel: "Confirmer", variant: "info", icon: "",
+    });
+    const [isConfirming, setIsConfirming] = useState(false);
+
+    const openConfirm = (
+        bookingId: string,
+        newStatus: BookingStatus,
+        requiresSubscription: boolean,
+        cfg: { title: string; message: string; confirmLabel: string; variant: ConfirmVariant; icon: string }
+    ) => setConfirmState({ isOpen: true, bookingId, newStatus, requiresSubscription, ...cfg });
+
+    const closeConfirm = () => setConfirmState(s => ({ ...s, isOpen: false }));
+
+    const executeStatusChange = async () => {
+        if (isConfirming || !confirmState.isOpen || !confirmState.bookingId) return;
+        setIsConfirming(true);
+        await handleChangeStatus(confirmState.bookingId, confirmState.newStatus, confirmState.requiresSubscription);
+        setIsConfirming(false);
+        closeConfirm();
+    };
+
     // 🔄 SYNCHRONISATION TEMPS RÉEL
     useRealTimeUpdate('Booking', () => {
         if (!propData) fetchBookings();
@@ -99,7 +135,6 @@ export default function BookingsPage({
 
     /* ================= STATUS ================= */
     const handleChangeStatus = async (bookingId: string, newStatus: BookingStatus, requiresSubscription = false) => {
-        // Vérification d'abonnement uniquement pour les actions prestataire (isBookingProvider)
         if (requiresSubscription) {
             const canProceed = await checkFeatureAccess();
             if (!canProceed) return;
@@ -256,7 +291,8 @@ export default function BookingsPage({
                                             {isBookingClient && (
                                                 <div className="flex items-center gap-2">
                                                     {(booking.status === BookingStatus.PENDING || booking.status === BookingStatus.ACCEPTED) && (
-                                                        <Button size="sm" variant="destructive" className="h-8 px-3 text-[10px] font-black flex items-center gap-1.5" onClick={() => handleChangeStatus(booking.id, BookingStatus.CANCELLED)} >
+                                                        <Button size="sm" variant="destructive" className="h-8 px-3 text-[10px] font-black flex items-center gap-1.5"
+                                                            onClick={(e) => { e.stopPropagation(); openConfirm(booking.id, BookingStatus.CANCELLED, false, { title: "Annuler le rendez-vous", message: "Êtes-vous sûr de vouloir annuler ce rendez-vous ? Cette action ne peut pas être défaite.", confirmLabel: "Oui, annuler", variant: "danger", icon: "solar:close-circle-bold-duotone" }); }}>
                                                             <Icon icon="solar:close-circle-bold" className="w-4 h-4" />
                                                             <span className="hidden sm:inline">{t("akwaba.bookings.actions.cancel")}</span>
                                                         </Button>
@@ -268,19 +304,22 @@ export default function BookingsPage({
                                             {isBookingProvider && (
                                                 <div className="flex items-center gap-2">
                                                     {booking.status === BookingStatus.PENDING && (
-                                                        <Button size="sm" disabled={subscriptionLoading} className="h-8 px-3 text-[10px] font-black bg-blue-600 hover:bg-blue-700 flex items-center gap-1.5" onClick={() => handleChangeStatus(booking.id, BookingStatus.ACCEPTED, true)} >
+                                                        <Button size="sm" disabled={subscriptionLoading} className="h-8 px-3 text-[10px] font-black bg-blue-600 hover:bg-blue-700 flex items-center gap-1.5"
+                                                            onClick={(e) => { e.stopPropagation(); openConfirm(booking.id, BookingStatus.ACCEPTED, true, { title: "Accepter le rendez-vous", message: "Confirmez-vous l'acceptation de ce rendez-vous ? Le client sera notifié.", confirmLabel: "Oui, accepter", variant: "info", icon: "solar:check-circle-bold-duotone" }); }}>
                                                             {subscriptionLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:check-circle-bold" className="w-4 h-4" />}
                                                             <span className="hidden sm:inline">{t("akwaba.bookings.actions.accept")}</span>
                                                         </Button>
                                                     )}
                                                     {booking.status === BookingStatus.ACCEPTED && (
-                                                        <Button size="sm" disabled={subscriptionLoading} className="h-8 px-3 text-[10px] font-black bg-indigo-600 hover:bg-indigo-700 flex items-center gap-1.5" onClick={() => handleChangeStatus(booking.id, BookingStatus.IN_PROGRESS, true)} >
+                                                        <Button size="sm" disabled={subscriptionLoading} className="h-8 px-3 text-[10px] font-black bg-indigo-600 hover:bg-indigo-700 flex items-center gap-1.5"
+                                                            onClick={(e) => { e.stopPropagation(); openConfirm(booking.id, BookingStatus.IN_PROGRESS, true, { title: "Démarrer le rendez-vous", message: "Confirmez-vous le démarrage de cette prestation ? Le client sera informé.", confirmLabel: "Oui, démarrer", variant: "indigo", icon: "solar:play-bold-duotone" }); }}>
                                                             {subscriptionLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:play-bold" className="w-4 h-4" />}
                                                             <span className="hidden sm:inline">{t("akwaba.bookings.actions.start")}</span>
                                                         </Button>
                                                     )}
                                                     {booking.status === BookingStatus.IN_PROGRESS && (
-                                                        <Button size="sm" disabled={subscriptionLoading} className="h-8 px-3 text-[10px] font-black bg-green-600 hover:bg-green-700 flex items-center gap-1.5" onClick={() => handleChangeStatus(booking.id, BookingStatus.COMPLETED, true)} >
+                                                        <Button size="sm" disabled={subscriptionLoading} className="h-8 px-3 text-[10px] font-black bg-green-600 hover:bg-green-700 flex items-center gap-1.5"
+                                                            onClick={(e) => { e.stopPropagation(); openConfirm(booking.id, BookingStatus.COMPLETED, true, { title: "Terminer la prestation", message: "Confirmez-vous la fin de cette prestation ? Le client sera notifié de la complétion.", confirmLabel: "Oui, terminer", variant: "success", icon: "solar:check-read-bold-duotone" }); }}>
                                                             {subscriptionLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:check-read-bold" className="w-4 h-4" />}
                                                             <span className="hidden sm:inline">{t("akwaba.bookings.actions.finish")}</span>
                                                         </Button>
@@ -329,6 +368,19 @@ export default function BookingsPage({
 
                 )}
             </div>
+
+            {/* ConfirmAction HORS du bloc conditionnel — sinon loading=true le démonte */}
+            <ConfirmAction
+                isOpen={confirmState.isOpen}
+                onClose={closeConfirm}
+                onConfirm={executeStatusChange}
+                title={confirmState.title}
+                message={confirmState.message}
+                confirmLabel={confirmState.confirmLabel}
+                variant={confirmState.variant}
+                icon={confirmState.icon}
+                isLoading={isConfirming}
+            />
         </div>
     );
 }

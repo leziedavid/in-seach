@@ -416,6 +416,7 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                                             </span>
                                         </div>
 
+
                                         {/* Seller */}
                                         {product.user && (
                                             <Link href={`/shop/${slugify(storeInfo?.storeName || "boutique")}`}>
@@ -504,7 +505,9 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                                 className="fixed inset-0 z-[1100] bg-black/95 flex items-center justify-center"
                                 onClick={() => setLightboxOpen(false)}>
-                                <button className="absolute top-4 right-4 w-10 h-10 bg-white/10 rounded-full flex items-center justify-center text-white hover:bg-white/20 transition z-10">
+                                <button
+                                    onClick={e => { e.stopPropagation(); setLightboxOpen(false); }}
+                                    className="absolute top-4 right-4 w-10 h-10 bg-white/10 rounded-full flex items-center justify-center text-white hover:bg-white/20 transition z-10">
                                     <Icon icon="solar:close-bold" width={20} />
                                 </button>
                                 {imagesList.length > 1 && (

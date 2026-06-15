@@ -123,21 +123,10 @@ export default function ProductsPage() {
 
             {/* CATEGORIES & SUB-CATEGORIES FILTERS */}
             <div className="w-full max-w-3xl mx-auto mb-2">
-                <CategoryFilter
-                    categories={[
-                        { id: "all", name: "Tous" },
-                        ...categories.map(c => ({
-                            id: c.id,
-                            name: c.name,
-                            subCategories: c.subCategories
-                        }))
-                    ]}
+                <CategoryFilter categories={[{ id: "all", name: "Tous" }, ...categories.map(c => ({ id: c.id, name: c.name, subCategories: c.subCategories }))]}
                     selectedCategoryId={selectedCategory}
                     selectedSubCategoryId={selectedSubCategory}
-                    onCategoryChange={(id) => {
-                        setSelectedCategory(id);
-                        setSelectedSubCategory("all");
-                    }}
+                    onCategoryChange={(id) => { setSelectedCategory(id); setSelectedSubCategory("all"); }}
                     onSubCategoryChange={setSelectedSubCategory}
                     hasSubCategories={true}
                 />
@@ -195,9 +184,7 @@ export default function ProductsPage() {
                         loadMore={() => setPage(prev => prev + 1)}
                         skeletonCount={6}
                         viewMode={viewMode}
-                        renderItem={(product) => (
-                            <ProductCard product={product} viewMode={viewMode} />
-                        )}
+                        renderItem={(product) => (<ProductCard product={product} viewMode={viewMode} />)}
                         gridClassName={viewMode === 'grid' ? "grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-6" : "grid grid-cols-1 gap-4"}
                     />
                 )}
