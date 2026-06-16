@@ -246,28 +246,26 @@ export default function Store() {
     }, [debouncedSearch, fetchProducts])
 
     return (
-        <div className="flex flex-col items-center w-full max-w-7xl mx-auto px-4 py-2">
+        <div className="flex flex-col items-center w-full max-w-7xl mx-auto px-0 md:px-4 py-2">
             {/* Action Bar */}
-            <div className="flex flex-col items-center w-full max-w-7xl mx-auto px-4 py-2">
-                <div className="flex flex-col md:flex-row items-center justify-between gap-4 w-full max-w-4xl mb-6">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4 w-full max-w-4xl px-2 md:px-0 mb-6">
 
-                    {/* Zone recherche - cachée en mobile */}
-                    <div className="hidden md:flex flex-col gap-1 flex-1">
-                    </div>
-
-                    {/* Boutons */}
-                    <div className="flex flex-col md:flex-row w-full md:w-auto gap-2 md:gap-4">
-
-                        <div className="w-full md:min-w-[240px]">
-                            <CreateButton label="Publier un article" loading={checkLoading} onClick={openCreateModal} />
-                        </div>
-
-                        <div className="w-full md:min-w-[200px]">
-                            <CreateButton label="Créer un Live" icon="solar:play-circle-bold-duotone" onClick={() => openLiveModal()} />
-                        </div>
-                    </div>
-
+                {/* Zone recherche - cachée en mobile */}
+                <div className="hidden md:flex flex-col gap-1 flex-1">
                 </div>
+
+                {/* Boutons */}
+                <div className="flex flex-col md:flex-row w-full md:w-auto gap-2 md:gap-4">
+
+                    <div className="w-full md:min-w-[240px]">
+                        <CreateButton label="Publier un article" loading={checkLoading} onClick={openCreateModal} />
+                    </div>
+
+                    <div className="w-full md:min-w-[200px]">
+                        <CreateButton label="Créer un Live" icon="solar:play-circle-bold-duotone" onClick={() => openLiveModal()} />
+                    </div>
+                </div>
+
             </div>
 
             <SectionHeader
