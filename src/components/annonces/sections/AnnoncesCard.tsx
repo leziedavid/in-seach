@@ -20,6 +20,8 @@ import CreateButton from "@/components/ui/CreateButton"
 import LiveFormModal from "@/components/lives/LiveFormModal"
 import LiveButtonInline from "@/components/lives/LiveButtonInline"
 import { LiveEntityType } from "@/types/interface"
+import BoostEntityModal from "@/components/boost/modals/BoostEntityModal"
+import { FEATURES } from "@/config/features"
 
 interface AnnoncesCardProps {
     data?: Annonce[];
@@ -60,6 +62,10 @@ export default function AnnoncesCard({
     const [viewMode, setViewMode] = useState<ViewMode>("grid")
     const [isLiveModalOpen, setIsLiveModalOpen] = useState(false)
     const [liveAnnonce, setLiveAnnonce] = useState<Annonce | null>(null)
+
+    // Boost Modal State
+    const [isBoostOpen, setIsBoostOpen] = useState(false)
+    const [boostAnnonce, setBoostAnnonce] = useState<Annonce | null>(null)
 
     const loading = propLoading ?? internalLoading;
     const listes = propData ?? internalListes;
@@ -279,10 +285,7 @@ export default function AnnoncesCard({
                                                 {annonce.categorie?.label || 'Annonce'}
                                             </div>
                                             {/* Badge LIVE flottant — style TikTok */}
-                                            <LiveButtonInline
-                                                onClick={e => { e.stopPropagation(); setLiveAnnonce(annonce); setIsLiveModalOpen(true); }}
-                                                title="Créer un Live pour cette annonce"
-                                            />
+                                            <LiveButtonInline onClick={e => { e.stopPropagation(); setLiveAnnonce(annonce); setIsLiveModalOpen(true); }} title="Créer un Live pour cette annonce" />
                                         </div>
 
                                         <div className={`flex flex-col flex-1 min-w-0 ${viewMode === 'grid' ? "px-0.5 w-full" : "h-full justify-center"}`}>
@@ -295,10 +298,17 @@ export default function AnnoncesCard({
                                                 <span className="text-[9px] md:text-xs font-black tracking-tight">{annonce.type?.label || 'Vente'}</span>
                                             </div>
 
-                                            <div className={`text-left ${viewMode === 'grid' ? "mb-3" : "mb-1"}`}>
-                                                <p className={`text-secondary font-black ${viewMode === 'grid' ? "text-sm md:text-base" : "text-base md:text-xl"}`}>
-                                                    {annonce.price ? t("akwaba.services.price_fcfa", { price: annonce.price.toLocaleString() }) : t("akwaba.services.price_fcfa", { price: "0" })}
-                                                </p>
+                                            <div className={`flex items-center justify-between ${viewMode === 'grid' ? "mb-3" : "mb-1"}`}>
+                                                <div className="text-left">
+                                                    <p className={`text-secondary font-black ${viewMode === 'grid' ? "text-sm md:text-base" : "text-base md:text-xl"}`}>
+                                                        {annonce.price ? t("akwaba.services.price_fcfa", { price: annonce.price.toLocaleString() }) : t("akwaba.services.price_fcfa", { price: "0" })}
+                                                    </p>
+                                                </div>
+                                                {FEATURES.showBoostButton && (
+                                                    <button onClick={() => { setBoostAnnonce(annonce); setIsBoostOpen(true); }} className="p-1.5 hover:bg-primary/10 rounded-lg text-primary transition-colors shrink-0" title="Booster cette annonce">
+                                                        <Icon icon="solar:rocket-bold-duotone" className="w-4 h-4" />
+                                                    </button>
+                                                )}
                                             </div>
 
                                             <div className={`flex items-center w-full gap-1.5 ${viewMode === 'grid' ? "justify-center" : "justify-end mt-auto"}`}>
@@ -360,6 +370,11 @@ export default function AnnoncesCard({
                 lockedEntity={!!liveAnnonce}
                 entityLabel={liveAnnonce?.title}
             />
+
+            {/* BOOST MODAL */}
+            {FEATURES.showBoostButton && boostAnnonce && (
+                <BoostEntityModal isOpen={isBoostOpen} onClose={() => { setIsBoostOpen(false); setBoostAnnonce(null); }} entityType="ANNONCE" entityId={boostAnnonce.id} entityName={boostAnnonce.title} />
+            )}
         </>
     )
 }

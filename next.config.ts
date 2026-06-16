@@ -1,49 +1,79 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // [PERF] Image optimization activée : WebP/AVIF auto, lazy loading, responsive sizes
-  images: {
-    remotePatterns: [
-      { protocol: "https", hostname: "**" },
-      { protocol: "http", hostname: "**" },
-    ],
-    unoptimized: true,
-  },
-
-  // [PERF] Compression gzip/brotli des assets
-  compress: true,
-
-  // [PERF] Cache des assets statiques (fonts, images, JS) pendant 1 an
-  async headers() {
-    return [
-      {
-        source: "/_next/static/:path*",
-        headers: [
-          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
-        ],
-      },
-      {
-        source: "/fonts/:path*",
-        headers: [
-          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
-        ],
-      },
-    ];
-  },
-
-  allowedDevOrigins: [
-    "http://localhost:3000",
-    "http://192.168.1.111:3000",
-    "http://localhost:4000"
-  ],
-
+  /**
+   * Active les vérifications React supplémentaires en développement.
+   * Recommandé par Next.js.
+   */
   reactStrictMode: true,
 
-  // [PERF] Optimisation du compilateur : suppression des console.log en prod
-  compiler: {
-    removeConsole: process.env.NODE_ENV === "production" ? { exclude: ["error", "warn"] } : false,
+  /**
+   * Compression Gzip/Brotli des réponses HTTP.
+   */
+  compress: true,
+
+  /**
+   * Configuration des images.
+   */
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "**",
+      },
+      {
+        protocol: "http",
+        hostname: "**",
+      },
+    ],
+
+    /**
+     * Conserver l'optimisation native Next.js :
+     * - WebP automatique
+     * - AVIF automatique
+     * - Responsive Images
+     * - Lazy Loading
+     * - Redimensionnement
+     */
+    unoptimized: false,
   },
 
+  /**
+   * Optimisations du compilateur.
+   */
+  compiler: {
+    /**
+     * Supprime les console.log en production
+     * tout en conservant les erreurs et warnings.
+     */
+    removeConsole:
+      process.env.NODE_ENV === "production"
+        ? {
+          exclude: ["error", "warn"],
+        }
+        : false,
+  },
+
+  /**
+   * Autorise les accès réseau locaux pendant le développement.
+   */
+  allowedDevOrigins: [
+    "http://localhost:3000",
+    "http://localhost:4000",
+    "http://192.168.1.111:3000",
+  ],
+
+  /**
+   * Optimisation du chargement de certaines librairies.
+   * Vérifier la compatibilité selon les packages utilisés.
+   */
+  // experimental: {
+  //   optimizePackageImports: [
+  //     "@iconify/react",
+  //     "lucide-react",
+  //     "@tanstack/react-query",
+  //   ],
+  // },
 };
 
 export default nextConfig;

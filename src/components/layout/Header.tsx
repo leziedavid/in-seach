@@ -147,7 +147,7 @@ export default function Header() {
                 <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="relative group transition-transform active:scale-95" >
                     <div className="w-12 h-12 md:w-9 md:h-9 bg-primary/20 rounded-full flex items-center justify-center overflow-hidden relative border-2 border-primary/10 group-hover:border-primary/30 transition-all shrink-0">
                         {images.map((img, index) => (
-                            <Image key={img} src={img} alt="Avatar" width={48} height={48} priority={index === 0} className={`object-cover w-full h-full absolute top-0 left-0 transition-opacity duration-500 ease-in-out ${index === currentImageIndex ? "opacity-100" : "opacity-0"}`} style={{ width: 'auto', height: 'auto' }} />
+                            <Image key={img} src={img} alt="Avatar" width={48} height={48} priority={index === 0} unoptimized className={`object-cover w-full h-full absolute top-0 left-0 transition-opacity duration-500 ease-in-out ${index === currentImageIndex ? "opacity-100" : "opacity-0"}`} style={{ width: 'auto', height: 'auto' }} />
                         ))}
                     </div>
 
@@ -161,12 +161,8 @@ export default function Header() {
                             rotate: { duration: 0.35, ease: "easeInOut" },
                             scale: { repeat: isMenuOpen ? 0 : Infinity, duration: 1.8, ease: "easeInOut" }
                         }}
-                        className={`absolute -right-1 -bottom-1 md:hidden w-5 h-5 rounded-full flex items-center justify-center border-2 border-white dark:border-zinc-900 shadow-lg z-20 transition-colors duration-300 ${isMenuOpen ? 'bg-primary/80' : 'bg-primary'}`}
-                    >
-                        <Icon
-                            icon={isMenuOpen ? "solar:close-circle-bold-duotone" : "solar:hamburger-menu-bold-duotone"}
-                            className="w-3 h-3 text-white"
-                        />
+                        className={`absolute -right-1 -bottom-1 md:hidden w-5 h-5 rounded-full flex items-center justify-center border-2 border-white dark:border-zinc-900 shadow-lg z-20 transition-colors duration-300 ${isMenuOpen ? 'bg-primary/80' : 'bg-primary'}`}>
+                        <Icon icon={isMenuOpen ? "solar:close-circle-bold-duotone" : "solar:hamburger-menu-bold-duotone"} className="w-3 h-3 text-white" />
                     </motion.div>
                 </button>
 

@@ -2,6 +2,7 @@
 
 import { Annonce } from "@/types/interface";
 import AnnoncesCard from "@/components/annonces/sections/AnnoncesCard";
+import BoostedContentTabs from "@/components/boost/BoostedContentTabs";
 
 interface AccountAnnoncesProps {
     data?: Annonce[];
@@ -17,16 +18,18 @@ interface AccountAnnoncesProps {
 export default function AccountAnnonces({ data = [], page = 1, limit = 6, total = 0, totalPages = 0, loading = false, onPageChange, onSuccess }: AccountAnnoncesProps) {
     return (
         <div className="w-full mx-auto py-4">
-            <AnnoncesCard
-                data={data}
-                page={page}
-                limit={limit}
-                total={total}
-                totalPages={totalPages}
-                loading={loading}
-                onPageChange={onPageChange}
-                onSuccess={onSuccess}
-            />
+            <BoostedContentTabs entityType="ANNONCE" entityLabel="annonce" entityLabelPlural="Annonces" iconMine="solar:lightbulb-bolt-bold-duotone">
+                <AnnoncesCard
+                    data={data}
+                    page={page}
+                    limit={limit}
+                    total={total}
+                    totalPages={totalPages}
+                    loading={loading}
+                    onPageChange={onPageChange}
+                    onSuccess={onSuccess}
+                />
+            </BoostedContentTabs>
         </div>
     );
 }

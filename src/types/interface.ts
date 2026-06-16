@@ -1107,3 +1107,69 @@ export interface ProductReturn {
     orderItem?: { id: string; quantity: number; price: number };
     mediaFiles?: ProductReturnMediaFile[];
 }
+
+// ─────────────────────────────────────────
+// BOOST SYSTEM
+// ─────────────────────────────────────────
+
+export type BoostEntityType = 'PRODUCT' | 'SERVICE' | 'ANNONCE' | 'LOGISTIC_SERVICE';
+export type BoostStatus = 'PENDING' | 'WAITING_PAYMENT_VALIDATION' | 'ACTIVE' | 'EXPIRED' | 'REJECTED' | 'CANCELLED';
+export type BoostPaymentMethod = 'ORANGE_MONEY' | 'MTN_MONEY' | 'WAVE' | 'CARD' | 'BANK_TRANSFER' | 'PAYMENT_PROOF';
+export type BoostPaymentStatus = 'PENDING' | 'WAITING_VALIDATION' | 'PAID' | 'REJECTED' | 'REFUNDED';
+
+export interface BoostTransaction {
+    id: string;
+    userId: string;
+    boostId: string;
+    amount: number;
+    paymentMethod: BoostPaymentMethod;
+    paymentStatus: BoostPaymentStatus;
+    proofUrl?: string;
+    reference?: string;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface Boost {
+    id: string;
+    userId: string;
+    user?: { id: string; fullName: string; email: string; phone: string };
+    entityType: BoostEntityType;
+    entityId: string;
+    startDate?: string;
+    endDate?: string;
+    durationDays: number;
+    amount: number;
+    status: BoostStatus;
+    proofUrl?: string;
+    paymentMethod?: BoostPaymentMethod;
+    paymentStatus?: BoostPaymentStatus;
+    adminNote?: string;
+    activatedAt?: string;
+    createdAt: string;
+    updatedAt: string;
+    transaction?: BoostTransaction;
+    transactions?: BoostTransaction[];
+    files?: { id: number; fileUrl: string; fileName: string; fileType: string }[];
+    /** Résumé de l'entité boostée (produit/service/annonce/service logistique) — additif, peut être absent si l'entité a été supprimée */
+    entity?: BoostedEntitySummary | null;
+}
+
+export interface BoostedEntitySummary {
+    id: string;
+    title: string;
+    image?: string;
+    price?: number;
+    status?: string;
+}
+
+export interface BoostPricingOption {
+    days: number;
+    pricePerDay: number;
+    total: number;
+}
+
+export interface BoostPricing {
+    options: BoostPricingOption[];
+    currency: string;
+}

@@ -21,6 +21,7 @@ import ViewToggle, { ViewMode } from "@/components/shared/ViewToggle";
 import CategoryFilter from "@/components/ui/CategoryFilter"
 import LiveFormModal from "@/components/lives/LiveFormModal";
 import { LiveEntityType } from "@/types/interface";
+import BoostedContentTabs from "@/components/boost/BoostedContentTabs";
 
 // Lazy-load des composants lourds non nécessaires au premier rendu
 const FormsLogistics = dynamic(() => import("@/components/logistics/forms/FormsLogistics"), { ssr: false });
@@ -348,51 +349,23 @@ export default function LogisticsServicesList({ mode = "marketplace", companyNam
 
             {/* Results count header */}
             <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-1">
-                <div className="flex items-center justify-between w-full px-2 md:px-0 mb-4">
-                    <h3 className="text-xl md:text-2xl font-black text-foreground italic text-left md:text-center leading-tight"> </h3>
-                    {services.length > 0 && (
-                        <ViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />
-                    )}
-                </div>
-
-                {(loading || isInitialLoading) && services.length === 0 ? (
-                    <Loader
-                        title={isManagement ? "Chargement de vos services..." : "Chargement des services..."}
-                        description={isManagement ? "Récupération de vos services logistiques en cours." : "Nous récupérons les services logistiques disponibles."}
-                        icon="solar:delivery-bold-duotone"
-                    />
-                ) : !loading && !isInitialLoading && services.length === 0 ? (
-                    <NotFound
-                        title={isManagement ? "Aucun service publié" : "Aucun service disponible"}
-                        description={isManagement ? "Vous n'avez pas encore publié de service logistique. Cliquez sur « Publier un service » pour commencer." : "Aucun service logistique ne correspond à votre recherche. Essayez d'autres mots-clés ou un autre type de transport."}
-                        icon="solar:delivery-bold-duotone"
-                    />
-                ) : (
-                    <InfiniteScroll
-                        items={services}
-                        loadMore={() => setPage(prev => prev + 1)}
-                        hasMore={hasMore}
-                        isLoading={loading}
-                        skeletonType="logistics"
-                        skeletonCount={3}
-                        gridClassName={viewMode === 'grid' ? "grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6" : "grid grid-cols-1 gap-4"}
-                        renderItem={(service) => (
-                            <LogisticsServicesCard
-                                key={service.id}
-                                service={service}
-                                isOwner={isManagement}
-                                onEdit={() => openEditModal(service)}
-                                onDelete={handleDelete}
-                                onCreateLive={(s) => { setLiveLogisticService(s); setIsLiveModalOpen(true); }}
-                                onToggleStatus={handleToggle}
-                                onRequestQuote={onRequestQuote}
-                                isUpdating={updatingId === service.id}
-                                viewMode={viewMode}
-                            />
-                        )}
-                        className="w-full"
-                    />
-                )}
+                <LogisticsResultsContent
+                    isManagement={isManagement}
+                    loading={loading}
+                    isInitialLoading={isInitialLoading}
+                    services={services}
+                    viewMode={viewMode}
+                    setViewMode={setViewMode}
+                    hasMore={hasMore}
+                    setPage={setPage}
+                    openEditModal={openEditModal}
+                    handleDelete={handleDelete}
+                    setLiveLogisticService={setLiveLogisticService}
+                    setIsLiveModalOpen={setIsLiveModalOpen}
+                    handleToggle={handleToggle}
+                    onRequestQuote={onRequestQuote}
+                    updatingId={updatingId}
+                />
 
                 {/* Edit Modal */}
                 <Modal isOpen={isEditModalOpen} onClose={() => { setIsEditModalOpen(false); setEditingService(null); }}>
@@ -457,5 +430,88 @@ export default function LogisticsServicesList({ mode = "marketplace", companyNam
                 entityLabel={liveLogisticService?.label}
             />
         </div>
+    );
+}
+
+// ─── Contenu "Mes Services Logistiques" — composant stable, évite le pattern IIFE inline ────
+interface LogisticsResultsContentProps {
+    isManagement: boolean;
+    loading: boolean;
+    isInitialLoading: boolean;
+    services: LogisticService[];
+    viewMode: ViewMode;
+    setViewMode: (v: ViewMode) => void;
+    hasMore: boolean;
+    setPage: (fn: (prev: number) => number) => void;
+    openEditModal: (service: LogisticService) => void;
+    handleDelete: (id: string) => void;
+    setLiveLogisticService: (s: LogisticService | null) => void;
+    setIsLiveModalOpen: (v: boolean) => void;
+    handleToggle: (id: string, value: boolean) => void;
+    onRequestQuote?: (service: LogisticService) => void;
+    updatingId: string | null;
+}
+
+function LogisticsResultsContent({
+    isManagement, loading, isInitialLoading, services, viewMode, setViewMode,
+    hasMore, setPage, openEditModal, handleDelete, setLiveLogisticService, setIsLiveModalOpen,
+    handleToggle, onRequestQuote, updatingId,
+}: LogisticsResultsContentProps) {
+    const results = (
+        <>
+            <div className="flex items-center justify-between w-full px-2 md:px-0 mb-4">
+                <h3 className="text-xl md:text-2xl font-black text-foreground italic text-left md:text-center leading-tight"> </h3>
+                {services.length > 0 && (
+                    <ViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />
+                )}
+            </div>
+
+            {(loading || isInitialLoading) && services.length === 0 ? (
+                <Loader
+                    title={isManagement ? "Chargement de vos services..." : "Chargement des services..."}
+                    description={isManagement ? "Récupération de vos services logistiques en cours." : "Nous récupérons les services logistiques disponibles."}
+                    icon="solar:delivery-bold-duotone"
+                />
+            ) : !loading && !isInitialLoading && services.length === 0 ? (
+                <NotFound
+                    title={isManagement ? "Aucun service publié" : "Aucun service disponible"}
+                    description={isManagement ? "Vous n'avez pas encore publié de service logistique. Cliquez sur « Publier un service » pour commencer." : "Aucun service logistique ne correspond à votre recherche. Essayez d'autres mots-clés ou un autre type de transport."}
+                    icon="solar:delivery-bold-duotone"
+                />
+            ) : (
+                <InfiniteScroll
+                    items={services}
+                    loadMore={() => setPage(prev => prev + 1)}
+                    hasMore={hasMore}
+                    isLoading={loading}
+                    skeletonType="logistics"
+                    skeletonCount={3}
+                    gridClassName={viewMode === 'grid' ? "grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6" : "grid grid-cols-1 gap-4"}
+                    renderItem={(service) => (
+                        <LogisticsServicesCard
+                            key={service.id}
+                            service={service}
+                            isOwner={isManagement}
+                            onEdit={() => openEditModal(service)}
+                            onDelete={handleDelete}
+                            onCreateLive={(s) => { setLiveLogisticService(s); setIsLiveModalOpen(true); }}
+                            onToggleStatus={handleToggle}
+                            onRequestQuote={onRequestQuote}
+                            isUpdating={updatingId === service.id}
+                            viewMode={viewMode}
+                        />
+                    )}
+                    className="w-full"
+                />
+            )}
+        </>
+    );
+
+    if (!isManagement) return results;
+
+    return (
+        <BoostedContentTabs entityType="LOGISTIC_SERVICE" entityLabel="service logistique" entityLabelPlural="Services logistiques" iconMine="solar:box-bold-duotone">
+            {results}
+        </BoostedContentTabs>
     );
 }

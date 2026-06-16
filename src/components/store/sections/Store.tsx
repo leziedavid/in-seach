@@ -20,6 +20,7 @@ import InfiniteScroll from "@/components/ui/InfiniteScroll"
 import CreateButton from "@/components/ui/CreateButton"
 import LiveFormModal from "@/components/lives/LiveFormModal"
 import { LiveEntityType } from "@/types/interface"
+import BoostedContentTabs from "@/components/boost/BoostedContentTabs"
 
 const ITEMS_PER_PAGE = 10
 
@@ -258,19 +259,11 @@ export default function Store() {
                     <div className="flex flex-col md:flex-row w-full md:w-auto gap-2 md:gap-4">
 
                         <div className="w-full md:min-w-[240px]">
-                            <CreateButton
-                                label="Publier un article"
-                                loading={checkLoading}
-                                onClick={openCreateModal}
-                            />
+                            <CreateButton label="Publier un article" loading={checkLoading} onClick={openCreateModal} />
                         </div>
 
                         <div className="w-full md:min-w-[200px]">
-                            <CreateButton
-                                label="Créer un Live"
-                                icon="solar:play-circle-bold-duotone"
-                                onClick={() => openLiveModal()}
-                            />
+                            <CreateButton label="Créer un Live" icon="solar:play-circle-bold-duotone" onClick={() => openLiveModal()} />
                         </div>
                     </div>
 
@@ -348,40 +341,22 @@ export default function Store() {
                 <QRCodeSection storeInfo={storeInfo} />
             )}
 
-            <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-2">
-                <div className="flex items-center justify-between w-full px-2 md:px-0 mb-6 border-b border-border pb-4">
-                    <h3 className="text-lg font-black text-foreground">
-                        {loading && products.length === 0 ? 'Chargement...' : products.length === 0 ? 'Ma Boutique' : `Mes Produits (${total})`}
-                    </h3>
-                </div>
 
-                <div className="flex w-full bg-card border border-border rounded-xl px-4 py-2.5 shadow-sm focus-within:border-primary transition-all mb-4">
-                    <Icon icon="solar:magnifer-bold-duotone" className="w-5 h-5 text-muted-foreground mr-3 flex-shrink-0" />
-                    <input type="text" placeholder="Rechercher dans mes produits..." className="flex-1 bg-transparent text-foreground outline-none text-sm placeholder:text-muted-foreground" value={search} onChange={(e) => setSearch(e.target.value)} />
-                    <button type="button" onClick={() => setIsVoiceModalOpen(true)} className="p-1 text-muted-foreground hover:text-primary transition-colors hover:scale-110 active:scale-90" title="Recherche vocale" >
-                        <Icon icon="solar:microphone-bold-duotone" className="w-5 h-5" />
-                    </button>
-                </div>
-                <InfiniteScroll
-                    items={products}
+            <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-2">
+                <ProductsManagementContent
+                    loading={loading}
+                    products={products}
+                    total={total}
+                    search={search}
+                    setSearch={setSearch}
+                    setIsVoiceModalOpen={setIsVoiceModalOpen}
                     hasMore={hasMore}
-                    isLoading={loading}
-                    loadMore={() => setPage(prev => prev + 1)}
-                    skeletonType="product"
-                    skeletonCount={3}
-                    gridClassName="grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-6"
-                    renderItem={(product) => (
-                        <ProductCard
-                            key={product.id}
-                            product={product}
-                            onEdit={openEditModal}
-                            onDelete={handleDeleteProduct}
-                            onStatusChange={handleToggleStatus}
-                            onCreateLive={(p) => openLiveModal(p)}
-                            storeNames={storeInfo?.storeName || ""}
-                        />
-                    )}
-                    className="w-full"
+                    setPage={setPage}
+                    openEditModal={openEditModal}
+                    handleDeleteProduct={handleDeleteProduct}
+                    handleToggleStatus={handleToggleStatus}
+                    openLiveModal={openLiveModal}
+                    storeName={storeInfo?.storeName || ""}
                 />
             </div>
 
@@ -470,6 +445,71 @@ export default function Store() {
             />
         </div>
     )
+}
+
+// ─── Contenu "Mes Produits" — composant stable, évite le pattern IIFE inline ────
+interface ProductsManagementContentProps {
+    loading: boolean;
+    products: Product[];
+    total: number;
+    search: string;
+    setSearch: (v: string) => void;
+    setIsVoiceModalOpen: (v: boolean) => void;
+    hasMore: boolean;
+    setPage: (fn: (prev: number) => number) => void;
+    openEditModal: (product: Product) => void;
+    handleDeleteProduct: (id: string) => void;
+    handleToggleStatus: (product: Product, value: boolean) => void;
+    openLiveModal: (product?: Product) => void;
+    storeName: string;
+}
+
+function ProductsManagementContent({ loading, products, total, search, setSearch, setIsVoiceModalOpen, hasMore, setPage, openEditModal, handleDeleteProduct, handleToggleStatus, openLiveModal, storeName, }: ProductsManagementContentProps) {
+
+    const myProducts = (
+        <>
+            <div className="flex items-center justify-between w-full px-2 md:px-0 mb-6 border-b border-border pb-4">
+                <h3 className="text-lg font-black text-foreground">
+                    {loading && products.length === 0 ? 'Chargement...' : products.length === 0 ? 'Ma Boutique' : `Mes Produits (${total})`}
+                </h3>
+            </div>
+
+            <div className="flex w-full bg-card border border-border rounded-xl px-4 py-2.5 shadow-sm focus-within:border-primary transition-all mb-4">
+                <Icon icon="solar:magnifer-bold-duotone" className="w-5 h-5 text-muted-foreground mr-3 flex-shrink-0" />
+                <input type="text" placeholder="Rechercher dans mes produits..." className="flex-1 bg-transparent text-foreground outline-none text-sm placeholder:text-muted-foreground" value={search} onChange={(e) => setSearch(e.target.value)} />
+                <button type="button" onClick={() => setIsVoiceModalOpen(true)} className="p-1 text-muted-foreground hover:text-primary transition-colors hover:scale-110 active:scale-90" title="Recherche vocale" >
+                    <Icon icon="solar:microphone-bold-duotone" className="w-5 h-5" />
+                </button>
+            </div>
+            <InfiniteScroll
+                items={products}
+                hasMore={hasMore}
+                isLoading={loading}
+                loadMore={() => setPage(prev => prev + 1)}
+                skeletonType="product"
+                skeletonCount={3}
+                gridClassName="grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-6"
+                renderItem={(product) => (
+                    <ProductCard
+                        key={product.id}
+                        product={product}
+                        onEdit={openEditModal}
+                        onDelete={handleDeleteProduct}
+                        onStatusChange={handleToggleStatus}
+                        onCreateLive={(p) => openLiveModal(p)}
+                        storeNames={storeName}
+                    />
+                )}
+                className="w-full"
+            />
+        </>
+    );
+
+    return (
+        <BoostedContentTabs entityType="PRODUCT" entityLabel="produit" entityLabelPlural="Produits" iconMine="solar:bag-heart-bold-duotone">
+            {myProducts}
+        </BoostedContentTabs>
+    );
 }
 
 // ─── QR Code Section ───────────────────────────────────────────────────────────

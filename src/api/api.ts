@@ -1,5 +1,5 @@
 import { getCookie } from '@/lib/cookies';
-import { BaseResponse, Category, Pagination, ReverseGeocodeData, Service, MySpaceResponse, Annonce, BookingsCalendar, Product, CategoryProd, Order, AdminQueryParams, AdminUserUpdateDto, AdminProductUpdateDto, AdminServiceUpdateDto, AdminAnnonceUpdateDto, AdminSubscriptionPlanDto, User, AdminLog, SubscriptionPlan, PlanEntity, AdminUserSubscription, Subscription, OrdersGroupedResponse, BookingsGroupedResponse, LogisticService, Quote, Delivery, DeliveryTracking, QuoteStatus, DeliveryStatus, TransportType, LocationLog, CategorieAnnonce, TypeAnnonce, LogisticsClient, Video, StoreUserInfo, EasyDelivery, HistoryDelivery, EasyDeliveryStatus, DriverStats, SubCategoryProd, Slider, Live, LiveFeedResponse, LiveListResponse, LiveStatus, LiveEntityType } from '@/types/interface';
+import { BaseResponse, Category, Pagination, ReverseGeocodeData, Service, MySpaceResponse, Annonce, BookingsCalendar, Product, CategoryProd, Order, AdminQueryParams, AdminUserUpdateDto, AdminProductUpdateDto, AdminServiceUpdateDto, AdminAnnonceUpdateDto, AdminSubscriptionPlanDto, User, AdminLog, SubscriptionPlan, PlanEntity, AdminUserSubscription, Subscription, OrdersGroupedResponse, BookingsGroupedResponse, LogisticService, Quote, Delivery, DeliveryTracking, QuoteStatus, DeliveryStatus, TransportType, LocationLog, CategorieAnnonce, TypeAnnonce, LogisticsClient, Video, StoreUserInfo, EasyDelivery, HistoryDelivery, EasyDeliveryStatus, DriverStats, SubCategoryProd, Slider, Live, LiveFeedResponse, LiveListResponse, LiveStatus, LiveEntityType, Boost, BoostPricing, BoostEntityType, BoostPaymentMethod } from '@/types/interface';
 
 export const getBaseUrl = (): string => {
     return process.env.NEXT_PUBLIC_API_URL || 'https://api.djamko.com/api/v1';
@@ -701,6 +701,76 @@ export const buyCredits = async (amount: number): Promise<BaseResponse<any>> => 
 /* =======================================================
    USERS API
 ======================================================= */
+/* ═══════════════════════════════════════════════════
+   BOOST API
+═══════════════════════════════════════════════════ */
+
+export const getBoostPricing = async (): Promise<BaseResponse<BoostPricing>> => {
+    const response = await fetch(`${getBaseUrl()}/boosts/pricing`);
+    return await response.json();
+};
+
+export const createBoost = async (data: {
+    entityType: BoostEntityType;
+    entityId: string;
+    durationDays: number;
+    paymentMethod: BoostPaymentMethod;
+    proofUrl?: string;
+    reference?: string;
+}): Promise<BaseResponse<Boost>> => {
+    const response = await secureFetch(`${getBaseUrl()}/boosts`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const uploadBoostProof = async (file: File): Promise<BaseResponse<{ url: string }>> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await secureFetch(`${getBaseUrl()}/boosts/upload-proof`, {
+        method: 'POST',
+        body: formData,
+    });
+    return await response.json();
+};
+
+export const getMyBoosts = async (params?: {
+    page?: number;
+    limit?: number;
+    entityType?: BoostEntityType;
+}): Promise<BaseResponse<Pagination<Boost>>> => {
+    const qs = params ? toQueryString(params) : '';
+    const response = await secureFetch(`${getBaseUrl()}/boosts/my?${qs}`, { method: 'GET' });
+    return await response.json();
+};
+
+export const adminGetBoosts = async (params?: any): Promise<BaseResponse<Pagination<Boost>>> => {
+    const qs = params ? toQueryString(params) : '';
+    const response = await secureFetch(`${getBaseUrl()}/boosts/admin/all?${qs}`, { method: 'GET' });
+    return await response.json();
+};
+
+export const adminGetBoostStats = async (): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/boosts/admin/stats`, { method: 'GET' });
+    return await response.json();
+};
+
+export const adminValidateBoost = async (id: string): Promise<BaseResponse<Boost>> => {
+    const response = await secureFetch(`${getBaseUrl()}/boosts/admin/${id}/validate`, { method: 'PATCH' });
+    return await response.json();
+};
+
+export const adminRejectBoost = async (id: string): Promise<BaseResponse<Boost>> => {
+    const response = await secureFetch(`${getBaseUrl()}/boosts/admin/${id}/reject`, { method: 'PATCH' });
+    return await response.json();
+};
+
+export const adminCancelBoost = async (id: string): Promise<BaseResponse<Boost>> => {
+    const response = await secureFetch(`${getBaseUrl()}/boosts/admin/${id}/cancel`, { method: 'PATCH' });
+    return await response.json();
+};
+
 export const getDeliveryInfo = async (): Promise<BaseResponse<any>> => {
     const response = await secureFetch(`${getBaseUrl()}/users/me/delivery-info`, { method: 'GET' });
     return await response.json();

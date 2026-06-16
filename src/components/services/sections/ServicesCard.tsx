@@ -19,6 +19,8 @@ import CreateButton from "@/components/ui/CreateButton"
 import LiveFormModal from "@/components/lives/LiveFormModal"
 import LiveButtonInline from "@/components/lives/LiveButtonInline"
 import { LiveEntityType } from "@/types/interface"
+import BoostEntityModal from "@/components/boost/modals/BoostEntityModal"
+import { FEATURES } from "@/config/features"
 
 /* =====================================================
    PAGE
@@ -56,6 +58,10 @@ export default function ServicesCard({ data: propData, page: propPage, limit: pr
     // Live Modal State
     const [isLiveModalOpen, setIsLiveModalOpen] = useState(false)
     const [liveService, setLiveService] = useState<Service | null>(null)
+
+    // Boost Modal State
+    const [isBoostOpen, setIsBoostOpen] = useState(false)
+    const [boostService, setBoostService] = useState<Service | null>(null)
 
     const loading = propLoading ?? internalLoading;
     const listes = propData ?? internalListes;
@@ -334,7 +340,8 @@ export default function ServicesCard({ data: propData, page: propPage, limit: pr
                                                     <span className="text-[9px] md:text-xs font-black tracking-tight">4.9 • <span className="text-muted-foreground">Pro</span></span>
                                                 </div>
 
-                                                <div className="text-left">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <div className="text-left">
                                                     <p className="text-secondary font-black text-sm md:text-sm whitespace-nowrap">
                                                         {service.price ? t("akwaba.services.price_fcfa", { price: service.price.toLocaleString() }) : t("akwaba.services.price_fcfa", { price: "10 000" })}
                                                     </p>
@@ -343,8 +350,13 @@ export default function ServicesCard({ data: propData, page: propPage, limit: pr
                                                             {t("akwaba.services.est_price", { price: service.frais.toLocaleString() })}
                                                         </p>
                                                     )}
+                                                    </div>
+                                                    {FEATURES.showBoostButton && (
+                                                        <button onClick={e => { e.stopPropagation(); setBoostService(service); setIsBoostOpen(true); }} className="p-1.5 hover:bg-primary/10 rounded-lg text-primary transition-colors shrink-0" title="Booster ce service">
+                                                            <Icon icon="solar:rocket-bold-duotone" className="w-4 h-4" />
+                                                        </button>
+                                                    )}
                                                 </div>
-
 
                                                 <div className="flex items-center justify-center w-full mt-2 gap-1.5">
                                                     <Switch checked={service.status === "AVAILABLE"} onCheckedChange={(value) => handleToggleActiv(service, value)} />
@@ -409,6 +421,11 @@ export default function ServicesCard({ data: propData, page: propPage, limit: pr
                 lockedEntity={!!liveService}
                 entityLabel={liveService?.title}
             />
+
+            {/* BOOST MODAL */}
+            {FEATURES.showBoostButton && boostService && (
+                <BoostEntityModal isOpen={isBoostOpen} onClose={() => { setIsBoostOpen(false); setBoostService(null); }} entityType="SERVICE" entityId={boostService.id} entityName={boostService.title} />
+            )}
         </>
     )
 }

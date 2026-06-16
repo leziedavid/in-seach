@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { Icon } from "@iconify/react"
-import { useTheme } from "next-themes"
+import { useTheme } from "@/components/theme-provider"
 
 export function ThemeToggle({ className = "" }: { className?: string }) {
     const { theme, setTheme } = useTheme()

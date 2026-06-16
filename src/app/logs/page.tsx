@@ -5,7 +5,7 @@ import { getAdminLogs, deleteAdminLogs } from '@/api/api';
 import { Log } from '@/types/interface';
 import { Terminal, RefreshCw, Trash2, Clock, Activity, Sparkles, Calendar as CalendarIcon } from 'lucide-react';
 import { toast } from 'sonner';
-import { useTheme } from 'next-themes';
+import { useTheme } from '@/components/theme-provider';
 import { GenericTable, TableAction } from '@/components/ui/table/table';
 import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';

@@ -252,9 +252,10 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
             {/* ═══════════════════════════════
                 MOBILE — FAB trigger
             ═══════════════════════════════ */}
-            <div className="md:hidden fixed bottom-20 left-6 z-40">
+            <div className="md:hidden fixed bottom-20 left-6 z-40 mb-2">
                 <button onClick={() => setOpen(true)} className="rounded-full h-14 w-14 flex items-center justify-center bg-primary shadow-xl shadow-primary/30 hover:scale-110 active:scale-95 transition-all">
-                    <Image src="/service.svg" alt="Menu" width={32} height={32} className="brightness-0 invert dark:brightness-100 dark:invert-0" style={{ height: 'auto' }} />
+                    <Icon icon="solar:widget-5-bold-duotone" width={26} className="text-white" />
+                    {/* <Image src="/service.svg" alt="Menu" width={32} height={32} className="brightness-0 invert dark:brightness-100 dark:invert-0" style={{ height: 'auto' }} /> */}
                 </button>
             </div>
 

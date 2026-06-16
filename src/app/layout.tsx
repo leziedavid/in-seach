@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import "./globals.css";
 import QueryProvider from "@/components/providers/QueryProvider";
 import { SocketProvider } from "@/components/providers/SocketProvider";
@@ -140,7 +141,6 @@ export default function RootLayout({ children, }: Readonly<{ children: React.Rea
       <head />
       {/* <body className={inter.className}> */}
       <body className={`${jost.variable} ${montserrat.variable} ${plusJakartaSans.variable} font-sans antialiased`}>
-        {/* <BackgroundDecoration /> */}
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange >
           <I18nProvider>
             <NotificationProvider>
@@ -163,21 +163,17 @@ export default function RootLayout({ children, }: Readonly<{ children: React.Rea
         </ThemeProvider>
 
         {/* PWA & Firebase Messaging Service Worker Registration */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              if ('serviceWorker' in navigator) {
-                window.addEventListener('load', function() {
-                  navigator.serviceWorker.register('/firebase-messaging-sw.js').then(function(registration) {
-                    console.log('Firebase ServiceWorker registration successful with scope: ', registration.scope);
-                  }, function(err) {
-                    console.log('Firebase ServiceWorker registration failed: ', err);
-                  });
-                });
-              }
-            `,
-          }}
-        />
+        <Script id="sw-register" strategy="afterInteractive">{`
+          if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+              navigator.serviceWorker.register('/firebase-messaging-sw.js').then(function(registration) {
+                console.log('Firebase ServiceWorker registration successful with scope: ', registration.scope);
+              }, function(err) {
+                console.log('Firebase ServiceWorker registration failed: ', err);
+              });
+            });
+          }
+        `}</Script>
       </body>
     </html>
   );

@@ -2,309 +2,291 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Icon } from '@iconify/react';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from "@/utils/langue/hooks";
 
+/* ─────────────────────────────────────────────────────────────
+   Types
+───────────────────────────────────────────────────────────── */
+interface MenuItem {
+    label: string;
+    icon: string;
+    href: string;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Menu groupé — même structure que MOBILE_GROUPS dans Sidebar.tsx
+───────────────────────────────────────────────────────────── */
+const MENU_GROUPS: { title?: string; items: MenuItem[] }[] = [
+    {
+        items: [
+            { label: 'Vue globale',   icon: 'solar:widget-5-bold-duotone',           href: '/admin' },
+        ],
+    },
+    {
+        title: 'Utilisateurs & Contenu',
+        items: [
+            { label: 'Utilisateurs',  icon: 'solar:users-group-rounded-bold-duotone', href: '/admin/users' },
+            { label: 'Produits',      icon: 'solar:bag-heart-bold-duotone',           href: '/admin/products' },
+            { label: 'Services',      icon: 'solar:hand-stars-bold-duotone',          href: '/admin/services' },
+            { label: 'Annonces',      icon: 'solar:lightbulb-bolt-bold-duotone',      href: '/admin/annonces' },
+            { label: 'Vidéos',        icon: 'solar:video-library-bold-duotone',       href: '/admin/videos' },
+            { label: 'Lives',         icon: 'solar:play-circle-bold-duotone',         href: '/admin/lives' },
+        ],
+    },
+    {
+        title: 'Monétisation',
+        items: [
+            { label: 'Abonnements',   icon: 'solar:wallet-money-bold-duotone',        href: '/admin/subscriptions' },
+            { label: 'Boosts',        icon: 'solar:rocket-bold-duotone',              href: '/admin/boosts' },
+        ],
+    },
+    {
+        title: 'Logistique',
+        items: [
+            { label: 'Easy Delivery', icon: 'solar:delivery-bold-duotone',            href: '/admin/easy-delivery' },
+            { label: 'Logistique',    icon: 'solar:ship-bold-duotone',               href: '/admin/logistics' },
+        ],
+    },
+    {
+        title: 'Apparence',
+        items: [
+            { label: 'Sliders',       icon: 'solar:gallery-bold-duotone',             href: '/admin/sliders' },
+        ],
+    },
+    {
+        title: 'Système',
+        items: [
+            { label: 'Paramètres',    icon: 'solar:settings-bold-duotone',            href: '/admin/settings' },
+            { label: 'Logs position', icon: 'solar:map-point-wave-bold-duotone',      href: '/admin/location-logs' },
+            { label: 'Logs système',  icon: 'solar:code-square-bold-duotone',         href: '/admin/logs' },
+            { label: 'Signalements',  icon: 'solar:flag-bold-duotone',                href: '/admin/reports' },
+        ],
+    },
+];
+
+/* ─────────────────────────────────────────────────────────────
+   renderMobileRow — copie exacte du style Sidebar.tsx akwaba
+───────────────────────────────────────────────────────────── */
+function MenuItem({
+    item,
+    isActive,
+    onNavigate,
+}: {
+    item: MenuItem;
+    isActive: boolean;
+    onNavigate?: () => void;
+}) {
+    return (
+        <Link href={item.href} onClick={onNavigate} className="w-full flex items-center gap-3 px-3 py-2.5 active:bg-muted/60 transition-colors">
+            <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${isActive ? 'bg-primary/15' : 'bg-muted dark:bg-zinc-700/60'}`}>
+                <Icon icon={item.icon} width={19} className={isActive ? 'text-primary' : 'text-foreground/70'} />
+            </div>
+            <div className="flex-1 text-left min-w-0">
+                <p className={`text-sm font-semibold truncate ${isActive ? 'text-primary' : 'text-foreground'}`}>
+                    {item.label}
+                </p>
+            </div>
+            <Icon icon="solar:alt-arrow-right-bold" className={`w-4 h-4 shrink-0 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
+        </Link>
+    );
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Contenu sidebar — partagé desktop + mobile (identique Sidebar.tsx)
+───────────────────────────────────────────────────────────── */
+function SidebarContent({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
+    const router = useRouter();
+
+    return (
+        <div className="flex-1 px-3 pb-4 space-y-2 overflow-y-auto scrollbar-hide [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+            {MENU_GROUPS.map((group, gi) => {
+                if (group.title) {
+                    return (
+                        <div key={gi}>
+                            <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-[0.16em] px-2 mb-1.5 mt-2">
+                                {group.title}
+                            </p>
+                            <div className="bg-muted/40 dark:bg-zinc-800/40 rounded-2xl overflow-hidden border border-border/40">
+                                {group.items.map((item, idx) => (
+                                    <React.Fragment key={item.href}>
+                                        <MenuItem item={item} isActive={pathname === item.href} onNavigate={onNavigate} />
+                                        {idx < group.items.length - 1 && <div className="h-px bg-border/40 mx-4" />}
+                                    </React.Fragment>
+                                ))}
+                            </div>
+                        </div>
+                    );
+                }
+                return (
+                    <div key={gi} className="bg-muted/40 dark:bg-zinc-800/40 rounded-2xl overflow-hidden border border-border/40">
+                        {group.items.map((item, idx) => (
+                            <React.Fragment key={item.href}>
+                                <MenuItem item={item} isActive={pathname === item.href} onNavigate={onNavigate} />
+                                {idx < group.items.length - 1 && <div className="h-px bg-border/40 mx-4" />}
+                            </React.Fragment>
+                        ))}
+                    </div>
+                );
+            })}
+
+            {/* Quitter l'admin — style bouton logout Sidebar.tsx */}
+            <div className="bg-muted/40 dark:bg-zinc-800/40 rounded-2xl overflow-hidden border border-border/40">
+                <Link href="/" className="w-full flex items-center gap-3 px-3 py-2.5 active:bg-red-50/60 dark:active:bg-red-900/20 transition-colors">
+                    <div className="w-9 h-9 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center shrink-0">
+                        <Icon icon="solar:logout-bold-duotone" width={19} className="text-red-500" />
+                    </div>
+                    <span className="flex-1 text-left text-sm font-semibold text-red-500">Quitter l'admin</span>
+                    <Icon icon="solar:alt-arrow-right-bold" className="w-4 h-4 text-red-400/60 shrink-0" />
+                </Link>
+            </div>
+        </div>
+    );
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Layout principal
+───────────────────────────────────────────────────────────── */
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-    const { t } = useTranslation();
     const pathname = usePathname();
-
-    /* ─────────────────────────────────────────────────────────────────
-       Menu items — icônes Solar Bold Duotone (les plus belles de Solar)
-    ───────────────────────────────────────────────────────────────── */
-    const menuItems = [
-        {
-            label: t("admin.menu.overview"),
-            icon: 'solar:widget-5-bold-duotone',
-            href: '/admin',
-            color: 'text-emerald-500'
-        },
-        {
-            label: t("admin.menu.users"),
-            icon: 'solar:users-group-rounded-bold-duotone',
-            href: '/admin/users',
-            color: 'text-blue-500'
-        },
-        {
-            label: t("admin.menu.products"),
-            icon: 'solar:bag-heart-bold-duotone',
-            href: '/admin/products',
-            color: 'text-orange-500'
-        },
-        {
-            label: t("admin.menu.services"),
-            icon: 'solar:hand-stars-bold-duotone',
-            href: '/admin/services',
-            color: 'text-pink-500'
-        },
-        {
-            label: t("admin.menu.annonces"),
-            icon: 'solar:lightbulb-bolt-bold-duotone',
-            href: '/admin/annonces',
-            color: 'text-amber-500'
-        },
-        {
-            label: t("admin.menu.subscriptions"),
-            icon: 'solar:wallet-money-bold-duotone',
-            href: '/admin/subscriptions',
-            color: 'text-violet-500'
-        },
-        {
-            label: t("admin.menu.videos"),
-            icon: 'solar:video-library-bold-duotone',
-            href: '/admin/videos',
-            color: 'text-rose-500'
-        },
-        {
-            label: t("admin.menu.lives"),
-            icon: 'solar:play-circle-bold-duotone',
-            href: '/admin/lives',
-            color: 'text-red-500'
-        },
-        {
-            label: t("admin.menu.sliders"),
-            icon: 'solar:gallery-bold-duotone',
-            href: '/admin/sliders',
-            color: 'text-emerald-500'
-        },
-        {
-            label: t("admin.menu.easy_delivery"),
-            icon: 'solar:delivery-bold-duotone',
-            href: '/admin/easy-delivery',
-            color: 'text-sky-500'
-        },
-        {
-            label: t("admin.menu.logistics"),
-            icon: 'solar:ship-bold-duotone',
-            href: '/admin/logistics',
-            color: 'text-teal-500'
-        },
-        {
-            label: t("admin.menu.settings"),
-            icon: 'solar:settings-bold-duotone',
-            href: '/admin/settings',
-            color: 'text-slate-500'
-        },
-        {
-            label: t("admin.menu.location_logs"),
-            icon: 'solar:map-point-wave-bold-duotone',
-            href: '/admin/location-logs',
-            color: 'text-indigo-500'
-        },
-        {
-            label: t("admin.menu.system_logs"),
-            icon: 'solar:code-square-bold-duotone',
-            href: '/admin/logs',
-            color: 'text-cyan-500'
-        },
-        {
-            label: 'Signalements',
-            icon: 'solar:flag-bold-duotone',
-            href: '/admin/reports',
-            color: 'text-red-500'
-        },
-    ];
-
-    const [isSidebarOpen, setIsSidebarOpen] = React.useState(true);
+    const [open, setOpen] = React.useState(false);
+    const [isMounted, setIsMounted] = React.useState(false);
 
     React.useEffect(() => {
-        const saved = localStorage.getItem('admin-sidebar-open');
-        if (saved !== null) {
-            setIsSidebarOpen(JSON.parse(saved));
-        }
+        setIsMounted(true);
     }, []);
 
-    const toggleSidebar = () => {
-        setIsSidebarOpen((prev: boolean) => {
-            const next = !prev;
-            if (typeof window !== 'undefined') {
-                localStorage.setItem('admin-sidebar-open', JSON.stringify(next));
-            }
-            return next;
-        });
-    };
+    const allItems = MENU_GROUPS.flatMap(g => g.items);
+    const currentLabel = allItems.find(item => item.href === pathname)?.label ?? 'Administration';
 
     const today = new Date();
-    const dateStr = today.toLocaleDateString(pathname.startsWith('/en') ? 'en-US' : 'fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
-    const currentLabel = menuItems.find(item => item.href === pathname)?.label || t("admin.menu.overview");
+    const dateStr = today.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
 
     return (
         <div className="min-h-screen bg-background text-foreground flex overflow-hidden p-2 md:p-4 gap-2 md:gap-4">
 
             {/* ══════════════════════════════════════════════════
-                SIDEBAR
+                DESKTOP — sidebar style akwaba (col-span-3)
             ══════════════════════════════════════════════════ */}
-            <aside className={` ${isSidebarOpen ? 'w-[260px]' : 'w-[80px]'} bg-card/50 dark:bg-[#0B0B0B] border border-border/50 rounded-2xl h-full transition-all duration-300 ease-in-out flex flex-col z-50 flex-shrink-0 shadow-md relative overflow-hidden group/sidebar`}  >
-                {/* Glossy overlay effect */}
-                <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent pointer-events-none" />
+            <aside className="hidden md:block w-[260px] flex-shrink-0">
+                <div className="bg-card/50 backdrop-blur-xl rounded-3xl border border-border p-3 sticky top-4 overflow-y-auto max-h-[calc(100vh-2rem)] scrollbar-hide [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
 
-                {/* ── Logo ──────────────────────────────────── */}
-                <div className="px-6 py-[24px] flex items-center justify-between border-b border-border/50 relative z-10">
-
-
-                    {/* Marque — visible en mode expanded */}
-                    <div className={`flex items-center gap-2.5 overflow-hidden transition-all duration-200 ${isSidebarOpen ? 'opacity-100 w-auto' : 'opacity-0 w-0'}`}>
-                        <div className="w-9 h-9 bg-primary rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
-                            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                                <path d="M9 2L11.5 7H16.5L12.5 10.5L14 16L9 13L4 16L5.5 10.5L1.5 7H6.5L9 2Z" fill="white" />
-                            </svg>
-                        </div>
-                        <span className="text-[17px] font-black tracking-tight leading-none whitespace-nowrap text-foreground">
-                            Admin<span className="text-primary">Hub</span>
-                        </span>
-                    </div>
-
-                    {/* Logo seul en mode collapsed */}
-                    {!isSidebarOpen && (
-                        <div className="w-9 h-9 bg-primary rounded-xl flex items-center justify-center flex-shrink-0 mx-auto">
-                            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                                <path d="M9 2L11.5 7H16.5L12.5 10.5L14 16L9 13L4 16L5.5 10.5L1.5 7H6.5L9 2Z" fill="white" />
-                            </svg>
-                        </div>
-                    )}
-
-                    {/* Bouton hamburger collapse */}
-                    {isSidebarOpen && (
-                        <button onClick={toggleSidebar} className="w-8 h-8 flex items-center justify-center rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-all flex-shrink-0" aria-label={t("admin.sidebar.collapse")}>
-                            <Icon icon="solar:sidebar-minimalistic-bold-duotone" width={20} />
-                        </button>
-                    )}
-                </div>
-
-                {/* Bouton expand quand collapsed */}
-                {!isSidebarOpen && (
-                    <button onClick={toggleSidebar} className="mx-auto mt-3 w-9 h-9 flex items-center justify-center rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-all" aria-label={t("admin.sidebar.expand")}>
-                        <Icon icon="solar:hamburger-menu-bold-duotone" width={20} />
-                    </button>
-                )}
-
-                {/* ── Label section ──────────────────────────── */}
-                {isSidebarOpen && (
-                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.18em] px-6 mt-5 mb-2">
-                        {t("admin.dashboard.main_menu")}
-                    </p>
-                )}
-
-                {/* ── Navigation ─────────────────────────────── */}
-                <nav className="flex-1 px-4 mt-6 space-y-1.5 overflow-y-auto overflow-x-hidden scrollbar-hide relative z-10">
-                    {menuItems.map((item) => {
-                        const isActive = pathname === item.href;
-                        return (
-                            <Link key={item.href} href={item.href} title={!isSidebarOpen ? item.label : undefined} className={`relative flex items-center rounded-2xl font-bold transition-all duration-300 group ${isSidebarOpen ? 'gap-4 px-4 py-3' : 'justify-center py-3'} ${isActive ? 'bg-white/10 dark:bg-white/[0.08] text-foreground dark:text-white shadow-sm backdrop-blur-md' : 'text-muted-foreground dark:text-zinc-400 hover:bg-white/5 hover:text-foreground dark:hover:text-white'}`}>
-                                {/* Active indicator dot */}
-                                {isActive && (
-                                    <motion.div layoutId="active-pill" className="absolute left-1.5 w-1 h-5 bg-primary rounded-full" />
-                                )}
-
-                                {/* Icône Solar Bold Duotone */}
-                                <Icon icon={item.icon} width={isSidebarOpen ? 22 : 24} className={`flex-shrink-0 transition-all ${isActive ? item.color : 'opacity-70 group-hover:opacity-100'}`} />
-
-
-                                {isSidebarOpen && (
-                                    <span className="text-[13.5px] leading-none whitespace-nowrap font-semibold">
-                                        {item.label}
-                                    </span>
-                                )}
-
-                                {/* Tooltip (mode collapsed) */}
-                                {!isSidebarOpen && (
-                                    <span className="pointer-events-none absolute left-full ml-3 z-50 whitespace-nowrap rounded-xl px-3 py-2 text-xs font-semibold shadow-xl bg-foreground text-background opacity-0 group-hover:opacity-100 transition-opacity duration-150">
-                                        {item.label}
-                                    </span>
-                                )}
-                            </Link>
-                        );
-                    })}
-                </nav>
-
-                {/* ── Footer ─────────────────────────────────── */}
-                <div className="mt-auto pb-8 relative z-10">
-                    <div className="mx-6 h-px bg-border/50 mb-6" />
-
-                    {/* Quitter l'admin */}
-                    <div className="px-4 mb-4">
-                        <Link href="/" title={!isSidebarOpen ? "Quitter l'admin" : undefined}
-                            className={`flex items-center rounded-2xl py-3 text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 transition-all group ${isSidebarOpen ? 'gap-4 px-4' : 'justify-center'}`}>
-                            <Icon icon="solar:logout-bold-duotone" width={22} className="flex-shrink-0" />
-                            {isSidebarOpen && (
-                                <span className="text-[14px] font-bold whitespace-nowrap">
-                                    {t("common.logout")}
-                                </span>
-                            )}
-                        </Link>
-                    </div>
-
-                    {/* User card - Minimalist like ref */}
-                    <div className={`mx-4 flex items-center rounded-[1.5rem] bg-white/[0.03] border border-white/[0.05] p-3 gap-3 overflow-hidden ${!isSidebarOpen ? 'justify-center' : ''}`}>
-                        <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 shadow-lg border border-white/10 ring-2 ring-white/5">
+                    {/* Profil admin — copie du bloc profil Sidebar.tsx */}
+                    <div className="flex flex-col items-center px-2 pb-3 pt-2">
+                        <div className="relative w-16 h-16 rounded-full overflow-hidden bg-muted border-2 border-border shadow-lg shrink-0">
                             <img src="https://i.pravatar.cc/150?u=admin" alt="Admin" className="w-full h-full object-cover" />
                         </div>
-                        {isSidebarOpen && (
-                            <>
-                                <div className="min-w-0 flex-1">
-                                    <p className="text-[13px] font-black text-foreground leading-tight truncate">Admin Hub</p>
-                                    <p className="text-[11px] text-muted-foreground font-medium truncate uppercase tracking-wider">{t("admin.dashboard.super_admin")}</p>
-                                </div>
-                            </>
-                        )}
+                        <div className="mt-2 text-center">
+                            <div className="flex items-center justify-center gap-1">
+                                <span className="text-sm font-black text-foreground">Admin Hub</span>
+                                <Icon icon="solar:arrow-right-bold-duotone" className="w-3.5 h-3.5 text-primary" />
+                            </div>
+                            <p className="text-xs text-muted-foreground">Super Admin</p>
+                        </div>
                     </div>
+
+                    {/* Menu */}
+                    <SidebarContent pathname={pathname} />
                 </div>
             </aside>
 
             {/* ══════════════════════════════════════════════════
-                MAIN AREA  border border-border/50 rounded-[2.5rem] shadow-xl 
+                ZONE PRINCIPALE
             ══════════════════════════════════════════════════ */}
-            <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0 bg-card/30 dark:bg-[#0B0B0B]/30 shadow-xs relative">
+            <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-card/30 dark:bg-[#0B0B0B]/30 rounded-2xl border border-border/50 shadow-sm">
 
-                {/* ── Header ──────────────────────────────────── */}
-                <header className="h-[80px] flex items-center justify-between px-8 z-40 relative flex-shrink-0 border-b border-border/50 backdrop-blur-md bg-background/50">
+                {/* Header */}
+                <header className="h-[72px] flex items-center justify-between px-5 md:px-8 flex-shrink-0 border-b border-border/50 backdrop-blur-md bg-background/50">
+                    {/* Hamburger mobile */}
+                    <button onClick={() => setOpen(true)} className="md:hidden p-2 rounded-xl hover:bg-muted transition-colors -ml-1">
+                        <Icon icon="solar:hamburger-menu-bold-duotone" width={22} />
+                    </button>
 
-
-                    {/* Titre + date */}
-                    <div className="flex flex-col justify-center">
-                        <h1 className="text-[22px] font-black text-foreground leading-tight tracking-tight">
-                            {currentLabel}
-                        </h1>
-                        <p className="text-[12px] text-muted-foreground font-medium leading-none mt-0.5 capitalize">
-                            {dateStr}
-                        </p>
+                    <div>
+                        <h1 className="text-lg md:text-xl font-black text-foreground leading-tight">{currentLabel}</h1>
+                        <p className="text-[11px] text-muted-foreground font-medium capitalize hidden md:block">{isMounted ? dateStr : '\u00A0'}</p>
                     </div>
 
-                    {/* Actions droite */}
-                    <div className="flex items-center gap-4">
-
-                        {/* Barre de recherche circular like ref */}
-                        <button className="w-11 h-11 flex items-center justify-center rounded-full bg-muted/50 border border-border/50 text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-300">
-                            <Icon icon="solar:magnifer-bold-duotone" width={20} />
+                    <div className="flex items-center gap-2.5">
+                        <button className="w-9 h-9 flex items-center justify-center rounded-full bg-muted/50 border border-border/50 text-muted-foreground hover:text-foreground transition-all">
+                            <Icon icon="solar:magnifer-bold-duotone" width={18} />
                         </button>
-
-                        {/* Bouton Notifications circular */}
-                        <button className="relative w-11 h-11 flex items-center justify-center rounded-full bg-muted/50 border border-border/50 text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-300">
-                            <Icon icon="solar:bell-bing-bold-duotone" width={20} />
-                            <span className="absolute top-[10px] right-[10px] w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-background" />
+                        <button className="relative w-9 h-9 flex items-center justify-center rounded-full bg-muted/50 border border-border/50 text-muted-foreground hover:text-foreground transition-all">
+                            <Icon icon="solar:bell-bing-bold-duotone" width={18} />
+                            <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border border-background" />
                         </button>
-
-                        {/* Theme toggle circular (handled by component but wrapper can help) */}
-                        <div className="p-0.5 rounded-full bg-muted/50 border border-border/50">
-                            <ThemeToggle />
-                        </div>
-
-                        {/* User Profile Image like ref */}
-                        <div className="w-11 h-11 rounded-full overflow-hidden shadow-lg border-2 border-primary/20 ring-4 ring-primary/5 cursor-pointer hover:scale-105 transition-transform">
-                            <img src="https://i.pravatar.cc/150?u=admin" alt="User" className="w-full h-full object-cover" />
+                        <ThemeToggle />
+                        <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-primary/20 cursor-pointer hover:scale-105 transition-transform">
+                            <img src="https://i.pravatar.cc/150?u=admin" alt="Admin" className="w-full h-full object-cover" />
                         </div>
                     </div>
                 </header>
 
-                {/* ── Contenu ───────────────────────────────── */}
-                <main className="flex-1 overflow-y-auto custom-scrollbar p-6">
+                <main className="flex-1 overflow-y-auto p-4 md:p-6 custom-scrollbar">
                     {children}
                 </main>
-
             </div>
+
+            {/* ══════════════════════════════════════════════════
+                MOBILE — FAB trigger (identique Sidebar.tsx)
+            ══════════════════════════════════════════════════ */}
+            <div className="md:hidden fixed bottom-20 right-6 z-40">
+                <button onClick={() => setOpen(true)} className="rounded-full h-14 w-14 flex items-center justify-center bg-primary shadow-xl shadow-primary/30 hover:scale-110 active:scale-95 transition-all">
+                    <Icon icon="solar:widget-5-bold-duotone" width={26} className="text-white" />
+                </button>
+            </div>
+
+            {/* ══════════════════════════════════════════════════
+                MOBILE — Panneau plein écran style Yango (identique Sidebar.tsx)
+            ══════════════════════════════════════════════════ */}
+            <AnimatePresence>
+                {open && (
+                    <>
+                        {/* Backdrop */}
+                        <motion.div
+                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                            onClick={() => setOpen(false)}
+                            className="fixed inset-0 z-[60] bg-black/30 md:hidden"
+                        />
+
+                        {/* Panel depuis la droite — identique Sidebar.tsx */}
+                        <motion.div
+                            initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
+                            transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+                            className="fixed inset-0 z-[61] bg-background md:hidden overflow-y-auto flex flex-col scrollbar-hide [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+                        >
+                            {/* Header avec flèche retour */}
+                            <div className="flex items-center px-4 pt-10 pb-2">
+                                <button onClick={() => setOpen(false)} className="p-2 -ml-2 rounded-full hover:bg-muted active:scale-90 transition-all">
+                                    <Icon icon="solar:alt-arrow-left-bold" className="w-6 h-6 text-foreground" />
+                                </button>
+                            </div>
+
+                            {/* Profil mobile */}
+                            <div className="flex flex-col items-center px-6 pb-3">
+                                <div className="relative w-16 h-16 rounded-full overflow-hidden bg-muted border-2 border-border shadow-lg shrink-0">
+                                    <img src="https://i.pravatar.cc/150?u=admin" alt="Admin" className="w-full h-full object-cover" />
+                                </div>
+                                <div className="mt-2 text-center">
+                                    <div className="flex items-center justify-center gap-1">
+                                        <span className="text-sm font-black text-foreground">Admin Hub</span>
+                                        <Icon icon="solar:arrow-right-bold-duotone" className="w-3.5 h-3.5 text-primary" />
+                                    </div>
+                                    <p className="text-xs text-muted-foreground">Super Admin</p>
+                                </div>
+                            </div>
+
+                            {/* Menu */}
+                            <div className="flex-1 px-4 pb-4 space-y-2">
+                                <SidebarContent pathname={pathname} onNavigate={() => setOpen(false)} />
+                            </div>
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

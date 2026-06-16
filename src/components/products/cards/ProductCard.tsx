@@ -11,6 +11,8 @@ import Delete from "@/components/logistics/modals/Delete"
 import { Switch } from "@/components/ui/switch"
 import { Share } from "@/components/shared/Share"
 import LiveButtonInline from "@/components/lives/LiveButtonInline"
+import BoostEntityModal from "@/components/boost/modals/BoostEntityModal"
+import { FEATURES } from "@/config/features"
 
 const slugify = (text: string) => {
     return text
@@ -38,6 +40,7 @@ const ProductCard = memo(function ProductCard({ product, onEdit, onDelete, onSta
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isShareOpen, setIsShareOpen] = useState(false);
+    const [isBoostOpen, setIsBoostOpen] = useState(false);
     const { addToCart } = useCart();
     const { addNotification } = useNotification();
 
@@ -119,25 +122,29 @@ const ProductCard = memo(function ProductCard({ product, onEdit, onDelete, onSta
                         {product.name}
                     </h3>
 
-                    <div className={`flex items-center justify-start gap-1 text-primary mb-2 md:mb-3 ${isList ? '' : 'md:justify-center'}`}>
-                        <Icon icon="solar:star-bold-duotone" className="w-2.5 h-2.5 fill-current md:w-3 md:h-3" />
-                        <span className="text-[9px] md:text-xs font-black tracking-tight">4.9 • <span className="text-muted-foreground">Boutique</span></span>
-                    </div>
+                    <div className="flex items-center justify-between mb-3">
+                        <div className="text-left">
+                            {product.pricePromo ? (
+                                <div className="space-y-0.5">
+                                    <p className="text-primary font-black text-sm md:text-base">
+                                        {Number(product.pricePromo).toLocaleString()} <span className="text-[9px] font-bold text-muted-foreground">CFA</span>
+                                    </p>
+                                    <p className="text-[9px] md:text-xs font-bold text-muted-foreground/60 line-through decoration-red-500/30">
+                                        {Number(product.price).toLocaleString()} CFA
+                                    </p>
+                                </div>
+                            ) : (
+                                <p className="text-secondary font-black text-sm md:text-base">
+                                    {Number(product.price).toLocaleString()} <span className="text-[9px] font-bold text-muted-foreground">CFA</span>
+                                </p>
+                            )}
+                        </div>
 
-                    <div className="text-left mb-3">
-                        {product.pricePromo ? (
-                            <div className="space-y-0.5">
-                                <p className="text-primary font-black text-sm md:text-base">
-                                    {Number(product.pricePromo).toLocaleString()} <span className="text-[9px] font-bold text-muted-foreground">CFA</span>
-                                </p>
-                                <p className="text-[9px] md:text-xs font-bold text-muted-foreground/60 line-through decoration-red-500/30">
-                                    {Number(product.price).toLocaleString()} CFA
-                                </p>
-                            </div>
-                        ) : (
-                            <p className="text-secondary font-black text-sm md:text-base">
-                                {Number(product.price).toLocaleString()} <span className="text-[9px] font-bold text-muted-foreground">CFA</span>
-                            </p>
+
+                        {(onEdit || onDelete) && FEATURES.showBoostButton && (
+                            <button onClick={e => { e.stopPropagation(); setIsBoostOpen(true); }} className="p-1.5 hover:bg-primary/10 rounded-lg text-primary transition-colors shrink-0" title="Booster ce produit">
+                                <Icon icon="solar:rocket-bold-duotone" className="w-4 h-4" />
+                            </button>
                         )}
                     </div>
 
@@ -172,6 +179,10 @@ const ProductCard = memo(function ProductCard({ product, onEdit, onDelete, onSta
             </div>
 
             <ProductDetailModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} product={product} />
+
+            {FEATURES.showBoostButton && (
+                <BoostEntityModal isOpen={isBoostOpen} onClose={() => setIsBoostOpen(false)} entityType="PRODUCT" entityId={product.id} entityName={product.name} />
+            )}
 
             <Delete isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} onConfirm={confirmDelete} isDeleting={false} />
 

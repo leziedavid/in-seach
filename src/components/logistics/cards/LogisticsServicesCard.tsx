@@ -9,6 +9,8 @@ import LogisticsServiceDetailModal from "@/components/logistics/modals/Logistics
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { ViewMode } from "@/components/shared/ViewToggle";
 import LiveButtonInline from "@/components/lives/LiveButtonInline";
+import BoostEntityModal from "@/components/boost/modals/BoostEntityModal";
+import { FEATURES } from "@/config/features";
 
 interface LogisticsServicesCardProps {
     service: LogisticService;
@@ -34,6 +36,7 @@ const TRANSPORT_TYPE_LABELS: Record<TransportType, { label: string; icon: string
 // [PERF] memo : évite les re-renders dans les listes logistiques paginées
 const LogisticsServicesCard = memo(function LogisticsServicesCard({ service, isOwner = false, onEdit, onDelete, onToggleStatus, onRequestQuote, onCreateLive, isUpdating = false, viewMode = "grid" }: LogisticsServicesCardProps) {
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+    const [isBoostOpen, setIsBoostOpen] = useState(false);
     const transportInfo = TRANSPORT_TYPE_LABELS[service.transportType] || TRANSPORT_TYPE_LABELS[TransportType.MARITIME];
     const { withAuth } = useRequireAuth();
 
@@ -112,6 +115,11 @@ const LogisticsServicesCard = memo(function LogisticsServicesCard({ service, isO
                             <button onClick={handleDelete} className="p-1.5 rounded-lg hover:bg-destructive/10 text-destructive transition" title="Supprimer">
                                 <Icon icon="solar:trash-bin-trash-bold-duotone" className="w-4 h-4" />
                             </button>
+                            {FEATURES.showBoostButton && (
+                                <button onClick={e => { e.stopPropagation(); setIsBoostOpen(true); }} className="p-1.5 hover:bg-primary/10 rounded-lg text-primary transition-colors shrink-0" title="Booster ce service logistique">
+                                    <Icon icon="solar:rocket-bold-duotone" className="w-4 h-4" />
+                                </button>
+                            )}
                         </div>
                     ) : (
                         <div className={`flex w-full ${viewMode === 'grid' ? "justify-center" : "justify-end mt-auto"}`}>
@@ -134,6 +142,11 @@ const LogisticsServicesCard = memo(function LogisticsServicesCard({ service, isO
                 service={service}
                 onRequestQuote={onRequestQuote}
             />
+
+            {/* BOOST MODAL */}
+            {FEATURES.showBoostButton && (
+                <BoostEntityModal isOpen={isBoostOpen} onClose={() => setIsBoostOpen(false)} entityType="LOGISTIC_SERVICE" entityId={service.id} entityName={service.label} />
+            )}
         </>
     );
 });
