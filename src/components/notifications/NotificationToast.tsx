@@ -1,63 +1,134 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Icon } from "@iconify/react";
 import { AnimatePresence, motion } from "framer-motion";
 
-/* ================= TYPES ================= */
 export type NotificationType = "success" | "warning" | "info" | "error";
-interface NotificationToastProps { message: string; type?: NotificationType; duration?: number; onClose?: () => void; }
 
-/* ================= COMPONENT ================= */
-export default function NotificationToast({ message, type = "success", duration = 4000, onClose, }: NotificationToastProps) {
+interface NotificationToastProps {
+    message: string;
+    type?: NotificationType;
+    duration?: number;
+    onClose?: () => void;
+}
+
+const CONFIG: Record<NotificationType, { icon: string; iconColor: string; pill: string; barColor: string }> = {
+    success: {
+        icon: "solar:check-circle-bold-duotone",
+        iconColor: "text-emerald-600",
+        pill: "bg-emerald-500/15",
+        barColor: "#00875A",
+    },
+    warning: {
+        icon: "solar:danger-triangle-bold-duotone",
+        iconColor: "text-amber-600",
+        pill: "bg-amber-500/15",
+        barColor: "#B45309",
+    },
+    info: {
+        icon: "solar:info-circle-bold-duotone",
+        iconColor: "text-blue-600",
+        pill: "bg-blue-500/15",
+        barColor: "#1D4ED8",
+    },
+    error: {
+        icon: "solar:close-circle-bold-duotone",
+        iconColor: "text-red-600",
+        pill: "bg-red-500/15",
+        barColor: "#B91C1C",
+    },
+};
+
+export default function NotificationToast({
+    message,
+    type = "success",
+    duration = 4000,
+    onClose,
+}: NotificationToastProps) {
     const [visible, setVisible] = useState(true);
-    /* ================= AUTO CLOSE ================= */
-    useEffect(() => {
-        const timer = setTimeout(() => { handleClose(); }, duration); return () => clearTimeout(timer);
-    }, [duration]);
+    const [progress, setProgress] = useState(100);
+    const startRef = useRef<number | null>(null);
+    const rafRef = useRef<number | null>(null);
+
+    const cfg = CONFIG[type];
 
     const handleClose = () => {
         setVisible(false);
-        onClose?.();
+        setTimeout(() => onClose?.(), 350);
     };
 
-    /* ================= STYLES ================= */
-    const styles = {
-        success: {
-            bg: "from-green-100 to-green-50 border-green-300",
-            icon: <Icon icon="solar:check-circle-bold-duotone" className="h-5 w-5 text-green-600" />,
-        },
-        warning: {
-            bg: "from-yellow-100 to-yellow-50 border-yellow-300",
-            icon: <Icon icon="solar:danger-bold-duotone" className="h-5 w-5 text-yellow-600" />,
-        },
-        info: {
-            bg: "from-[#155e75]/20 to-[#155e75]/10 border-[#155e75]/50",
-            icon: <Icon icon="solar:info-circle-bold-duotone" className="h-5 w-5 text-[#155e75]" />,
-        },
-        error: {
-            bg: "from-red-100 to-red-50 border-red-300",
-            icon: <Icon icon="solar:danger-bold-duotone" className="h-5 w-5 text-red-600" />,
-        },
-    }[type];
+    useEffect(() => {
+        const tick = (now: number) => {
+            if (!startRef.current) startRef.current = now;
+            const elapsed = now - startRef.current;
+            const pct = Math.max(0, 100 - (elapsed / duration) * 100);
+            setProgress(pct);
+            if (elapsed < duration) {
+                rafRef.current = requestAnimationFrame(tick);
+            } else {
+                handleClose();
+            }
+        };
+        rafRef.current = requestAnimationFrame(tick);
+        return () => {
+            if (rafRef.current) cancelAnimationFrame(rafRef.current);
+        };
+    }, [duration]);
 
     return (
         <AnimatePresence>
             {visible && (
-                <motion.div initial={{ y: -80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -40, opacity: 0 }} transition={{ type: "spring", stiffness: 140, damping: 14 }}
-                    className="  fixed top-4 left-1/2 -translate-x-1/2 z-[9999]  w-fit max-w-[95vw]  " >
-                    <div className={`  relative flex items-center gap-3 bg-gradient-to-r ${styles.bg}  border rounded-xl shadow-lg px-4 py-3 min-w-[260px] `} >
-                        {/* Icon */}
-                        <div className="flex-shrink-0">{styles.icon}</div>
+                <motion.div
+                    initial={{ y: -90, opacity: 0, scale: 0.92 }}
+                    animate={{ y: 0, opacity: 1, scale: 1 }}
+                    exit={{ y: -60, opacity: 0, scale: 0.92 }}
+                    transition={{ type: "spring", stiffness: 420, damping: 32, mass: 0.8 }}
+                    className="fixed top-4 left-1/2 -translate-x-1/2 z-[9999] w-fit max-w-[88vw]"
+                    style={{ minWidth: 240 }}
+                >
+                    {/* Island container */}
+                    <div
+                        className="relative overflow-hidden rounded-xl px-4 py-3 flex items-center gap-3"
+                        style={{
+                            background: "rgba(235, 235, 240, 0.88)",
+                            border: "0.5px solid rgba(255,255,255,0.8)",
+                            boxShadow: "0 4px 20px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.7)",
+                            backdropFilter: "blur(40px) saturate(180%)",
+                            WebkitBackdropFilter: "blur(40px) saturate(180%)",
+                        }}
+                    >
+                        {/* Colored icon bubble */}
+                        <div className={`flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center ${cfg.pill}`}>
+                            <Icon icon={cfg.icon} className={`w-5 h-5 ${cfg.iconColor}`} />
+                        </div>
+
                         {/* Message */}
-                        <p className="text-sm font-medium text-gray-800 dark:text-foreground flex-1">
+                        <p className="text-[13.5px] font-semibold leading-snug flex-1 pr-1" style={{ color: cfg.barColor }}>
                             {message}
                         </p>
 
-                        {/* Close button */}
-                        <button onClick={handleClose} className=" absolute -top-2 -right-2 p-1.5 rounded-full bg-white shadow border hover:bg-[#b07b5e] hover:text-white  transition-all hover:scale-105 " >
-                            <Icon icon="solar:close-circle-bold-duotone" className="h-4 w-4" />
+                        {/* Dismiss */}
+                        <button
+                            onClick={handleClose}
+                            className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center bg-black/[0.15] hover:bg-black/[0.25] transition-colors"
+                            aria-label="Fermer"
+                        >
+                            <Icon icon="solar:close-bold" className="w-3.5 h-3.5 text-zinc-700" />
                         </button>
+
+                        {/* Progress bar */}
+                        <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-black/[0.05]">
+                            <div
+                                style={{
+                                    height: "100%",
+                                    width: `${progress}%`,
+                                    backgroundColor: cfg.barColor,
+                                    opacity: 0.35,
+                                    transition: "width 50ms linear",
+                                }}
+                            />
+                        </div>
                     </div>
                 </motion.div>
             )}
