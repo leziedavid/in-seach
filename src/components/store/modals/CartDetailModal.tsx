@@ -146,8 +146,9 @@ export default function CartDetailModal({ isOpen, onClose }: CartDetailModalProp
                                                     <div className="flex-1 min-w-0 py-1">
                                                         <div className="flex justify-between items-start">
                                                             <div className="flex flex-col">
-                                                                <h4 className="font-black text-sm truncate pr-2 italic">{item.name}</h4>
-                                                                {item.achatType === 'GROS' && (
+                                                                <h4 className="font-black text-sm pr-2 italic break-words whitespace-normal">
+                                                                    {item.name}
+                                                                </h4>                                                                {item.achatType === 'GROS' && (
                                                                     <span className="text-[10px] font-black text-primary bg-primary/10 px-2 py-0.5 rounded w-fit mt-1">Vente en Gros</span>
                                                                 )}
                                                             </div>
@@ -167,9 +168,7 @@ export default function CartDetailModal({ isOpen, onClose }: CartDetailModalProp
                                                                 </button>
                                                             </div>
                                                             <p className="text-xs font-black italic">
-                                                                {item.achatType === 'GROS' && item.prixVenteGros
-                                                                    ? item.prixVenteGros.toLocaleString()
-                                                                    : (item.price * item.quantity).toLocaleString()} FCFA
+                                                                {item.achatType === 'GROS' && item.prixVenteGros ? item.prixVenteGros.toLocaleString() : (item.price * item.quantity).toLocaleString()} FCFA
                                                             </p>
                                                         </div>
                                                     </div>
@@ -200,34 +199,23 @@ export default function CartDetailModal({ isOpen, onClose }: CartDetailModalProp
                                                         <span className="text-xs text-muted-foreground">Chargement des informations de livraison…</span>
                                                     </div>
                                                 ) : !hasDelivery ? (
-                                                    <motion.div
-                                                        initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                                                        className="p-4 rounded-2xl border-2 border-dashed border-orange-400/60 bg-orange-500/5"
-                                                    >
+                                                    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="p-4 rounded-2xl border-2 border-dashed border-orange-400/60 bg-orange-500/5" >
                                                         <div className="flex items-start gap-3 mb-3">
                                                             <div className="w-9 h-9 rounded-xl bg-orange-500/10 flex items-center justify-center shrink-0">
                                                                 <Icon icon="solar:delivery-bold-duotone" width={20} className="text-orange-500" />
                                                             </div>
                                                             <div>
                                                                 <p className="text-sm font-black text-orange-700 dark:text-orange-400">Adresse de livraison manquante</p>
-                                                                <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
-                                                                    Vous devez renseigner votre adresse de livraison avant de pouvoir passer commande.
-                                                                </p>
+                                                                <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">Vous devez renseigner votre adresse de livraison avant de pouvoir passer commande.</p>
                                                             </div>
                                                         </div>
-                                                        <button
-                                                            onClick={() => setShowDeliveryModal(true)}
-                                                            className="w-full py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-black active:scale-95 transition-all flex items-center justify-center gap-2"
-                                                        >
+                                                        <button onClick={() => setShowDeliveryModal(true)} className="w-full py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-black active:scale-95 transition-all flex items-center justify-center gap-2" >
                                                             <Icon icon="solar:map-point-add-bold-duotone" width={16} />
                                                             Renseigner mes informations de livraison
                                                         </button>
                                                     </motion.div>
                                                 ) : (
-                                                    <motion.div
-                                                        initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                                                        className="p-4 rounded-2xl border border-green-500/30 bg-green-500/5"
-                                                    >
+                                                    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="p-4 rounded-2xl border border-green-500/30 bg-green-500/5" >
                                                         <div className="flex items-center justify-between mb-2">
                                                             <div className="flex items-center gap-2">
                                                                 <div className="w-7 h-7 rounded-lg bg-green-500/10 flex items-center justify-center">
@@ -235,10 +223,7 @@ export default function CartDetailModal({ isOpen, onClose }: CartDetailModalProp
                                                                 </div>
                                                                 <span className="text-[11px] font-black uppercase text-green-700 dark:text-green-400 tracking-wide">Livraison</span>
                                                             </div>
-                                                            <button
-                                                                onClick={() => setShowDeliveryModal(true)}
-                                                                className="text-[10px] font-black text-primary hover:underline flex items-center gap-1"
-                                                            >
+                                                            <button onClick={() => setShowDeliveryModal(true)} className="text-[10px] font-black text-primary hover:underline flex items-center gap-1"  >
                                                                 <Icon icon="solar:pen-bold-duotone" width={12} />
                                                                 Modifier
                                                             </button>
