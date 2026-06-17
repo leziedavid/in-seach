@@ -67,11 +67,7 @@ export default function TechnicalSheetConfigForm({ initialData, onSubmit, isSubm
                 <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-bold text-muted-foreground hover:bg-muted rounded-lg transition-all">
                     Annuler
                 </button>
-                <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="px-6 py-2 bg-primary text-white text-sm font-bold rounded-lg hover:bg-secondary transition-all disabled:opacity-50 flex items-center gap-2"
-                >
+                <button type="submit" disabled={isSubmitting} className="px-6 py-2 bg-primary text-white text-sm font-bold rounded-lg hover:bg-secondary transition-all disabled:opacity-50 flex items-center gap-2" >
                     {isSubmitting ? <Icon icon="solar:refresh-bold-duotone" className="w-4 h-4 animate-spin" /> : <Icon icon="solar:check-circle-bold" className="w-4 h-4" />}
                     {isEditing ? 'Mettre à jour' : 'Enregistrer'}
                 </button>
