@@ -5,7 +5,7 @@ export const getBaseUrl = (): string => {
     return process.env.NEXT_PUBLIC_API_URL || 'https://api.djamko.com/api/v1';
 };
 
-export const useAuthMiddleware = async (): Promise<void> => {
+const authMiddleware = async (): Promise<void> => {
     const token = getCookie('token');
     if (!token) {
         // Optionally handle redirection or renewal here
@@ -34,7 +34,7 @@ export function toQueryString(params: Record<string, any>): string {
 
 // secureFetch: used only for protected routes
 export const secureFetch = async (url: string, options: RequestInit = {}): Promise<Response> => {
-    await useAuthMiddleware();
+    await authMiddleware();
     const token = getCookie('token') || '';
     const headers: Record<string, string> = {
         ...(options.headers as Record<string, string> || {}),

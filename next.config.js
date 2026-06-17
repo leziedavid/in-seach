@@ -7,6 +7,16 @@ const nextConfig = {
   // ─── Stabilité & DX ───────────────────────────────────────────────
   reactStrictMode: true,
 
+  // ─── ESLint — exécuté séparément en CI, pas pendant le build Vercel ──
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+
+  // ─── TypeScript — les erreurs TS bloquent toujours le build ──────────
+  typescript: {
+    ignoreBuildErrors: false,
+  },
+
   // ─── Compression HTTP ─────────────────────────────────────────────
   // Désactiver si Cloudflare ou Nginx gère déjà la compression.
   // compress: true,
