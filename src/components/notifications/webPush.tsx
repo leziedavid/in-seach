@@ -87,6 +87,9 @@ const WebPushToast = ({ notification, onClose }: { notification: WebPushNotifica
 
 export const WebPushManager = () => {
     const [notifications, setNotifications] = useState<WebPushNotification[]>([]);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => { setMounted(true); }, []);
 
     const playNotificationSound = useCallback(() => {
         try {
@@ -119,6 +122,8 @@ export const WebPushManager = () => {
         });
         return () => unsubscribe();
     }, [playNotificationSound, removeNotification]);
+
+    if (!mounted) return null;
 
     return (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[9999] flex flex-col gap-3 w-full max-w-[360px] px-4 pointer-events-none">

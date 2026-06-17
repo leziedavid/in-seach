@@ -48,7 +48,9 @@ export default function ChatIAPage() {
     const [isRecording, setIsRecording] = useState(false);
     const [socket, setSocket] = useState<Socket | null>(null);
     const [editingMessage, setEditingMessage] = useState<Message | null>(null);
+    const [contextMenu, setContextMenu] = useState<{ msg: Message; x: number; y: number } | null>(null);
     const [showSidebar, setShowSidebar] = useState(true);
+    const longPressRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const [bookingCode, setBookingCode] = useState('');
     const [isVerifyingCode, setIsVerifyingCode] = useState(false);
 
@@ -296,6 +298,53 @@ export default function ChatIAPage() {
 
     const stopRecording = () => { mediaRecorderRef.current?.stop(); setIsRecording(false); };
 
+    // ── Context menu handlers (WhatsApp style) ───────────────────────
+    const openContextMenu = (e: React.MouseEvent | React.TouchEvent, msg: Message) => {
+        e.preventDefault();
+        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+        const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+        const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+        setContextMenu({ msg, x: clientX, y: clientY });
+    };
+
+    const handleLongPressStart = (msg: Message) => (e: React.TouchEvent) => {
+        longPressRef.current = setTimeout(() => {
+            const touch = e.touches[0];
+            setContextMenu({ msg, x: touch.clientX, y: touch.clientY });
+            if (navigator.vibrate) navigator.vibrate(30);
+        }, 500);
+    };
+
+    const handleLongPressEnd = () => {
+        if (longPressRef.current) clearTimeout(longPressRef.current);
+    };
+
+    const closeContextMenu = () => setContextMenu(null);
+
+    const handleCopyMessage = (content: string) => {
+        navigator.clipboard.writeText(content);
+        addNotification("Message copié", "success");
+        closeContextMenu();
+    };
+
+    const handleEditMessage = (msg: Message) => {
+        setEditingMessage(msg);
+        setInputValue(msg.content);
+        textareaRef.current?.focus();
+        closeContextMenu();
+    };
+
+    const handleDeleteMessage = (msg: Message) => {
+        if (!selectedConversation) return;
+        socket?.emit('delete_message', {
+            conversationId: selectedConversation.id,
+            messageId: msg.id,
+            userId: me?.id,
+        });
+        setMessages(prev => prev.filter(m => m.id !== msg.id));
+        closeContextMenu();
+    };
+
     const goBackToList = () => {
         setShowSidebar(true);
         setSelectedConversation(null);
@@ -304,7 +353,7 @@ export default function ChatIAPage() {
 
     return (
         // dvh = dynamic viewport height — s'adapte à la barre d'adresse mobile
-        <div className="flex overflow-hidden bg-background" style={{ height: 'calc(100dvh - 64px)' }}>
+        <div className="flex overflow-hidden bg-background" style={{ height: 'calc(100dvh - 64px)' }} onClick={closeContextMenu}>
             <div className="flex w-full max-w-6xl mx-auto h-full overflow-hidden md:mt-4 md:mb-4 md:rounded-3xl md:border md:border-border md:shadow-2xl bg-background">
 
                 {/* ── SIDEBAR ── */}
@@ -531,6 +580,10 @@ export default function ChatIAPage() {
                                                     animate={{ opacity: 1, y: 0, scale: 1 }}
                                                     transition={{ duration: 0.15 }}
                                                     className={`flex ${isMe ? 'justify-end' : 'justify-start'} ${isLastInGroup ? 'mb-2' : 'mb-0.5'}`}
+                                                    onContextMenu={(e) => openContextMenu(e, msg)}
+                                                    onTouchStart={handleLongPressStart(msg)}
+                                                    onTouchEnd={handleLongPressEnd}
+                                                    onTouchMove={handleLongPressEnd}
                                                 >
                                                     {/* Avatar interlocuteur sur dernier msg du groupe */}
                                                     {!isMe && (
@@ -742,6 +795,76 @@ export default function ChatIAPage() {
                     )}
                 </main>
             </div>
+            {/* ── Menu contextuel WhatsApp ── */}
+            <AnimatePresence>
+                {contextMenu && (
+                    <>
+                        {/* Overlay invisible pour fermer */}
+                        <div className="fixed inset-0 z-[9998]" onClick={closeContextMenu} />
+
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.85 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.85 }}
+                            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                            className="fixed z-[9999] min-w-[180px] overflow-hidden rounded-2xl shadow-2xl"
+                            style={{
+                                left: Math.min(contextMenu.x, window.innerWidth - 200),
+                                top: Math.min(contextMenu.y, window.innerHeight - 220),
+                                background: 'rgba(30,30,30,0.92)',
+                                backdropFilter: 'blur(20px)',
+                                WebkitBackdropFilter: 'blur(20px)',
+                                border: '0.5px solid rgba(255,255,255,0.12)',
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            {/* Aperçu du message */}
+                            {contextMenu.msg.content && (
+                                <div className="px-4 py-3 border-b border-white/10">
+                                    <p className="text-[11px] text-white/50 line-clamp-2 leading-relaxed">
+                                        {contextMenu.msg.content}
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Copier */}
+                            {contextMenu.msg.content && (
+                                <button
+                                    onClick={() => handleCopyMessage(contextMenu.msg.content)}
+                                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/10 transition text-left"
+                                >
+                                    <Icon icon="solar:copy-bold-duotone" className="w-5 h-5 text-white/70" />
+                                    <span className="text-[14px] text-white font-medium">Copier</span>
+                                </button>
+                            )}
+
+                            {/* Modifier — uniquement mes messages texte */}
+                            {contextMenu.msg.senderId === me?.id && contextMenu.msg.content && (
+                                <button
+                                    onClick={() => handleEditMessage(contextMenu.msg)}
+                                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/10 transition text-left"
+                                >
+                                    <Icon icon="solar:pen-bold-duotone" className="w-5 h-5 text-blue-400" />
+                                    <span className="text-[14px] text-white font-medium">Modifier</span>
+                                </button>
+                            )}
+
+                            <div className="h-px bg-white/10 mx-3" />
+
+                            {/* Supprimer — uniquement mes messages */}
+                            {contextMenu.msg.senderId === me?.id && (
+                                <button
+                                    onClick={() => handleDeleteMessage(contextMenu.msg)}
+                                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-500/20 transition text-left"
+                                >
+                                    <Icon icon="solar:trash-bin-trash-bold-duotone" className="w-5 h-5 text-red-400" />
+                                    <span className="text-[14px] text-red-400 font-medium">Supprimer</span>
+                                </button>
+                            )}
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
