@@ -10,7 +10,7 @@ import { useCart } from "@/components/providers/CartProvider";
 import { useNotification } from "@/components/notifications/NotificationProvider";
 import { useRouter } from "next/navigation";
 import { isAuthenticated, getUserId } from "@/lib/auth";
-import { createChatConversation, getPublicStoreInfo, getProductById } from "@/api/api";
+import { createChatConversation, getPublicStoreInfo } from "@/api/api";
 import ReportButton from "@/components/shared/ReportButton";
 import TextDisplayBox from "@/components/home/TextDisplayBox";
 import Link from "next/link";
@@ -28,61 +28,34 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
     const [isNegotiating, setIsNegotiating] = useState(false);
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const [storeInfo, setStoreInfo] = useState<StoreUserInfo | null>(null);
-    const [freshProduct, setFreshProduct] = useState<Product | null>(null);
     const touchStartX = useRef<number>(0);
 
     const { addToCart } = useCart();
     const { addNotification } = useNotification();
     const router = useRouter();
 
-    // Données affichées : prop par défaut, remplacé par les données fraîches dès qu'elles arrivent
-    const displayProduct = freshProduct ?? product;
-
     const slugify = (name: string) =>
         name.trim().replace(/\s+/g, "-").replace(/[^\w\-]+/g, "");
 
-    const resolveImages = (p: Product | null) => {
-        if (!p) return [];
-        if (p.files && p.files.length > 0) return p.files.map(f => f.fileUrl).filter(Boolean);
-        if (p.images && p.images.length > 0) return p.images;
-        if (p.imageUrl) return [p.imageUrl];
-        return [];
-    };
-
-    const imagesList = resolveImages(displayProduct);
+    const imagesList = product?.images && product.images.length > 0
+        ? product.images
+        : product?.imageUrl ? [product.imageUrl] : [];
 
     useEffect(() => { setMounted(true); }, []);
 
-    const fetchPublicStoreData = useCallback(async (storeName: string) => {
+    const fetchPublicStoreData = useCallback(async () => {
         try {
-            const res = await getPublicStoreInfo(storeName);
+            const res = await getPublicStoreInfo(product?.user?.storeName || "");
             if (res.statusCode === 200 && res.data) setStoreInfo(res.data);
         } catch { /* silent */ }
-    }, []);
-
-    const fetchFreshProduct = useCallback(async (id: string) => {
-        try {
-            const res = await getProductById(id);
-            if (res.statusCode === 200 && res.data) setFreshProduct(res.data);
-        } catch { /* silent */ }
-    }, []);
+    }, [product?.user?.storeName]);
 
     useEffect(() => {
-        if (isOpen && product) {
-            setFreshProduct(null);
-            setAchatType('UNITE');
-            setCurrentImageIndex(0);
-            fetchFreshProduct(product.id);
-        }
-        if (!isOpen) setFreshProduct(null);
-    }, [isOpen, product, fetchFreshProduct]);
+        if (isOpen && product?.user?.storeName) fetchPublicStoreData();
+        if (isOpen && product) { setAchatType('UNITE'); setCurrentImageIndex(0); }
+    }, [fetchPublicStoreData, isOpen, product]);
 
-    useEffect(() => {
-        const storeName = displayProduct?.user?.storeName;
-        if (isOpen && storeName) fetchPublicStoreData(storeName);
-    }, [isOpen, displayProduct?.user?.storeName, fetchPublicStoreData]);
-
-    if (!displayProduct || !mounted) return null;
+    if (!product || !mounted) return null;
 
     // ── Navigation images ────────────────────────────────────────────────
     const nextImage = (e?: React.MouseEvent) => {
@@ -102,18 +75,20 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
     };
 
     // ── Prix affiché ─────────────────────────────────────────────────────
-    const displayPrice = achatType === 'GROS' && displayProduct.prixVenteGros ? displayProduct.prixVenteGros : displayProduct.pricePromo ?? displayProduct.price;
-    const originalPrice = achatType === 'GROS' ? null : (displayProduct.pricePromo ? displayProduct.price : null);
-    const discount = achatType !== 'GROS' ? displayProduct.discountPercent : null;
+    const displayPrice = achatType === 'GROS' && product.prixVenteGros
+        ? product.prixVenteGros
+        : product.pricePromo ?? product.price;
+    const originalPrice = achatType === 'GROS' ? null : (product.pricePromo ? product.price : null);
+    const discount = achatType !== 'GROS' ? product.discountPercent : null;
 
     // ── Actions ──────────────────────────────────────────────────────────
     const handleAddToCart = () => {
-        addToCart(displayProduct, 1, achatType);
-        addNotification(`"${displayProduct.name}" ajouté au panier${achatType === 'GROS' ? ' (Gros)' : ''}`, "success");
+        addToCart(product, 1, achatType);
+        addNotification(`"${product.name}" ajouté au panier${achatType === 'GROS' ? ' (Gros)' : ''}`, "success");
     };
 
     const handleBuyNow = () => {
-        addToCart(displayProduct, 1, achatType);
+        addToCart(product, 1, achatType);
         onClose();
         router.push('/cart');
     };
@@ -125,19 +100,19 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
             return;
         }
         const currentUserId = getUserId();
-        const ownerId = displayProduct.user?.id || displayProduct.userId;
+        const ownerId = product.user?.id || product.userId;
         if (currentUserId === ownerId) {
             addNotification("Vous ne pouvez pas négocier votre propre produit", "warning");
             return;
         }
         setIsNegotiating(true);
         try {
-            const participant2Id = displayProduct.user?.id || displayProduct.userId;
+            const participant2Id = product.user?.id || product.userId;
             if (!participant2Id) { addNotification("Impossible d'identifier le propriétaire.", "error"); return; }
             const res = await createChatConversation({ participant2Id });
             if (res.statusCode === 200 || res.statusCode === 201) {
-                const initialMessage = `Bonjour, je suis intéressé par votre produit "${displayProduct.name}" (Prix: ${displayProduct.price.toLocaleString()} FCFA). Pouvons-nous en discuter ?`;
-                sessionStorage.setItem("pending_negotiation", JSON.stringify({ conversationId: res.data.id, message: initialMessage, productId: displayProduct.id }));
+                const initialMessage = `Bonjour, je suis intéressé par votre produit "${product.name}" (Prix: ${product.price.toLocaleString()} FCFA). Pouvons-nous en discuter ?`;
+                sessionStorage.setItem("pending_negotiation", JSON.stringify({ conversationId: res.data.id, message: initialMessage, productId: product.id }));
                 router.push("/chat-ia");
             } else {
                 addNotification("Erreur lors de la création de la conversation", "error");
@@ -157,7 +132,7 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                 {imagesList.length > 0 ? (
                     <motion.div key={currentImageIndex} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} className="absolute inset-0" >
                         <Image src={imagesList[currentImageIndex]} fill unoptimized className="object-cover blur-3xl opacity-30 scale-110" alt="" aria-hidden />
-                        <Image src={imagesList[currentImageIndex]} fill unoptimized className="object-contain z-10 p-3 cursor-zoom-in" alt={`${displayProduct.name} - ${currentImageIndex + 1}`} onClick={() => setLightboxOpen(true)} />
+                        <Image src={imagesList[currentImageIndex]} fill unoptimized className="object-contain z-10 p-3 cursor-zoom-in" alt={`${product.name} - ${currentImageIndex + 1}`} onClick={() => setLightboxOpen(true)} />
                     </motion.div>
                 ) : (
                     <div className="absolute inset-0 flex items-center justify-center text-muted-foreground/20">
@@ -236,7 +211,7 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
     // ── PRICE SECTION ─────────────────────────────────────────────────────
     const PriceSection = () => (
         <div className="space-y-3">
-            {displayProduct.typeVente === 'GROS' && (
+            {product.typeVente === 'GROS' && (
                 <div className="flex gap-2">
                     {(['UNITE', 'GROS'] as const).map(t => (
                         <label key={t} className={`flex items-center gap-2 p-2.5 border rounded-xl cursor-pointer transition-all flex-1 ${achatType === t ? 'border-primary bg-primary/5' : 'border-border bg-muted/30'}`}>
@@ -258,7 +233,7 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                         {originalPrice.toLocaleString()} FCFA
                     </span>
                 )}
-                {achatType === 'GROS' && displayProduct.prixVenteGros && (
+                {achatType === 'GROS' && product.prixVenteGros && (
                     <span className="px-2 py-0.5 bg-primary/10 text-primary text-[10px] font-black rounded-lg">PRIX GROS</span>
                 )}
             </div>
@@ -270,20 +245,20 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
         <div className="grid grid-cols-2 gap-2">
             <div className="p-3 bg-muted/50 rounded-xl">
                 <p className="text-[10px] font-black uppercase text-muted-foreground mb-0.5">État</p>
-                <p className="text-xs font-black">{productConditionLabels[displayProduct.etat] || displayProduct.etat}</p>
+                <p className="text-xs font-black">{productConditionLabels[product.etat] || product.etat}</p>
             </div>
             <div className="p-3 bg-muted/50 rounded-xl">
                 <p className="text-[10px] font-black uppercase text-muted-foreground mb-0.5">Référence</p>
-                <p className="text-xs font-black truncate uppercase">{displayProduct.sku || displayProduct.id.slice(0, 8)}</p>
+                <p className="text-xs font-black truncate uppercase">{product.sku || product.id.slice(0, 8)}</p>
             </div>
             <div className="p-3 bg-muted/50 rounded-xl">
                 <p className="text-[10px] font-black uppercase text-muted-foreground mb-0.5">Catégorie</p>
-                <p className="text-xs font-black truncate">{displayProduct.category?.name || "—"}</p>
+                <p className="text-xs font-black truncate">{product.category?.name || "—"}</p>
             </div>
             <div className="p-3 bg-muted/50 rounded-xl">
                 <p className="text-[10px] font-black uppercase text-muted-foreground mb-0.5">Stock</p>
-                <p className={`text-xs font-black ${displayProduct.stock > 0 ? "text-emerald-600" : "text-red-500"}`}>
-                    {displayProduct.stock > 0 ? `${displayProduct.stock} dispo` : "Épuisé"}
+                <p className={`text-xs font-black ${product.stock > 0 ? "text-emerald-600" : "text-red-500"}`}>
+                    {product.stock > 0 ? `${product.stock} dispo` : "Épuisé"}
                 </p>
             </div>
         </div>
@@ -328,7 +303,7 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                                 <button onClick={onClose} className="flex h-9 w-9 items-center justify-center rounded-full bg-muted hover:bg-accent transition">
                                     <Icon icon="solar:alt-arrow-left-bold-duotone" width={18} />
                                 </button>
-                                <h2 className="absolute left-1/2 -translate-x-1/2 text-sm font-black truncate max-w-[50%]">{displayProduct.name}</h2>
+                                <h2 className="absolute left-1/2 -translate-x-1/2 text-sm font-black truncate max-w-[50%]">{product.name}</h2>
                                 <div className="flex items-center gap-1">
                                     <button className="p-2 hover:bg-muted rounded-full text-muted-foreground transition-colors">
                                         <Icon icon="solar:heart-bold-duotone" width={18} />
@@ -336,7 +311,7 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                                     <button className="p-2 hover:bg-muted rounded-full text-muted-foreground transition-colors">
                                         <Icon icon="solar:share-bold-duotone" width={18} />
                                     </button>
-                                    <ReportButton entityType="PRODUCT" entityId={displayProduct.id} />
+                                    <ReportButton entityType="PRODUCT" entityId={product.id} />
                                 </div>
                             </div>
 
@@ -353,7 +328,7 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                                                 {imagesList.length > 0 ? (
                                                     <motion.div key={currentImageIndex} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} className="absolute inset-0">
                                                         <Image src={imagesList[currentImageIndex]} fill unoptimized className="object-cover blur-3xl opacity-30 scale-110" alt="" aria-hidden />
-                                                        <Image src={imagesList[currentImageIndex]} fill unoptimized className="object-contain z-10 p-4 cursor-zoom-in" alt={displayProduct.name} onClick={() => setLightboxOpen(true)} />
+                                                        <Image src={imagesList[currentImageIndex]} fill unoptimized className="object-contain z-10 p-4 cursor-zoom-in" alt={product.name} onClick={() => setLightboxOpen(true)} />
                                                     </motion.div>
                                                 ) : (
                                                     <div className="absolute inset-0 flex items-center justify-center text-muted-foreground/20">
@@ -392,14 +367,14 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                                     <div className="p-6 overflow-y-auto space-y-5 max-h-[calc(88vh-56px-72px)]">
                                         <div className="flex items-center gap-2 flex-wrap">
                                             <span className="px-3 py-1 bg-primary/10 text-primary text-[10px] font-black uppercase rounded-full">
-                                                {displayProduct.category?.name || "Produit"}
+                                                {product.category?.name || "Produit"}
                                             </span>
                                             <span className="px-3 py-1 bg-emerald-500/10 text-emerald-600 text-[10px] font-black uppercase rounded-full">En Stock</span>
                                         </div>
-                                        <h2 className="text-2xl font-black leading-tight">{displayProduct.name}</h2>
+                                        <h2 className="text-2xl font-black leading-tight">{product.name}</h2>
                                         <PriceSection />
-                                        {displayProduct.user && <SellerCard />}
-                                        <TextDisplayBox text={displayProduct.description || "Aucune description disponible."} expandable isHtml />
+                                        {product.user && <SellerCard />}
+                                        <TextDisplayBox text={product.description || "Aucune description disponible."} expandable isHtml />
                                         <Specs />
                                     </div>
                                 </div>
@@ -428,22 +403,22 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                                         {/* Price + name */}
                                         <div className="space-y-1">
                                             <PriceSection />
-                                            <h1 className="text-lg font-black leading-snug text-[#0F2944]">{displayProduct.name}</h1>
+                                            <h1 className="text-lg font-black leading-snug text-[#0F2944]">{product.name}</h1>
                                         </div>
 
                                         {/* Badges catégorie / stock */}
                                         <div className="flex items-center gap-2 flex-wrap">
                                             <span className="px-2.5 py-1 bg-primary/10 text-primary text-[10px] font-black uppercase rounded-full">
-                                                {displayProduct.category?.name || "Produit"}
+                                                {product.category?.name || "Produit"}
                                             </span>
                                             <span className="px-2.5 py-1 bg-emerald-500/10 text-emerald-600 text-[10px] font-black uppercase rounded-full">
-                                                {displayProduct.stock > 0 ? "En Stock" : "Épuisé"}
+                                                {product.stock > 0 ? "En Stock" : "Épuisé"}
                                             </span>
                                         </div>
 
 
                                         {/* Seller */}
-                                        {displayProduct.user && (
+                                        {product.user && (
                                             <Link href={`/shop/${slugify(storeInfo?.storeName || "boutique")}`}>
                                                 <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-2xl border border-border/50">
                                                     <div className="w-11 h-11 rounded-full bg-primary/10 relative overflow-hidden shrink-0 ring-2 ring-primary/10">
@@ -480,7 +455,7 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                                         {/* Description */}
                                         <div className="space-y-1">
                                             <p className="text-xs font-black uppercase text-muted-foreground">Description</p>
-                                            <TextDisplayBox text={displayProduct.description || "Aucune description disponible."} expandable isHtml />
+                                            <TextDisplayBox text={product.description || "Aucune description disponible."} expandable isHtml />
                                         </div>
 
                                         {/* Specs */}
@@ -491,7 +466,7 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
 
                                         {/* Report */}
                                         <div className="flex justify-end pb-2">
-                                            <ReportButton entityType="PRODUCT" entityId={displayProduct.id} />
+                                            <ReportButton entityType="PRODUCT" entityId={product.id} />
                                         </div>
                                     </div>
                                 </div>
@@ -548,7 +523,7 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                                 <motion.div key={currentImageIndex} initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }}
                                     onClick={e => e.stopPropagation()}
                                     className="relative w-full h-full max-w-3xl max-h-[90vh] mx-4">
-                                    <Image src={imagesList[currentImageIndex]} fill unoptimized className="object-contain" alt={displayProduct.name} />
+                                    <Image src={imagesList[currentImageIndex]} fill unoptimized className="object-contain" alt={product.name} />
                                 </motion.div>
                                 {imagesList.length > 1 && (
                                     <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
