@@ -21,6 +21,7 @@ import CreateButton from "@/components/ui/CreateButton"
 import LiveFormModal from "@/components/lives/LiveFormModal"
 import { LiveEntityType } from "@/types/interface"
 import BoostedContentTabs from "@/components/boost/BoostedContentTabs"
+import { Share } from "@/components/shared/Share"
 
 const ITEMS_PER_PAGE = 10
 
@@ -57,6 +58,7 @@ export default function Store() {
     const [storeLogoPreview, setStoreLogoPreview] = useState<string | null>(null)
     const [isStoreUpdating, setIsStoreUpdating] = useState(false)
     const [copied, setCopied] = useState(false);
+    const [isShareOpen, setIsShareOpen] = useState(false);
 
     const slugify = (name: string) => {
         return name
@@ -245,6 +247,12 @@ export default function Store() {
         fetchProducts(1, true)
     }, [debouncedSearch, fetchProducts])
 
+    const handleShare = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsShareOpen(true);
+    };
+
     return (
         <div className="flex flex-col items-center w-full max-w-7xl mx-auto px-0 md:px-4 py-2">
             {/* Action Bar */}
@@ -269,7 +277,6 @@ export default function Store() {
             </div>
 
             <SectionHeader
-                // title="Vendez ou revendez vos produits"
                 title="La vente en ligne n'a jamais été aussi facile"
                 subtitle="Montez votre boutique en ligne en quelques clics et bénéficiez de tous les outils essentiels pour reussir dans l'e-commerce : ,
                 Achetez, vendez ou échangez tous types de produits d'occasion en toute simplicité"
@@ -315,15 +322,12 @@ export default function Store() {
 
                     <div className="flex items-center gap-2">
 
-                        <button onClick={() => handleCopy(`${process.env.NEXT_PUBLIC_BASE_URL}/shop/${slugify(storeInfo?.storeName || "")}`)} className="w-8 h-8 md:w-10 md:h-10 rounded-2xl bg-muted flex items-center justify-center hover:bg-primary/20 hover:text-primary transition-all active:scale-90 shrink-0">
-                            {copied ? <Icon icon="solar:check-circle-bold-duotone" className="w-5 h-5 md:w-6 md:h-6" /> : <Icon icon="solar:share-bold-duotone" className="w-5 h-5 md:w-6 md:h-6" />}
+                        {/* <button onClick={() => handleCopy(`${process.env.NEXT_PUBLIC_BASE_URL}/shop/${slugify(storeInfo?.storeName || "")}`)} className="w-8 h-8 md:w-10 md:h-10 rounded-2xl bg-muted flex items-center justify-center hover:bg-primary/20 hover:text-primary transition-all active:scale-90 shrink-0"> */}
+                        <button onClick={handleShare} className="w-8 h-8 md:w-10 md:h-10 rounded-2xl bg-muted flex items-center justify-center hover:bg-primary/20 hover:text-primary transition-all active:scale-90 shrink-0">
+                            <Icon icon="solar:share-bold-duotone" className="w-5 h-5 md:w-6 md:h-6" />
                         </button>
 
-                        <button onClick={() => {
-                            setNewStoreName(storeInfo?.storeName || "")
-                            setStoreLogoPreview(storeInfo?.storeLogo || null)
-                            setIsStoreModalOpen(true)
-                        }}
+                        <button onClick={() => { setNewStoreName(storeInfo?.storeName || ""); setStoreLogoPreview(storeInfo?.storeLogo || null); setIsStoreModalOpen(true) }}
                             className="w-8 h-8 md:w-10 md:h-10 rounded-2xl bg-muted flex items-center justify-center hover:bg-primary/20 hover:text-primary transition-all active:scale-90 shrink-0">
                             <Icon icon="solar:pen-bold-duotone" className="w-5 h-5 md:w-6 md:h-6" />
                         </button>
@@ -332,6 +336,19 @@ export default function Store() {
 
                 </div>
             </div>
+
+
+            <Share
+                isOpen={isShareOpen}
+                onClose={() => setIsShareOpen(false)}
+                url={`${process.env.NEXT_PUBLIC_BASE_URL}/shop/${slugify(storeInfo?.storeName || '')}`}
+                title={storeInfo?.storeName || ""}
+                description={""}
+                image={storeInfo?.storeLogo || ""}
+                price={""}
+                storeName={storeInfo?.storeName || ""}
+                storeLogo={storeInfo?.storeLogo || ""}
+            />
 
 
             {/* QR Code Section */}
@@ -384,11 +401,7 @@ export default function Store() {
                 </div>
             </Modal>
 
-            <VoiceSearchModal
-                isOpen={isVoiceModalOpen}
-                onClose={() => setIsVoiceModalOpen(false)}
-                onResult={handleVoiceResult}
-            />
+            <VoiceSearchModal isOpen={isVoiceModalOpen} onClose={() => setIsVoiceModalOpen(false)} onResult={handleVoiceResult} />
 
             {/* Store Update Modal */}
             <Modal isOpen={isStoreModalOpen} onClose={() => setIsStoreModalOpen(false)} >
@@ -474,18 +487,11 @@ function ProductsManagementContent({ loading, products, total, search, setSearch
                 </h3>
                 {/* Toggle grid / liste */}
                 <div className="flex items-center gap-1 bg-muted rounded-xl p-1">
-                    <button
-                        onClick={() => setViewMode('list')}
-                        className={`p-1.5 rounded-lg transition-all ${viewMode === 'list' ? 'bg-background shadow text-primary' : 'text-muted-foreground hover:text-foreground'}`}
-                        title="Vue liste"
-                    >
+                    <button onClick={() => setViewMode('list')} className={`p-1.5 rounded-lg transition-all ${viewMode === 'list' ? 'bg-background shadow text-primary' : 'text-muted-foreground hover:text-foreground'}`} title="Vue liste">
                         <Icon icon="solar:list-bold-duotone" className="w-4 h-4" />
                     </button>
-                    <button
-                        onClick={() => setViewMode('grid')}
-                        className={`p-1.5 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-background shadow text-primary' : 'text-muted-foreground hover:text-foreground'}`}
-                        title="Vue grille"
-                    >
+                    <button onClick={() => setViewMode('grid')} className={`p-1.5 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-background shadow text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                        title="Vue grille">
                         <Icon icon="solar:widget-bold-duotone" className="w-4 h-4" />
                     </button>
                 </div>
@@ -505,10 +511,7 @@ function ProductsManagementContent({ loading, products, total, search, setSearch
                 loadMore={() => setPage(prev => prev + 1)}
                 skeletonType="product"
                 skeletonCount={3}
-                gridClassName={viewMode === 'grid'
-                    ? "grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-6"
-                    : "flex flex-col gap-2"
-                }
+                gridClassName={viewMode === 'grid' ? "grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-6" : "flex flex-col gap-2"}
                 renderItem={(product) => (
                     <ProductCard
                         key={product.id}

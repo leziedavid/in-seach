@@ -130,8 +130,9 @@ const nextConfig = {
       { protocol: "https", hostname: "maps.googleapis.com" },
       { protocol: "https", hostname: "maps.gstatic.com" },
       { protocol: "https", hostname: "server.arcgisonline.com" },
-      // localhost uniquement en développement
+      // localhost uniquement en développement avec port
       ...(isDev ? [{ protocol: "http", hostname: "localhost" }] : []),
+      ...(isDev ? [{ protocol: "http", hostname: "localhost:4000" }] : []),
     ],
     unoptimized: false,
     formats: ["image/avif", "image/webp"],

@@ -190,7 +190,8 @@ const ProductCard = memo(function ProductCard({ product, onEdit, onDelete, onSta
             <Share
                 isOpen={isShareOpen}
                 onClose={() => setIsShareOpen(false)}
-                url={`${process.env.NEXT_PUBLIC_BASE_URL}/shop/${slugify(storeNames || '')}`}
+                // url={`${process.env.NEXT_PUBLIC_BASE_URL}/shop/${slugify(storeNames || '')}`}
+                url={`${process.env.NEXT_PUBLIC_BASE_URL}/produit/${product.id || ""}`}
                 title={product.name}
                 description={product.description || undefined}
                 image={product.imageUrl || undefined}
