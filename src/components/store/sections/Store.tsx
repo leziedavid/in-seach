@@ -464,12 +464,31 @@ interface ProductsManagementContentProps {
 
 function ProductsManagementContent({ loading, products, total, search, setSearch, setIsVoiceModalOpen, hasMore, setPage, openEditModal, handleDeleteProduct, handleToggleStatus, openLiveModal, storeName, }: ProductsManagementContentProps) {
 
+    const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
+
     const myProducts = (
         <>
-            <div className="flex items-center justify-between w-full px-2 md:px-0 mb-6 border-b border-border pb-4">
+            <div className="flex items-center justify-between w-full px-2 md:px-0 mb-4 border-b border-border pb-4">
                 <h3 className="text-lg font-black text-foreground">
                     {loading && products.length === 0 ? 'Chargement...' : products.length === 0 ? 'Ma Boutique' : `Mes Produits (${total})`}
                 </h3>
+                {/* Toggle grid / liste */}
+                <div className="flex items-center gap-1 bg-muted rounded-xl p-1">
+                    <button
+                        onClick={() => setViewMode('list')}
+                        className={`p-1.5 rounded-lg transition-all ${viewMode === 'list' ? 'bg-background shadow text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                        title="Vue liste"
+                    >
+                        <Icon icon="solar:list-bold-duotone" className="w-4 h-4" />
+                    </button>
+                    <button
+                        onClick={() => setViewMode('grid')}
+                        className={`p-1.5 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-background shadow text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                        title="Vue grille"
+                    >
+                        <Icon icon="solar:widget-bold-duotone" className="w-4 h-4" />
+                    </button>
+                </div>
             </div>
 
             <div className="flex w-full bg-card border border-border rounded-xl px-4 py-2.5 shadow-sm focus-within:border-primary transition-all mb-4">
@@ -486,7 +505,10 @@ function ProductsManagementContent({ loading, products, total, search, setSearch
                 loadMore={() => setPage(prev => prev + 1)}
                 skeletonType="product"
                 skeletonCount={3}
-                gridClassName="grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-6"
+                gridClassName={viewMode === 'grid'
+                    ? "grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-6"
+                    : "flex flex-col gap-2"
+                }
                 renderItem={(product) => (
                     <ProductCard
                         key={product.id}
@@ -496,6 +518,7 @@ function ProductsManagementContent({ loading, products, total, search, setSearch
                         onStatusChange={handleToggleStatus}
                         onCreateLive={(p) => openLiveModal(p)}
                         storeNames={storeName}
+                        viewMode={viewMode}
                     />
                 )}
                 className="w-full"
