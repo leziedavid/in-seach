@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -20,18 +20,36 @@ const fixLeafletIcon = () => {
     });
 };
 
-// Component to handle map resizing and fitting bounds
-function MapAutoFunctions({ userLocation, services, activeServiceId }: {
+type LayerMode = 'street' | 'satellite';
+
+const TILE_LAYERS: Record<LayerMode, { url: string; attribution: string; maxZoom: number; bg: string }> = {
+    street: {
+        url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 19,
+        bg: '#f2efe9',
+    },
+    satellite: {
+        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        attribution: 'Tiles &copy; Esri &mdash; Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, GIS User Community',
+        maxZoom: 19,
+        bg: '#1a1a2e',
+    },
+};
+
+const SATELLITE_LABELS_URL = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png';
+
+// Component to handle map resizing, fitting bounds, and bg sync
+function MapAutoFunctions({ userLocation, services, activeServiceId, bg }: {
     userLocation: UserLocation | null,
     services: Service[],
-    activeServiceId: string | null
+    activeServiceId: string | null,
+    bg: string,
 }) {
     const map = useMap();
 
     useEffect(() => {
         if (!map) return;
-
-        // Invalidate size in case container size changed
         map.invalidateSize();
 
         if (activeServiceId) {
@@ -43,22 +61,18 @@ function MapAutoFunctions({ userLocation, services, activeServiceId }: {
         }
 
         const validMarkers: [number, number][] = [];
-
-        if (userLocation?.lat && userLocation?.lng) {
-            validMarkers.push([userLocation.lat, userLocation.lng]);
-        }
-
-        services.forEach(s => {
-            if (s.latitude && s.longitude) {
-                validMarkers.push([s.latitude, s.longitude]);
-            }
-        });
+        if (userLocation?.lat && userLocation?.lng) validMarkers.push([userLocation.lat, userLocation.lng]);
+        services.forEach(s => { if (s.latitude && s.longitude) validMarkers.push([s.latitude, s.longitude]); });
 
         if (validMarkers.length > 0) {
             const bounds = L.latLngBounds(validMarkers);
             map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
         }
     }, [map, userLocation, services, activeServiceId]);
+
+    useEffect(() => {
+        map.getContainer().style.background = bg;
+    }, [map, bg]);
 
     return null;
 }
@@ -117,6 +131,7 @@ interface ServicesMapProps {
 export default function ServicesMap({ services, userLocation, onSelectService }: ServicesMapProps) {
     const [activeServiceId, setActiveServiceId] = useState<string | null>(null);
     const [mounted, setMounted] = useState(false);
+    const [layer, setLayer] = useState<LayerMode>('street');
 
     useEffect(() => {
         fixLeafletIcon();
@@ -163,13 +178,17 @@ export default function ServicesMap({ services, userLocation, onSelectService }:
         ? [servicesWithDistance[0].latitude, servicesWithDistance[0].longitude]
         : [0, 0];
 
+    const tl = TILE_LAYERS[layer];
+
     return (
         <div className="relative w-full h-[600px] overflow-hidden md:border border-border group">
-            <MapContainer center={mapCenter} zoom={14} scrollWheelZoom={true} className="w-full h-full z-0">
-                <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-                    url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
+            <MapContainer center={mapCenter} zoom={14} scrollWheelZoom zoomControl={false} className="w-full h-full z-0" style={{ background: tl.bg }}>
+                <TileLayer url={tl.url} attribution={tl.attribution} maxZoom={tl.maxZoom} />
+                {layer === 'satellite' && (
+                    <TileLayer url={SATELLITE_LABELS_URL} maxZoom={19} opacity={0.85} />
+                )}
 
-                <MapAutoFunctions userLocation={userLocation} services={servicesWithDistance} activeServiceId={activeServiceId} />
+                <MapAutoFunctions userLocation={userLocation} services={servicesWithDistance} activeServiceId={activeServiceId} bg={tl.bg} />
 
                 {/* User Location */}
                 {userLocation?.lat && userLocation?.lng && (
@@ -227,19 +246,26 @@ export default function ServicesMap({ services, userLocation, onSelectService }:
                 ))}
             </MapContainer>
 
-            {/* Recenter Button */}
-            <div className="absolute bottom-6 right-6 z-10 flex flex-col gap-3">
+            {/* Layer toggle */}
+            <div className="absolute top-4 right-4 z-[999]">
                 <button
-                    onClick={() => {
-                        setActiveServiceId(null);
-                        if (userLocation?.lat && userLocation?.lng) {
-                            // The MapAutoFunctions will pick this up via effects
-                        }
-                    }}
-                    className="bg-card hover:bg-muted text-foreground p-3 rounded-2xl shadow-xl border border-border transition-all active:scale-95 group/btn"
+                    onClick={() => setLayer(l => l === 'street' ? 'satellite' : 'street')}
+                    className="flex items-center gap-2 bg-white/95 backdrop-blur-sm text-slate-800 text-xs font-bold px-3 py-2 rounded-xl shadow-xl border border-white/60 hover:bg-white transition-all active:scale-95"
+                    title={layer === 'street' ? 'Vue satellite' : 'Vue plan'}
+                >
+                    <Icon icon={layer === 'street' ? 'solar:satellite-bold-duotone' : 'solar:map-bold-duotone'} className="w-4 h-4" />
+                    {layer === 'street' ? 'Satellite' : 'Plan'}
+                </button>
+            </div>
+
+            {/* Recenter Button */}
+            <div className="absolute bottom-6 right-6 z-[999] flex flex-col gap-3">
+                <button
+                    onClick={() => setActiveServiceId(null)}
+                    className="bg-white/95 backdrop-blur-sm text-slate-800 p-3 rounded-2xl shadow-xl border border-white/60 hover:bg-white transition-all active:scale-95"
                     title="Recentrer sur moi"
                 >
-                    <Icon icon="solar:gps-bold-duotone" className="w-6 h-6 text-primary group-hover/btn:scale-110 transition-transform" />
+                    <Icon icon="solar:gps-bold-duotone" className="w-5 h-5 text-blue-500" />
                 </button>
             </div>
             <div className="absolute top-6 left-6 z-10 hidden md:flex flex-col gap-3 max-h-[calc(100%-3rem)] overflow-y-auto scrollbar-hide">

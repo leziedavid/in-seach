@@ -98,36 +98,6 @@ function LocationContent() {
           lat={locationLog.lat}
           lng={locationLog.lng}
           userName={locationLog.user?.fullName}
-          nearbyPoints={[
-            {
-              id: 'school-1',
-              lat: locationLog.lat + 0.003,
-              lng: locationLog.lng - 0.002,
-              name: 'École Primaire Publique',
-              type: 'school',
-            },
-            {
-              id: 'school-2',
-              lat: locationLog.lat - 0.004,
-              lng: locationLog.lng + 0.005,
-              name: 'Lycée Moderne',
-              type: 'school',
-            },
-            {
-              id: 'police-1',
-              lat: locationLog.lat + 0.006,
-              lng: locationLog.lng + 0.002,
-              name: 'Commissariat de Police',
-              type: 'police',
-            },
-            {
-              id: 'hospital-1',
-              lat: locationLog.lat - 0.002,
-              lng: locationLog.lng - 0.005,
-              name: 'Centre Hospitalier Universitaire',
-              type: 'hospital',
-            },
-          ]}
         />
       </div>
     </div>

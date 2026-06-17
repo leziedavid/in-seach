@@ -26,6 +26,7 @@ const slugify = (text: string) => {
 
 // [PERF] memo : évite le re-render des cartes produit quand le parent se re-rend
 // sans que ce produit spécifique ait changé (critique dans les listes infinies)
+
 const ProductCard = memo(function ProductCard({ product, onEdit, onDelete, onStatusChange, onCreateLive, storeNames, viewMode = 'grid' }: {
     product: Product;
     onEdit?: (product: Product) => void;
