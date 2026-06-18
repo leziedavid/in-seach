@@ -307,7 +307,7 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
         </div>
     );
 
-    return createPortal(
+    return [createPortal(
         <AnimatePresence>
             {isOpen && (
                 <>
@@ -564,20 +564,22 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                         )}
                     </AnimatePresence>
 
-                    <Share
-                        isOpen={isShareOpen}
-                        onClose={() => setIsShareOpen(false)}
-                        url={`${process.env.NEXT_PUBLIC_BASE_URL}/produit/${displayProduct.id || ""}`}
-                        title={displayProduct.name}
-                        description={displayProduct.description || undefined}
-                        image={displayProduct.imageUrl || undefined}
-                        price={displayProduct.pricePromo || displayProduct.price}
-                        storeName={storeInfo?.storeName || ''}
-                        storeLogo={displayProduct.user?.storeLogo || displayProduct.user?.avatar}
-                    />
                 </>
             )}
         </AnimatePresence>,
         document.body
-    );
+    ), createPortal(
+        <Share
+            isOpen={isShareOpen}
+            onClose={() => setIsShareOpen(false)}
+            url={`${process.env.NEXT_PUBLIC_BASE_URL}/produit/${displayProduct.id || ""}`}
+            title={displayProduct.name}
+            description={displayProduct.description || undefined}
+            image={displayProduct.imageUrl || undefined}
+            price={displayProduct.pricePromo || displayProduct.price}
+            storeName={storeInfo?.storeName || ''}
+            storeLogo={displayProduct.user?.storeLogo || displayProduct.user?.avatar}
+        />,
+        document.body
+    )];
 }
