@@ -260,7 +260,9 @@ export default function Header() {
                                 <Icon icon="solar:shop-2-bold-duotone" className="text-white w-5 h-5" />
                             </Link>
 
-                            <ThemeToggle />
+                            <div className="hidden md:block">
+                                <ThemeToggle />
+                            </div>
                             <div className="hidden md:block">
                                 <LanguageToggle />
                             </div>
@@ -269,15 +271,16 @@ export default function Header() {
                 )}
             </AnimatePresence>
 
-            {/* Mobile Language Toggle - Floating in the top right of the expanded menu */}
+            {/* Mobile: ThemeToggle + LanguageToggle flottants au-dessus du header */}
             <AnimatePresence>
                 {isMenuOpen && mounted && (
                     <motion.div
                         initial={{ opacity: 0, scale: 0.8, y: 10 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.8, y: 10 }}
-                        className="absolute -top-12 right-0 md:hidden"
+                        className="absolute -top-24 right-0 md:hidden flex flex-col items-end gap-2"
                     >
+                        <ThemeToggle />
                         <LanguageToggle className="shadow-lg !bg-white/80 dark:!bg-zinc-900/80 backdrop-blur-md border-white/40 dark:border-white/10" />
                     </motion.div>
                 )}
