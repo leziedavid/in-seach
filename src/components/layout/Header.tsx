@@ -256,6 +256,10 @@ export default function Header() {
                                 <Icon icon="solar:user-bold" className="text-white w-5 h-5 md:w-5 md:h-5" />
                             </button>
 
+                            <Link href="/shop-sellers" className="relative bg-primary p-2 rounded-full transition hover:scale-110 active:scale-95 flex items-center justify-center">
+                                <Icon icon="solar:shop-2-bold-duotone" className="text-white w-5 h-5" />
+                            </Link>
+
                             <ThemeToggle />
                             <div className="hidden md:block">
                                 <LanguageToggle />
