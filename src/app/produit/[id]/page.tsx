@@ -11,6 +11,7 @@ import { useRouter, useParams } from "next/navigation";
 import { isAuthenticated, getUserId } from "@/lib/auth";
 import { createChatConversation, getPublicStoreInfo, getProductById } from "@/api/api";
 import ReportButton from "@/components/shared/ReportButton";
+import { Share } from "@/components/shared/Share";
 import TextDisplayBox from "@/components/home/TextDisplayBox";
 import Link from "next/link";
 
@@ -24,6 +25,7 @@ export default function ProductDetailPage() {
     const [achatType, setAchatType] = useState<'UNITE' | 'GROS'>('UNITE');
     const [isNegotiating, setIsNegotiating] = useState(false);
     const [lightboxOpen, setLightboxOpen] = useState(false);
+    const [isShareOpen, setIsShareOpen] = useState(false);
     const [storeInfo, setStoreInfo] = useState<StoreUserInfo | null>(null);
     const touchStartX = useRef<number>(0);
 
@@ -358,7 +360,7 @@ export default function ProductDetailPage() {
                         <button className="p-2 hover:bg-muted rounded-full text-muted-foreground transition-colors">
                             <Icon icon="solar:heart-bold-duotone" width={18} />
                         </button>
-                        <button className="p-2 hover:bg-muted rounded-full text-muted-foreground transition-colors">
+                        <button onClick={() => setIsShareOpen(true)} className="p-2 hover:bg-muted rounded-full text-muted-foreground transition-colors">
                             <Icon icon="solar:share-bold-duotone" width={18} />
                         </button>
                         <ReportButton entityType="PRODUCT" entityId={product.id} />
@@ -448,7 +450,7 @@ export default function ProductDetailPage() {
                             <button className="p-2 hover:bg-muted rounded-full text-muted-foreground transition-colors">
                                 <Icon icon="solar:heart-bold-duotone" width={18} />
                             </button>
-                            <button className="p-2 hover:bg-muted rounded-full text-muted-foreground transition-colors">
+                            <button onClick={() => setIsShareOpen(true)} className="p-2 hover:bg-muted rounded-full text-muted-foreground transition-colors">
                                 <Icon icon="solar:share-bold-duotone" width={18} />
                             </button>
                             <ReportButton entityType="PRODUCT" entityId={product.id} />
@@ -562,6 +564,18 @@ export default function ProductDetailPage() {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            <Share
+                isOpen={isShareOpen}
+                onClose={() => setIsShareOpen(false)}
+                url={`${process.env.NEXT_PUBLIC_BASE_URL}/produit/${product.id || ""}`}
+                title={product.name}
+                description={product.description || undefined}
+                image={product.imageUrl || undefined}
+                price={product.pricePromo || product.price}
+                storeName={storeInfo?.storeName || ''}
+                storeLogo={product.user?.storeLogo || product.user?.avatar}
+            />
         </>
     );
 }

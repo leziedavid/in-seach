@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation";
 import { isAuthenticated, getUserId } from "@/lib/auth";
 import { createChatConversation, getPublicStoreInfo, getProductById } from "@/api/api";
 import ReportButton from "@/components/shared/ReportButton";
+import { Share } from "@/components/shared/Share";
 import TextDisplayBox from "@/components/home/TextDisplayBox";
 import Link from "next/link";
 
@@ -29,6 +30,7 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const [storeInfo, setStoreInfo] = useState<StoreUserInfo | null>(null);
     const [freshProduct, setFreshProduct] = useState<Product | null>(null);
+    const [isShareOpen, setIsShareOpen] = useState(false);
     const touchStartX = useRef<number>(0);
 
     const { addToCart } = useCart();
@@ -333,7 +335,7 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                                     <button className="p-2 hover:bg-muted rounded-full text-muted-foreground transition-colors">
                                         <Icon icon="solar:heart-bold-duotone" width={18} />
                                     </button>
-                                    <button className="p-2 hover:bg-muted rounded-full text-muted-foreground transition-colors">
+                                    <button onClick={() => setIsShareOpen(true)} className="p-2 hover:bg-muted rounded-full text-muted-foreground transition-colors">
                                         <Icon icon="solar:share-bold-duotone" width={18} />
                                     </button>
                                     <ReportButton entityType="PRODUCT" entityId={displayProduct.id} />
@@ -411,7 +413,7 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                                         <button className="w-9 h-9 bg-black/20 backdrop-blur-md rounded-full text-white flex items-center justify-center">
                                             <Icon icon="solar:heart-bold-duotone" width={18} />
                                         </button>
-                                        <button className="w-9 h-9 bg-black/20 backdrop-blur-md rounded-full text-white flex items-center justify-center">
+                                        <button onClick={() => setIsShareOpen(true)} className="w-9 h-9 bg-black/20 backdrop-blur-md rounded-full text-white flex items-center justify-center">
                                             <Icon icon="solar:share-bold-duotone" width={18} />
                                         </button>
                                     </div>
@@ -561,6 +563,18 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                             </motion.div>
                         )}
                     </AnimatePresence>
+
+                    <Share
+                        isOpen={isShareOpen}
+                        onClose={() => setIsShareOpen(false)}
+                        url={`${process.env.NEXT_PUBLIC_BASE_URL}/produit/${displayProduct.id || ""}`}
+                        title={displayProduct.name}
+                        description={displayProduct.description || undefined}
+                        image={displayProduct.imageUrl || undefined}
+                        price={displayProduct.pricePromo || displayProduct.price}
+                        storeName={storeInfo?.storeName || ''}
+                        storeLogo={displayProduct.user?.storeLogo || displayProduct.user?.avatar}
+                    />
                 </>
             )}
         </AnimatePresence>,
