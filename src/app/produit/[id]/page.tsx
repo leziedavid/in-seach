@@ -304,7 +304,7 @@ export default function ProductDetailPage() {
                 <button onClick={() => router.back()} className="flex h-9 w-9 items-center justify-center rounded-full bg-muted hover:bg-accent transition">
                     <Icon icon="solar:alt-arrow-left-bold-duotone" width={18} />
                 </button>
-                <h2 className="absolute left-1/2 -translate-x-1/2 text-sm font-black truncate max-w-[55%]">{product.name}</h2>
+                <h2 className="hidden md:block absolute left-1/2 -translate-x-1/2 text-sm font-black truncate max-w-[55%]">{product.name}</h2>
                 <div className="flex items-center gap-1">
                     <button className="p-2 hover:bg-muted rounded-full text-muted-foreground transition-colors">
                         <Icon icon="solar:heart-bold-duotone" width={18} />
@@ -319,8 +319,9 @@ export default function ProductDetailPage() {
             {/* ══════════════════════ BODY ══════════════════════ */}
             <div className="flex-1">
 
-                {/* ── DESKTOP LAYOUT (grid 2 cols) ── */}
-                <div className="hidden md:grid md:grid-cols-2 gap-0">
+                {/* ── DESKTOP LAYOUT (grid 2 cols, centré) ── */}
+                <div className="hidden md:block max-w-4xl mx-auto w-full">
+                <div className="grid grid-cols-2 gap-0">
                     {/* Left: image */}
                     <div className="flex flex-col bg-muted/20 sticky top-14 self-start">
                         <div className="relative w-full overflow-hidden" style={{ height: 460 }}>
@@ -383,6 +384,7 @@ export default function ProductDetailPage() {
                         </div>
                     </div>
                 </div>
+                </div>{/* fin max-w-4xl */}
 
                 {/* ── MOBILE LAYOUT ── */}
                 <div className="md:hidden flex flex-col">
@@ -472,18 +474,13 @@ export default function ProductDetailPage() {
             {/* ══════════════════════ FOOTER ACTIONS ══════════════════════ */}
             <div className="sticky bottom-0 z-50 shrink-0 px-4 py-3 bg-[#FBFAF6]/95 dark:bg-zinc-900/95 backdrop-blur-md border-t border-[#EEF1F4] dark:border-zinc-800">
                 {/* Desktop */}
-                <div className="hidden md:flex gap-3">
+                <div className="hidden md:flex gap-3 max-w-4xl mx-auto">
                     <button onClick={handleNegotiate} disabled={isNegotiating}
                         className="py-3 px-5 bg-muted hover:bg-accent text-card-foreground rounded-2xl font-black text-sm active:scale-95 transition-all flex items-center gap-2">
                         {isNegotiating ? <Icon icon="line-md:loading-twotone-loop" width={18} /> : <Icon icon="solar:chat-round-dots-bold-duotone" width={18} className="text-primary" />}
                         Discuter
                     </button>
-                    <button onClick={handleBuyNow}
-                        className="py-3 px-5 bg-muted hover:bg-accent text-card-foreground rounded-2xl font-black text-sm active:scale-95 transition-all flex items-center gap-2 border border-border">
-                        <Icon icon="solar:bag-bold-duotone" width={18} className="text-primary" />
-                        Acheter
-                    </button>
-                    <button onClick={handleAddToCart}
+<button onClick={handleAddToCart}
                         className="flex-1 py-3 px-5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl font-black text-sm active:scale-95 transition-all shadow-lg flex items-center justify-center gap-2">
                         <Icon icon="solar:cart-large-bold-duotone" width={18} />
                         Ajouter au panier
