@@ -3,11 +3,13 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Icon } from "@iconify/react";
+import Image from "next/image";
 import { useTranslation } from "@/utils/langue/hooks";
 
 const EXPERIENCES = [
     {
         company: "Mobisoft",
+        logo: "/mobisoft-logo.png",
         role: "Ingénieur logiciel",
         type: "Temps plein",
         period: "juin 2024 - aujourd'hui",
@@ -17,6 +19,7 @@ const EXPERIENCES = [
     },
     {
         company: "Tarafé SAS",
+        logo: null,
         role: "Développeur Web et Mobile",
         type: "Freelance",
         period: "2023 - aujourd'hui",
@@ -26,6 +29,7 @@ const EXPERIENCES = [
     },
     {
         company: "SLT",
+        logo: null,
         role: "Développeur applications mobiles",
         type: "Freelance",
         period: "déc. 2023 - nov. 2025",
@@ -35,6 +39,7 @@ const EXPERIENCES = [
     },
     {
         company: "Société JP Consulting",
+        logo: null,
         role: "Responsable de projet informatique",
         type: "Temps plein",
         period: "janv. 2023 - nov. 2025",
@@ -44,6 +49,7 @@ const EXPERIENCES = [
     },
     {
         company: "Chaucot Dubost In",
+        logo: "/chaucotdubost-logo.png",
         role: "Développeur Web et Mobile",
         type: "Temps plein",
         period: "oct. 2022 - nov. 2025",
@@ -53,6 +59,7 @@ const EXPERIENCES = [
     },
     {
         company: "InovTech Solutions",
+        logo: null,
         role: "Full-Stack Developer",
         type: "Temps plein",
         period: "2018 - 2020",
@@ -71,24 +78,39 @@ export default function PortfolioExperience() {
 
             <div className="flex flex-col gap-4">
                 {EXPERIENCES.map((exp) => (
-                    <div key={`${exp.company}-${exp.role}`} className="flex flex-col gap-2 bg-muted/30 rounded-xl p-4 md:p-5 border border-border/40">
-                        <div className="flex items-center justify-between gap-2 flex-wrap">
-                            <h3 className="text-base font-black tracking-tight leading-tight">{exp.role}</h3>
-                            <span className="text-[10px] font-medium text-muted-foreground whitespace-nowrap">{exp.period}</span>
+                    <div key={`${exp.company}-${exp.role}`} className="flex gap-3 md:gap-4 bg-muted/30 rounded-xl p-4 md:p-5 border border-border/40">
+                        <div className="shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-lg border border-border/50 flex items-center justify-center overflow-hidden relative">
+                            {exp.logo ? (
+                                <div className="absolute inset-0 bg-background">
+                                    <Image src={exp.logo} alt={exp.company} fill className="object-contain p-1.5" />
+                                </div>
+                            ) : (
+                                <div className="absolute inset-0 bg-gradient-to-br from-primary/90 to-primary/60 flex items-center justify-center">
+                                    <span className="text-white font-black text-sm md:text-base tracking-tight">
+                                        {exp.company.charAt(0)}
+                                    </span>
+                                </div>
+                            )}
                         </div>
-                        <p className="text-xs text-primary font-bold uppercase tracking-wide">
-                            {exp.company} · {exp.type}
-                        </p>
-                        <p className="text-[11px] text-muted-foreground font-medium">{exp.location}</p>
-                        <p className="text-xs text-muted-foreground leading-relaxed mt-1 font-medium">
-                            {exp.objective}
-                        </p>
-                        <div className="flex flex-wrap gap-1.5 mt-1">
-                            {exp.skills.map((skill) => (
-                                <span key={skill} className="px-2 py-0.5 bg-background rounded-full text-[10px] font-bold border border-border/50 text-muted-foreground">
-                                    {skill}
-                                </span>
-                            ))}
+                        <div className="flex flex-col gap-2 flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2 flex-wrap">
+                                <h3 className="text-base font-black tracking-tight leading-tight">{exp.role}</h3>
+                                <span className="text-[10px] font-medium text-muted-foreground whitespace-nowrap">{exp.period}</span>
+                            </div>
+                            <p className="text-xs text-primary font-bold uppercase tracking-wide">
+                                {exp.company} · {exp.type}
+                            </p>
+                            <p className="text-[11px] text-muted-foreground font-medium">{exp.location}</p>
+                            <p className="text-xs text-muted-foreground leading-relaxed mt-1 font-medium">
+                                {exp.objective}
+                            </p>
+                            <div className="flex flex-wrap gap-1.5 mt-1">
+                                {exp.skills.map((skill) => (
+                                    <span key={skill} className="px-2 py-0.5 bg-background rounded-full text-[10px] font-bold border border-border/50 text-muted-foreground">
+                                        {skill}
+                                    </span>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 ))}
