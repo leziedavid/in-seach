@@ -16,20 +16,20 @@ export default function PrivacyPolicy() {
           Retour à l'accueil
         </Link>
 
-        <div className="bg-card rounded-[2.5rem] border border-border p-8 md:p-12 shadow-sm relative overflow-hidden">
+        <div className="bg-card  p-8 md:p-12 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-secondary/5 rounded-full -mr-32 -mt-32 blur-3xl" />
-          
+
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-6">
-                <div className="w-16 h-16 rounded-2xl bg-secondary/10 flex items-center justify-center text-secondary">
-                    <Icon icon="solar:shield-keyhole-bold-duotone" className="w-8 h-8" />
-                </div>
-                <div>
-                    <h1 className="text-3xl md:text-4xl font-black text-foreground tracking-tight">
-                        Politique de Confidentialité
-                    </h1>
-                    <p className="text-muted-foreground text-sm font-medium">Vos données, notre priorité.</p>
-                </div>
+              <div className="w-16 h-16 rounded-2xl bg-secondary/10 flex items-center justify-center text-secondary">
+                <Icon icon="solar:shield-keyhole-bold-duotone" className="w-8 h-8" />
+              </div>
+              <div>
+                <h1 className="text-3xl md:text-4xl font-black text-foreground tracking-tight">
+                  Politique de Confidentialité
+                </h1>
+                <p className="text-muted-foreground text-sm font-medium">Vos données, notre priorité.</p>
+              </div>
             </div>
 
             <p className="text-muted-foreground text-sm font-medium mb-12 italic">
@@ -52,7 +52,7 @@ export default function PrivacyPolicy() {
                   <li>Données de navigation et jetons de notifications</li>
                 </ul>
                 <p className="mt-4 leading-relaxed text-sm font-bold text-secondary">
-                   Toute collecte est effectuée conformément à la loi n°2013-450 relative à la protection des données à caractère personnel en Côte d'Ivoire.
+                  Toute collecte est effectuée conformément à la loi n°2013-450 relative à la protection des données à caractère personnel en Côte d'Ivoire.
                 </p>
               </section>
 
@@ -65,22 +65,22 @@ export default function PrivacyPolicy() {
                   Vos données sont utilisées exclusivement pour :
                 </p>
                 <ul className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
-                    <li className="p-3 bg-muted rounded-xl flex items-center gap-3 text-xs font-bold">
-                        <Icon icon="solar:double-alt-arrow-right-bold" className="text-secondary w-4 h-4" />
-                        Gérer votre compte utilisateur
-                    </li>
-                    <li className="p-3 bg-muted rounded-xl flex items-center gap-3 text-xs font-bold">
-                        <Icon icon="solar:double-alt-arrow-right-bold" className="text-secondary w-4 h-4" />
-                        Faciliter la mise en relation
-                    </li>
-                    <li className="p-3 bg-muted rounded-xl flex items-center gap-3 text-xs font-bold">
-                        <Icon icon="solar:double-alt-arrow-right-bold" className="text-secondary w-4 h-4" />
-                        Sécuriser les transactions
-                    </li>
-                    <li className="p-3 bg-muted rounded-xl flex items-center gap-3 text-xs font-bold">
-                        <Icon icon="solar:double-alt-arrow-right-bold" className="text-secondary w-4 h-4" />
-                        Améliorer l'expérience via l'IA
-                    </li>
+                  <li className="p-3 bg-muted rounded-xl flex items-center gap-3 text-xs font-bold">
+                    <Icon icon="solar:double-alt-arrow-right-bold" className="text-secondary w-4 h-4" />
+                    Gérer votre compte utilisateur
+                  </li>
+                  <li className="p-3 bg-muted rounded-xl flex items-center gap-3 text-xs font-bold">
+                    <Icon icon="solar:double-alt-arrow-right-bold" className="text-secondary w-4 h-4" />
+                    Faciliter la mise en relation
+                  </li>
+                  <li className="p-3 bg-muted rounded-xl flex items-center gap-3 text-xs font-bold">
+                    <Icon icon="solar:double-alt-arrow-right-bold" className="text-secondary w-4 h-4" />
+                    Sécuriser les transactions
+                  </li>
+                  <li className="p-3 bg-muted rounded-xl flex items-center gap-3 text-xs font-bold">
+                    <Icon icon="solar:double-alt-arrow-right-bold" className="text-secondary w-4 h-4" />
+                    Améliorer l'expérience via l'IA
+                  </li>
                 </ul>
               </section>
 
@@ -113,12 +113,12 @@ export default function PrivacyPolicy() {
                   Conformément à la législation ivoirienne, vous disposez d'un droit d'accès, de rectification, d'opposition et de suppression de vos données. Vous pouvez exercer ces droits directement depuis vos paramètres de compte ou en nous contactant.
                 </p>
                 <div className="mt-6 flex flex-wrap gap-4">
-                    <button className="flex items-center gap-2 px-4 py-2 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-lg text-xs font-black">
-                        Accéder à mes données
-                    </button>
-                    <button className="flex items-center gap-2 px-4 py-2 bg-secondary text-white rounded-lg text-xs font-black">
-                        Demander la suppression
-                    </button>
+                  <button className="flex items-center gap-2 px-4 py-2 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-lg text-xs font-black">
+                    Accéder à mes données
+                  </button>
+                  <button className="flex items-center gap-2 px-4 py-2 bg-secondary text-white rounded-lg text-xs font-black">
+                    Demander la suppression
+                  </button>
                 </div>
               </section>
 

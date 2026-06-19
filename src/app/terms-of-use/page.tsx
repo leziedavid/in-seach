@@ -16,9 +16,9 @@ export default function TermsOfUse() {
           Retour à l'accueil
         </Link>
 
-        <div className="bg-card rounded-[2.5rem] border border-border p-8 md:p-12 shadow-sm relative overflow-hidden">
+        <div className="bg-card  p-8 md:p-12 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-32 -mt-32 blur-3xl" />
-          
+
           <div className="relative z-10">
             <h1 className="text-3xl md:text-4xl font-black text-foreground mb-4 tracking-tight">
               Conditions Générales d'Utilisation <span className="text-primary">(CGU)</span>
@@ -34,10 +34,10 @@ export default function TermsOfUse() {
                   Objet
                 </h2>
                 <p className="leading-relaxed text-sm">
-                  Les présentes Conditions Générales d'Utilisation ont pour objet de définir les modalités de mise à disposition des services de la plateforme **Djamko**, ci-après dénommée « le Service », et les conditions d'utilisation du Service par l'Utilisateur. 
+                  Les présentes Conditions Générales d'Utilisation ont pour objet de définir les modalités de mise à disposition des services de la plateforme **Djamko**, ci-après dénommée « le Service », et les conditions d'utilisation du Service par l'Utilisateur.
                 </p>
                 <p className="mt-4 leading-relaxed text-sm">
-                   Djamko est une plateforme multi-services opérant conformément aux lois de la République de Côte d'Ivoire.
+                  Djamko est une plateforme multi-services opérant conformément aux lois de la République de Côte d'Ivoire.
                 </p>
               </section>
 
@@ -76,10 +76,10 @@ export default function TermsOfUse() {
                   Djamko agit en qualité de simple intermédiaire. À ce titre, Djamko n'est pas partie aux contrats conclus entre les Utilisateurs et ne saurait être tenue responsable de la qualité des prestations ou des produits vendus.
                 </p>
                 <div className="mt-4 p-4 rounded-2xl bg-amber-500/5 border border-amber-500/10 flex gap-3">
-                   <Icon icon="solar:danger-bold-duotone" className="w-5 h-5 text-amber-600 shrink-0" />
-                   <p className="text-xs text-amber-800 dark:text-amber-400 font-bold leading-relaxed">
-                     L'Utilisateur est seul responsable de la véracité des informations transmises et du respect des engagements pris vis-à-vis des autres membres de la communauté.
-                   </p>
+                  <Icon icon="solar:danger-bold-duotone" className="w-5 h-5 text-amber-600 shrink-0" />
+                  <p className="text-xs text-amber-800 dark:text-amber-400 font-bold leading-relaxed">
+                    L'Utilisateur est seul responsable de la véracité des informations transmises et du respect des engagements pris vis-à-vis des autres membres de la communauté.
+                  </p>
                 </div>
               </section>
 

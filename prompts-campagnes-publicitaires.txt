@@ -1,0 +1,193 @@
+=====================================================================
+DJAMKO — PROMPTS DE GÉNÉRATION D'IMAGES POUR CAMPAGNES PUBLICITAIRES
+=====================================================================
+Slogan : "Djamko, l'écosystème tout-en-un pour vos services. Simplifiez votre quotidien."
+Identité visuelle : terracotta/ocre chaud (HSL 29,32%,53%) + bleu maritime profond
+(HSL 195,69%,27%), style moderne glassmorphism, ambiance africaine urbaine
+(Abidjan), typographie arrondie type "Jost".
+Format conseillé : 1080x1080 (post) et 1080x1920 (story), style photo-réaliste
+ou illustration flat-design moderne selon la plateforme (Instagram/Facebook
+réaliste, LinkedIn plus corporate, TikTok plus dynamique).
+
+---------------------------------------------------------------------
+1. CAMPAGNE GÉNÉRALE / NOTORIÉTÉ DE MARQUE
+---------------------------------------------------------------------
+
+PROMPT 1.1 (Hero / brand awareness) :
+"Affiche publicitaire moderne pour une application mobile africaine nommée
+Djamko, style flat design premium, palette terracotta chaud et bleu maritime
+profond, fond dégradé doux avec motifs géométriques subtils. Au centre, un
+smartphone en 3D légèrement incliné affichant une interface d'application
+élégante avec icônes de services (clé à molette, panier, camion de livraison,
+maison, bulle de chat). Autour du téléphone, illustrations flottantes
+minimalistes représentant un plombier,un vendeur avec des
+articles, une carte avec un point de localisation. Texte en grand en haut :
+'DJAMKO'. Sous-titre : 'Tout ce dont vous avez besoin, au même endroit.'
+Ambiance chaleureuse, urbaine, africaine moderne, lumière douce, style
+publicité tech premium."
+
+PROMPT 1.2 (Story format, slogan) :
+"Bannière verticale 1080x1920 style application mobile premium, fond dégradé
+terracotta vers bleu nuit, illustration plate d'une ville africaine stylisée
+en arrière-plan (silhouettes de buildings, motos, marché), au premier plan un
+groupe diversifié de personnes souriantes tenant des smartphones affichant le
+logo Djamko, grand texte 'Simplifiez votre quotidien' en typographie ronde
+blanche, petit bandeau en bas 'Téléchargez Djamko'."
+
+---------------------------------------------------------------------
+2. SERVICES À LA DEMANDE (plombier, électricien, babysitting, etc.)
+---------------------------------------------------------------------
+
+PROMPT 2.1 :
+"Publicité carrée 1080x1080, illustration flat-design chaleureuse représentant
+un artisan certifié (plombier souriant en uniforme avec badge 'Expert
+Certifié' bleu et terracotta) en train de réparer un évier dans un salon
+moderne, à côté une bulle d'interface mobile flottante montrant une note 5
+étoiles et un bouton 'Réserver maintenant'. Palette terracotta/bleu maritime,
+fond clair épuré. Texte superposé : 'Un expert vérifié, à portée de clic.'
+Logo Djamko en coin inférieur."
+
+PROMPT 2.2 (carrousel multi-services) :
+"Série de 4 vignettes côte à côte dans un style cohérent flat-illustration :
+1) une babysitter jouant avec un enfant, 2) un électricien avec une perceuse
+et un badge de certification, 3) un coiffeur à domicile, 4) un technicien
+informatique. Chaque vignette encadrée d'un badge rond 'Certifié Djamko' en
+bleu maritime, fond terracotta clair uniforme, icônes outils minimalistes en
+overlay. Bandeau titre en haut : 'Des professionnels vérifiés pour chaque
+besoin'."
+
+---------------------------------------------------------------------
+3. MARKETPLACE (achat/vente neuf & occasion)
+---------------------------------------------------------------------
+
+PROMPT 3.1 :
+"Image publicitaire vibrante de marketplace mobile africaine, illustration
+flat d'un marché numérique avec étals stylisés transformés en cartes
+d'application affichant des produits (vêtements, électronique, meubles),
+personnages souriants faisant du shopping sur leur téléphone, icônes de
+paiement sécurisé (carte bancaire, Mobile Money) flottant autour. Palette
+terracotta et bleu maritime, fond clair avec motifs de quadrillage subtils
+façon grille e-commerce. Texte : 'Achetez. Vendez. En toute confiance.'"
+
+PROMPT 3.2 (confiance / paiement sécurisé) :
+"Illustration moderne d'un bouclier stylisé bleu maritime entourant une icône
+de smartphone affichant un panier d'achat et un cadenas, entouré de petites
+icônes de moyens de paiement (carte, Mobile Money, virement). Fond dégradé
+terracotta doux. Texte impactant : 'Vos paiements, toujours protégés sur
+Djamko.' Style épuré, corporate-friendly, adapté LinkedIn et Facebook Ads."
+
+---------------------------------------------------------------------
+4. ANNONCES & IMMOBILIER
+---------------------------------------------------------------------
+
+PROMPT 4.1 :
+"Publicité immobilière moderne, illustration flat d'une maison stylisée
+moderne avec un panneau 'À vendre' digital flottant transformé en carte
+d'application mobile, à côté une voiture et des icônes de filtres de
+recherche (prix, surface, localisation). Couple souriant regardant leur
+téléphone affichant des résultats d'annonces. Palette terracotta/bleu
+maritime, fond clair professionnel. Texte : 'Trouvez le bien idéal, en
+quelques clics.'"
+
+PROMPT 4.2 (alertes personnalisées) :
+"Illustration d'un smartphone avec une notification push stylisée en forme de
+cloche dorée affichant 'Nouvelle annonce correspondant à vos critères',
+arrière-plan flou de maisons et immeubles modernes en silhouette terracotta,
+ambiance rassurante et efficace. Texte : 'Ne ratez plus jamais la bonne
+opportunité.'"
+
+---------------------------------------------------------------------
+5. EASYDELIVERY (livraison locale en temps réel)
+---------------------------------------------------------------------
+
+PROMPT 5.1 :
+"Publicité dynamique illustrant un livreur à moto stylisé filant dans une rue
+africaine animée, une ligne de trajet pointillée bleu maritime sur une carte
+stylisée en arrière-plan avec un point de livraison terracotta, smartphone en
+premier plan affichant un suivi de livraison en temps réel avec icône de
+position GPS animée. Sensation de vitesse et de fiabilité. Texte : 'Votre
+colis, livré et suivi en temps réel.'"
+
+PROMPT 5.2 (story format) :
+"Bannière verticale montrant une carte stylisée de ville avec un itinéraire
+lumineux bleu maritime reliant un point de départ (entrepôt/boutique) à un
+point d'arrivée (maison), une moto-icône terracotta se déplaçant sur la
+trajectoire, interface mobile en overlay affichant 'Arrivée estimée : 12
+min'. Texte : 'EasyDelivery par Djamko — rapide, fiable, suivi en direct.'"
+
+---------------------------------------------------------------------
+6. LOGISTIQUE EXPORT (fret aérien / maritime / routier)
+---------------------------------------------------------------------
+
+PROMPT 6.1 :
+"Publicité corporate premium illustrant trois modes de transport stylisés
+(avion cargo, porte-conteneurs, camion de fret) connectés par des lignes de
+trajectoire bleu maritime convergeant vers un globe terrestre stylisé avec un
+point lumineux terracotta sur l'Afrique de l'Ouest. Fond dégradé sombre
+élégant. Texte : 'Votre fret, partout dans le monde, en toute transparence.'
+Style B2B, sérieux, adapté LinkedIn."
+
+PROMPT 6.2 :
+"Illustration d'un tableau de bord de suivi logistique affiché sur une tablette,
+montrant une carte du monde avec plusieurs points de tracking actifs en bleu
+maritime et terracotta, icônes de conteneurs et graphiques de statistiques
+épurés. Texte : 'Suivi à 100% transparent pour les PME exportatrices.'"
+
+---------------------------------------------------------------------
+7. CHAT IA EN TEMPS RÉEL
+---------------------------------------------------------------------
+
+PROMPT 7.1 :
+"Illustration moderne d'une bulle de conversation stylisée flottante contenant
+de petites icônes (image, micro, document) jaillissant d'un smartphone tenu
+par une personne souriante, particules lumineuses bleu maritime et terracotta
+évoquant l'intelligence artificielle en arrière-plan. Texte : 'Discutez,
+échangez des fichiers, en toute fluidité.'"
+
+---------------------------------------------------------------------
+8. TABLEAU DE BORD / DASHBOARD PRESTATAIRES
+---------------------------------------------------------------------
+
+PROMPT 8.1 :
+"Illustration flat d'un écran d'ordinateur et d'un smartphone côte à côte
+affichant un tableau de bord épuré avec graphiques de revenus en hausse
+(courbe terracotta), liste de rendez-vous, et badge 'Expert Certifié' bleu
+maritime. Personnage professionnel souriant regardant ses statistiques avec
+satisfaction. Texte : 'Pilotez votre activité, en un coup d'œil.'"
+
+---------------------------------------------------------------------
+9. PLANS D'ABONNEMENT (Free / Premium / Logistic)
+---------------------------------------------------------------------
+
+PROMPT 9.1 :
+"Illustration comparative de trois cartes d'abonnement stylisées flottantes
+(Free en gris clair, Premium en terracotta doré avec une étoile, Logistic en
+bleu maritime avec une icône de camion), disposées en éventail sur un fond
+clair épuré. Texte : 'Un plan pour chaque ambition. Sans engagement.'"
+
+---------------------------------------------------------------------
+10. ONBOARDING / CALL-TO-ACTION FINAL
+---------------------------------------------------------------------
+
+PROMPT 10.1 :
+"Image finale de campagne, illustration chaleureuse d'un groupe diversifié de
+personnes (artisan, vendeuse, livreur, client) souriant et levant leur
+smartphone affichant le logo Djamko, formant un cercle uni, fond dégradé
+terracotta vers bleu maritime avec rayons de lumière douce. Grand texte en
+bas : 'Rejoignez Djamko aujourd'hui — Gratuit, sans carte bancaire.'
+Bouton stylisé 'Télécharger maintenant'."
+
+=====================================================================
+CONSEILS D'UTILISATION
+=====================================================================
+- Utilisez ces prompts avec des outils comme Midjourney, DALL·E 3, Stable
+  Diffusion ou Adobe Firefly.
+- Ajoutez systématiquement en fin de prompt les codes couleurs si l'outil le
+  permet : "#B97A4B" (terracotta) et "#1B5A6B" (bleu maritime).
+- Pour Midjourney, ajoutez les paramètres : --ar 1:1 (post) ou --ar 9:16
+  (story), --style raw pour un rendu plus net.
+- Variez les visages/personnages pour représenter la diversité du public cible
+  (Côte d'Ivoire, Afrique francophone, expansion Paris/Dubaï).
+- Toujours superposer le vrai logo Djamko (PNG/SVG) après génération plutôt
+  que de le laisser générer par l'IA (risque de typo/texte déformé).
+=====================================================================

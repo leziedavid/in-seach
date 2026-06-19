@@ -33,17 +33,13 @@ export default function PortfolioExperience() {
         <section id="experience" className="py-20 px-6 max-w-5xl mx-auto border-t border-border/40">
             <h2 className="text-4xl font-black mb-12 tracking-tight">{t("portfolio.experience.title")}</h2>
 
-            <div className="flex flex-col gap-16">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
                 {EXPERIENCES.map((exp) => (
-                    <div key={exp.company} className="flex flex-col gap-2">
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
-                            <div className="flex flex-col">
-                                <h3 className="text-xl font-black uppercase tracking-tight">{exp.company}</h3>
-                                <p className="text-primary font-bold text-sm">{exp.role}</p>
-                            </div>
-                            <span className="text-sm font-medium text-muted-foreground md:text-right">{exp.period}</span>
-                        </div>
-                        <p className="text-base text-muted-foreground leading-relaxed mt-2 max-w-3xl font-medium">
+                    <div key={exp.company} className="flex flex-col gap-1.5 bg-muted/30 rounded-xl p-3 md:p-4 border border-border/40">
+                        <span className="text-[10px] font-medium text-muted-foreground">{exp.period}</span>
+                        <h3 className="text-sm font-black uppercase tracking-tight leading-tight">{exp.company}</h3>
+                        <p className="text-xs text-primary font-bold">{exp.role}</p>
+                        <p className="text-xs text-muted-foreground leading-relaxed mt-1 font-medium">
                             {exp.description}
                         </p>
                     </div>

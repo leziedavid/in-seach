@@ -28,14 +28,14 @@ export default function PortfolioProjects() {
         <section id="projects" className="py-20 px-6 max-w-5xl mx-auto border-t border-border/40">
             <h2 className="text-4xl font-black mb-12 tracking-tight">{t("portfolio.projects.title")}</h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
                 {PROJECTS.map((project) => (
                     <a
                         key={project.title}
                         href={project.link}
-                        className="group flex flex-col gap-4"
+                        className="group flex flex-col gap-2"
                     >
-                        <div className="relative aspect-video rounded-3xl overflow-hidden border border-border/50 shadow-sm transition-all group-hover:shadow-xl">
+                        <div className="relative aspect-video rounded-xl md:rounded-2xl overflow-hidden border border-border/50 shadow-sm transition-all group-hover:shadow-xl">
                             <Image
                                 src={project.image}
                                 alt={project.title}
@@ -44,8 +44,8 @@ export default function PortfolioProjects() {
                             />
                         </div>
                         <div>
-                            <h3 className="text-lg font-black tracking-tight">{project.title}</h3>
-                            <p className="text-sm text-muted-foreground font-medium uppercase tracking-widest">{project.category}</p>
+                            <h3 className="text-sm font-black tracking-tight">{project.title}</h3>
+                            <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest">{project.category}</p>
                         </div>
                     </a>
                 ))}
