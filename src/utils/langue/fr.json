@@ -76,10 +76,10 @@
         },
         "hero": {
             "title": "TRA BI LEZIE",
-            "subtitle": "Ingénieur Full-Stack & Mobile Senior",
+            "subtitle": "Ingénieur Full-Stack & Mobile Senior | Java Spring Boot | Nest.js | Next.js | Python/Flask",
             "location": "Abidjan, Côte d'Ivoire",
             "schedule": "Planifier un appel",
-            "bio": "Passionné par le développement moderne, je conçois et déploie des applications web et mobiles performantes avec des architectures robustes. Mon travail allie interfaces fluides, expériences interactives et convergence entre design et technologie.",
+            "bio": "Passionné par le développement moderne, je conçois et déploie des applications web et mobiles performantes.",
             "languages": {
                 "fr": "Français",
                 "en": "Anglais"

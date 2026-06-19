@@ -76,10 +76,10 @@
         },
         "hero": {
             "title": "TRA BI LEZIE",
-            "subtitle": "Senior Full-Stack & Mobile Engineer",
+            "subtitle": "Senior Full-Stack & Mobile Engineer | Java Spring Boot | Nest.js | Next.js | Python/Flask",
             "location": "Abidjan, Ivory Coast",
             "schedule": "Schedule a call",
-            "bio": "Passionate about modern development, I design and deploy high-performance web and mobile applications with robust architectures. My work combines fluid interfaces, interactive experiences, and the convergence of design and technology.",
+            "bio": "Passionate about modern development, I design and deploy high-performance web and mobile applications.",
             "languages": {
                 "fr": "French",
                 "en": "English"
