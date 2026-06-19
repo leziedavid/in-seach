@@ -7,16 +7,16 @@ import { useTranslation } from "@/utils/langue/hooks";
 
 const EXPERIENCES = [
     {
-        company: "Tarafé SAS",
-        role: "Chef de projet & Lead Web/Mobile",
+        company: "Mobisoft",
+        role: "Développeur Backend Java (Temps plein)",
         period: "2023 - Present",
-        description: "Responsable de la conception globale et du développement de la plateforme e-commerce de mode africaine. Gestion d'équipe et architecture technique.",
+        description: "Développement backend en Java pour eAgri.ci, plateforme digitale agricole connectant agriculteurs, grossistes et fournisseurs en Côte d'Ivoire.",
     },
     {
         company: "Freelance",
-        role: "Senior Full-Stack Developer",
-        period: "2020 - 2023",
-        description: "Accompagnement de startups dans le développement de MVPs robustes et scalables.",
+        role: "Full-Stack Developer",
+        period: "2020 - Present",
+        description: "Développement full-stack (Tarafé, Djamko, Peoogo) : conception, architecture technique et livraison de plateformes e-commerce et marketplaces agricoles.",
     },
     {
         company: "InovTech Solutions",

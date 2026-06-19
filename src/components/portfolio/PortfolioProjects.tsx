@@ -8,16 +8,28 @@ import { useTranslation } from "@/utils/langue/hooks";
 
 const PROJECTS = [
     {
-        title: "Tarafé E-commerce",
-        category: "Fashion Platform",
-        image: "/project-tarafe.png",
-        link: "#"
+        title: "Tarafé",
+        category: "Fashion E-commerce · Full-Stack",
+        image: "/tarafe-logo.png",
+        link: "https://tarafe.com/"
     },
     {
-        title: "Djamko Services",
-        category: "SaaS Ecosystem",
-        image: "/og-image.png",
-        link: "#"
+        title: "Djamko",
+        category: "SaaS Ecosystem · Full-Stack",
+        image: "/icons/pwa/icon-512.png",
+        link: "https://www.djamko.com/"
+    },
+    {
+        title: "eAgri",
+        category: "AgriTech · Backend Java",
+        image: "/eagri-logo.svg",
+        link: "https://eagri.ci/"
+    },
+    {
+        title: "Peoogo",
+        category: "AgriTech Marketplace · Full-Stack",
+        image: "/peoogo-logo.svg",
+        link: "https://peoogo.com/"
     }
 ];
 
@@ -33,14 +45,16 @@ export default function PortfolioProjects() {
                     <a
                         key={project.title}
                         href={project.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="group flex flex-col gap-2"
                     >
-                        <div className="relative aspect-video rounded-xl md:rounded-2xl overflow-hidden border border-border/50 shadow-sm transition-all group-hover:shadow-xl">
+                        <div className="relative aspect-video rounded-xl md:rounded-2xl overflow-hidden border border-border/50 shadow-sm transition-all group-hover:shadow-xl bg-muted/30">
                             <Image
                                 src={project.image}
                                 alt={project.title}
                                 fill
-                                className="object-cover transition-transform group-hover:scale-105"
+                                className="object-contain p-6 transition-transform group-hover:scale-105"
                             />
                         </div>
                         <div>
