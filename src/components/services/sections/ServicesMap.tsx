@@ -7,6 +7,7 @@ import "leaflet/dist/leaflet.css";
 import { Service, UserLocation } from "@/types/interface";
 import { Icon } from "@iconify/react";
 import { calculateDistance } from "@/utils/calculateDistance";
+import { hasValidPrice } from "@/utils/price";
 import { motion, AnimatePresence } from "framer-motion";
 
 // Fix for default Leaflet icons in Next.js
@@ -230,9 +231,11 @@ export default function ServicesMap({ services, userLocation, onSelectService }:
                                     )}
                                 </div>
                                 <div className="flex items-center justify-between gap-4 border-t pt-2">
-                                    <p className="font-black text-secondary text-sm">
-                                        {service.price} <span className="text-[9px]">CFA</span>
-                                    </p>
+                                    {hasValidPrice(service.price) ? (
+                                        <p className="font-black text-secondary text-sm">
+                                            {service.price.toLocaleString()} <span className="text-[9px]">CFA</span>
+                                        </p>
+                                    ) : <span />}
                                     <button
                                         onClick={() => onSelectService(service)}
                                         className="bg-primary text-white p-1.5 rounded-full hover:bg-secondary transition-colors"

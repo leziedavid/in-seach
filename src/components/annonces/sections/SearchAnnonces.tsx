@@ -14,6 +14,7 @@ import NotFound from "@/components/common/NotFound";
 import Loader from "@/components/common/Loader";
 import ViewToggle, { ViewMode } from "@/components/shared/ViewToggle";
 import { useTranslation } from "@/utils/langue/hooks";
+import { hasValidPrice } from "@/utils/price";
 
 export default function SearchAnnonces() {
     const { t } = useTranslation();
@@ -303,9 +304,11 @@ export default function SearchAnnonces() {
 
                                         <div className={`flex items-center justify-between w-full ${viewMode === 'grid' ? "mt-auto" : "mt-2 md:mt-4"}`}>
                                             <div className="text-left">
-                                                <p className={`text-secondary font-black ${viewMode === 'grid' ? "text-sm md:text-lg" : "text-base md:text-xl"}`}>
-                                                    {annonce.price?.toLocaleString() || '0'} <span className="text-[9px] font-bold text-muted-foreground">CFA</span>
-                                                </p>
+                                                {hasValidPrice(annonce.price) && (
+                                                    <p className={`text-secondary font-black ${viewMode === 'grid' ? "text-sm md:text-lg" : "text-base md:text-xl"}`}>
+                                                        {annonce.price.toLocaleString()} <span className="text-[9px] font-bold text-muted-foreground">CFA</span>
+                                                    </p>
+                                                )}
                                             </div>
 
                                             <button className={`flex items-center gap-1 md:gap-2 bg-secondary text-white rounded-full font-black hover:bg-primary transition-all active:scale-90 shadow-sm ${viewMode === 'grid' ? "px-2 py-1 md:px-3 md:py-2 text-[10px] md:text-xs" : "px-3 py-1.5 md:px-5 md:py-2.5 text-xs md:text-sm"

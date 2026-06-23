@@ -14,6 +14,7 @@ const RichTextEditor = dynamic(() => import("@/components/ui/editor"), { ssr: fa
 import { useForm, Controller } from "react-hook-form";
 import { createPortal } from "react-dom";
 import { Booking, BookingsCalendar } from "@/types/interface";
+import { hasValidPrice } from "@/utils/price";
 
 interface BookingModalProps {
     isOpen: boolean;
@@ -263,9 +264,11 @@ export default function BookingModal({ isOpen, onClose, item, type, booking, mod
 
                                 <div className="flex gap-3 p-3 bg-muted/30 rounded-2xl border border-border">
                                     <div className="flex-1">
-                                        <p className="text-xl md:text-2xl font-black text-secondary">
-                                            {item.price ? `${item.price.toLocaleString()} CFA` : 'Prix sur demande'}
-                                        </p>
+                                        {hasValidPrice(item.price) && (
+                                            <p className="text-xl md:text-2xl font-black text-secondary">
+                                                {item.price.toLocaleString()} CFA
+                                            </p>
+                                        )}
                                     </div>
                                     <div className="text-right">
                                         <p className="text-[10px] text-muted-foreground font-bold uppercase">Catégorie</p>

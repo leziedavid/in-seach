@@ -22,6 +22,7 @@ import LiveButtonInline from "@/components/lives/LiveButtonInline"
 import { LiveEntityType } from "@/types/interface"
 import BoostEntityModal from "@/components/boost/modals/BoostEntityModal"
 import { FEATURES } from "@/config/features"
+import { hasValidPrice } from "@/utils/price"
 
 interface AnnoncesCardProps {
     data?: Annonce[];
@@ -300,9 +301,11 @@ export default function AnnoncesCard({
 
                                             <div className={`flex items-center justify-between ${viewMode === 'grid' ? "mb-3" : "mb-1"}`}>
                                                 <div className="text-left">
-                                                    <p className={`text-secondary font-black ${viewMode === 'grid' ? "text-sm md:text-base" : "text-base md:text-xl"}`}>
-                                                        {annonce.price ? t("akwaba.services.price_fcfa", { price: annonce.price.toLocaleString() }) : t("akwaba.services.price_fcfa", { price: "0" })}
-                                                    </p>
+                                                    {hasValidPrice(annonce.price) && (
+                                                        <p className={`text-secondary font-black ${viewMode === 'grid' ? "text-sm md:text-base" : "text-base md:text-xl"}`}>
+                                                            {t("akwaba.services.price_fcfa", { price: annonce.price.toLocaleString() })}
+                                                        </p>
+                                                    )}
                                                 </div>
                                                 {FEATURES.showBoostButton && (
                                                     <button onClick={() => { setBoostAnnonce(annonce); setIsBoostOpen(true); }} className="p-1.5 hover:bg-primary/10 rounded-lg text-primary transition-colors shrink-0" title="Booster cette annonce">

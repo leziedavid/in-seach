@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import IconIllustration from "@/components/solutions/IconIllustration";
 import FeatureCard from "@/components/solutions/FeatureCard";
 import SectionBlock from "@/components/solutions/SectionBlock";
+import StatsBanner from "@/components/solutions/StatsBanner";
 import { Icon } from "@iconify/react";
 
 const partners = [
@@ -145,17 +146,20 @@ export default function SolutionsPage() {
         </div>
       </section>
 
-      {/* ── SERVICES ── */}
+      {/* ── STATS ── */}
+      <StatsBanner />
+
+      {/* ── EXPERTISE / SERVICES À LA DEMANDE (pilier #1 de l'accueil) ── */}
       <SectionBlock
-        id="services"
-        title="Services à la demande"
-        subtitle="Expertise & Proximité"
+        id="expertise"
+        title="Expertise à la Demande"
+        subtitle="Pilier n°1 · Onglet Expertise"
         illustration={<IconIllustration icon="solar:user-speak-bold-duotone" size={110} className="text-indigo-500" />}
       >
         <div className="space-y-6">
           <p className="text-sm md:text-base text-muted-foreground leading-relaxed text-center lg:text-left">
-            Trouvez en quelques clics le prestataire idéal. Du dépannage d&apos;urgence au service à domicile,
-            Djamko connecte les particuliers aux meilleurs experts vérifiés.
+            Accédez instantanément aux meilleurs talents. Du dépannage d&apos;urgence aux services experts,
+            Djamko vous connecte avec des professionnels vérifiés en quelques clics.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <FeatureCard
@@ -177,18 +181,18 @@ export default function SolutionsPage() {
         </div>
       </SectionBlock>
 
-      {/* ── MARKETPLACE ── */}
+      {/* ── OPPORTUNITÉS / MARKETPLACE (pilier #2 de l'accueil) ── */}
       <SectionBlock
-        id="marketplace"
-        title="Marketplace Intégrée"
-        subtitle="Commerce Circulaire"
+        id="opportunites"
+        title="Marketplace d'Opportunités"
+        subtitle="Pilier n°2 · Onglet Opportunités"
         reversed
-        illustration={<IconIllustration icon="solar:shop-bold-duotone" size={110} className="text-amber-500" />}
+        illustration={<IconIllustration icon="solar:tag-price-bold-duotone" size={110} className="text-amber-500" />}
       >
         <div className="space-y-6">
           <p className="text-sm md:text-base text-muted-foreground leading-relaxed text-center lg:text-left">
-            Vendez, achetez et donnez une seconde vie à vos articles. Notre interface intuitive
-            facilite vos transactions en toute sécurité, directement au sein de la plateforme.
+            Vendez, achetez ou dénichez des pépites locales. Une interface intuitive pour donner
+            une seconde vie à vos biens, en toute sécurité, directement au sein de la plateforme.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <FeatureCard
@@ -210,11 +214,86 @@ export default function SolutionsPage() {
         </div>
       </SectionBlock>
 
+      {/* ── BOUTIQUE (pilier #3 de l'accueil) ── */}
+      <SectionBlock
+        id="boutique"
+        title="Shopping Premium"
+        subtitle="Pilier n°3 · Onglet Boutique"
+        illustration={<IconIllustration icon="solar:bag-smile-bold-duotone" size={110} className="text-rose-500" />}
+      >
+        <div className="space-y-6">
+          <p className="text-sm md:text-base text-muted-foreground leading-relaxed text-center lg:text-left">
+            Découvrez une sélection exclusive de produits. Une expérience d&apos;achat fluide,
+            pensée pour votre confort et votre sécurité, du panier à la livraison.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <FeatureCard
+              title="Catalogue Curaté"
+              description="Des produits triés pour vous."
+              utility="Catégories structurées, fiches détaillées et filtres avancés pour trouver le bon article sans perdre de temps."
+              icon="solar:widget-5-bold-duotone"
+              iconColor="text-rose-500"
+            />
+            <FeatureCard
+              title="Paiement Fluide"
+              description="Du panier à la commande en un geste."
+              utility="Tunnel d'achat optimisé et moyens de paiement locaux pour une expérience boutique sans friction."
+              icon="solar:cart-check-bold-duotone"
+              iconColor="text-rose-500"
+              delay={0.1}
+            />
+          </div>
+        </div>
+      </SectionBlock>
+
+      {/* ── LOGISTIQUE GLOBALE (pilier #4 de l'accueil) ── */}
+      <SectionBlock
+        id="logistique"
+        title="Logistique Globale"
+        subtitle="Pilier n°4 · Onglet Logistique"
+        reversed
+        illustration={<IconIllustration icon="solar:delivery-bold-duotone" size={110} className="text-secondary" />}
+      >
+        <div className="space-y-6">
+          <p className="text-sm md:text-base text-muted-foreground leading-relaxed text-center lg:text-left">
+            Expédiez sans frontières. Solutions de transport maritime, aérien et routier,
+            avec un suivi en temps réel pour vos flux internationaux.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <FeatureCard
+              title="Fret Multi-Modal"
+              description="Aérien, Maritime & Routier."
+              utility="Des solutions adaptées tant pour un colis urgent que pour un conteneur complet vers l'international."
+              icon="solar:globus-bold-duotone"
+              iconColor="text-secondary"
+            />
+            <FeatureCard
+              title="Tracking Temps Réel"
+              description="Visibilité totale de bout en bout."
+              utility="Gardez un œil sur vos expéditions à chaque étape du voyage, de l'enlèvement à la livraison finale."
+              icon="solar:map-point-bold-duotone"
+              iconColor="text-secondary"
+              delay={0.1}
+            />
+          </div>
+        </div>
+      </SectionBlock>
+
+      {/* ── MODULES ADDITIFS ── */}
+      <div className="container mx-auto px-6">
+        <div className="max-w-5xl mx-auto pt-4 pb-2 flex items-center gap-4">
+          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/60 whitespace-nowrap">
+            En complément
+          </span>
+          <div className="flex-1 h-px bg-zinc-200 dark:bg-zinc-800" />
+        </div>
+      </div>
+
       {/* ── ANNONCES & IMMOBILIER ── */}
       <SectionBlock
         id="annonces"
         title="Annonces & Immobilier"
-        subtitle="Nouveau Module"
+        subtitle="Module Additif"
         illustration={<IconIllustration icon="solar:home-bold-duotone" size={110} className="text-emerald-500" />}
       >
         <div className="space-y-6">
@@ -246,7 +325,7 @@ export default function SolutionsPage() {
       <SectionBlock
         id="easy-delivery"
         title="EasyDelivery"
-        subtitle="Livraison Locale"
+        subtitle="Module Additif"
         reversed
         illustration={<IconIllustration icon="solar:scooter-bold-duotone" size={110} className="text-primary" />}
       >
@@ -269,38 +348,6 @@ export default function SolutionsPage() {
               utility="Suivez votre livraison sur la carte en temps réel, de l'enlèvement jusqu'à la remise en main propre."
               icon="solar:routing-bold-duotone"
               iconColor="text-primary"
-              delay={0.1}
-            />
-          </div>
-        </div>
-      </SectionBlock>
-
-      {/* ── LOGISTICS ── */}
-      <SectionBlock
-        id="logistics"
-        title="Logistique & Export"
-        subtitle="Sans Frontières"
-        illustration={<IconIllustration icon="solar:delivery-bold-duotone" size={110} className="text-secondary" />}
-      >
-        <div className="space-y-6">
-          <p className="text-sm md:text-base text-muted-foreground leading-relaxed text-center lg:text-left">
-            Djamko intègre des solutions de transport et de logistique avancées,
-            permettant d&apos;expédier vos marchandises partout avec un suivi 100% transparent.
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <FeatureCard
-              title="Fret Multi-Modal"
-              description="Aérien, Maritime & Routier."
-              utility="Des solutions adaptées tant pour un colis urgent que pour un conteneur complet vers l'international."
-              icon="solar:globus-bold-duotone"
-              iconColor="text-secondary"
-            />
-            <FeatureCard
-              title="Tracking Temps Réel"
-              description="Visibilité totale de bout en bout."
-              utility="Gardez un œil sur vos expéditions à chaque étape du voyage, de l'enlèvement à la livraison finale."
-              icon="solar:map-point-bold-duotone"
-              iconColor="text-secondary"
               delay={0.1}
             />
           </div>

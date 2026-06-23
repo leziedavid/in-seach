@@ -12,6 +12,7 @@ import { scanBookingQr } from "@/lib/api";
 import { toast } from "sonner";
 import { createPortal } from "react-dom";
 import { useTranslation } from "@/utils/langue/hooks";
+import { hasValidPrice } from "@/utils/price";
 
 interface BookingDetailProps {
     isOpen: boolean;
@@ -437,9 +438,14 @@ export default function BookingDetailModal({ isOpen, onClose, booking, onEditRdv
                             {/* Persistent Bottom Footer - outside scroll, always visible */}
                             <div className="shrink-0 px-6 py-4 bg-card/90 backdrop-blur-xl border-t border-foreground/5 z-50 flex items-center justify-between gap-6">
                                 <div className="flex flex-col">
-                                    <div className="flex items-baseline gap-1">
-                                        <span className="text-xl font-black text-foreground">{booking.price || booking.service?.price || 0} XOF</span>
-                                    </div>
+                                    {(() => {
+                                        const effectivePrice = booking.price || booking.service?.price;
+                                        return hasValidPrice(effectivePrice) && (
+                                            <div className="flex items-baseline gap-1">
+                                                <span className="text-xl font-black text-foreground">{effectivePrice.toLocaleString()} XOF</span>
+                                            </div>
+                                        );
+                                    })()}
                                     <p className="text-[10px] font-bold text-primary uppercase tracking-widest mt-0.5">{t("akwaba.details.booking.labels.confirmed_availability")}</p>
                                 </div>
 

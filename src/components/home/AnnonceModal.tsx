@@ -11,6 +11,7 @@ import BookingModal from "@/components/bookings/modals/BookingModal";
 import TextDisplayBox from "./TextDisplayBox";
 import { useTranslation } from "@/utils/langue/hooks";
 import ReportButton from "@/components/shared/ReportButton";
+import { hasValidPrice } from "@/utils/price";
 
 interface AnnonceModalProps {
     isOpen: boolean;
@@ -155,10 +156,12 @@ export default function AnnonceModal({ isOpen, onClose, annonce }: AnnonceModalP
                                                         <Icon icon="solar:map-point-bold-duotone" className="w-4 h-4 text-primary" />
                                                         <span>Abidjan, Côte d'Ivoire</span>
                                                     </div>
-                                                    <div className="mt-4">
-                                                        <p className="text-3xl font-black text-primary">{annonce.price?.toLocaleString()} <span className="text-sm">FCFA</span></p>
-                                                        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mt-1 italic">Prix Marketplace</p>
-                                                    </div>
+                                                    {hasValidPrice(annonce.price) && (
+                                                        <div className="mt-4">
+                                                            <p className="text-3xl font-black text-primary">{annonce.price.toLocaleString()} <span className="text-sm">FCFA</span></p>
+                                                            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mt-1 italic">Prix Marketplace</p>
+                                                        </div>
+                                                    )}
                                                 </div>
 
                                                 {annonce.user && (

@@ -15,6 +15,7 @@ import Loader from "@/components/common/Loader";
 import dynamic from 'next/dynamic';
 import VoiceSearchModal from "@/components/services/sections/VoiceSearchModal";
 import { useTranslation } from "@/utils/langue/hooks";
+import { hasValidPrice } from "@/utils/price";
 
 const ServicesMap = dynamic(() => import("./ServicesMap"), {
     ssr: false,
@@ -346,9 +347,11 @@ export default function SearchServies() {
                                             </div>
                                             <div className="w-full flex items-center justify-between mt-auto">
                                                 <div className="text-left">
-                                                    <p className="text-secondary font-black text-sm md:text-lg">
-                                                        {service.price} <span className="text-[9px] font-bold text-muted-foreground">CFA</span>
-                                                    </p>
+                                                    {hasValidPrice(service.price) && (
+                                                        <p className="text-secondary font-black text-sm md:text-lg">
+                                                            {service.price.toLocaleString()} <span className="text-[9px] font-bold text-muted-foreground">CFA</span>
+                                                        </p>
+                                                    )}
                                                 </div>
                                                 <button className="flex items-center gap-1 md:gap-2 bg-secondary text-white px-2 py-1 md:px-3 md:py-2 rounded-full text-[10px] md:text-xs font-black hover:bg-primary transition-all active:scale-90 shadow-sm" >
                                                     <span className="whitespace-nowrap">{t("common.consult")}</span>

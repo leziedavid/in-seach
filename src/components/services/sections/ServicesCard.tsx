@@ -21,6 +21,7 @@ import LiveButtonInline from "@/components/lives/LiveButtonInline"
 import { LiveEntityType } from "@/types/interface"
 import BoostEntityModal from "@/components/boost/modals/BoostEntityModal"
 import { FEATURES } from "@/config/features"
+import { hasValidPrice } from "@/utils/price"
 
 /* =====================================================
    PAGE
@@ -342,9 +343,11 @@ export default function ServicesCard({ data: propData, page: propPage, limit: pr
 
                                                 <div className="flex items-center justify-between mb-2">
                                                     <div className="text-left">
-                                                    <p className="text-secondary font-black text-sm md:text-sm whitespace-nowrap">
-                                                        {service.price ? t("akwaba.services.price_fcfa", { price: service.price.toLocaleString() }) : t("akwaba.services.price_fcfa", { price: "10 000" })}
-                                                    </p>
+                                                    {hasValidPrice(service.price) && (
+                                                        <p className="text-secondary font-black text-sm md:text-sm whitespace-nowrap">
+                                                            {t("akwaba.services.price_fcfa", { price: service.price.toLocaleString() })}
+                                                        </p>
+                                                    )}
                                                     {service.frais && (
                                                         <p className="text-[9px] text-muted-foreground font-bold mt-1">
                                                             {t("akwaba.services.est_price", { price: service.frais.toLocaleString() })}
