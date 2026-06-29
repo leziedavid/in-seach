@@ -90,4 +90,9 @@ export const queryKeys = {
 
   // ─── Videos (page accueil) ─────────────────────────────────────
   videos: ['videos'] as const,
+
+  // ─── AI / MCP Tools ────────────────────────────────────────────
+  ai: {
+    tools: ['ai', 'tools'] as const,
+  },
 } as const;

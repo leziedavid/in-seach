@@ -7,7 +7,7 @@ import EasyDeliveryPage from '@/components/delivery/sections/EasyDeliveryPage';
 import Sidebar, { TabType } from './Sidebar';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { getAllSearch, getMySpace, upsertLocationLog } from '@/api/api';
+import { getMySpace, upsertLocationLog } from '@/api/api';
 import { useUserLocation } from '@/utils/location';
 import AccountServicesList from '@/components/profile/AccountServicesList';
 import AccountAnnonces from '@/components/profile/AccountAnnonces';
@@ -27,14 +27,14 @@ import DeliveriesList from '@/components/logistics/sections/DeliveriesList';
 import QuoteRequestModal from '@/components/logistics/modals/QuoteRequestModal';
 import dynamic from 'next/dynamic';
 const ApiDocumentation = dynamic(() => import('@/components/profile/ApiDocumentation'), { ssr: false });
+const ChatWidget = dynamic(() => import("@/components/ai/ChatWidget"), { ssr: false })
+
 import { Modal } from '@/components/ui/MotionModal';
 import Overview from '@/components/profile/Overview';
 import MyLivesList from '@/components/lives/MyLivesList';
 import RetoursSAV from '@/components/returns/sections/RetoursSAV';
-
-
 import { useTranslation } from '@/utils/langue/hooks';
-import { Icon } from '@iconify/react';
+
 
 export default function Page() {
     const { t } = useTranslation();
@@ -83,10 +83,10 @@ export default function Page() {
         trackLocation();
     }, []);
 
-    const isClient = userRole === Role.CLIENT;
-    const isPrestataire = userRole === Role.PRESTATAIRE;
-    const isAdmin = userRole === Role.ADMIN;
-    const isEntreprise = userRole === Role.ENTREPRISE;
+    // const isClient = userRole === Role.CLIENT;
+    // const isPrestataire = userRole === Role.PRESTATAIRE;
+    // const isAdmin = userRole === Role.ADMIN;
+    // const isEntreprise = userRole === Role.ENTREPRISE;
 
     // Initial tab logic based on role
     const [activeTab, setActiveTab] = useState<TabType>('Paramètres'); // Neutral default
@@ -268,9 +268,10 @@ export default function Page() {
                 {/* CONTENT AREA */}
                 <main className="md:col-span-8 lg:col-span-9 p-2">
                     {renderContent()}
+                    {/* <ChatWidget /> */}
                 </main>
-            </div>
 
+            </div>
             {/* Blocking Location Loading Overlay */}
             {/* {isLocationLoading && !locationError && (
                 <div className="fixed inset-0 z-[999] bg-background/80 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center space-y-6">

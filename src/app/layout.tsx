@@ -152,7 +152,7 @@ export default function RootLayout({ children, }: Readonly<{ children: React.Rea
 
                     <ClientLayout>
                       {children}
-                      <VideoModal />
+                      {/* <VideoModal /> */}
                     </ClientLayout>
                   </CartProvider>
                 </SocketProvider>

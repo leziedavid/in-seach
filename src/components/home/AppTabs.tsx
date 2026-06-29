@@ -40,15 +40,15 @@ export default function AppTabs() {
                 description: t("home.tabs.boutique.description")
             }
         },
-        {
-            id: "logistics",
-            label: t("home.tabs.logistics.label"),
-            Icon: LogisticsIcon,
-            info: {
-                title: t("home.tabs.logistics.title"),
-                description: t("home.tabs.logistics.description")
-            }
-        },
+        // {
+        //     id: "logistics",
+        //     label: t("home.tabs.logistics.label"),
+        //     Icon: LogisticsIcon,
+        //     info: {
+        //         title: t("home.tabs.logistics.title"),
+        //         description: t("home.tabs.logistics.description")
+        //     }
+        // },
     ]
 
     const [active, setActive] = useState("search")

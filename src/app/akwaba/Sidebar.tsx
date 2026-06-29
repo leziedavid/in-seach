@@ -316,7 +316,7 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
                                                 <Icon icon="solar:arrow-right-bold-duotone" className="w-3.5 h-3.5 text-primary" />
                                             </div>
                                             <p className="text-xs text-muted-foreground">
-                                                {user?.indicatif ? `+${user.indicatif} ` : ''}{user?.phone || roleLabel}
+                                                {user?.indicatif ? `${user.indicatif} ` : ''}{user?.phone || roleLabel}
                                             </p>
                                         </>
                                     )}

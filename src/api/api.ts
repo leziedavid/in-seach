@@ -2486,3 +2486,58 @@ export const confirmReturnReception = async (id: string): Promise<BaseResponse<a
     const response = await secureFetch(`${getBaseUrl()}/product-returns/${id}/confirm-reception`, { method: 'PATCH' });
     return await response.json();
 };
+
+// =====================
+// AI / MCP TOOLS
+// =====================
+
+export interface AiToolSummary {
+    name: string;
+    description: string;
+    allowedRoles: string[] | 'ANY';
+    inputSchema: Record<string, any>;
+}
+
+export const listAiTools = async (): Promise<BaseResponse<AiToolSummary[]>> => {
+    const response = await secureFetch(`${getBaseUrl()}/ai-mcp/tools`, { method: 'GET' });
+    return await response.json();
+};
+
+export const executeAiTool = async (
+    name: string,
+    input: Record<string, any>,
+): Promise<BaseResponse<{ result: any; durationMs: number }>> => {
+    const response = await secureFetch(`${getBaseUrl()}/ai-mcp/tools/${name}/execute`, {
+        method: 'POST',
+        body: JSON.stringify({ input }),
+    });
+    return await response.json();
+};
+
+// =====================
+// AI / MCP CHAT
+// =====================
+
+export type AiChatRole = 'user' | 'assistant';
+
+export interface AiChatHistoryMessage {
+    role: AiChatRole;
+    content: string | Record<string, any>[];
+}
+
+export interface AiChatResponse {
+    reply: string;
+    history: AiChatHistoryMessage[];
+}
+
+export const sendAiChatMessage = async (payload: {
+    message: string;
+    agentName?: string;
+    history?: AiChatHistoryMessage[];
+}): Promise<BaseResponse<AiChatResponse>> => {
+    const response = await secureFetch(`${getBaseUrl()}/ai-mcp/chat`, {
+        method: 'POST',
+        body: JSON.stringify(payload),
+    });
+    return await response.json();
+};

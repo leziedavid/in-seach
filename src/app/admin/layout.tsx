@@ -58,6 +58,12 @@ const MENU_GROUPS: { title?: string; items: MenuItem[] }[] = [
         ],
     },
     {
+        title: 'Intelligence Artificielle',
+        items: [
+            { label: 'AI Tools',      icon: 'solar:magic-stick-3-bold-duotone',        href: '/admin/ai' },
+        ],
+    },
+    {
         title: 'Système',
         items: [
             { label: 'Paramètres',    icon: 'solar:settings-bold-duotone',            href: '/admin/settings' },
