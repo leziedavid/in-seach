@@ -109,7 +109,7 @@ export default function LoginPage() {
         }
     };
 
-    /* ================= UI ================= */
+    /* ================= UI ================= NEXT_PUBLIC_WEBAUTHN_RP_ID */
     return (
         <div className="flex flex-col items-center py-4 px-4 overflow-y-auto bg-transparent">
             <div className="w-full max-w-sm flex-1 bg-card p-6 sm:p-8 flex flex-col">
