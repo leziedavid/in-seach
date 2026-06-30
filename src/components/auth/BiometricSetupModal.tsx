@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Icon } from '@iconify/react';
 import { useBiometrics } from '@/hooks/useBiometrics';
+import { webAuthnListCredentials } from '@/api/api';
 
 const LS_DISMISSED = 'biometricSetupDismissed';
 
@@ -35,7 +36,19 @@ export function BiometricSetupModal() {
         if (ok) {
             setDone(true);
             setTimeout(() => setVisible(false), 1800);
+            return;
         }
+        // Si register() échoue, vérifier si une credential existe déjà en DB.
+        // Cas typique : l'authenticateur est dans le trousseau iCloud mais hasBiometrics
+        // n'avait jamais été positionné (bug BaseResponse pré-fix) → synchroniser.
+        try {
+            const res = await webAuthnListCredentials();
+            if (res?.data && res.data.length > 0) {
+                localStorage.setItem('hasBiometrics', 'true');
+                setDone(true);
+                setTimeout(() => setVisible(false), 1800);
+            }
+        } catch { }
     };
 
     const handleDismiss = () => {

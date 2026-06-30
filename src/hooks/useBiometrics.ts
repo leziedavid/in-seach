@@ -8,10 +8,11 @@ import {
     webAuthnGenerateLoginOptions,
     webAuthnVerifyLogin,
 } from '@/api/api';
-import { setToken } from '@/lib/auth';
+import { setToken, getToken } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import { Role } from '@/types/interface';
 import { usePWA } from '@/hooks/usePWA';
+import { webAuthnListCredentials } from '@/api/api';
 
 const LS_HAS_BIOMETRICS = 'hasBiometrics';
 const LS_LAST_PHONE = 'lastPhoneNumber';
@@ -49,7 +50,19 @@ export function useBiometrics() {
                 .catch(() => setIsConditionalUIAvailable(false));
         }
 
-        setIsEnabled(localStorage.getItem(LS_HAS_BIOMETRICS) === 'true');
+        const storedEnabled = localStorage.getItem(LS_HAS_BIOMETRICS) === 'true';
+        setIsEnabled(storedEnabled);
+
+        // Sync : si l'utilisateur est authentifié mais hasBiometrics pas positionné,
+        // vérifier silencieusement en DB (répare le décalage après le bug BaseResponse).
+        if (!storedEnabled && getToken()) {
+            webAuthnListCredentials().then((res) => {
+                if (res?.data && res.data.length > 0) {
+                    localStorage.setItem(LS_HAS_BIOMETRICS, 'true');
+                    setIsEnabled(true);
+                }
+            }).catch(() => { });
+        }
     }, []);
 
     const register = useCallback(async (deviceName?: string): Promise<boolean> => {
