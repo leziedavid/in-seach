@@ -35,7 +35,8 @@ export default function LoginPage() {
     }, [isAvailable, isEnabled, isConditionalUIAvailable, lastPhone, hasExceededFailures]);
 
     const handleBiometricLogin = async () => {
-        const id = lastPhone || identifier || (indicatif + identifier);
+        // Priorité : numéro mémorisé → numéro saisi → indicatif+numéro (si numéro non vide)
+        const id = lastPhone || (identifier ? (indicatif + identifier) : '');
         if (!id) return;
         await authenticate(id);
     };
@@ -182,7 +183,7 @@ export default function LoginPage() {
                                 <InputPhone indicatif={indicatif} phone={identifier} onPhoneChange={(val) => {
                                     setIndicatif(val.indicatif);
                                     setIdentifier(val.phone);
-                                }} required autoComplete="username webauthn" className="bg-muted/30 dark:bg-muted/10 h-10 sm:h-11 border-border" />
+                                }} required className="bg-muted/30 dark:bg-muted/10 h-10 sm:h-11 border-border" />
                             )}
                         </div>
                     </div>
@@ -224,10 +225,10 @@ export default function LoginPage() {
                         {loading ? <Icon icon="solar:refresh-bold-duotone" width={16} className="animate-spin" /> : <>{t("auth.login.submit_button")} <Icon icon="solar:alt-arrow-right-bold-duotone" width={16} /></>}
                     </button>
 
-                    {/* BIOMETRIC LOGIN */}
-                    {isAvailable && isEnabled && !hasExceededFailures && (
-                        <div className="space-y-2">
-                            <div className="flex items-center gap-2">
+                    {/* BIOMETRIC LOGIN — visible si PWA + biométrie activée + identifiant disponible */}
+                    {isAvailable && isEnabled && !hasExceededFailures && (lastPhone || identifier) && (
+                        <div className="flex flex-col items-center gap-2">
+                            <div className="flex items-center gap-2 w-full">
                                 <div className="flex-1 h-px bg-border" />
                                 <span className="text-[10px] text-muted-foreground">ou</span>
                                 <div className="flex-1 h-px bg-border" />
@@ -235,9 +236,22 @@ export default function LoginPage() {
                             {bioError && (
                                 <p className="text-xs text-red-500 text-center">{bioError}</p>
                             )}
-                            <button type="button" onClick={handleBiometricLogin} disabled={bioLoading} className="w-full h-10 sm:h-12 border border-border bg-muted/30 hover:bg-muted/60 text-foreground rounded-lg text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all active:scale-95">
-                                {bioLoading ? <Icon icon="solar:refresh-bold-duotone" width={16} className="animate-spin" /> : <><Icon icon="solar:fingerprint-bold-duotone" width={18} className="text-primary" /> Connexion biométrique</>}
+                            <button
+                                type="button"
+                                onClick={handleBiometricLogin}
+                                disabled={bioLoading}
+                                className="w-16 h-16 rounded-2xl bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/50 border border-blue-200 dark:border-blue-800 flex items-center justify-center transition-all active:scale-90 disabled:opacity-50"
+                                aria-label="Connexion biométrique"
+                            >
+                                {bioLoading
+                                    ? <Icon icon="solar:refresh-bold-duotone" width={28} className="animate-spin text-blue-500" />
+                                    : <Icon icon="solar:face-scan-circle-bold-duotone" width={36} className="text-blue-500" />
+                                }
                             </button>
+                            <span className="text-[10px] text-muted-foreground">Face ID / Touch ID</span>
+                            <p className="text-[9px] text-muted-foreground/70 text-center leading-tight max-w-[220px]">
+                                Saisissez votre n° puis appuyez — Face ID s'activera seul au prochain lancement.
+                            </p>
                         </div>
                     )}
 
