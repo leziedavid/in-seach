@@ -169,6 +169,8 @@ export const logout = () => {
     const cart = localStorage.getItem('cart');
     const hasBiometrics = localStorage.getItem('hasBiometrics');
     const lastPhoneNumber = localStorage.getItem('lastPhoneNumber');
+    const lastPhoneIndicatif = localStorage.getItem('lastPhoneIndicatif');
+    const lastPhoneLocal = localStorage.getItem('lastPhoneLocal');
 
     // 2. Vider TOUT le localStorage (pour un nettoyage propre)
     localStorage.clear();
@@ -177,6 +179,8 @@ export const logout = () => {
     if (cart) localStorage.setItem('cart', cart);
     if (hasBiometrics) localStorage.setItem('hasBiometrics', hasBiometrics);
     if (lastPhoneNumber) localStorage.setItem('lastPhoneNumber', lastPhoneNumber);
+    if (lastPhoneIndicatif) localStorage.setItem('lastPhoneIndicatif', lastPhoneIndicatif);
+    if (lastPhoneLocal) localStorage.setItem('lastPhoneLocal', lastPhoneLocal);
 
     // 4. Supprimer le cookie de session
     deleteCookie('token');
