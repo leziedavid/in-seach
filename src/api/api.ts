@@ -5,6 +5,11 @@ export const getBaseUrl = (): string => {
     return process.env.NEXT_PUBLIC_API_URL || 'https://api.djamko.com/api/v1';
 };
 
+/** URL du microservice MCP IA (ms-ia-mcp). Séparé du backend principal. */
+export const getMcpBaseUrl = (): string => {
+    return process.env.NEXT_PUBLIC_MCP_URL || 'https://ai-mcp.djamko.com/api/v1';
+};
+
 const authMiddleware = async (): Promise<void> => {
     const token = getCookie('token');
     if (!token) {
@@ -2499,7 +2504,7 @@ export interface AiToolSummary {
 }
 
 export const listAiTools = async (): Promise<BaseResponse<AiToolSummary[]>> => {
-    const response = await secureFetch(`${getBaseUrl()}/ai-mcp/tools`, { method: 'GET' });
+    const response = await secureFetch(`${getMcpBaseUrl()}/ai-mcp/tools`, { method: 'GET' });
     return await response.json();
 };
 
@@ -2507,7 +2512,7 @@ export const executeAiTool = async (
     name: string,
     input: Record<string, any>,
 ): Promise<BaseResponse<{ result: any; durationMs: number }>> => {
-    const response = await secureFetch(`${getBaseUrl()}/ai-mcp/tools/${name}/execute`, {
+    const response = await secureFetch(`${getMcpBaseUrl()}/ai-mcp/tools/${name}/execute`, {
         method: 'POST',
         body: JSON.stringify({ input }),
     });
@@ -2535,9 +2540,66 @@ export const sendAiChatMessage = async (payload: {
     agentName?: string;
     history?: AiChatHistoryMessage[];
 }): Promise<BaseResponse<AiChatResponse>> => {
-    const response = await secureFetch(`${getBaseUrl()}/ai-mcp/chat`, {
+    const response = await secureFetch(`${getMcpBaseUrl()}/ai-mcp/chat`, {
         method: 'POST',
         body: JSON.stringify(payload),
+    });
+    return await response.json();
+};
+
+// =====================
+// WEBAUTHN / BIOMETRICS
+// =====================
+
+export const webAuthnGenerateRegistrationOptions = async (): Promise<any> => {
+    const response = await secureFetch(`${getBaseUrl()}/webauthn/register/generate-options`, {
+        method: 'POST',
+    });
+    return await response.json();
+};
+
+export const webAuthnVerifyRegistration = async (payload: {
+    response: string;
+    deviceName?: string;
+}): Promise<BaseResponse<{ verified: boolean }>> => {
+    const response = await secureFetch(`${getBaseUrl()}/webauthn/register/verify`, {
+        method: 'POST',
+        body: JSON.stringify(payload),
+    });
+    return await response.json();
+};
+
+export const webAuthnGenerateLoginOptions = async (identifier: string): Promise<any> => {
+    const response = await fetch(`${getBaseUrl()}/webauthn/login/generate-options`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identifier }),
+    });
+    return await response.json();
+};
+
+export const webAuthnVerifyLogin = async (payload: {
+    identifier: string;
+    response: string;
+}): Promise<BaseResponse<{ accessToken: string; refreshToken: string; role: string }>> => {
+    const response = await fetch(`${getBaseUrl()}/webauthn/login/verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+    });
+    return await response.json();
+};
+
+export const webAuthnListCredentials = async (): Promise<BaseResponse<any[]>> => {
+    const response = await secureFetch(`${getBaseUrl()}/webauthn/credentials`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
+export const webAuthnDeleteCredential = async (credentialId: string): Promise<BaseResponse<{ deleted: boolean }>> => {
+    const response = await secureFetch(`${getBaseUrl()}/webauthn/credentials/${credentialId}`, {
+        method: 'DELETE',
     });
     return await response.json();
 };

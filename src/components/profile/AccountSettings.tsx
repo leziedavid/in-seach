@@ -24,6 +24,8 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { useTranslation } from "@/utils/langue/hooks";
 import { SectionHeader } from "@/components/shared/SectionHeader";
 import { InputPhone } from "@/components/ui/InputPhone";
+import { useBiometrics } from "@/hooks/useBiometrics";
+import { webAuthnListCredentials, webAuthnDeleteCredential } from "@/api/api";
 
 // ─── Accordion section — défini hors du composant parent pour éviter le reset d'état ──
 function AccordionSection({
@@ -221,6 +223,39 @@ export default function AccountSettings() {
 
     // Accordion state personal
     const [activeSection, setActiveSection] = useState<string | null>("");
+    const [bioCredentials, setBioCredentials] = useState<any[]>([]);
+    const [bioCredLoading, setBioCredLoading] = useState(false);
+    const { isAvailable, isEnabled, loading: bioRegLoading, error: bioRegError, register: bioRegister, disable: bioDisable } = useBiometrics();
+
+    const loadBioCredentials = async () => {
+        setBioCredLoading(true);
+        try {
+            const res = await webAuthnListCredentials();
+            if (res.data) setBioCredentials(res.data);
+        } catch { /* ignore */ }
+        finally { setBioCredLoading(false); }
+    };
+
+    const handleBioRegister = async () => {
+        const ok = await bioRegister('Ce téléphone');
+        if (ok) {
+            toast.success('Authentification biométrique activée');
+            await loadBioCredentials();
+        } else {
+            toast.error(bioRegError || 'Échec de l\'activation');
+        }
+    };
+
+    const handleBioDelete = async (credId: string) => {
+        try {
+            await webAuthnDeleteCredential(credId);
+            await bioDisable();
+            await loadBioCredentials();
+            toast.success('Credential biométrique supprimé');
+        } catch {
+            toast.error('Erreur lors de la suppression');
+        }
+    };
 
     const toggleSection = (id: string) => {
         setActiveSection(activeSection === id ? null : id);
@@ -851,6 +886,92 @@ export default function AccountSettings() {
                         </div>
                     </div>
                 </AccordionSection>
+
+                {/* ── BIOMETRICS ── */}
+                {isAvailable && (
+                    <AccordionSection
+                        activeSection={activeSection}
+                        onToggle={(id) => { toggleSection(id); if (activeSection !== 'biometrics') loadBioCredentials(); }}
+                        id="biometrics"
+                        title="Sécurité biométrique"
+                        subtitle="Face ID, Touch ID, empreinte digitale"
+                        icon="solar:fingerprint-bold-duotone"
+                    >
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/30 border border-border">
+                                <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${isEnabled ? 'bg-green-500' : 'bg-gray-300'}`} />
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-bold text-foreground">
+                                        {isEnabled ? 'Biométrie activée' : 'Biométrie désactivée'}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                        {isEnabled
+                                            ? 'Vous pouvez vous connecter sans saisir votre code PIN'
+                                            : 'Activez pour vous connecter avec votre empreinte ou Face ID'
+                                        }
+                                    </p>
+                                </div>
+                            </div>
+
+                            {!isEnabled ? (
+                                <button
+                                    type="button"
+                                    onClick={handleBioRegister}
+                                    disabled={bioRegLoading}
+                                    className="w-full h-10 bg-primary text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-60"
+                                >
+                                    {bioRegLoading
+                                        ? <Icon icon="solar:refresh-bold-duotone" width={16} className="animate-spin" />
+                                        : <><Icon icon="solar:fingerprint-bold-duotone" width={16} /> Activer la biométrie</>
+                                    }
+                                </button>
+                            ) : (
+                                <div className="space-y-3">
+                                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Appareils enregistrés</p>
+                                    {bioCredLoading ? (
+                                        <div className="flex items-center justify-center py-4">
+                                            <Icon icon="solar:refresh-bold-duotone" width={20} className="animate-spin text-muted-foreground" />
+                                        </div>
+                                    ) : bioCredentials.length === 0 ? (
+                                        <p className="text-xs text-muted-foreground italic">Aucun appareil enregistré</p>
+                                    ) : (
+                                        <div className="space-y-2">
+                                            {bioCredentials.map((cred) => (
+                                                <div key={cred.id} className="flex items-center justify-between p-3 bg-muted/20 rounded-xl border border-border">
+                                                    <div className="flex items-center gap-2">
+                                                        <Icon icon="solar:smartphone-bold-duotone" width={16} className="text-primary" />
+                                                        <div>
+                                                            <p className="text-xs font-bold text-foreground">{cred.deviceName || 'Appareil inconnu'}</p>
+                                                            <p className="text-[10px] text-muted-foreground">
+                                                                {cred.createdAt ? new Date(cred.createdAt).toLocaleDateString('fr-FR') : ''}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleBioDelete(cred.id)}
+                                                        className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
+                                                    >
+                                                        <Icon icon="solar:trash-bin-trash-bold-duotone" width={14} />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                    <button
+                                        type="button"
+                                        onClick={handleBioRegister}
+                                        disabled={bioRegLoading}
+                                        className="w-full h-9 border border-border text-foreground rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-60 hover:bg-muted/40"
+                                    >
+                                        <Icon icon="solar:add-circle-bold-duotone" width={14} className="text-primary" />
+                                        Ajouter un nouvel appareil
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </AccordionSection>
+                )}
 
             </div>
 

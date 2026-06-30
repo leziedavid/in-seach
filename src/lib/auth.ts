@@ -165,16 +165,18 @@ export const isAuthenticated = (): boolean => {
 export const logout = () => {
     if (typeof window === 'undefined') return;
 
-    // 1. Sauvegarder le panier (s'il existe)
+    // 1. Sauvegarder les données persistantes
     const cart = localStorage.getItem('cart');
+    const hasBiometrics = localStorage.getItem('hasBiometrics');
+    const lastPhoneNumber = localStorage.getItem('lastPhoneNumber');
 
     // 2. Vider TOUT le localStorage (pour un nettoyage propre)
     localStorage.clear();
 
-    // 3. Restaurer uniquement le panier
-    if (cart) {
-        localStorage.setItem('cart', cart);
-    }
+    // 3. Restaurer les données persistantes
+    if (cart) localStorage.setItem('cart', cart);
+    if (hasBiometrics) localStorage.setItem('hasBiometrics', hasBiometrics);
+    if (lastPhoneNumber) localStorage.setItem('lastPhoneNumber', lastPhoneNumber);
 
     // 4. Supprimer le cookie de session
     deleteCookie('token');

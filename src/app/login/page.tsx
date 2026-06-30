@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { Icon } from '@iconify/react';
 import { login } from '@/api/api';
@@ -12,11 +12,26 @@ import { upsertLocationLog } from '@/api/api';
 import { useTranslation } from '@/utils/langue/hooks';
 import { AccountRecoveryModal } from '@/components/auth/AccountRecoveryModal';
 import { InputPhone } from '@/components/ui/InputPhone';
+import { useBiometrics } from '@/hooks/useBiometrics';
 
 export default function LoginPage() {
     const { t } = useTranslation();
     const router = useRouter();
     const { getUserLocation } = useUserLocation();
+
+    const { isAvailable, isEnabled, loading: bioLoading, error: bioError, hasExceededFailures, authenticate } = useBiometrics();
+    const [lastPhone, setLastPhone] = useState('');
+
+    useEffect(() => {
+        const saved = localStorage.getItem('lastPhoneNumber');
+        if (saved) setLastPhone(saved);
+    }, []);
+
+    const handleBiometricLogin = async () => {
+        const id = lastPhone || identifier || (indicatif + identifier);
+        if (!id) return;
+        await authenticate(id);
+    };
 
     const [useEmail, setUseEmail] = useState(false);
     const [indicatif, setIndicatif] = useState('+225');
@@ -157,16 +172,10 @@ export default function LoginPage() {
                                     />
                                 </>
                             ) : (
-                                <InputPhone
-                                    indicatif={indicatif}
-                                    phone={identifier}
-                                    onPhoneChange={(val) => {
-                                        setIndicatif(val.indicatif);
-                                        setIdentifier(val.phone);
-                                    }}
-                                    required
-                                    className="bg-muted/30 dark:bg-muted/10 h-10 sm:h-11 border-border"
-                                />
+                                <InputPhone indicatif={indicatif} phone={identifier} onPhoneChange={(val) => {
+                                    setIndicatif(val.indicatif);
+                                    setIdentifier(val.phone);
+                                }} required className="bg-muted/30 dark:bg-muted/10 h-10 sm:h-11 border-border" />
                             )}
                         </div>
                     </div>
@@ -208,6 +217,23 @@ export default function LoginPage() {
                         {loading ? <Icon icon="solar:refresh-bold-duotone" width={16} className="animate-spin" /> : <>{t("auth.login.submit_button")} <Icon icon="solar:alt-arrow-right-bold-duotone" width={16} /></>}
                     </button>
 
+                    {/* BIOMETRIC LOGIN */}
+                    {isAvailable && isEnabled && !hasExceededFailures && (
+                        <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                                <div className="flex-1 h-px bg-border" />
+                                <span className="text-[10px] text-muted-foreground">ou</span>
+                                <div className="flex-1 h-px bg-border" />
+                            </div>
+                            {bioError && (
+                                <p className="text-xs text-red-500 text-center">{bioError}</p>
+                            )}
+                            <button type="button" onClick={handleBiometricLogin} disabled={bioLoading} className="w-full h-10 sm:h-12 border border-border bg-muted/30 hover:bg-muted/60 text-foreground rounded-lg text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all active:scale-95">
+                                {bioLoading ? <Icon icon="solar:refresh-bold-duotone" width={16} className="animate-spin" /> : <><Icon icon="solar:fingerprint-bold-duotone" width={18} className="text-primary" /> Connexion biométrique</>}
+                            </button>
+                        </div>
+                    )}
+
 
                     {/* FOOTER */}
                     <div className="text-center flex flex-col items-center gap-1">
@@ -242,11 +268,7 @@ export default function LoginPage() {
                     </div>
 
                     <div className="text-center pt-2">
-                        <button
-                            type="button"
-                            onClick={() => setIsRecoveryModalOpen(true)}
-                            className="text-[11px] sm:text-xs font-bold text-muted-foreground hover:text-primary transition-colors flex items-center justify-center gap-1.5 mx-auto opacity-70 hover:opacity-100"
-                        >
+                        <button type="button" onClick={() => setIsRecoveryModalOpen(true)} className="text-[11px] sm:text-xs font-bold text-muted-foreground hover:text-primary transition-colors flex items-center justify-center gap-1.5 mx-auto opacity-70 hover:opacity-100">
                             <Icon icon="solar:question-circle-bold-duotone" width={14} />
                             {t("auth.login.recovery_link")}
                         </button>
@@ -254,12 +276,7 @@ export default function LoginPage() {
 
                 </form>
 
-                <AccountRecoveryModal
-                    isOpen={isRecoveryModalOpen}
-                    onClose={() => setIsRecoveryModalOpen(false)}
-                />
-
-
+                <AccountRecoveryModal isOpen={isRecoveryModalOpen} onClose={() => setIsRecoveryModalOpen(false)} />
 
             </div>
         </div>
