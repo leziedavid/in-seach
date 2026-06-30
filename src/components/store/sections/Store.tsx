@@ -703,17 +703,14 @@ function QRCodeSection({ storeInfo }: { storeInfo: StoreUserInfo }) {
 
                 {/* ── Contenu accordéon ── */}
                 {open && (
-                    <div className="px-4 md:px-6 pb-6">
-                        <div className="w-full max-w-4xl mx-auto flex flex-col md:flex-row items-center gap-6 md:gap-10">
+                    <div className="px-2 md:px-6 pb-6">
+                        <div className="w-full max-w-4xl mx-auto flex flex-col md:flex-row items-stretch gap-6 md:gap-10">
 
                             {/* ── Carte style Wave ── */}
-                            <div className="w-full md:flex-[3] flex justify-center">
-                                <div
-                                    className="w-full max-w-[260px] md:max-w-[280px] rounded-3xl overflow-hidden shadow-lg flex flex-col items-center py-8 px-5 gap-2"
-                                    style={{ backgroundColor: SECONDARY_HEX }}
-                                >
+                            <div className="w-full md:flex-[3]">
+                                <div className="w-full h-full rounded-3xl overflow-hidden shadow-lg flex flex-col items-center py-8 px-3 md:px-6 gap-3" style={{ backgroundColor: SECONDARY_HEX }} >
                                     {/* Logo — sans fond, taille généreuse */}
-                                    <div className="w-32 h-32 relative shrink-0">
+                                    <div className="w-28 h-28 relative shrink-0">
                                         {storeInfo.storeLogo ? (
                                             <Image src={storeInfo.storeLogo} alt={storeName} fill className="object-contain" unoptimized />
                                         ) : (
@@ -721,26 +718,26 @@ function QRCodeSection({ storeInfo }: { storeInfo: StoreUserInfo }) {
                                         )}
                                     </div>
 
-                                    {/* Nom boutique — collé au logo */}
-                                    <p className="text-white font-black text-base uppercase tracking-wide text-center leading-tight line-clamp-2 -mt-1">
+                                    {/* Nom boutique */}
+                                    <p className="text-white font-black text-lg uppercase tracking-wide text-center leading-tight line-clamp-2">
                                         {storeName}
                                     </p>
 
-                                    {/* QR noir sur fond blanc — style Wave */}
-                                    <div className="bg-white rounded-2xl p-3 w-full flex items-center justify-center">
+                                    {/* QR noir sur fond blanc — occupe tout l'espace dispo */}
+                                    <div className="bg-white rounded-2xl p-2 md:p-4 w-full flex items-center justify-center">
                                         <QRCodeCanvas
                                             id="store-qr-canvas"
                                             value={qrUrl}
-                                            size={200}
+                                            size={260}
                                             level="H"
                                             bgColor="#ffffff"
                                             fgColor="#111111"
-                                            style={{ display: "block" }}
+                                            style={{ display: "block", width: "100%", height: "auto" }}
                                         />
                                     </div>
 
                                     {/* Tagline */}
-                                    <p className="text-white/80 text-[10px] font-bold uppercase tracking-widest text-center">
+                                    <p className="text-white/80 text-[11px] font-bold uppercase tracking-widest text-center">
                                         Scannez pour découvrir notre boutique
                                     </p>
                                 </div>
@@ -769,6 +766,7 @@ function QRCodeSection({ storeInfo }: { storeInfo: StoreUserInfo }) {
                                     </button>
                                 </div>
                             </div>
+
                         </div>
                     </div>
                 )}

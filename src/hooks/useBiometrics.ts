@@ -21,6 +21,7 @@ export function useBiometrics() {
     const router = useRouter();
     const { isInstalled } = usePWA();
     const [isSupported, setIsSupported] = useState(false);
+    const [isConditionalUIAvailable, setIsConditionalUIAvailable] = useState(false);
     const [isEnabled, setIsEnabled] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -36,6 +37,16 @@ export function useBiometrics() {
             window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()
                 .then(setIsSupported)
                 .catch(() => setIsSupported(false));
+        }
+
+        if (
+            typeof window !== 'undefined' &&
+            window.PublicKeyCredential &&
+            typeof (window.PublicKeyCredential as any).isConditionalMediationAvailable === 'function'
+        ) {
+            (window.PublicKeyCredential as any).isConditionalMediationAvailable()
+                .then(setIsConditionalUIAvailable)
+                .catch(() => setIsConditionalUIAvailable(false));
         }
 
         setIsEnabled(localStorage.getItem(LS_HAS_BIOMETRICS) === 'true');
@@ -72,9 +83,14 @@ export function useBiometrics() {
         }
     }, []);
 
-    const authenticate = useCallback(async (identifier: string): Promise<boolean> => {
-        setLoading(true);
-        setError(null);
+    const authenticate = useCallback(async (identifier: string, useBrowserAutofill = false): Promise<boolean> => {
+        // En mode Conditional UI (useBrowserAutofill), l'appel attend silencieusement
+        // que l'utilisateur choisisse la suggestion d'autofill — on ne touche pas
+        // au loading/error partagés pour ne pas afficher de spinner ni d'erreur intempestive.
+        if (!useBrowserAutofill) {
+            setLoading(true);
+            setError(null);
+        }
         try {
             const optionsResponse = await webAuthnGenerateLoginOptions(identifier);
             if (optionsResponse.statusCode && optionsResponse.statusCode !== 200) {
@@ -82,7 +98,7 @@ export function useBiometrics() {
             }
 
             const options = optionsResponse.data ?? optionsResponse;
-            const authResp = await startAuthentication({ optionsJSON: options });
+            const authResp = await startAuthentication({ optionsJSON: options, useBrowserAutofill });
 
             const verifyResponse = await webAuthnVerifyLogin({
                 identifier,
@@ -102,12 +118,14 @@ export function useBiometrics() {
             }
             throw new Error('Authentication failed');
         } catch (err: any) {
-            const newCount = failCount + 1;
-            setFailCount(newCount);
-            setError(err?.message || 'Biometric authentication failed');
+            if (!useBrowserAutofill) {
+                const newCount = failCount + 1;
+                setFailCount(newCount);
+                setError(err?.message || 'Biometric authentication failed');
+            }
             return false;
         } finally {
-            setLoading(false);
+            if (!useBrowserAutofill) setLoading(false);
         }
     }, [failCount, router]);
 
@@ -126,6 +144,7 @@ export function useBiometrics() {
         isSupported,
         isInstalled,
         isAvailable,
+        isConditionalUIAvailable,
         isEnabled,
         loading,
         error,

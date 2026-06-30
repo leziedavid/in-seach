@@ -15,7 +15,7 @@ import AccountBookings from '@/components/profile/AccountBookings';
 import AnnoncesBookings from '@/components/profile/AnnoncesBookings';
 import AccountSettings from '@/components/profile/AccountSettings';
 import { Service, Annonce, Booking, GlobalStats, Role } from '@/types/interface';
-import { getUserRole, logout } from '@/lib/auth';
+import { getUserRole, logout, isAuthenticated } from '@/lib/auth';
 import BookingCalendar from '@/components/bookings/sections/BookingCalendar';
 import Commandes from '@/components/orders/sections/Commandes';
 import Store from '@/components/store/sections/Store';
@@ -77,6 +77,12 @@ export default function Page() {
     };
 
     useEffect(() => {
+        // Token absent ou expiré → retour direct au login
+        if (!isAuthenticated()) {
+            router.replace('/login');
+            return;
+        }
+
         setIsMounted(true);
         setUserRole(getUserRole() as Role);
 

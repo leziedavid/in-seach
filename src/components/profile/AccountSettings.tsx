@@ -947,11 +947,7 @@ export default function AccountSettings() {
                                                             </p>
                                                         </div>
                                                     </div>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => handleBioDelete(cred.id)}
-                                                        className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
-                                                    >
+                                                    <button type="button" onClick={() => handleBioDelete(cred.id)} className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors" >
                                                         <Icon icon="solar:trash-bin-trash-bold-duotone" width={14} />
                                                     </button>
                                                 </div>

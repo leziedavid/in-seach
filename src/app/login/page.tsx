@@ -19,13 +19,20 @@ export default function LoginPage() {
     const router = useRouter();
     const { getUserLocation } = useUserLocation();
 
-    const { isAvailable, isEnabled, loading: bioLoading, error: bioError, hasExceededFailures, authenticate } = useBiometrics();
+    const { isAvailable, isEnabled, isConditionalUIAvailable, loading: bioLoading, error: bioError, hasExceededFailures, authenticate } = useBiometrics();
     const [lastPhone, setLastPhone] = useState('');
 
     useEffect(() => {
         const saved = localStorage.getItem('lastPhoneNumber');
         if (saved) setLastPhone(saved);
     }, []);
+
+    // Conditional UI : propose Face ID/Touch ID automatiquement via la suggestion
+    // d'autofill du navigateur (Safari/Chrome), sans bouton, dès que les conditions sont réunies.
+    useEffect(() => {
+        if (!isAvailable || !isEnabled || !isConditionalUIAvailable || !lastPhone || hasExceededFailures) return;
+        authenticate(lastPhone, true).catch(() => { });
+    }, [isAvailable, isEnabled, isConditionalUIAvailable, lastPhone, hasExceededFailures]);
 
     const handleBiometricLogin = async () => {
         const id = lastPhone || identifier || (indicatif + identifier);
@@ -162,7 +169,7 @@ export default function LoginPage() {
                                         onChange={(e) => setIdentifier(e.target.value)}
                                         placeholder={t("auth.login.identifier_placeholder_email")}
                                         required
-                                        autoComplete="email"
+                                        autoComplete="username webauthn"
                                         className="w-full h-10 sm:h-11 pl-9 pr-3 rounded-lg border border-border bg-muted/30 dark:bg-muted/10 outline-none focus:border-primary text-xs sm:text-sm transition-all text-foreground"
                                         pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
                                         title={t("auth.login.errors.email_pattern")}
@@ -175,7 +182,7 @@ export default function LoginPage() {
                                 <InputPhone indicatif={indicatif} phone={identifier} onPhoneChange={(val) => {
                                     setIndicatif(val.indicatif);
                                     setIdentifier(val.phone);
-                                }} required className="bg-muted/30 dark:bg-muted/10 h-10 sm:h-11 border-border" />
+                                }} required autoComplete="username webauthn" className="bg-muted/30 dark:bg-muted/10 h-10 sm:h-11 border-border" />
                             )}
                         </div>
                     </div>
