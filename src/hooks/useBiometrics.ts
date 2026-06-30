@@ -8,7 +8,7 @@ import {
     webAuthnGenerateLoginOptions,
     webAuthnVerifyLogin,
 } from '@/api/api';
-import { setToken, getToken } from '@/lib/auth';
+import { setToken, getToken, getUserPhone } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import { Role } from '@/types/interface';
 import { usePWA } from '@/hooks/usePWA';
@@ -60,6 +60,12 @@ export function useBiometrics() {
                 if (res?.data && res.data.length > 0) {
                     localStorage.setItem(LS_HAS_BIOMETRICS, 'true');
                     setIsEnabled(true);
+                    // Sauvegarder le numéro depuis le JWT (format exact correspondant à la DB)
+                    // uniquement si pas encore enregistré, pour que authenticate() trouve bien l'utilisateur.
+                    if (!localStorage.getItem(LS_LAST_PHONE)) {
+                        const phone = getUserPhone();
+                        if (phone) localStorage.setItem(LS_LAST_PHONE, phone);
+                    }
                 }
             }).catch(() => { });
         }

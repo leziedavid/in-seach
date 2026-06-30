@@ -26,11 +26,8 @@ export default function LoginPage() {
         const saved = localStorage.getItem('lastPhoneNumber');
         if (saved) setLastPhone(saved);
 
-        // Restaurer indicatif + numéro local pour pré-remplir le champ téléphone
-        const savedIndicatif = localStorage.getItem('lastPhoneIndicatif');
-        const savedLocal = localStorage.getItem('lastPhoneLocal');
-        if (savedIndicatif) setIndicatif(savedIndicatif);
-        if (savedLocal) setIdentifier(savedLocal);
+        // Pré-remplir le champ téléphone avec le numéro mémorisé (sans indicatif, comme login())
+        if (saved) setIdentifier(saved);
     }, []);
 
     // Conditional UI : propose Face ID/Touch ID automatiquement via la suggestion
@@ -41,13 +38,9 @@ export default function LoginPage() {
     }, [isAvailable, isEnabled, isConditionalUIAvailable, lastPhone, hasExceededFailures]);
 
     const handleBiometricLogin = async () => {
-        const id = lastPhone || (identifier ? (indicatif + identifier) : '');
+        // Le backend cherche par { phone: identifier } sans indicatif (cohérent avec login())
+        const id = lastPhone || identifier;
         if (!id) return;
-        // Mémoriser les parties séparément pour la prochaine auto-complétion
-        if (!lastPhone && identifier) {
-            localStorage.setItem('lastPhoneIndicatif', indicatif);
-            localStorage.setItem('lastPhoneLocal', identifier);
-        }
         await authenticate(id);
     };
 
