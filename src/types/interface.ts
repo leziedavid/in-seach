@@ -1160,7 +1160,13 @@ export interface BoostedEntitySummary {
     title: string;
     image?: string;
     price?: number;
+    frais?: number;
     status?: string;
+    code?: string;
+    storeName?: string;
+    category?: string;
+    badge?: string;
+    description?: string;
 }
 
 export interface BoostPricingOption {

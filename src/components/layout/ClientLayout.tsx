@@ -6,6 +6,7 @@ import ComingSoon from "@/components/home/ComingSoon";
 import PageTransition from "@/components/ui/PageTransition";
 import { NotificationPermissionModal } from "@/components/modals/NotificationPermissionModal";
 import { storage } from "@/lib/storage";
+import Sponsoring from "@/components/boost/Sponsoring";
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
@@ -28,6 +29,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                     <PageTransition>
                         {children}
                     </PageTransition>
+                    <Sponsoring />
                 </ComingSoon>
             )}
         </div>

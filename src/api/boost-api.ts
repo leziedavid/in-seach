@@ -43,3 +43,12 @@ export const getMyBoosts = async (params?: {
     const response = await secureFetch(`${getBaseUrl()}/boosts/my?${qs}`, { method: 'GET' });
     return await response.json();
 };
+
+export const getActiveBoosts = async (params?: {
+    page?: number;
+    limit?: number;
+}): Promise<BaseResponse<Pagination<Boost>>> => {
+    const qs = params ? new URLSearchParams(params as any).toString() : '';
+    const response = await fetch(`${getBaseUrl()}/boosts/active?${qs}`);
+    return await response.json();
+};
