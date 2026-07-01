@@ -4,7 +4,7 @@ import React, { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
 import { Icon } from "@iconify/react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Boost, BoostEntityType, BoostedEntitySummary } from "@/types/interface";
 import { getActiveBoosts } from "@/api/boost-api";
 
@@ -32,24 +32,15 @@ const BADGE_LABELS: Record<string, string> = {
 };
 
 const LIMIT = 10;
+const AUTO_SLIDE_MS = 5000;
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
 function EntityImage({ entity, onClick }: { entity: BoostedEntitySummary; onClick: () => void }) {
     return (
-        <button
-            onClick={onClick}
-            className="relative w-[72px] h-[72px] rounded-xl overflow-hidden shrink-0 bg-white/8 focus:outline-none"
-            aria-label={`Voir ${entity.title}`}
-        >
+        <button onClick={onClick} className="relative w-[72px] h-[72px] rounded-xl overflow-hidden shrink-0 bg-white/8 focus:outline-none" aria-label={`Voir ${entity.title}`}>
             {entity.image ? (
-                <Image
-                    src={entity.image}
-                    fill
-                    unoptimized
-                    className="object-cover"
-                    alt={entity.title}
-                />
+                <Image src={entity.image} fill unoptimized className="object-cover" alt={entity.title} />
             ) : (
                 <div className="w-full h-full flex items-center justify-center">
                     <Icon icon="solar:star-bold-duotone" className="w-8 h-8 text-white/20" />
@@ -74,30 +65,11 @@ function EntityBadge({ label }: { label: string }) {
     );
 }
 
-function NavDots({
-    total,
-    current,
-    loadingNext,
-    onSelect,
-}: {
-    total: number;
-    current: number;
-    loadingNext: boolean;
-    onSelect: (i: number) => void;
-}) {
+function NavDots({ total, current, loadingNext, onSelect, }: { total: number; current: number; loadingNext: boolean; onSelect: (i: number) => void; }) {
     return (
         <div className="flex items-center gap-1.5">
             {Array.from({ length: total }).map((_, idx) => (
-                <button
-                    key={idx}
-                    onClick={() => onSelect(idx)}
-                    className={`rounded-full transition-all duration-300 focus:outline-none ${
-                        idx === current
-                            ? "w-4 h-1.5 bg-white"
-                            : "w-1.5 h-1.5 bg-white/30 hover:bg-white/50"
-                    }`}
-                    aria-label={`Élément ${idx + 1}`}
-                />
+                <button key={idx} onClick={() => onSelect(idx)} className={`rounded-full transition-all duration-300 focus:outline-none ${idx === current ? "w-4 h-1.5 bg-white" : "w-1.5 h-1.5 bg-white/30 hover:bg-white/50"}`} aria-label={`Élément ${idx + 1}`} />
             ))}
             {loadingNext && (
                 <Icon icon="line-md:loading-twotone-loop" className="w-3 h-3 text-white/40 ml-0.5" />
@@ -106,10 +78,20 @@ function NavDots({
     );
 }
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function pickRandom(length: number, exclude: number): number {
+    if (length <= 1) return 0;
+    let idx: number;
+    do { idx = Math.floor(Math.random() * length); } while (idx === exclude);
+    return idx;
+}
+
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function Sponsoring() {
     const router = useRouter();
+    const pathname = usePathname();
 
     const [boosts, setBoosts] = useState<Boost[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -121,6 +103,7 @@ export default function Sponsoring() {
 
     const fetchingRef = useRef(false);
     const dragDirectionRef = useRef<"left" | "right" | null>(null);
+    const lastShownIndexRef = useRef(-1);
 
     const fetchPage = useCallback(async (p: number) => {
         if (fetchingRef.current) return;
@@ -136,7 +119,11 @@ export default function Sponsoring() {
                 setBoosts(navigable);
                 setTotalPages(res.data.totalPages ?? 1);
                 setPage(p);
-                setCurrentIndex(0);
+                const randomStart = navigable.length > 1
+                    ? pickRandom(navigable.length, lastShownIndexRef.current)
+                    : 0;
+                lastShownIndexRef.current = randomStart;
+                setCurrentIndex(randomStart);
             }
         } catch { /* silent */ }
         finally {
@@ -146,6 +133,18 @@ export default function Sponsoring() {
     }, []);
 
     useEffect(() => { fetchPage(1); }, [fetchPage]);
+
+    // Rouvre et randomise à chaque changement de page
+    useEffect(() => {
+        setDismissed(false);
+        if (boosts.length > 0) {
+            dragDirectionRef.current = null;
+            const next = pickRandom(boosts.length, lastShownIndexRef.current);
+            lastShownIndexRef.current = next;
+            setCurrentIndex(next);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [pathname]);
 
     const goNext = useCallback(() => {
         const next = currentIndex + 1;
@@ -164,6 +163,13 @@ export default function Sponsoring() {
             setCurrentIndex(i => i - 1);
         }
     }, [currentIndex]);
+
+    // Auto-slide toutes les AUTO_SLIDE_MS (reset à chaque interaction manuelle)
+    useEffect(() => {
+        if (dismissed || loading || boosts.length <= 1) return;
+        const timer = setTimeout(() => goNext(), AUTO_SLIDE_MS);
+        return () => clearTimeout(timer);
+    }, [currentIndex, dismissed, loading, boosts.length, goNext]);
 
     const handleDragEnd = useCallback((_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
         if (info.offset.x < -60) goNext();
@@ -222,13 +228,7 @@ export default function Sponsoring() {
                     {/* ── Card content ── */}
                     {!loading && current && entity && (
                         <AnimatePresence mode="wait">
-                            <motion.div
-                                key={current.id}
-                                initial={{ opacity: 0, x: dragDirectionRef.current === "left" ? 40 : -40 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: dragDirectionRef.current === "left" ? -40 : 40 }}
-                                transition={{ duration: 0.18 }}
-                            >
+                            <motion.div key={current.id} initial={{ opacity: 0, x: dragDirectionRef.current === "left" ? 40 : -40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: dragDirectionRef.current === "left" ? -40 : 40 }} transition={{ duration: 0.18 }}>
                                 {/* Top row: image + info + close */}
                                 <div className="flex items-start gap-3 p-3 pb-2">
                                     <EntityImage entity={entity} onClick={() => handleNavigate(current)} />
@@ -243,13 +243,7 @@ export default function Sponsoring() {
                                                 )}
                                                 <span className="text-[9px] text-white/40 font-medium">Sponsorisée</span>
                                             </div>
-                                            <button
-                                                onClick={() => setDismissed(true)}
-                                                className="w-6 h-6 rounded-full bg-white/12 hover:bg-white/22 flex items-center justify-center transition shrink-0 focus:outline-none"
-                                                aria-label="Fermer"
-                                            >
-                                                <Icon icon="solar:close-bold" className="w-3 h-3 text-white/70" />
-                                            </button>
+                                            <button onClick={() => setDismissed(true)} className="w-6 h-6 rounded-full bg-white/12 hover:bg-white/22 flex items-center justify-center transition shrink-0 focus:outline-none" aria-label="Fermer"><Icon icon="solar:close-bold" className="w-3 h-3 text-white/70" /></button>
                                         </div>
 
                                         {/* Title */}
@@ -273,28 +267,19 @@ export default function Sponsoring() {
                                         )}
 
                                         {/* Description excerpt */}
-                                        {entity.description && (
+                                        {/* {entity.description && (
                                             <p className="text-[10px] text-white/35 leading-snug line-clamp-1">
                                                 {entity.description}
                                             </p>
-                                        )}
+                                        )} */}
 
                                         {/* CTA row */}
                                         <div className="flex items-center gap-2 pt-0.5">
-                                            <button
-                                                onClick={() => handleNavigate(current)}
-                                                className="flex-1 py-1.5 bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-black rounded-xl transition-all active:scale-95"
-                                            >
-                                                Voir l&apos;offre
-                                            </button>
+                                            <button onClick={() => handleNavigate(current)} className="flex-1 py-1.5 bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-black rounded-xl transition-all active:scale-95">Voir l&apos;offre</button>
                                             {entity.price != null && (
                                                 <span className="text-xs font-black text-emerald-400 shrink-0 whitespace-nowrap">
                                                     {entity.price.toLocaleString()} F
-                                                    {entity.frais ? (
-                                                        <span className="text-[9px] font-medium text-white/40 ml-0.5">
-                                                            +{entity.frais.toLocaleString()}
-                                                        </span>
-                                                    ) : null}
+                                                    {/* {entity.frais ? (<span className="text-[9px] font-medium text-white/40 ml-0.5"> +{entity.frais.toLocaleString()} </span>) : null} */}
                                                 </span>
                                             )}
                                         </div>
@@ -304,30 +289,12 @@ export default function Sponsoring() {
                                 {/* Navigation dots + arrows */}
                                 {boosts.length > 1 && (
                                     <div className="flex items-center justify-between px-3 pb-2.5">
-                                        <button
-                                            onClick={goPrev}
-                                            disabled={currentIndex === 0}
-                                            className="w-6 h-6 rounded-full bg-white/8 hover:bg-white/18 flex items-center justify-center disabled:opacity-20 transition focus:outline-none"
-                                            aria-label="Précédent"
-                                        >
+                                        <button onClick={goPrev} disabled={currentIndex === 0} className="w-6 h-6 rounded-full bg-white/8 hover:bg-white/18 flex items-center justify-center disabled:opacity-20 transition focus:outline-none" aria-label="Précédent">
                                             <Icon icon="solar:alt-arrow-left-bold" className="w-3 h-3 text-white" />
                                         </button>
 
-                                        <NavDots
-                                            total={boosts.length}
-                                            current={currentIndex}
-                                            loadingNext={loadingNext}
-                                            onSelect={setCurrentIndex}
-                                        />
-
-                                        <button
-                                            onClick={goNext}
-                                            disabled={isLastItem && !loadingNext}
-                                            className="w-6 h-6 rounded-full bg-white/8 hover:bg-white/18 flex items-center justify-center disabled:opacity-20 transition focus:outline-none"
-                                            aria-label="Suivant"
-                                        >
-                                            <Icon icon="solar:alt-arrow-right-bold" className="w-3 h-3 text-white" />
-                                        </button>
+                                        <NavDots total={boosts.length} current={currentIndex} loadingNext={loadingNext} onSelect={setCurrentIndex} />
+                                        <button onClick={goNext} disabled={isLastItem && !loadingNext} className="w-6 h-6 rounded-full bg-white/8 hover:bg-white/18 flex items-center justify-center disabled:opacity-20 transition focus:outline-none" aria-label="Suivant"><Icon icon="solar:alt-arrow-right-bold" className="w-3 h-3 text-white" /></button>
                                     </div>
                                 )}
                             </motion.div>
