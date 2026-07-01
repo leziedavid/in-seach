@@ -2610,6 +2610,8 @@ export type AnalyticsPeriod = 'today' | 'week' | 'month' | 'quarter' | 'year';
 export interface AnalyticsQuery {
     period?: AnalyticsPeriod;
     module?: string;
+    page?: number;
+    limit?: number;
 }
 
 export const analyticsGetOverview = async (q: AnalyticsQuery = {}): Promise<BaseResponse<any>> => {
@@ -2648,7 +2650,8 @@ export const analyticsGetTopUsers = async (q: AnalyticsQuery = {}): Promise<Base
     return r.json();
 };
 
-export const analyticsGetRealtime = async (limit = 50): Promise<BaseResponse<any>> => {
-    const r = await secureFetch(`${getBaseUrl()}/analytics/realtime?limit=${limit}`);
+export const analyticsGetRealtime = async (q: AnalyticsQuery = {}): Promise<BaseResponse<any>> => {
+    const qs = new URLSearchParams(q as any).toString();
+    const r = await secureFetch(`${getBaseUrl()}/analytics/realtime${qs ? `?${qs}` : ''}`);
     return r.json();
 };
