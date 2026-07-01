@@ -30,13 +30,13 @@ const montserrat = Montserrat({
   preload: false,
 })
 
-// [PERF] Plus Jakarta Sans : display:swap, pas de preload (police secondaire)
+// Police principale — Plus Jakarta Sans (proche de Circular/Satoshi, déjà chargée)
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-plus-jakarta",
   subsets: ["latin"],
-  weight: ["400", "600"],
+  weight: ["400", "500", "600", "700", "800"],
   display: "swap",
-  preload: false,
+  preload: true,
 });
 
 export const metadata: Metadata = {
@@ -140,7 +140,7 @@ export default function RootLayout({ children, }: Readonly<{ children: React.Rea
     <html lang="fr" suppressHydrationWarning>
       <head />
       {/* <body className={inter.className}> */}
-      <body className={`${jost.variable} ${montserrat.variable} ${plusJakartaSans.variable} font-sans antialiased`}>
+      <body className={`${jost.variable} ${montserrat.variable} ${plusJakartaSans.variable} antialiased`} style={{ fontFamily: 'var(--font-plus-jakarta), system-ui, sans-serif' }}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange >
           <I18nProvider>
             <NotificationProvider>

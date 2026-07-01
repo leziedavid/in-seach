@@ -2603,3 +2603,52 @@ export const webAuthnDeleteCredential = async (credentialId: string): Promise<Ba
     });
     return await response.json();
 };
+
+/* ─── Analytics ─────────────────────────────────────────────────────────────── */
+export type AnalyticsPeriod = 'today' | 'week' | 'month' | 'quarter' | 'year';
+
+export interface AnalyticsQuery {
+    period?: AnalyticsPeriod;
+    module?: string;
+}
+
+export const analyticsGetOverview = async (q: AnalyticsQuery = {}): Promise<BaseResponse<any>> => {
+    const qs = new URLSearchParams(q as any).toString();
+    const r = await secureFetch(`${getBaseUrl()}/analytics/overview${qs ? `?${qs}` : ''}`);
+    return r.json();
+};
+
+export const analyticsGetTraffic = async (q: AnalyticsQuery = {}): Promise<BaseResponse<any>> => {
+    const qs = new URLSearchParams(q as any).toString();
+    const r = await secureFetch(`${getBaseUrl()}/analytics/traffic${qs ? `?${qs}` : ''}`);
+    return r.json();
+};
+
+export const analyticsGetModules = async (q: AnalyticsQuery = {}): Promise<BaseResponse<any>> => {
+    const qs = new URLSearchParams(q as any).toString();
+    const r = await secureFetch(`${getBaseUrl()}/analytics/modules${qs ? `?${qs}` : ''}`);
+    return r.json();
+};
+
+export const analyticsGetRoutes = async (q: AnalyticsQuery = {}): Promise<BaseResponse<any>> => {
+    const qs = new URLSearchParams(q as any).toString();
+    const r = await secureFetch(`${getBaseUrl()}/analytics/routes${qs ? `?${qs}` : ''}`);
+    return r.json();
+};
+
+export const analyticsGetDevices = async (q: AnalyticsQuery = {}): Promise<BaseResponse<any>> => {
+    const qs = new URLSearchParams(q as any).toString();
+    const r = await secureFetch(`${getBaseUrl()}/analytics/devices${qs ? `?${qs}` : ''}`);
+    return r.json();
+};
+
+export const analyticsGetTopUsers = async (q: AnalyticsQuery = {}): Promise<BaseResponse<any>> => {
+    const qs = new URLSearchParams(q as any).toString();
+    const r = await secureFetch(`${getBaseUrl()}/analytics/users${qs ? `?${qs}` : ''}`);
+    return r.json();
+};
+
+export const analyticsGetRealtime = async (limit = 50): Promise<BaseResponse<any>> => {
+    const r = await secureFetch(`${getBaseUrl()}/analytics/realtime?limit=${limit}`);
+    return r.json();
+};

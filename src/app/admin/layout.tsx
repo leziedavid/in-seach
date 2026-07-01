@@ -64,6 +64,12 @@ const MENU_GROUPS: { title?: string; items: MenuItem[] }[] = [
         ],
     },
     {
+        title: 'Analytics',
+        items: [
+            { label: 'KPI & Analytics', icon: 'solar:chart-2-bold-duotone',           href: '/admin/kpi' },
+        ],
+    },
+    {
         title: 'Système',
         items: [
             { label: 'Paramètres',    icon: 'solar:settings-bold-duotone',            href: '/admin/settings' },
