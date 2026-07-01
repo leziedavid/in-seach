@@ -2655,3 +2655,33 @@ export const analyticsGetRealtime = async (q: AnalyticsQuery = {}): Promise<Base
     const r = await secureFetch(`${getBaseUrl()}/analytics/realtime${qs ? `?${qs}` : ''}`);
     return r.json();
 };
+
+export const analyticsGetRevenue = async (q: AnalyticsQuery = {}): Promise<BaseResponse<any>> => {
+    const qs = new URLSearchParams(q as any).toString();
+    const r = await secureFetch(`${getBaseUrl()}/analytics/revenue${qs ? `?${qs}` : ''}`);
+    return r.json();
+};
+
+export const analyticsGetTopProducts = async (q: AnalyticsQuery = {}): Promise<BaseResponse<any>> => {
+    const qs = new URLSearchParams(q as any).toString();
+    const r = await secureFetch(`${getBaseUrl()}/analytics/top-products${qs ? `?${qs}` : ''}`);
+    return r.json();
+};
+
+export const analyticsGetTopSellers = async (q: AnalyticsQuery = {}): Promise<BaseResponse<any>> => {
+    const qs = new URLSearchParams(q as any).toString();
+    const r = await secureFetch(`${getBaseUrl()}/analytics/top-sellers${qs ? `?${qs}` : ''}`);
+    return r.json();
+};
+
+export const analyticsGetTopServices = async (q: AnalyticsQuery = {}): Promise<BaseResponse<any>> => {
+    const qs = new URLSearchParams(q as any).toString();
+    const r = await secureFetch(`${getBaseUrl()}/analytics/top-services${qs ? `?${qs}` : ''}`);
+    return r.json();
+};
+
+export const analyticsGetTopAnnonces = async (q: AnalyticsQuery = {}): Promise<BaseResponse<any>> => {
+    const qs = new URLSearchParams(q as any).toString();
+    const r = await secureFetch(`${getBaseUrl()}/analytics/top-annonces${qs ? `?${qs}` : ''}`);
+    return r.json();
+};
