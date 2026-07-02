@@ -72,7 +72,7 @@ function NavDots({ total, current, loadingNext, onSelect, }: { total: number; cu
                 <button key={idx} onClick={() => onSelect(idx)} className={`rounded-full transition-all duration-300 focus:outline-none ${idx === current ? "w-4 h-1.5 bg-white" : "w-1.5 h-1.5 bg-white/30 hover:bg-white/50"}`} aria-label={`Élément ${idx + 1}`} />
             ))}
             {loadingNext && (
-                <Icon icon="line-md:loading-twotone-loop" className="w-3 h-3 text-white/40 ml-0.5" />
+                <Icon icon="solar:restart-bold-duotone" className="w-3 h-3 text-white/40 ml-0.5 animate-spin" />
             )}
         </div>
     );
@@ -197,14 +197,14 @@ export default function Sponsoring() {
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: 120, opacity: 0 }}
                 transition={{ type: "spring", damping: 22, stiffness: 260 }}
-                className="fixed bottom-[72px] left-0 right-0 z-40 px-3 pointer-events-none"
+                className="fixed bottom-[72px] left-0 right-0 z-40 px-3 pointer-events-none flex justify-center"
             >
                 <motion.div
                     drag="x"
                     dragConstraints={{ left: 0, right: 0 }}
                     dragElastic={0.2}
                     onDragEnd={handleDragEnd}
-                    className="pointer-events-auto bg-zinc-900/97 dark:bg-zinc-950/97 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/8 overflow-hidden select-none"
+                    className="pointer-events-auto w-full max-w-sm bg-zinc-900/70 dark:bg-zinc-950/75 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/10 overflow-hidden select-none"
                 >
                     {/* Accent line top */}
                     <div className="h-[2px] bg-gradient-to-r from-transparent via-primary/70 to-transparent" />
