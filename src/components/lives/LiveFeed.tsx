@@ -7,7 +7,7 @@ import { getLivesFeed } from "@/api/api";
 import { Live, LiveEntityType } from "@/types/interface";
 import LivePlayer from "./LivePlayer";
 import LiveFilterChips from "./LiveFilterChips";
-import { isEmbeddable } from "./liveUtils";
+import { hasRecognizedVideo } from "./liveUtils";
 
 interface LiveFeedProps {
     initialFilter?: LiveEntityType | "";
@@ -94,8 +94,9 @@ export default function LiveFeed({ initialFilter = "", embedded = false }: LiveF
 
             if (res.statusCode === 200 && res.data) {
                 const allItems = res.data.data ?? [];
-                // Garder uniquement les vidéos jouables
-                const playable = allItems.filter(l => isEmbeddable(l.videoLink));
+                // Garder les vidéos dont le lien est reconnu (YouTube, TikTok, Facebook, Instagram...)
+                // — l'embed direct n'est plus requis, on affiche une carte "ouvrir sur X" si besoin.
+                const playable = allItems.filter(l => hasRecognizedVideo(l.videoLink));
 
                 // Marquer tous les IDs comme vus
                 allItems.forEach(l => seenIds.current.add(l.id));
@@ -293,15 +294,8 @@ export default function LiveFeed({ initialFilter = "", embedded = false }: LiveF
                 <style>{`div::-webkit-scrollbar{display:none}`}</style>
 
                 {lives.map((live, idx) => (
-                    <div
-                        key={live.id}
-                        ref={el => { itemRefs.current[idx] = el; }}
-                        className="w-full snap-start snap-always flex-shrink-0 relative"
-                        style={{ height: feedHeight }}
-                    >
-                        <LivePlayer
-                            live={live}
-                            isActive={idx === activeIndex}
+                    <div key={live.id} ref={el => { itemRefs.current[idx] = el; }} className="w-full snap-start snap-always flex-shrink-0 relative" style={{ height: feedHeight }} >
+                        <LivePlayer live={live} isActive={idx === activeIndex}
                             onNext={idx < lives.length - 1 ? () => scrollToIndex(idx + 1) : undefined}
                             onPrev={idx > 0 ? () => scrollToIndex(idx - 1) : undefined}
                             showNav={!embedded}

@@ -43,12 +43,22 @@ export function getEmbedType(videoLink: string): EmbedType {
 }
 
 /**
- * Retourne true si la vidéo peut être lue en embed dans l'application.
- * Utilisé dans LiveFeed pour filtrer les vidéos non-lisibles.
+ * Retourne true si la vidéo peut être lue en autoplay, en embed direct, sur notre site.
+ * Seul YouTube autorise ça de façon fiable multi-origine — TikTok, Facebook et
+ * Instagram ne permettent la lecture que dans leur propre app/plateforme.
+ * Utilisé dans LivePlayer pour choisir iframe (embed) vs carte "ouvrir sur X".
  */
 export function isEmbeddable(videoLink: string): boolean {
-    const type = getEmbedType(videoLink);
-    return type === "youtube" || type === "tiktok-player" || type === "facebook";
+    return getEmbedType(videoLink) === "youtube";
+}
+
+/**
+ * Retourne true si le lien pointe vers une plateforme vidéo reconnue
+ * (même si elle n'est pas embarquable). Utilisé dans LiveFeed pour ne garder
+ * que les liens exploitables — un lien "unknown" est cassé ou invalide.
+ */
+export function hasRecognizedVideo(videoLink: string): boolean {
+    return getEmbedType(videoLink) !== "unknown";
 }
 
 export function detectPlatform(url: string): string {

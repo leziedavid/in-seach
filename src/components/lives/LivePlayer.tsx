@@ -6,10 +6,8 @@ import { Live, LiveEntityType } from "@/types/interface";
 import { likeLive, shareLive } from "@/api/api";
 import {
     getYouTubeId,
-    getTikTokVideoId,
     getEmbedType,
     detectPlatform,
-    type EmbedType,
 } from "./liveUtils";
 
 interface LivePlayerProps {
@@ -24,68 +22,33 @@ interface LivePlayerProps {
 // ─── BUILD EMBED URL (appelé une seule fois au montage) ──────────────────────
 
 /**
- * Construit l'URL initiale de l'iframe.
+ * Construit l'URL initiale de l'iframe YouTube (seule plateforme embarquable en autoplay).
  * On NE passe plus autoplay/mute dans la clé React — l'iframe est montée UNE SEULE FOIS.
  * Le contrôle play/pause/mute se fait ensuite via postMessage.
  */
-function buildEmbedUrl(videoLink: string, type: EmbedType): string {
+function buildYouTubeEmbedUrl(videoLink: string): string {
     const origin = typeof window !== "undefined" ? window.location.origin : "";
-
-    if (type === "youtube") {
-        const id = getYouTubeId(videoLink)!;
-        const p = new URLSearchParams({
-            rel: "0",
-            modestbranding: "1",
-            playsinline: "1",
-            controls: "1",
-            enablejsapi: "1",   // Requis pour postMessage play/pause/mute
-            origin,
-            autoplay: "1",      // Démarre muet (mute=1 obligatoire pour autoplay)
-            mute: "1",
-        });
-        return `https://www.youtube.com/embed/${id}?${p}`;
-    }
-
-    if (type === "tiktok-player") {
-        const id = getTikTokVideoId(videoLink)!;
-        const p = new URLSearchParams({
-            music_info: "0",
-            description: "0",
-            loop: "0",
-            autoplay: "1",
-            mute: "1",          // Obligatoire pour que le navigateur autorise l'autoplay
-            controls: "1",
-            from: "embed",
-            lang: "fr",
-        });
-        return `https://www.tiktok.com/player/v1/${id}?${p}`;
-    }
-
-    if (type === "facebook") {
-        const p = new URLSearchParams({
-            href: videoLink,
-            show_text: "false",
-            autoplay: "true",
-            allowfullscreen: "true",
-            app_id: "26851350967894514",
-        });
-        return `https://www.facebook.com/plugins/video.php?${p}`;
-    }
-
-    return "";
+    const id = getYouTubeId(videoLink)!;
+    const p = new URLSearchParams({
+        rel: "0",
+        modestbranding: "1",
+        playsinline: "1",
+        controls: "1",
+        enablejsapi: "1",   // Requis pour postMessage play/pause/mute
+        origin,
+        autoplay: "1",      // Démarre muet (mute=1 obligatoire pour autoplay)
+        mute: "1",
+    });
+    return `https://www.youtube.com/embed/${id}?${p}`;
 }
 
-// ─── COMMANDES postMessage ────────────────────────────────────────────────────
+// ─── COMMANDES postMessage (YouTube) ──────────────────────────────────────────
 
 function sendYouTubeCommand(iframe: HTMLIFrameElement | null, func: string, args: unknown = "") {
     iframe?.contentWindow?.postMessage(
         JSON.stringify({ event: "command", func, args }),
         "*"
     );
-}
-
-function sendTikTokCommand(iframe: HTMLIFrameElement | null, type: string) {
-    iframe?.contentWindow?.postMessage(JSON.stringify({ type }), "*");
 }
 
 // ─── PLATFORM META ────────────────────────────────────────────────────────────
@@ -128,23 +91,21 @@ export default function LivePlayer({ live, isActive, onNext, onPrev, showNav }: 
     const [showDesc, setShowDesc] = useState(false);
 
     // URL embed construite UNE SEULE FOIS au montage (pas dans le key)
-    const embedUrl = (embedType === "youtube" || embedType === "tiktok-player" || embedType === "facebook")
-        ? buildEmbedUrl(live.videoLink, embedType)
-        : null;
+    // Seul YouTube est embarqué en autoplay — les autres plateformes (TikTok,
+    // Facebook, Instagram...) ne le permettent que dans leur propre app.
+    const embedUrl = embedType === "youtube" ? buildYouTubeEmbedUrl(live.videoLink) : null;
 
     // ─── Play / Pause automatique quand isActive change ──────────────────
     // Contrôle via postMessage — AUCUN remontage d'iframe
 
     useEffect(() => {
         const iframe = iframeRef.current;
-        if (!iframe) return;
+        if (!iframe || embedType !== "youtube") return;
         if (isActive) {
             setVideoEnded(false);
-            if (embedType === "youtube") sendYouTubeCommand(iframe, "playVideo");
-            if (embedType === "tiktok-player") sendTikTokCommand(iframe, "play");
+            sendYouTubeCommand(iframe, "playVideo");
         } else {
-            if (embedType === "youtube") sendYouTubeCommand(iframe, "pauseVideo");
-            if (embedType === "tiktok-player") sendTikTokCommand(iframe, "pause");
+            sendYouTubeCommand(iframe, "pauseVideo");
         }
     }, [isActive, embedType]);
 
@@ -160,36 +121,27 @@ export default function LivePlayer({ live, isActive, onNext, onPrev, showNav }: 
     }, [onNext]);
 
     useEffect(() => {
-        if (!isActive) return;
+        if (!isActive || embedType !== "youtube") return;
         const handleMessage = (e: MessageEvent) => {
             try {
                 const data = typeof e.data === "string" ? JSON.parse(e.data) : e.data;
                 // YouTube : playerState 0 = ended
                 if (data?.event === "infoDelivery" && data?.info?.playerState === 0) handleVideoEnd();
-                // TikTok Player V1
-                if (data?.type === "onStateChange" && data?.playerState === "ended") handleVideoEnd();
-                // Facebook
-                if (data?.action === "videoEnd" || data?.type === "videoEnded") handleVideoEnd();
             } catch { /* non-JSON */ }
         };
         window.addEventListener("message", handleMessage);
         return () => window.removeEventListener("message", handleMessage);
-    }, [isActive, handleVideoEnd]);
+    }, [isActive, embedType, handleVideoEnd]);
 
     // ─── Mute / Unmute via postMessage (pas de remontage) ─────────────────
 
     const toggleMute = () => {
         const unmuting = isMuted;
-        if (embedType === "youtube") {
-            if (unmuting) {
-                sendYouTubeCommand(iframeRef.current, "unMute");
-                sendYouTubeCommand(iframeRef.current, "setVolume", [100]);
-            } else {
-                sendYouTubeCommand(iframeRef.current, "mute");
-            }
-        }
-        if (embedType === "tiktok-player") {
-            sendTikTokCommand(iframeRef.current, unmuting ? "unmute" : "mute");
+        if (unmuting) {
+            sendYouTubeCommand(iframeRef.current, "unMute");
+            sendYouTubeCommand(iframeRef.current, "setVolume", [100]);
+        } else {
+            sendYouTubeCommand(iframeRef.current, "mute");
         }
         setIsMuted(m => !m);
     };
@@ -269,9 +221,8 @@ export default function LivePlayer({ live, isActive, onNext, onPrev, showNav }: 
                     <button
                         onClick={() => {
                             setVideoEnded(false);
-                            if (embedType === "youtube") sendYouTubeCommand(iframeRef.current, "seekTo", [0, true]);
-                            if (embedType === "youtube") sendYouTubeCommand(iframeRef.current, "playVideo");
-                            if (embedType === "tiktok-player") sendTikTokCommand(iframeRef.current, "play");
+                            sendYouTubeCommand(iframeRef.current, "seekTo", [0, true]);
+                            sendYouTubeCommand(iframeRef.current, "playVideo");
                         }}
                         className="flex items-center gap-2 text-white/50 text-[11px] hover:text-white transition"
                     >
