@@ -58,8 +58,33 @@ const PLATFORM_INFO: Record<string, { icon: string; name: string; bg: string }> 
     instagram: { icon: "mdi:instagram", name: "Instagram", bg: "bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400" },
     youtube:   { icon: "mdi:youtube",   name: "YouTube",   bg: "bg-red-600" },
     facebook:  { icon: "mdi:facebook",  name: "Facebook",  bg: "bg-blue-600" },
+    x:         { icon: "simple-icons:x", name: "X",        bg: "bg-black" },
     other:     { icon: "solar:link-bold-duotone", name: "Lien", bg: "bg-zinc-800" },
 };
+
+// ─── APERÇU DE LIEN (og:image/title/description via /api/link-preview) ───────
+
+interface LinkPreview {
+    image?: string;
+    title?: string;
+    description?: string;
+}
+
+function useLinkPreview(url: string, enabled: boolean) {
+    const [preview, setPreview] = useState<LinkPreview | null>(null);
+
+    useEffect(() => {
+        if (!enabled) return;
+        let cancelled = false;
+        fetch(`/api/link-preview?url=${encodeURIComponent(url)}`)
+            .then(res => (res.ok ? res.json() : null))
+            .then((data: LinkPreview | null) => { if (!cancelled && data) setPreview(data); })
+            .catch(() => {});
+        return () => { cancelled = true; };
+    }, [url, enabled]);
+
+    return preview;
+}
 
 const ENTITY_LABELS: Record<LiveEntityType, string> = {
     [LiveEntityType.PRODUCT]:            "Produit",
@@ -94,6 +119,9 @@ export default function LivePlayer({ live, isActive, onNext, onPrev, showNav }: 
     // Seul YouTube est embarqué en autoplay — les autres plateformes (TikTok,
     // Facebook, Instagram...) ne le permettent que dans leur propre app.
     const embedUrl = embedType === "youtube" ? buildYouTubeEmbedUrl(live.videoLink) : null;
+
+    // Aperçu (miniature/titre) pour les plateformes non-embarquables uniquement
+    const linkPreview = useLinkPreview(live.videoLink, !embedUrl);
 
     // ─── Play / Pause automatique quand isActive change ──────────────────
     // Contrôle via postMessage — AUCUN remontage d'iframe
@@ -188,12 +216,12 @@ export default function LivePlayer({ live, isActive, onNext, onPrev, showNav }: 
                         title={live.title}
                     />
                 ) : (
-                    /* Plateforme non-embarquable — ne devrait pas être dans le feed
-                       mais on affiche quand même un fallback au cas où */
+                    /* Plateforme non-embarquable (TikTok, Facebook, Instagram, X…) —
+                       carte d'aperçu "tap-to-open" avec miniature quand disponible */
                     (<ExternalPlatformCard
                         platform={platformInfo}
-                        title={live.title}
                         url={live.videoLink}
+                        preview={linkPreview}
                     />)
                 )}
             </div>
@@ -343,24 +371,78 @@ export default function LivePlayer({ live, isActive, onNext, onPrev, showNav }: 
     );
 }
 
-// ─── CARTE FALLBACK plateforme non-embarquable ────────────────────────────────
+// ─── CARTE APERÇU plateforme non-embarquable (TikTok, Facebook, Instagram, X) ─
+// Affiche une vraie miniature (og:image) quand elle est disponible, avec un
+// fallback de marque élégant sinon. Toute la carte est cliquable ; le bouton
+// "Voir sur X" ne fait que compléter l'aperçu, sans jamais utiliser d'iframe.
 
-function ExternalPlatformCard({ platform, title, url }: {
+function ExternalPlatformCard({ platform, url, preview }: {
     platform: { icon: string; name: string; bg: string };
-    title: string;
     url: string;
+    preview: { image?: string; title?: string; description?: string } | null;
 }) {
+    const [imgFailed, setImgFailed] = useState(false);
+    const hasImage = !!preview?.image && !imgFailed;
+
     return (
-        <div className={`absolute inset-0 flex flex-col items-center justify-center gap-5 p-8 text-center ${platform.bg}`}>
-            <div className="w-20 h-20 rounded-3xl bg-white/10 flex items-center justify-center">
-                <Icon icon={platform.icon} className="w-10 h-10 text-white" />
+        // Centré (pas ancré en bas) pour ne jamais chevaucher la barre d'infos
+        // (nom boutique / titre / CTA boutique) que LivePlayer affiche par-dessus.
+        <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`absolute inset-0 flex items-center justify-center overflow-hidden ${hasImage ? "bg-black" : platform.bg}`}
+        >
+            {/* Miniature réelle si dispo, sinon fond de marque avec icône filigrane */}
+            {hasImage ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                    src={preview!.image}
+                    alt=""
+                    className="absolute inset-0 w-full h-full object-cover"
+                    onError={() => setImgFailed(true)}
+                />
+            ) : (
+                <Icon icon={platform.icon} className="absolute inset-0 m-auto w-40 h-40 text-white/10" />
+            )}
+
+            {/* Dégradé pour la lisibilité */}
+            <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-black/10 to-black/55" />
+
+            {/* Badge plateforme — coin haut gauche, aligné avec le bouton mute de YouTube */}
+            <span className="absolute top-14 left-4 z-10 flex items-center gap-1.5 bg-black/50 backdrop-blur-sm border border-white/15 rounded-full pl-1.5 pr-3 py-1">
+                <span className={`w-5 h-5 rounded-full flex items-center justify-center ${platform.bg}`}>
+                    <Icon icon={platform.icon} className="w-3 h-3 text-white" />
+                </span>
+                <span className="text-white text-[10px] font-bold">{platform.name}</span>
+            </span>
+
+            {/* Panneau central — play + aperçu + CTA, groupés pour ne pas empiéter sur le bas */}
+            <div className="relative z-10 flex flex-col items-center gap-3 mx-10 px-6 py-6 rounded-3xl bg-black/35 backdrop-blur-md border border-white/10 shadow-xl max-w-[85%]">
+                <div className="w-14 h-14 rounded-full bg-white/15 backdrop-blur-sm border border-white/25 flex items-center justify-center shrink-0">
+                    <Icon icon="solar:play-bold" className="w-6 h-6 text-white ml-0.5" />
+                </div>
+
+                {(preview?.title || preview?.description) ? (
+                    <div className="text-center space-y-0.5">
+                        {preview?.title && (
+                            <p className="text-white font-bold text-xs leading-snug line-clamp-2">{preview.title}</p>
+                        )}
+                        {preview?.description && (
+                            <p className="text-white/70 text-[11px] leading-snug line-clamp-2">{preview.description}</p>
+                        )}
+                    </div>
+                ) : (
+                    <p className="text-white/70 text-[11px] leading-snug text-center">
+                        Touchez pour ouvrir ce contenu dans l&apos;application ou le navigateur.
+                    </p>
+                )}
+
+                <span className="flex items-center justify-center gap-1.5 bg-white text-black font-black text-xs px-5 py-2 rounded-full shrink-0">
+                    <Icon icon="solar:arrow-right-up-bold" className="w-3.5 h-3.5" />
+                    Voir sur {platform.name}
+                </span>
             </div>
-            <p className="text-white font-bold text-base leading-snug line-clamp-3 max-w-xs">{title}</p>
-            <a href={url} target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-2.5 bg-white text-black font-black text-sm px-7 py-3.5 rounded-full hover:bg-white/90 transition active:scale-95 shadow-xl">
-                <Icon icon="solar:play-bold" className="w-5 h-5" />
-                Voir sur {platform.name}
-            </a>
-        </div>
+        </a>
     );
 }

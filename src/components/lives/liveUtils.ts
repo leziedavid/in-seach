@@ -24,6 +24,7 @@ export type EmbedType =
     | "tiktok-link"
     | "facebook"
     | "instagram-link"
+    | "x-link"
     | "unknown";
 
 export function getEmbedType(videoLink: string): EmbedType {
@@ -38,6 +39,7 @@ export function getEmbedType(videoLink: string): EmbedType {
         }
         if (host.includes("facebook.com") || host.includes("fb.watch")) return "facebook";
         if (host.includes("instagram.com")) return "instagram-link";
+        if (host.includes("x.com") || host.includes("twitter.com")) return "x-link";
     } catch { /* invalid url */ }
     return "unknown";
 }
@@ -66,5 +68,6 @@ export function detectPlatform(url: string): string {
     if (url.includes("youtube.com") || url.includes("youtu.be")) return "youtube";
     if (url.includes("facebook.com") || url.includes("fb.watch")) return "facebook";
     if (url.includes("instagram.com")) return "instagram";
+    if (url.includes("x.com") || url.includes("twitter.com")) return "x";
     return "other";
 }
