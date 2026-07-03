@@ -1,13 +1,17 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Icon } from "@iconify/react";
 import { useRouter } from "next/navigation";
 import { getLivesFeed } from "@/api/api";
 import { Live, LiveEntityType } from "@/types/interface";
+import { usePWA } from "@/hooks/usePWA";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import LivePlayer from "./LivePlayer";
 import LiveFilterChips from "./LiveFilterChips";
 import { hasRecognizedVideo } from "./liveUtils";
+
+const PULL_THRESHOLD = 72;
 
 interface LiveFeedProps {
     initialFilter?: LiveEntityType | "";
@@ -50,7 +54,6 @@ export default function LiveFeed({ initialFilter = "", embedded = false }: LiveF
     const [lives, setLives] = useState<Live[]>([]);
     const [activeIndex, setActiveIndex] = useState(0);
     const [status, setStatus] = useState<"loading" | "loadingMore" | "idle" | "empty">("loading");
-    const [hasMore, setHasMore] = useState(false);
     const [activeFilter, setActiveFilter] = useState<LiveEntityType | "">(initialFilter);
 
     // ── Refs (ne déclenchent PAS de re-render → pas de stale closure) ────
@@ -61,9 +64,14 @@ export default function LiveFeed({ initialFilter = "", embedded = false }: LiveF
     const hasMoreRef = useRef(false);       // Miroir de hasMore en ref
     const activeFilterRef = useRef<LiveEntityType | "">(initialFilter);
     const livesLengthRef = useRef(0);       // Miroir de lives.length en ref
+    const livesRef = useRef<Live[]>([]);    // Miroir de lives en ref (pull-to-refresh)
+    const activeIndexRef = useRef(0);       // Miroir de activeIndex en ref (pull-to-refresh)
     const statusRef = useRef<"loading" | "loadingMore" | "idle" | "empty">("loading");
     const containerRef = useRef<HTMLDivElement>(null);
     const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+    useEffect(() => { livesRef.current = lives; }, [lives]);
+    useEffect(() => { activeIndexRef.current = activeIndex; }, [activeIndex]);
 
     // ─── FETCH — UNIQUE POINT D'ENTRÉE ────────────────────────────────────
 
@@ -72,15 +80,21 @@ export default function LiveFeed({ initialFilter = "", embedded = false }: LiveF
      * @param pNum      Numéro de page
      * @param isFirst   true = reset complet (filtre change, reload)
      * @param filter    Filtre entité actif
+     * @param opts.silent  true = ne bascule pas sur le skeleton plein écran
+     *                     (pull-to-refresh : le contenu existant reste visible)
+     * @returns la liste jouable reçue (utile au pull-to-refresh pour relocaliser
+     *          la vidéo regardée), ou null si le fetch n'a pas abouti.
      */
-    const doFetch = async (pNum: number, isFirst: boolean, filter: LiveEntityType | "") => {
+    const doFetch = async (pNum: number, isFirst: boolean, filter: LiveEntityType | "", opts?: { silent?: boolean }): Promise<Live[] | null> => {
         // GUARD : bloquer si un fetch est déjà en cours
-        if (isFetching.current) return;
+        if (isFetching.current) return null;
         isFetching.current = true;
 
-        const newStatus = isFirst ? "loading" : "loadingMore";
-        setStatus(newStatus);
-        statusRef.current = newStatus;
+        if (!opts?.silent) {
+            const newStatus = isFirst ? "loading" : "loadingMore";
+            setStatus(newStatus);
+            statusRef.current = newStatus;
+        }
 
         try {
             const excludeIds = isFirst ? "" : [...seenIds.current].join(",");
@@ -102,7 +116,6 @@ export default function LiveFeed({ initialFilter = "", embedded = false }: LiveF
                 allItems.forEach(l => seenIds.current.add(l.id));
 
                 const nextHasMore = res.data.hasMore ?? false;
-                setHasMore(nextHasMore);
                 hasMoreRef.current = nextHasMore;
 
                 if (isFirst) {
@@ -122,15 +135,17 @@ export default function LiveFeed({ initialFilter = "", embedded = false }: LiveF
                     setStatus("idle");
                     statusRef.current = "idle";
                 }
-            } else {
-                const s = isFirst ? "empty" : "idle";
-                setStatus(s);
-                statusRef.current = s;
+                return playable;
             }
+            const s = isFirst ? "empty" : "idle";
+            setStatus(s);
+            statusRef.current = s;
+            return null;
         } catch {
             const s = isFirst ? "empty" : "idle";
             setStatus(s);
             statusRef.current = s;
+            return null;
         } finally {
             isFetching.current = false;
         }
@@ -158,7 +173,6 @@ export default function LiveFeed({ initialFilter = "", embedded = false }: LiveF
         hasMoreRef.current = false;
         livesLengthRef.current = 0;
         setLives([]);
-        setHasMore(false);
         setActiveIndex(0);
         containerRef.current?.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
 
@@ -182,39 +196,47 @@ export default function LiveFeed({ initialFilter = "", embedded = false }: LiveF
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeIndex]); // activeIndex seul — les autres valeurs sont lues via refs
 
-    // ─── FIN DU FEED → REPLAY DEPUIS LE DÉBUT (sans nouvel appel API) ────
+    // ─── DÉTECTION DE LA VIDÉO ACTIVE — position de scroll, une fois stabilisée ──
+    // Avant : un IntersectionObserver par item (seuil 0.6) déclenchait setActiveIndex
+    // en cascade pendant un scroll rapide — l'item quitté ET le suivant franchissaient
+    // tour à tour le seuil, ce qui relançait brièvement la lecture de la vidéo
+    // précédente avant de se stabiliser ("effet de rebond"). On calcule maintenant
+    // l'index actif une seule fois le scroll réellement arrêté (scrollend natif,
+    // ou débounce en repli) — comme TikTok : la position ne bouge qu'après un geste
+    // explicite de l'utilisateur, jamais pendant la transition.
 
     useEffect(() => {
-        if (
-            status === "idle" &&
-            !hasMore &&
-            !isFetching.current &&
-            livesLengthRef.current > 0 &&
-            activeIndex >= livesLengthRef.current - 1
-        ) {
-            const timer = setTimeout(() => {
-                setActiveIndex(0);
-                containerRef.current?.scrollTo({ top: 0, behavior: "smooth" });
-            }, 800);
-            return () => clearTimeout(timer);
+        const container = containerRef.current;
+        if (!container) return;
+
+        const computeActiveIndex = () => {
+            const itemHeight = container.clientHeight;
+            if (!itemHeight) return;
+            const idx = Math.round(container.scrollTop / itemHeight);
+            const clamped = Math.max(0, Math.min(idx, lives.length - 1));
+            setActiveIndex(prev => (prev === clamped ? prev : clamped));
+        };
+
+        // scrollend se déclenche exactement quand le snap s'immobilise — le plus
+        // fidèle au comportement TikTok. Le débounce n'est qu'un repli pour les
+        // navigateurs qui ne l'exposent pas encore (ex: Safari < 17.4) ; les deux
+        // ne sont jamais actifs en même temps pour éviter tout calcul redondant.
+        if ("onscrollend" in window) {
+            container.addEventListener("scrollend", computeActiveIndex, { passive: true });
+            return () => container.removeEventListener("scrollend", computeActiveIndex);
         }
-    }, [activeIndex, status, hasMore, lives.length]); // Dépendances stables
 
-    // ─── IntersectionObserver — détecte la vidéo active ──────────────────
-
-    useEffect(() => {
-        const observers: IntersectionObserver[] = [];
-        itemRefs.current.forEach((el, idx) => {
-            if (!el) return;
-            const obs = new IntersectionObserver(
-                ([entry]) => { if (entry.isIntersecting) setActiveIndex(idx); },
-                { threshold: 0.6 }
-            );
-            obs.observe(el);
-            observers.push(obs);
-        });
-        return () => observers.forEach(obs => obs.disconnect());
-    }, [lives.length]); // Recréer quand le nombre de vidéos change
+        let debounceTimer: ReturnType<typeof setTimeout>;
+        const handleScroll = () => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(computeActiveIndex, 120);
+        };
+        container.addEventListener("scroll", handleScroll, { passive: true });
+        return () => {
+            container.removeEventListener("scroll", handleScroll);
+            clearTimeout(debounceTimer);
+        };
+    }, [lives.length]);
 
     // ─── Navigation clavier (desktop) ────────────────────────────────────
 
@@ -238,6 +260,41 @@ export default function LiveFeed({ initialFilter = "", embedded = false }: LiveF
         itemRefs.current[idx]?.scrollIntoView({ behavior: "smooth", block: "start" });
         setActiveIndex(idx);
     };
+
+    // ─── PULL-TO-REFRESH (PWA installée uniquement) ───────────────────────
+
+    const { isInstalled } = usePWA();
+
+    const handlePullRefresh = useCallback(async () => {
+        const watchedId = livesRef.current[activeIndexRef.current]?.id;
+
+        seed.current = Math.floor(Math.random() * 99999);
+        seenIds.current.clear();
+        pageRef.current = 1;
+        hasMoreRef.current = false;
+        const fresh = await doFetch(1, true, activeFilterRef.current, { silent: true });
+
+        // La vidéo regardée est toujours présente : on se replace dessus sans
+        // animation, aucun saut visuel — que sa position ait bougé ou non.
+        const newIndex = watchedId ? (fresh?.findIndex(l => l.id === watchedId) ?? -1) : -1;
+        if (newIndex !== -1) {
+            setActiveIndex(newIndex);
+            const itemHeight = containerRef.current?.clientHeight ?? 0;
+            containerRef.current?.scrollTo({ top: newIndex * itemHeight, behavior: "instant" as ScrollBehavior });
+            return;
+        }
+
+        // Vidéo regardée absente du nouveau feed → repartir du début
+        setActiveIndex(0);
+        containerRef.current?.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
+    }, []);
+
+    const { pullDistance, isPulling, isRefreshing } = usePullToRefresh({
+        containerRef,
+        onRefresh: handlePullRefresh,
+        enabled: isInstalled && !embedded,
+        threshold: PULL_THRESHOLD,
+    });
 
     // ─── RENDER ──────────────────────────────────────────────────────────
 
@@ -288,10 +345,29 @@ export default function LiveFeed({ initialFilter = "", embedded = false }: LiveF
             {/* Scroll container */}
             <div
                 ref={containerRef}
-                className="overflow-y-scroll snap-y snap-mandatory"
-                style={{ height: feedHeight, scrollbarWidth: "none", msOverflowStyle: "none" } as React.CSSProperties}
+                className="overflow-y-scroll snap-y snap-mandatory overscroll-y-contain"
+                style={{ height: feedHeight, scrollbarWidth: "none", msOverflowStyle: "none", overflowAnchor: "none" } as React.CSSProperties}
             >
                 <style>{`div::-webkit-scrollbar{display:none}`}</style>
+
+                {/* Indicateur pull-to-refresh — PWA installée uniquement, pousse le
+                    contenu vers le bas via sa propre hauteur (pas de transform, pour
+                    ne jamais désynchroniser le scroll-snap) */}
+                {isInstalled && !embedded && (
+                    <div
+                        className={`flex items-center justify-center overflow-hidden ${isPulling ? "" : "transition-[height] duration-300 ease-out"}`}
+                        style={{ height: isRefreshing ? 56 : pullDistance }}
+                    >
+                        <Icon
+                            icon={isRefreshing ? "solar:restart-bold-duotone" : "solar:arrow-down-bold-duotone"}
+                            className={`w-6 h-6 text-white/90 ${isRefreshing ? "animate-spin" : ""}`}
+                            style={{
+                                opacity: Math.min(1, (isRefreshing ? 56 : pullDistance) / 50),
+                                transform: isRefreshing ? undefined : `rotate(${Math.min(180, (pullDistance / PULL_THRESHOLD) * 180)}deg)`,
+                            }}
+                        />
+                    </div>
+                )}
 
                 {lives.map((live, idx) => (
                     <div key={live.id} ref={el => { itemRefs.current[idx] = el; }} className="w-full snap-start snap-always flex-shrink-0 relative" style={{ height: feedHeight }} >
