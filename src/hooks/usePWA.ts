@@ -2,6 +2,12 @@
 
 import { useState, useEffect } from "react";
 
+// Extrait pour être réutilisable hors composant (ex: src/lib/visitTracking.ts)
+export function isPWAStandalone(): boolean {
+    if (typeof window === "undefined") return false;
+    return window.matchMedia("(display-mode: standalone)").matches || (window.navigator as any).standalone === true;
+}
+
 export function usePWA() {
     const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
     const [isInstalled, setIsInstalled] = useState(false);
@@ -9,7 +15,7 @@ export function usePWA() {
 
     useEffect(() => {
         // Detect if already installed
-        if (window.matchMedia("(display-mode: standalone)").matches || (window.navigator as any).standalone) {
+        if (isPWAStandalone()) {
             setIsInstalled(true);
         }
 

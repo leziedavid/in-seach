@@ -6,6 +6,7 @@ import ComingSoon from "@/components/home/ComingSoon";
 import PageTransition from "@/components/ui/PageTransition";
 import { NotificationPermissionModal } from "@/components/modals/NotificationPermissionModal";
 import { storage } from "@/lib/storage";
+import { trackVisit } from "@/lib/visitTracking";
 import Sponsoring from "@/components/boost/Sponsoring";
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
@@ -15,6 +16,13 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     useEffect(() => {
         storage.purgeExpired();
     }, []);
+
+    // Enregistre une visite (dédupliquée côté client + serveur) à l'arrivée sur l'accueil
+    useEffect(() => {
+        if (pathname === "/") {
+            trackVisit();
+        }
+    }, [pathname]);
 
     // Check if the current route is an admin or portfolio route
     const isIsolatedRoute = pathname?.startsWith("/admin") || pathname?.startsWith("/me");

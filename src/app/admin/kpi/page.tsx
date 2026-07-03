@@ -20,6 +20,10 @@ import {
     analyticsGetTopSellers,
     analyticsGetTopServices,
     analyticsGetTopAnnonces,
+    analyticsSiteVisitGetOverview,
+    analyticsSiteVisitGetTrend,
+    analyticsSiteVisitGetDevices,
+    analyticsSiteVisitGetTopUsers,
     getBaseUrl,
     type AnalyticsPeriod,
 } from '@/api/api';
@@ -44,6 +48,10 @@ interface ProductRow { productId: string; count: number; totalQty: number; total
 interface SellerRow  { userId: string; fullName: string | null; email: string; storeName: string | null; orderCount: number; totalRevenue: number; }
 interface ServiceRow { serviceId: string | null; count: number; avgPrice: number; service: { id: string; title: string; type: string; price: number | null } | null; }
 interface AnnonceRow { annonceId: string | null; count: number; avgPrice: number; annonce: { id: string; title: string; price: number | null; status: string } | null; }
+interface VisitOverviewData {
+    totalVisits: number; uniqueVisitors: number; connectedVisitors: number; anonymousVisitors: number;
+    visitsToday: number; visitsWeek: number; visitsMonth: number;
+}
 
 /* ─── KPI Card ──────────────────────────────────────────────── */
 function KpiCard({ icon, label, value, sub, color }: { icon: string; label: string; value: string | number; sub?: string; color: string; }) {
@@ -153,13 +161,25 @@ const PERIODS: { label: string; value: AnalyticsPeriod }[] = [
 export default function KpiPage() {
     const [period, setPeriod] = useState<AnalyticsPeriod>('week');
     const [loading, setLoading]     = useState(true);
-    const [tab, setTab]             = useState<'overview' | 'commerce' | 'realtime'>('overview');
+    const [tab, setTab]             = useState<'overview' | 'visites' | 'commerce' | 'realtime'>('overview');
 
     // Non-paginated (overview)
     const [overview, setOverview]   = useState<OverviewData | null>(null);
     const [traffic, setTraffic]     = useState<any[]>([]);
     const [modules, setModules]     = useState<any[]>([]);
     const [devices, setDevices]     = useState<any>(null);
+
+    // Visites — non-paginated
+    const [visitOverview, setVisitOverview] = useState<VisitOverviewData | null>(null);
+    const [visitTrend, setVisitTrend]       = useState<any[]>([]);
+    const [visitDevices, setVisitDevices]   = useState<any>(null);
+    const [loadingVisits, setLoadingVisits] = useState(false);
+
+    // Visites — top utilisateurs, paginé
+    const [visitUsers, setVisitUsers]           = useState<UserRow[]>([]);
+    const [visitUsersPage, setVisitUsersPage]   = useState(1);
+    const [visitUsersTotal, setVisitUsersTotal] = useState(0);
+    const [loadingVisitUsers, setLoadingVisitUsers] = useState(false);
 
     // Routes — paginated
     const [routes, setRoutes]           = useState<RouteRow[]>([]);
@@ -303,11 +323,37 @@ export default function KpiPage() {
         setLoadingAnnonces(false);
     }, [period]);
 
+    const fetchVisits = useCallback(async () => {
+        setLoadingVisits(true);
+        try {
+            const [ov, tr, dv] = await Promise.all([
+                analyticsSiteVisitGetOverview({ period }),
+                analyticsSiteVisitGetTrend({ period }),
+                analyticsSiteVisitGetDevices({ period }),
+            ]);
+            if (ov.data && !Array.isArray(ov.data)) setVisitOverview(ov.data);
+            setVisitTrend(extractList(tr.data));
+            if (dv.data && !Array.isArray(dv.data)) setVisitDevices(dv.data);
+        } catch { /* ignore */ }
+        setLoadingVisits(false);
+    }, [period]);
+
+    const fetchVisitUsers = useCallback(async (page: number) => {
+        setLoadingVisitUsers(true);
+        try {
+            const res = await analyticsSiteVisitGetTopUsers({ period, page, limit: LIMIT });
+            setVisitUsers(extractList<UserRow>(res.data));
+            setVisitUsersTotal(extractTotal(res.data));
+        } catch { /* ignore */ }
+        setLoadingVisitUsers(false);
+    }, [period]);
+
     /* ── fetchAll : reset pages + reload tout ──────────────── */
     const fetchAll = useCallback(async () => {
         setLoading(true);
         setRoutesPage(1); setUsersPage(1); setRealtimePage(1);
         setProductsPage(1); setSellersPage(1); setServicesPage(1); setAnnoncesPage(1);
+        setVisitUsersPage(1);
         try {
             const [ov, tr, mod, dv] = await Promise.all([
                 analyticsGetOverview({ period }),
@@ -323,7 +369,8 @@ export default function KpiPage() {
         setLoading(false);
         fetchRoutes(1); fetchUsers(1); fetchRealtime(1);
         fetchRevenue(); fetchProducts(1); fetchSellers(1); fetchServices(1); fetchAnnonces(1);
-    }, [period, fetchRoutes, fetchUsers, fetchRealtime, fetchRevenue, fetchProducts, fetchSellers, fetchServices, fetchAnnonces]);
+        fetchVisits(); fetchVisitUsers(1);
+    }, [period, fetchRoutes, fetchUsers, fetchRealtime, fetchRevenue, fetchProducts, fetchSellers, fetchServices, fetchAnnonces, fetchVisits, fetchVisitUsers]);
 
     useEffect(() => { fetchAll(); }, [fetchAll]);
 
@@ -335,6 +382,7 @@ export default function KpiPage() {
     const handleSellersPage  = (p: number) => { setSellersPage(p);  fetchSellers(p); };
     const handleServicesPage = (p: number) => { setServicesPage(p); fetchServices(p); };
     const handleAnnoncesPage = (p: number) => { setAnnoncesPage(p); fetchAnnonces(p); };
+    const handleVisitUsersPage = (p: number) => { setVisitUsersPage(p); fetchVisitUsers(p); };
 
     /* Real-time socket push */
     useEffect(() => {
@@ -408,7 +456,7 @@ export default function KpiPage() {
 
             {/* ── Tabs ─────────────────────────────────────────── */}
             <div className="flex gap-1 bg-muted rounded-xl p-1 w-fit overflow-x-auto scrollbar-hide">
-                {(['overview', 'commerce', 'realtime'] as const).map((t) => (
+                {(['overview', 'visites', 'commerce', 'realtime'] as const).map((t) => (
                     <button
                         key={t}
                         onClick={() => setTab(t)}
@@ -416,7 +464,7 @@ export default function KpiPage() {
                             tab === t ? 'bg-white dark:bg-zinc-800 text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
                         }`}
                     >
-                        {t === 'overview' ? 'Vue globale' : t === 'commerce' ? '🛒 Commerce' : 'Temps réel'}
+                        {t === 'overview' ? 'Vue globale' : t === 'visites' ? 'Visites' : t === 'commerce' ? '🛒 Commerce' : 'Temps réel'}
                         {t === 'realtime' && (
                             <span className="ml-2 inline-flex items-center">
                                 <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-ping-slow" />
@@ -533,6 +581,107 @@ export default function KpiPage() {
                             columns={userColumns} data={users} loading={loadingUsers}
                             emptyMessage="Aucun utilisateur pour cette période"
                             totalItems={usersTotal} currentPage={usersPage} itemsPerPage={LIMIT} onPageChange={handleUsersPage}
+                        />
+                    </div>
+                </div>
+            )}
+
+            {/* ══ Visites ═════════════════════════════════════════ */}
+            {tab === 'visites' && (
+                <div className="space-y-4 md:space-y-6">
+                    {/* KPI Cards */}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                        <KpiCard icon="solar:eye-bold-duotone"                  label="Total visites"       value={fmt(visitOverview?.totalVisits)}       color="#3B82F6" />
+                        <KpiCard icon="solar:users-group-two-rounded-bold-duotone" label="Visiteurs uniques" value={fmt(visitOverview?.uniqueVisitors)}    color="#8B5CF6" />
+                        <KpiCard icon="solar:user-check-rounded-bold-duotone"   label="Connectés"           value={fmt(visitOverview?.connectedVisitors)} color="#10B981" />
+                        <KpiCard icon="solar:user-id-bold-duotone"              label="Anonymes"            value={fmt(visitOverview?.anonymousVisitors)} color="#F59E0B" />
+                        <KpiCard icon="solar:calendar-mark-bold-duotone"        label="Aujourd'hui"         value={fmt(visitOverview?.visitsToday)}       color="#EF4444" />
+                        <KpiCard icon="solar:calendar-bold-duotone"             label="Cette semaine"       value={fmt(visitOverview?.visitsWeek)}        color="#06B6D4" />
+                        <KpiCard icon="solar:calendar-search-bold-duotone"      label="Ce mois"             value={fmt(visitOverview?.visitsMonth)}       color="#8B5CF6" />
+                    </div>
+
+                    {/* Évolution des visites */}
+                    <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-border p-4 sm:p-5">
+                        <h2 className="text-sm font-semibold text-foreground mb-4">Évolution des visites</h2>
+                        {visitTrend.length === 0 ? (
+                            <div className="h-48 flex items-center justify-center text-muted-foreground text-sm">
+                                {loadingVisits ? <Icon icon="solar:refresh-bold-duotone" width={20} className="animate-spin" /> : 'Aucune donnée'}
+                            </div>
+                        ) : (
+                            <ResponsiveContainer width="100%" height={200}>
+                                <AreaChart data={visitTrend} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+                                    <defs>
+                                        <linearGradient id="gVisits" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.18} />
+                                            <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,.06)" />
+                                    <XAxis dataKey="date" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
+                                    <YAxis tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
+                                    <Tooltip contentStyle={{ borderRadius: 12, fontSize: 12, border: '1px solid rgba(0,0,0,.08)' }} />
+                                    <Area type="monotone" dataKey="visits" name="Visites" stroke="#3B82F6" fill="url(#gVisits)" strokeWidth={2} dot={false} />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        )}
+                    </div>
+
+                    {/* Navigateur / OS / Appareil */}
+                    <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-border p-4 sm:p-5">
+                        <h2 className="text-sm font-semibold text-foreground mb-4">Navigateurs, OS & appareils</h2>
+                        {!visitDevices ? (
+                            <div className="h-28 flex items-center justify-center text-muted-foreground text-sm">Aucune donnée</div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                {([
+                                    { title: 'Navigateur', data: visitDevices.browsers },
+                                    { title: 'Système',    data: visitDevices.os },
+                                    { title: 'Appareil',   data: visitDevices.devices },
+                                ] as const).map((block) => (
+                                    <div key={block.title}>
+                                        <p className="text-xs font-medium text-muted-foreground mb-2">{block.title}</p>
+                                        <ResponsiveContainer width="100%" height={140}>
+                                            <BarChart data={block.data} margin={{ left: -10, right: 4 }}>
+                                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,.06)" />
+                                                <XAxis dataKey="name" tick={{ fontSize: 9 }} tickLine={false} axisLine={false} />
+                                                <YAxis tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
+                                                <Tooltip contentStyle={{ borderRadius: 12, fontSize: 11 }} />
+                                                <Bar dataKey="value" name="Visites" radius={[4, 4, 0, 0]}>
+                                                    {block.data.map((_: any, i: number) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                                                </Bar>
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* PWA vs Navigateur */}
+                    <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-border p-4 sm:p-5">
+                        <h2 className="text-sm font-semibold text-foreground mb-4">PWA vs Navigateur</h2>
+                        {!visitDevices?.pwa?.length ? (
+                            <div className="h-40 flex items-center justify-center text-muted-foreground text-sm">Aucune donnée</div>
+                        ) : (
+                            <ResponsiveContainer width="100%" height={180}>
+                                <PieChart>
+                                    <Pie data={visitDevices.pwa} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={65} paddingAngle={2}>
+                                        {visitDevices.pwa.map((_: any, i: number) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                                    </Pie>
+                                    <Tooltip contentStyle={{ borderRadius: 12, fontSize: 11 }} />
+                                    <Legend iconType="circle" iconSize={7} wrapperStyle={{ fontSize: 10 }} />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        )}
+                    </div>
+
+                    {/* Visiteurs connectés les plus actifs */}
+                    <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-border p-4 sm:p-5">
+                        <h2 className="text-sm font-semibold text-foreground mb-4">Visiteurs connectés les plus actifs</h2>
+                        <GenericTable<UserRow, string>
+                            columns={userColumns} data={visitUsers} loading={loadingVisitUsers}
+                            emptyMessage="Aucun visiteur connecté pour cette période"
+                            totalItems={visitUsersTotal} currentPage={visitUsersPage} itemsPerPage={LIMIT} onPageChange={handleVisitUsersPage}
                         />
                     </div>
                 </div>

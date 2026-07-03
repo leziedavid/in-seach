@@ -2685,3 +2685,29 @@ export const analyticsGetTopAnnonces = async (q: AnalyticsQuery = {}): Promise<B
     const r = await secureFetch(`${getBaseUrl()}/analytics/top-annonces${qs ? `?${qs}` : ''}`);
     return r.json();
 };
+
+/* ─── Analytics — Visites (site-visit) ─────────────────────────────────────── */
+
+export const analyticsSiteVisitGetOverview = async (q: AnalyticsQuery = {}): Promise<BaseResponse<any>> => {
+    const qs = new URLSearchParams(q as any).toString();
+    const r = await secureFetch(`${getBaseUrl()}/site-visit/overview${qs ? `?${qs}` : ''}`);
+    return r.json();
+};
+
+export const analyticsSiteVisitGetTrend = async (q: AnalyticsQuery = {}): Promise<BaseResponse<any>> => {
+    const qs = new URLSearchParams(q as any).toString();
+    const r = await secureFetch(`${getBaseUrl()}/site-visit/trend${qs ? `?${qs}` : ''}`);
+    return r.json();
+};
+
+export const analyticsSiteVisitGetDevices = async (q: AnalyticsQuery = {}): Promise<BaseResponse<any>> => {
+    const qs = new URLSearchParams(q as any).toString();
+    const r = await secureFetch(`${getBaseUrl()}/site-visit/devices${qs ? `?${qs}` : ''}`);
+    return r.json();
+};
+
+export const analyticsSiteVisitGetTopUsers = async (q: AnalyticsQuery = {}): Promise<BaseResponse<any>> => {
+    const qs = new URLSearchParams(q as any).toString();
+    const r = await secureFetch(`${getBaseUrl()}/site-visit/top-users${qs ? `?${qs}` : ''}`);
+    return r.json();
+};
