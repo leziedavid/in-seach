@@ -236,20 +236,9 @@ export default function LoginPage() {
                                 <span className="text-[10px] text-muted-foreground">ou</span>
                                 <div className="flex-1 h-px bg-border" />
                             </div>
-                            {bioError && (
-                                <p className="text-xs text-red-500 text-center">{bioError}</p>
-                            )}
-                            <button
-                                type="button"
-                                onClick={handleBiometricLogin}
-                                disabled={bioLoading}
-                                className="w-16 h-16 rounded-2xl bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/50 border border-blue-200 dark:border-blue-800 flex items-center justify-center transition-all active:scale-90 disabled:opacity-50"
-                                aria-label="Connexion biométrique"
-                            >
-                                {bioLoading
-                                    ? <Icon icon="solar:refresh-bold-duotone" width={28} className="animate-spin text-blue-500" />
-                                    : <Icon icon="solar:face-scan-circle-bold-duotone" width={36} className="text-blue-500" />
-                                }
+                            {bioError && (<p className="text-xs text-red-500 text-center">{bioError}</p>)}
+                            <button type="button" onClick={handleBiometricLogin} disabled={bioLoading} className="w-16 h-16 rounded-2xl bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/50 border border-blue-200 dark:border-blue-800 flex items-center justify-center transition-all active:scale-90 disabled:opacity-50" aria-label="Connexion biométrique">
+                                {bioLoading ? <Icon icon="solar:refresh-bold-duotone" width={60} className="animate-spin text-blue-500" /> : <Icon icon="arcticons:face-id" width={60} className="text-blue-500" />}
                             </button>
                             <span className="text-[10px] text-muted-foreground">Face ID / Touch ID</span>
                             <p className="text-[9px] text-muted-foreground/70 text-center leading-tight max-w-[220px]">
