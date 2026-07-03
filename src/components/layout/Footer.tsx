@@ -23,7 +23,12 @@ export default function SocialFollow() {
                         <div className="flex flex-row gap-2">
                             {socialLinks.map((link) => (
                                 <a key={link.href} href={link.href} target="_blank" rel="noopener noreferrer" className="transition-transform transform hover:scale-110"  >
-                                    <Image src={link.src} alt={link.alt} width={30} height={30} className="object-contain" />
+                                    <Image
+                                        src={link.src}
+                                        alt={link.alt}
+                                        width={30}
+                                        height={30}
+                                        className="object-contain" />
                                 </a>
                             ))}
                         </div>
@@ -60,5 +65,5 @@ export default function SocialFollow() {
 
             </div>
         </footer>
-    )
+    );
 }

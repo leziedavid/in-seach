@@ -64,7 +64,7 @@ export default function Store() {
         return name
             .trim()
             .replace(/\s+/g, "-")        // remplace les espaces par -
-            .replace(/[^\w\-]+/g, "")    // supprime les caractères spéciaux
+            .replace(/[^\w\-]+/g, "");    // supprime les caractères spéciaux
     }
 
     const handleCopy = async (url: string) => {
@@ -275,16 +275,12 @@ export default function Store() {
                 </div>
 
             </div>
-
             <SectionHeader
                 title="La vente en ligne n'a jamais été aussi facile"
                 subtitle="Montez votre boutique en ligne en quelques clics et bénéficiez de tous les outils essentiels pour reussir dans l'e-commerce : ,
                 Achetez, vendez ou échangez tous types de produits d'occasion en toute simplicité"
                 className="mb-8"
             />
-
-
-
             {/* Store Information Section */}
             <div className="w-full max-w-4xl mx-auto mb-2 px-0 md:px-4">
                 <div className="group bg-card border-b p-6  flex items-center justify-between gap-6">
@@ -292,7 +288,12 @@ export default function Store() {
                     <div className="flex items-center gap-4 md:gap-6">
                         <div className="relative w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/10 overflow-hidden shrink-0">
                             {storeInfo?.storeLogo ? (
-                                <Image src={storeInfo.storeLogo} alt={storeInfo.storeName || "Boutique"} fill className="object-cover" unoptimized />
+                                <Image
+                                    src={storeInfo.storeLogo}
+                                    alt={storeInfo.storeName || "Boutique"}
+                                    fill
+                                    className="object-cover"
+                                    unoptimized />
                             ) : (
                                 <Icon icon="solar:shop-bold-duotone" className="w-8 h-8 md:w-10 md:h-10 text-primary" />
                             )}
@@ -336,8 +337,6 @@ export default function Store() {
 
                 </div>
             </div>
-
-
             <Share
                 isOpen={isShareOpen}
                 onClose={() => setIsShareOpen(false)}
@@ -349,14 +348,10 @@ export default function Store() {
                 storeName={storeInfo?.storeName || ""}
                 storeLogo={storeInfo?.storeLogo || ""}
             />
-
-
             {/* QR Code Section */}
             {storeInfo?.id && (
                 <QRCodeSection storeInfo={storeInfo} />
             )}
-
-
             <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-2">
                 <ProductsManagementContent
                     loading={loading}
@@ -374,7 +369,6 @@ export default function Store() {
                     storeName={storeInfo?.storeName || ""}
                 />
             </div>
-
             {/* Product Form Modal */}
             <Modal isOpen={isModalOpen} onClose={() => { setIsModalOpen(false); setIsEditing(false); setSelectedProduct(null); }}>
                 <div className="p-4 md:p-0">
@@ -400,9 +394,7 @@ export default function Store() {
                     />
                 </div>
             </Modal>
-
             <VoiceSearchModal isOpen={isVoiceModalOpen} onClose={() => setIsVoiceModalOpen(false)} onResult={handleVoiceResult} />
-
             {/* Store Update Modal */}
             <Modal isOpen={isStoreModalOpen} onClose={() => setIsStoreModalOpen(false)} >
                 <div className="p-6 space-y-6">
@@ -410,7 +402,12 @@ export default function Store() {
                         <div className="relative group">
                             <div className="w-32 h-32 rounded-[2rem] bg-muted border-2 border-dashed border-border overflow-hidden flex items-center justify-center relative">
                                 {storeLogoPreview ? (
-                                    <Image src={storeLogoPreview} alt="Logo preview" fill className="object-cover" unoptimized />
+                                    <Image
+                                        src={storeLogoPreview}
+                                        alt="Logo preview"
+                                        fill
+                                        className="object-cover"
+                                        unoptimized />
                                 ) : (
                                     <Icon icon="solar:camera-bold-duotone" className="w-12 h-12 text-muted-foreground" />
                                 )}
@@ -443,7 +440,6 @@ export default function Store() {
                     </div>
                 </div>
             </Modal>
-
             {/* Live Form Modal */}
             <LiveFormModal
                 isOpen={isLiveModalOpen}
@@ -455,7 +451,7 @@ export default function Store() {
                 entityLabel={liveEntityLabel}
             />
         </div>
-    )
+    );
 }
 
 // ─── Contenu "Mes Produits" — composant stable, évite le pattern IIFE inline ────
@@ -712,9 +708,19 @@ function QRCodeSection({ storeInfo }: { storeInfo: StoreUserInfo }) {
                                     {/* Logo — sans fond, taille généreuse */}
                                     <div className="w-28 h-28 relative shrink-0">
                                         {storeInfo.storeLogo ? (
-                                            <Image src={storeInfo.storeLogo} alt={storeName} fill className="object-contain" unoptimized />
+                                            <Image
+                                                src={storeInfo.storeLogo}
+                                                alt={storeName}
+                                                fill
+                                                className="object-contain"
+                                                unoptimized />
                                         ) : (
-                                            <Image src="/logo.png" alt="Logo" fill className="object-contain" unoptimized />
+                                            <Image
+                                                src="/logo.png"
+                                                alt="Logo"
+                                                fill
+                                                className="object-contain"
+                                                unoptimized />
                                         )}
                                     </div>
 
@@ -772,5 +778,5 @@ function QRCodeSection({ storeInfo }: { storeInfo: StoreUserInfo }) {
                 )}
             </div>
         </div>
-    )
+    );
 }

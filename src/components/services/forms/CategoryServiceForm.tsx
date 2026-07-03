@@ -69,7 +69,12 @@ export default function CategoryServiceForm({ initialData, onSubmit, isSubmittin
                     <div className="flex justify-center">
                         <label className={`relative w-24 h-24 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center transition-all cursor-pointer ${iconPreview ? 'border-primary/50 bg-primary/5' : 'border-border hover:border-primary bg-muted'}`}>
                             {iconPreview ? (
-                                <Image src={iconPreview} alt="Icon Preview" fill className="object-cover rounded-xl p-2" unoptimized />
+                                <Image
+                                    src={iconPreview}
+                                    alt="Icon Preview"
+                                    fill
+                                    className="object-cover rounded-xl p-2"
+                                    unoptimized />
                             ) : (
                                 <>
                                     <Icon icon="solar:upload-bold-duotone" className="w-6 h-6 text-muted-foreground" />
@@ -97,7 +102,6 @@ export default function CategoryServiceForm({ initialData, onSubmit, isSubmittin
                     </div>
                 </div>
             </div>
-
             <div className="sticky bottom-0 bg-background/95 backdrop-blur-sm p-4 border-t border-border flex items-center justify-end gap-3 rounded-b-xl">
                 <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-bold text-muted-foreground hover:bg-muted rounded-lg transition-all">
                     Annuler

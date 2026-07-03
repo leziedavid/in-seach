@@ -131,8 +131,7 @@ export default function DriverSelectorModal({ isOpen, onClose, orderId, onSucces
                                                             src={driver.deliveryLogo}
                                                             alt={driver.companyName || "Logo"}
                                                             fill
-                                                            className="object-cover"
-                                                        />
+                                                            className="object-cover" />
                                                     ) : (
                                                         <Icon icon="solar:user-bold-duotone" className="w-5 h-5 text-primary" />
                                                     )}
@@ -156,7 +155,6 @@ export default function DriverSelectorModal({ isOpen, onClose, orderId, onSucces
                                                 {isSelected && <Icon icon="solar:check-bold" className="w-3 h-3 text-white" />}
                                             </div>
                                         </div>
-
                                         <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/50">
                                             <div className="flex flex-col">
                                                 <span className="text-[10px] font-black text-primary">
@@ -171,7 +169,6 @@ export default function DriverSelectorModal({ isOpen, onClose, orderId, onSucces
                                                 <span className="text-[8px] text-muted-foreground font-bold uppercase">En cours</span>
                                             </div>
                                         </div>
-
                                         <div className="flex items-center gap-2 mt-1.5 opacity-60">
                                             {driver.typeEngin && (
                                                 <div className="flex items-center gap-1">

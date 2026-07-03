@@ -63,7 +63,12 @@ export default function SliderForm({ initialData, onSubmit, onCancel, isSubmitti
                     <div className="flex flex-wrap gap-3">
                         {preview ? (
                             <div className="relative w-full aspect-[21/9] rounded-xl overflow-hidden border border-border group">
-                                <Image src={preview} alt="preview" fill className="object-cover" unoptimized />
+                                <Image
+                                    src={preview}
+                                    alt="preview"
+                                    fill
+                                    className="object-cover"
+                                    unoptimized />
                                 <button type="button" onClick={removeImage} className="absolute top-2 right-2 bg-black/60 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <Icon icon="solar:close-circle-bold" className="w-5 h-5" />
                                 </button>
@@ -96,7 +101,6 @@ export default function SliderForm({ initialData, onSubmit, onCancel, isSubmitti
                     </div>
                 </div>
             </div>
-
             <div className="p-4 border-t border-border flex items-center justify-end gap-3 bg-background flex-shrink-0">
                 <button type="button" onClick={onCancel} className="px-4 py-2 text-sm font-bold text-muted-foreground hover:bg-muted rounded-lg transition-all">Annuler</button>
                 <button type="submit" disabled={isSubmitting} className="px-6 py-2 bg-primary text-white text-sm font-bold rounded-lg hover:bg-secondary transition-all disabled:opacity-50 flex items-center gap-2">

@@ -369,7 +369,12 @@ export default function ManualQuoteModal({ isOpen, onClose, onSuccess, initialDa
 
                                 {existingImageUrls.map((url, index) => (
                                     <div key={`ex-${index}`} className="relative h-24 rounded-2xl overflow-hidden group shadow-lg">
-                                        <Image src={url} alt="Existing attachment" fill className="object-cover" unoptimized />
+                                        <Image
+                                            src={url}
+                                            alt="Existing attachment"
+                                            fill
+                                            className="object-cover"
+                                            unoptimized />
                                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                             <button type="button" onClick={() => removeImage(index, true)} className="bg-red-500 text-white rounded-xl p-2 hover:scale-110 transition-transform shadow-xl">
                                                 <Icon icon="solar:trash-bin-trash-bold" className="w-5 h-5" />
@@ -386,7 +391,12 @@ export default function ManualQuoteModal({ isOpen, onClose, onSuccess, initialDa
                                                 <span className="text-[10px] font-bold text-primary uppercase mt-1">PDF</span>
                                             </div>
                                         ) : (
-                                            <Image src={preview} alt="New attachment" fill className="object-cover" unoptimized />
+                                            <Image
+                                                src={preview}
+                                                alt="New attachment"
+                                                fill
+                                                className="object-cover"
+                                                unoptimized />
                                         )}
                                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                             <button type="button" onClick={() => removeImage(index, false)} className="bg-red-500 text-white rounded-xl p-2 hover:scale-110 transition-transform shadow-xl">

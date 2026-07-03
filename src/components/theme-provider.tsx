@@ -58,7 +58,7 @@ function applyTheme(
         style.textContent = "*,*::before,*::after{transition:none!important}"
         document.head.appendChild(style)
         window.getComputedStyle(document.body)
-        setTimeout(() => document.head.removeChild(style), 1)
+        setTimeout(() => style.remove(), 1)
     }
 
     if (attribute === "class") {

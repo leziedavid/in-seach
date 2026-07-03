@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Icon } from "@iconify/react";
-import Image from 'next/image';
+import Image from "next/image";
 import { Booking, BookingStatus, BookingsCalendar } from "@/types/interface";
 import { QRCodeSVG } from "qrcode.react";
 import { getUserRole } from "@/lib/auth";
@@ -150,7 +150,12 @@ export default function BookingDetailModal({ isOpen, onClose, booking, onEditRdv
                             <div className="relative h-[28vh] shrink-0 group">
                                 <AnimatePresence mode="wait">
                                     <motion.div key={activeImageIndex} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }} className="absolute inset-0">
-                                        <Image src={imageGallery[activeImageIndex].url} fill unoptimized className="object-cover" alt="Service" />
+                                        <Image
+                                            src={imageGallery[activeImageIndex].url}
+                                            fill
+                                            unoptimized
+                                            className="object-cover"
+                                            alt="Service" />
                                     </motion.div>
                                 </AnimatePresence>
 
@@ -186,7 +191,12 @@ export default function BookingDetailModal({ isOpen, onClose, booking, onEditRdv
                                     <div className="absolute bottom-12 right-6 flex gap-1.5 p-1.5 bg-black/40 backdrop-blur-xl rounded-sm border border-white/10 z-30">
                                         {imageGallery.slice(0, 4).map((image, index) => (
                                             <button key={index} onClick={(e) => { e.stopPropagation(); setActiveImageIndex(index); }} className={`relative w-8 h-8 rounded-sm overflow-hidden border-2 transition-all ${activeImageIndex === index ? 'border-primary scale-110' : 'border-white/10 opacity-60 hover:opacity-100'} `}>
-                                                <Image src={image.url} alt={`Gallery ${index}`} fill unoptimized className="object-cover" />
+                                                <Image
+                                                    src={image.url}
+                                                    alt={`Gallery ${index}`}
+                                                    fill
+                                                    unoptimized
+                                                    className="object-cover" />
                                             </button>
                                         ))}
                                     </div>
@@ -218,7 +228,12 @@ export default function BookingDetailModal({ isOpen, onClose, booking, onEditRdv
                                     {/* Compact Profile Header */}
                                     <div className="flex items-center gap-3 mb-3">
                                         <div className="relative w-12 h-12 rounded-full overflow-hidden border border-border shrink-0">
-                                            <Image src={booking.provider?.avatar || "/avatars/user2.png?q=80&w=200&auto=format&fit=crop"} fill className="object-cover" alt="Provider" unoptimized />
+                                            <Image
+                                                src={booking.provider?.avatar || "/avatars/user2.png?q=80&w=200&auto=format&fit=crop"}
+                                                fill
+                                                className="object-cover"
+                                                alt="Provider"
+                                                unoptimized />
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-0.5 truncate">{booking.service?.title || "SÉANCE"}</p>

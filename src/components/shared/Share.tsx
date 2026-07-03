@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Icon } from '@iconify/react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Image from 'next/image';
+import Image from "next/image";
 import { useNotification } from "@/components/notifications/NotificationProvider";
 import { useTranslation } from "@/utils/langue/hooks";
 
@@ -103,7 +103,12 @@ export const Share = ({ isOpen, onClose, url, title, description, image, price, 
                             <div className="flex flex-row gap-4 p-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-3xl border border-zinc-100 dark:border-zinc-800 items-center">
                                 <div className="relative w-20 md:w-28 aspect-square rounded-2xl overflow-hidden shrink-0 bg-white dark:bg-zinc-900 shadow-sm">
                                     {image ? (
-                                        <Image src={image} alt={title} fill className="object-cover" unoptimized />
+                                        <Image
+                                            src={image}
+                                            alt={title}
+                                            fill
+                                            className="object-cover"
+                                            unoptimized />
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center text-zinc-300">
                                             <Icon icon="solar:box-bold" width={48} />
@@ -115,7 +120,12 @@ export const Share = ({ isOpen, onClose, url, title, description, image, price, 
                                         <div className="flex items-center gap-2 mb-1">
                                             {storeLogo && (
                                                 <div className="relative w-4 h-4 rounded-full overflow-hidden shrink-0">
-                                                    <Image src={storeLogo} alt={storeName} fill className="object-cover" unoptimized />
+                                                    <Image
+                                                        src={storeLogo}
+                                                        alt={storeName}
+                                                        fill
+                                                        className="object-cover"
+                                                        unoptimized />
                                                 </div>
                                             )}
                                             <span className="text-[10px] font-black uppercase text-zinc-400 truncate tracking-wider">

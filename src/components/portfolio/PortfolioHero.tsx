@@ -15,13 +15,12 @@ export default function PortfolioHero() {
             {/* Left Column: Avatar & Info */}
             <div className="flex flex-col items-center md:items-start gap-6 shrink-0">
                 <div className="relative w-48 h-48 rounded-full overflow-hidden border-2 border-border shadow-sm">
-                    <Image 
-                        src="/david-avatar.png" 
-                        alt="TRA BI LEZIE DAVID" 
+                    <Image
+                        src="/david-avatar.png"
+                        alt="TRA BI LEZIE DAVID"
                         fill
                         className="object-cover"
-                        priority
-                    />
+                        priority />
                 </div>
                 
                 <div className="flex flex-col gap-4 w-full">
@@ -36,7 +35,6 @@ export default function PortfolioHero() {
                     </div>
                 </div>
             </div>
-
             {/* Right Column: Title & Bio */}
             <div className="flex flex-col gap-8 flex-1 text-center md:text-left">
                 <div className="flex flex-col items-center md:items-start gap-4">

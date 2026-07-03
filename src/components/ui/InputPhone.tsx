@@ -70,7 +70,6 @@ export const InputPhone = forwardRef<HTMLInputElement, InputPhoneProps>(
           </div>
           <Icon icon="solar:alt-arrow-down-linear" className={cn("w-3.5 h-3.5 text-muted-foreground transition-transform duration-200", isOpen && "rotate-180")} />
         </div>
-
         {/* Dropdown Menu */}
         {isOpen && (
           <div className="absolute top-full left-0 mt-1.5 w-[200px] max-h-[300px] overflow-y-auto rounded-sm border border-border bg-card p-1  z-50">
@@ -87,7 +86,6 @@ export const InputPhone = forwardRef<HTMLInputElement, InputPhoneProps>(
             ))}
           </div>
         )}
-
         <input {...props} ref={ref} type="tel" value={phone || ''}
           onChange={(e) => { const cleanPhone = e.target.value.replace(/[^\d\s]/g, ''); onPhoneChange({ indicatif: currentIndicatif, phone: cleanPhone }); }}
           className="flex-1 bg-transparent px-3 py-2 outline-none disabled:cursor-not-allowed disabled:opacity-50 placeholder:text-muted-foreground text-foreground font-medium" placeholder="07 12 34 56 78" />

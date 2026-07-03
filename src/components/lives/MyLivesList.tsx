@@ -15,28 +15,28 @@ import CreateButton from "@/components/ui/CreateButton";
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
 
 const STATUS_CONFIG: Record<LiveStatus, { label: string; color: string; dot: string }> = {
-    [LiveStatus.DRAFT]:     { label: "Brouillon",  color: "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400",           dot: "bg-zinc-400" },
-    [LiveStatus.PENDING]:   { label: "En attente", color: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",     dot: "bg-amber-400" },
-    [LiveStatus.PUBLISHED]: { label: "Publié",     color: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",     dot: "bg-green-500" },
-    [LiveStatus.REJECTED]:  { label: "Refusé",     color: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",             dot: "bg-red-500" },
-    [LiveStatus.SUSPENDED]: { label: "Suspendu",   color: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400", dot: "bg-orange-400" },
+    [LiveStatus.DRAFT]: { label: "Brouillon", color: "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400", dot: "bg-zinc-400" },
+    [LiveStatus.PENDING]: { label: "En attente", color: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400", dot: "bg-amber-400" },
+    [LiveStatus.PUBLISHED]: { label: "Publié", color: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400", dot: "bg-green-500" },
+    [LiveStatus.REJECTED]: { label: "Refusé", color: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400", dot: "bg-red-500" },
+    [LiveStatus.SUSPENDED]: { label: "Suspendu", color: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400", dot: "bg-orange-400" },
 };
 
 const ENTITY_LABELS: Partial<Record<LiveEntityType, string>> = {
-    [LiveEntityType.PRODUCT]:            "Produit",
-    [LiveEntityType.SERVICE]:            "Service",
-    [LiveEntityType.ANNONCE]:            "Annonce",
+    [LiveEntityType.PRODUCT]: "Produit",
+    [LiveEntityType.SERVICE]: "Service",
+    [LiveEntityType.ANNONCE]: "Annonce",
     [LiveEntityType.SERVICE_LOGISTIQUE]: "Logistique",
-    [LiveEntityType.PROFILE]:            "Profil",
+    [LiveEntityType.PROFILE]: "Profil",
 };
 
 const STATUS_FILTER_OPTIONS = [
     { value: "", label: "Tous les statuts" },
     { value: LiveStatus.PUBLISHED, label: "Publiés" },
-    { value: LiveStatus.PENDING,   label: "En attente" },
-    { value: LiveStatus.REJECTED,  label: "Refusés" },
+    { value: LiveStatus.PENDING, label: "En attente" },
+    { value: LiveStatus.REJECTED, label: "Refusés" },
     { value: LiveStatus.SUSPENDED, label: "Suspendus" },
-    { value: LiveStatus.DRAFT,     label: "Brouillons" },
+    { value: LiveStatus.DRAFT, label: "Brouillons" },
 ];
 
 function detectSource(url: string) {
@@ -159,20 +159,19 @@ export default function MyLivesList() {
             {/* Stats */}
             {stats && (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <StatCard icon="solar:videocamera-bold-duotone" value={stats.total}     label="Total"      color="bg-primary/10 text-primary" />
-                    <StatCard icon="solar:play-circle-bold-duotone" value={stats.published} label="Publiés"    color="bg-green-100 text-green-600 dark:bg-green-900/30" />
-                    <StatCard icon="solar:clock-circle-bold-duotone" value={stats.pending}  label="En attente" color="bg-amber-100 text-amber-600 dark:bg-amber-900/30" />
-                    <StatCard icon="solar:close-circle-bold-duotone" value={stats.rejected} label="Refusés"    color="bg-red-100 text-red-600 dark:bg-red-900/30" />
+                    <StatCard icon="solar:videocamera-bold-duotone" value={stats.total} label="Total" color="bg-primary/10 text-primary" />
+                    <StatCard icon="solar:play-circle-bold-duotone" value={stats.published} label="Publiés" color="bg-green-100 text-green-600 dark:bg-green-900/30" />
+                    <StatCard icon="solar:clock-circle-bold-duotone" value={stats.pending} label="En attente" color="bg-amber-100 text-amber-600 dark:bg-amber-900/30" />
+                    <StatCard icon="solar:close-circle-bold-duotone" value={stats.rejected} label="Refusés" color="bg-red-100 text-red-600 dark:bg-red-900/30" />
                 </div>
             )}
 
             {/* Filtres */}
             <div className="flex flex-col sm:flex-row gap-3">
                 {/* Recherche */}
-                <div className="flex items-center gap-2 flex-1 bg-card border border-border rounded-xl px-3 h-10">
+                <div className="flex w-full bg-card border border-border rounded-xl px-4 py-2.5 shadow-sm focus-within:border-primary transition-all mb-4">
                     <Icon icon="solar:magnifer-bold-duotone" className="w-4 h-4 text-muted-foreground shrink-0" />
-                    <input
-                        value={search}
+                    <input value={search}
                         onChange={e => { setSearch(e.target.value); setPage(1); }}
                         placeholder="Rechercher un Live..."
                         className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
@@ -185,8 +184,7 @@ export default function MyLivesList() {
                 </div>
 
                 {/* Filtre statut */}
-                <select
-                    value={statusFilter}
+                <select value={statusFilter}
                     onChange={e => { setStatusFilter(e.target.value as LiveStatus | ""); setPage(1); }}
                     className="h-10 px-3 rounded-xl border border-border bg-card text-sm focus:outline-none focus:border-primary transition min-w-[160px]"
                 >
@@ -225,9 +223,7 @@ export default function MyLivesList() {
                             {search || statusFilter ? "Aucun Live correspondant" : "Aucun Live publié"}
                         </p>
                         <p className="text-xs text-muted-foreground mt-1">
-                            {search || statusFilter
-                                ? "Essayez de modifier vos filtres."
-                                : "Partagez vos vidéos TikTok, Instagram, Facebook ou YouTube pour promouvoir votre activité."}
+                            {search || statusFilter ? "Essayez de modifier vos filtres." : "Partagez vos vidéos TikTok, Instagram, Facebook ou YouTube pour promouvoir votre activité."}
                         </p>
                     </div>
                     {!search && !statusFilter && (

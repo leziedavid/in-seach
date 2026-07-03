@@ -318,8 +318,12 @@ export default function ServicesCard({ data: propData, page: propPage, limit: pr
                                         <div key={service.id} className="group rounded-lg p-0 md:p-4 flex flex-col md:items-center text-left md:text-center transition-all w-full">
                                             {/* Image */}
                                             <div className="relative w-full aspect-square mb-1.5 overflow-hidden rounded-lg md:rounded-2xl">
-                                                <Image src={(service.images?.[0] && service.images?.[0] !== "") ? service.images[0] : (service.imageUrls?.[0] && service.imageUrls?.[0] !== "") ? service.imageUrls[0] : 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop'} alt={service.title} fill
-                                                    unoptimized className="object-cover group-hover:scale-110 transition-transform duration-500" />
+                                                <Image
+                                                    src={(service.images?.[0] && service.images?.[0] !== "") ? service.images[0] : (service.imageUrls?.[0] && service.imageUrls?.[0] !== "") ? service.imageUrls[0] : 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop'}
+                                                    alt={service.title}
+                                                    fill
+                                                    unoptimized
+                                                    className="object-cover group-hover:scale-110 transition-transform duration-500" />
                                                 <div className="absolute top-2 left-2 bg-background/80 backdrop-blur-sm px-2 py-0.5 rounded-full text-[9px] font-black text-foreground shadow-sm uppercase">
                                                     {service.category?.label || 'Expert'}
                                                 </div>
@@ -390,7 +394,6 @@ export default function ServicesCard({ data: propData, page: propPage, limit: pr
                     <TablePagination page={page} limit={limit} total={total} totalPages={totalPages} onPageChange={setPage} />
                 </div>
             </div>
-
             {/* MODAL */}
             <Modal isOpen={isOpen} onClose={() => { setIsOpen(false); setIsEditing(false) }} >
                 <FormsServices
@@ -402,7 +405,6 @@ export default function ServicesCard({ data: propData, page: propPage, limit: pr
                     onClose={() => setIsOpen(false)}
                 />
             </Modal>
-
             {/* DELETE CONFIRMATION */}
             <Delete
                 isOpen={isDeleteModalOpen}
@@ -413,7 +415,6 @@ export default function ServicesCard({ data: propData, page: propPage, limit: pr
                 onConfirm={handleDeleteConfirm}
                 isDeleting={isDeleting}
             />
-
             {/* LIVE FORM MODAL */}
             <LiveFormModal
                 isOpen={isLiveModalOpen}
@@ -424,13 +425,12 @@ export default function ServicesCard({ data: propData, page: propPage, limit: pr
                 lockedEntity={!!liveService}
                 entityLabel={liveService?.title}
             />
-
             {/* BOOST MODAL */}
             {FEATURES.showBoostButton && boostService && (
                 <BoostEntityModal isOpen={isBoostOpen} onClose={() => { setIsBoostOpen(false); setBoostService(null); }} entityType="SERVICE" entityId={boostService.id} entityName={boostService.title} />
             )}
         </>
-    )
+    );
 }
 
 

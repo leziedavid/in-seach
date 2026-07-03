@@ -766,7 +766,7 @@ export default function ChatIAPage() {
                         </div>
                     ) : (
                         /* ── Écran vide (aucune conv sélectionnée) ── */
-                        <div className="relative z-10 h-full flex flex-col items-center justify-center p-8 text-center space-y-6">
+                        (<div className="relative z-10 h-full flex flex-col items-center justify-center p-8 text-center space-y-6">
                             <div className="relative">
                                 <div className="w-28 h-28 rounded-[2.5rem] bg-gradient-to-tr from-primary/20 to-primary/5 flex items-center justify-center">
                                     <Icon icon="solar:chat-round-dots-bold-duotone" className="text-primary w-14 h-14" />
@@ -791,7 +791,7 @@ export default function ChatIAPage() {
                                 <Icon icon="solar:shield-check-bold-duotone" className="w-3.5 h-3.5" />
                                 Chiffrement de bout en bout
                             </p>
-                        </div>
+                        </div>)
                     )}
                 </main>
             </div>

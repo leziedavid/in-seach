@@ -281,7 +281,12 @@ export default function AnnoncesCard({
                                 {paginatedData.map((annonce: Annonce) => (
                                     <div key={annonce.id} className={`group rounded-xl transition-all duration-300 bg-card border border-border/40 hover:border-primary/30 overflow-hidden ${viewMode === 'grid' ? "p-0 md:p-4 flex flex-col md:items-center text-left md:text-center" : "p-2 md:p-4 flex flex-row items-center gap-4 text-left"}`}>
                                         <div className={`relative overflow-hidden rounded-lg md:rounded-2xl shrink-0 ${viewMode === 'grid' ? "w-full aspect-square mb-1.5" : "w-24 h-24 md:w-32 md:h-32"}`}>
-                                            <Image src={(annonce.images?.[0] && annonce.images?.[0] !== "") ? annonce.images[0] : (annonce.imageUrls?.[0] && annonce.imageUrls?.[0] !== "") ? annonce.imageUrls[0] : 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop'} alt={annonce.title} fill unoptimized className="object-cover group-hover:scale-110 transition-transform duration-500" />
+                                            <Image
+                                                src={(annonce.images?.[0] && annonce.images?.[0] !== "") ? annonce.images[0] : (annonce.imageUrls?.[0] && annonce.imageUrls?.[0] !== "") ? annonce.imageUrls[0] : 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop'}
+                                                alt={annonce.title}
+                                                fill
+                                                unoptimized
+                                                className="object-cover group-hover:scale-110 transition-transform duration-500" />
                                             <div className={`absolute bg-background/80 backdrop-blur-sm px-2 py-0.5 rounded-full text-[9px] font-black text-foreground shadow-sm uppercase ${viewMode === 'grid' ? "top-2 left-2" : "top-1 left-1"}`}>
                                                 {annonce.categorie?.label || 'Annonce'}
                                             </div>
@@ -340,7 +345,6 @@ export default function AnnoncesCard({
                     </div>
                 )}
             </div>
-
             <Modal isOpen={isOpen} onClose={() => { setIsOpen(false); setIsEditing(false) }}>
                 <FormsAnnonce
                     initialData={selectedAnnonce ? mapAnnonceToFormData(selectedAnnonce) : undefined}
@@ -351,7 +355,6 @@ export default function AnnoncesCard({
                     onClose={() => setIsOpen(false)}
                 />
             </Modal>
-
             {/* DELETE CONFIRMATION */}
             <Delete
                 isOpen={isDeleteModalOpen}
@@ -362,7 +365,6 @@ export default function AnnoncesCard({
                 onConfirm={handleDeleteConfirm}
                 isDeleting={isDeleting}
             />
-
             {/* LIVE FORM MODAL */}
             <LiveFormModal
                 isOpen={isLiveModalOpen}
@@ -373,11 +375,10 @@ export default function AnnoncesCard({
                 lockedEntity={!!liveAnnonce}
                 entityLabel={liveAnnonce?.title}
             />
-
             {/* BOOST MODAL */}
             {FEATURES.showBoostButton && boostAnnonce && (
                 <BoostEntityModal isOpen={isBoostOpen} onClose={() => { setIsBoostOpen(false); setBoostAnnonce(null); }} entityType="ANNONCE" entityId={boostAnnonce.id} entityName={boostAnnonce.title} />
             )}
         </>
-    )
+    );
 }

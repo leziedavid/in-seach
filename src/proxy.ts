@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
 // Routes qui nécessitent d'être authentifié
 const protectedRoutes = ['/akwaba', '/chat-ia', '/admin'];

@@ -39,7 +39,6 @@ export default function PortfolioProjects() {
     return (
         <section id="projects" className="py-20 px-6 max-w-5xl mx-auto border-t border-border/40">
             <h2 className="text-4xl font-black mb-12 tracking-tight">{t("portfolio.projects.title")}</h2>
-
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
                 {PROJECTS.map((project) => (
                     <a
@@ -54,8 +53,7 @@ export default function PortfolioProjects() {
                                 src={project.image}
                                 alt={project.title}
                                 fill
-                                className="object-contain p-6 transition-transform group-hover:scale-105"
-                            />
+                                className="object-contain p-6 transition-transform group-hover:scale-105" />
                         </div>
                         <div>
                             <h3 className="text-sm font-black tracking-tight">{project.title}</h3>

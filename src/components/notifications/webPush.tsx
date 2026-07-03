@@ -32,8 +32,7 @@ const WebPushToast = ({ notification, onClose }: { notification: WebPushNotifica
                         src={notification.icon || "/icons/pwa/apple-touch-icon.png"}
                         alt="App"
                         fill
-                        className="object-cover"
-                    />
+                        className="object-cover" />
                 </div>
 
                 {/* Content */}
@@ -65,7 +64,6 @@ const WebPushToast = ({ notification, onClose }: { notification: WebPushNotifica
                     </svg>
                 </button>
             </div>
-
             {/* Barre de durée discrète */}
             <motion.div
                 initial={{ width: "100%" }}

@@ -53,8 +53,7 @@ export default function CNIUploadForm({ currentCNI, onSubmit, onClose, isSubmitt
                             alt="CNI Preview"
                             fill
                             className="object-cover"
-                            unoptimized
-                        />
+                            unoptimized />
                     ) : (
                         <div className="text-center p-8">
                             <Icon icon="solar:card-2-bold-duotone" className="w-16 h-16 text-muted-foreground mx-auto mb-2" />
@@ -77,7 +76,6 @@ export default function CNIUploadForm({ currentCNI, onSubmit, onClose, isSubmitt
                     {t("akwaba.settings.upload_hint")}
                 </p>
             </div>
-
             <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
                 <button
                     type="button"

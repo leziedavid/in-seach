@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Icon } from "@iconify/react";
-import Image from 'next/image';
+import Image from "next/image";
 import { Product, productConditionLabels, StoreUserInfo } from "@/types/interface";
 import { createPortal } from "react-dom";
 import { useCart } from "@/components/providers/CartProvider";
@@ -131,8 +131,20 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
             <AnimatePresence mode="wait">
                 {imagesList.length > 0 ? (
                     <motion.div key={currentImageIndex} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} className="absolute inset-0" >
-                        <Image src={imagesList[currentImageIndex]} fill unoptimized className="object-cover blur-3xl opacity-30 scale-110" alt="" aria-hidden />
-                        <Image src={imagesList[currentImageIndex]} fill unoptimized className="object-contain z-10 p-3 cursor-zoom-in" alt={`${product.name} - ${currentImageIndex + 1}`} onClick={() => setLightboxOpen(true)} />
+                        <Image
+                            src={imagesList[currentImageIndex]}
+                            fill
+                            unoptimized
+                            className="object-cover blur-3xl opacity-30 scale-110"
+                            alt=""
+                            aria-hidden />
+                        <Image
+                            src={imagesList[currentImageIndex]}
+                            fill
+                            unoptimized
+                            className="object-contain z-10 p-3 cursor-zoom-in"
+                            alt={`${product.name} - ${currentImageIndex + 1}`}
+                            onClick={() => setLightboxOpen(true)} />
                     </motion.div>
                 ) : (
                     <div className="absolute inset-0 flex items-center justify-center text-muted-foreground/20">
@@ -185,7 +197,12 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                 <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary relative overflow-hidden shrink-0 ring-2 ring-primary/20">
                         {storeInfo?.storeLogo ? (
-                            <Image src={storeInfo.storeLogo} alt={storeInfo.storeName || "Boutique"} fill className="object-cover" unoptimized />
+                            <Image
+                                src={storeInfo.storeLogo}
+                                alt={storeInfo.storeName || "Boutique"}
+                                fill
+                                className="object-cover"
+                                unoptimized />
                         ) : (
                             <Icon icon="solar:shop-bold-duotone" className="w-7 h-7 text-primary" />
                         )}
@@ -327,8 +344,20 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                                             <AnimatePresence mode="wait">
                                                 {imagesList.length > 0 ? (
                                                     <motion.div key={currentImageIndex} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} className="absolute inset-0">
-                                                        <Image src={imagesList[currentImageIndex]} fill unoptimized className="object-cover blur-3xl opacity-30 scale-110" alt="" aria-hidden />
-                                                        <Image src={imagesList[currentImageIndex]} fill unoptimized className="object-contain z-10 p-4 cursor-zoom-in" alt={product.name} onClick={() => setLightboxOpen(true)} />
+                                                        <Image
+                                                            src={imagesList[currentImageIndex]}
+                                                            fill
+                                                            unoptimized
+                                                            className="object-cover blur-3xl opacity-30 scale-110"
+                                                            alt=""
+                                                            aria-hidden />
+                                                        <Image
+                                                            src={imagesList[currentImageIndex]}
+                                                            fill
+                                                            unoptimized
+                                                            className="object-contain z-10 p-4 cursor-zoom-in"
+                                                            alt={product.name}
+                                                            onClick={() => setLightboxOpen(true)} />
                                                     </motion.div>
                                                 ) : (
                                                     <div className="absolute inset-0 flex items-center justify-center text-muted-foreground/20">
@@ -356,7 +385,12 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                                                 {imagesList.slice(0, 6).map((img, idx) => (
                                                     <button key={idx} onClick={() => setCurrentImageIndex(idx)}
                                                         className={`w-12 h-12 rounded-lg overflow-hidden border-2 transition-all shrink-0 relative ${currentImageIndex === idx ? "border-primary scale-105" : "border-transparent opacity-60 hover:opacity-100"}`}>
-                                                        <Image src={img} fill unoptimized className="object-cover" alt="" />
+                                                        <Image
+                                                            src={img}
+                                                            fill
+                                                            unoptimized
+                                                            className="object-cover"
+                                                            alt="" />
                                                     </button>
                                                 ))}
                                             </div>
@@ -423,7 +457,12 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                                                 <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-2xl border border-border/50">
                                                     <div className="w-11 h-11 rounded-full bg-primary/10 relative overflow-hidden shrink-0 ring-2 ring-primary/10">
                                                         {storeInfo?.storeLogo ? (
-                                                            <Image src={storeInfo.storeLogo} alt="" fill className="object-cover" unoptimized />
+                                                            <Image
+                                                                src={storeInfo.storeLogo}
+                                                                alt=""
+                                                                fill
+                                                                className="object-cover"
+                                                                unoptimized />
                                                         ) : (
                                                             <div className="w-full h-full flex items-center justify-center">
                                                                 <Icon icon="solar:shop-bold-duotone" className="w-6 h-6 text-primary" />
@@ -523,7 +562,12 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                                 <motion.div key={currentImageIndex} initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }}
                                     onClick={e => e.stopPropagation()}
                                     className="relative w-full h-full max-w-3xl max-h-[90vh] mx-4">
-                                    <Image src={imagesList[currentImageIndex]} fill unoptimized className="object-contain" alt={product.name} />
+                                    <Image
+                                        src={imagesList[currentImageIndex]}
+                                        fill
+                                        unoptimized
+                                        className="object-contain"
+                                        alt={product.name} />
                                 </motion.div>
                                 {imagesList.length > 1 && (
                                     <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">

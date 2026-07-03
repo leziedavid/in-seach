@@ -102,7 +102,6 @@ export default function LiveTrackingView({ delivery: initialDelivery, onBack }: 
 
     return (
         <div className="w-full space-y-4 py-4">
-
             {/* Header */}
             <div className="flex items-center gap-3 mb-2">
                 <button
@@ -128,7 +127,6 @@ export default function LiveTrackingView({ delivery: initialDelivery, onBack }: 
                     </button>
                 )}
             </div>
-
             {/* ── Status Progress ── */}
             {!isCancelled && (
                 <div className="bg-card border border-border rounded-3xl p-5">
@@ -160,14 +158,12 @@ export default function LiveTrackingView({ delivery: initialDelivery, onBack }: 
                     </div>
                 </div>
             )}
-
             {isCancelled && (
                 <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-center gap-3">
                     <Icon icon="solar:close-circle-bold-duotone" className="w-6 h-6 text-red-500 shrink-0" />
                     <p className="text-sm font-bold text-red-600">Cette livraison a été annulée.</p>
                 </div>
             )}
-
             {/* ── Driver & Delivery Info ── */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
@@ -184,8 +180,7 @@ export default function LiveTrackingView({ delivery: initialDelivery, onBack }: 
                                     src={delivery.easyDelivery.deliveryLogo}
                                     alt="Livreur"
                                     fill
-                                    className="object-cover"
-                                />
+                                    className="object-cover" />
                             ) : (
                                 <Icon icon="solar:user-bold-duotone" className="w-6 h-6 text-primary" />
                             )}
@@ -228,7 +223,6 @@ export default function LiveTrackingView({ delivery: initialDelivery, onBack }: 
                     )}
                 </div>
             </div>
-
             {/* ── Timing ── */}
             {(delivery.estimatedDeliveryTime || delivery.actualDeliveryTime || (delivery as any).eta) && (
                 <div className="bg-card border border-border rounded-2xl p-4">
@@ -262,7 +256,6 @@ export default function LiveTrackingView({ delivery: initialDelivery, onBack }: 
                     </div>
                 </div>
             )}
-
             {/* ── Status Update (for the driver) ── */}
             {nextStatus && !isFinished && (
                 <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
@@ -286,7 +279,6 @@ export default function LiveTrackingView({ delivery: initialDelivery, onBack }: 
                     </Button>
                 </div>
             )}
-
             {/* ── Unassign Confirm ── */}
             {showUnassignConfirm && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">

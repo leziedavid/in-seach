@@ -90,7 +90,7 @@ export function BiometricSetupModal() {
 
                                 {done ? (
                                     /* ─── Succès ─── */
-                                    <motion.div
+                                    (<motion.div
                                         initial={{ opacity: 0, scale: 0.9 }}
                                         animate={{ opacity: 1, scale: 1 }}
                                         className="flex flex-col items-center gap-3 py-4 text-center"
@@ -100,10 +100,10 @@ export function BiometricSetupModal() {
                                         </div>
                                         <p className="text-base font-black text-foreground">Biométrie activée !</p>
                                         <p className="text-sm text-muted-foreground">Vous pouvez maintenant vous connecter avec votre empreinte ou Face ID.</p>
-                                    </motion.div>
+                                    </motion.div>)
                                 ) : (
                                     /* ─── Invitation ─── */
-                                    <>
+                                    (<>
                                         {/* Header */}
                                         <div className="flex items-start justify-between">
                                             <div className="flex items-center gap-3">
@@ -123,12 +123,10 @@ export function BiometricSetupModal() {
                                                 <Icon icon="solar:close-circle-bold-duotone" width={18} />
                                             </button>
                                         </div>
-
                                         {/* Description */}
                                         <p className="text-sm text-muted-foreground leading-relaxed">
                                             Activez la biométrie pour vous connecter en un instant, sans saisir votre code PIN à chaque fois.
                                         </p>
-
                                         {/* Avantages */}
                                         <div className="space-y-2">
                                             {[
@@ -142,11 +140,9 @@ export function BiometricSetupModal() {
                                                 </div>
                                             ))}
                                         </div>
-
                                         {error && (
                                             <p className="text-xs text-red-500 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-lg">{error}</p>
                                         )}
-
                                         {/* Actions */}
                                         <div className="flex flex-col gap-2 pt-1">
                                             <button
@@ -168,7 +164,7 @@ export function BiometricSetupModal() {
                                                 Plus tard, ne plus afficher
                                             </button>
                                         </div>
-                                    </>
+                                    </>)
                                 )}
                             </div>
                         </div>

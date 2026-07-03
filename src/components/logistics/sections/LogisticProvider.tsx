@@ -79,7 +79,6 @@ export default function LogisticProviderList() {
 
     return (
         <div className="flex flex-col items-center w-full max-w-7xl mx-auto px-4 py-1">
-
             {/* Search Input */}
             <div className="flex flex-col md:flex-row items-center justify-center gap-4 w-full max-w-2xl mb-2">
                 <div className="flex items-center w-full bg-card border border-primary rounded-xl px-4 py-3 shadow-sm hover:border-secondary transition-colors">
@@ -90,7 +89,6 @@ export default function LogisticProviderList() {
                     </button>
                 </div>
             </div>
-
             {/* Transport Filters */}
             <div className="w-full max-w-3xl mx-auto mb-4">
                 <CategoryFilter
@@ -106,7 +104,6 @@ export default function LogisticProviderList() {
                     hasSubCategories={false}
                 />
             </div>
-
             {/* Results count header */}
             <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-1">
                 <div className="flex items-center justify-between w-full px-2 md:px-0 mb-4">
@@ -141,7 +138,6 @@ export default function LogisticProviderList() {
                     />
                 )}
             </div>
-
             <VoiceSearchModal
                 isOpen={isVoiceModalOpen}
                 onClose={() => setIsVoiceModalOpen(false)}

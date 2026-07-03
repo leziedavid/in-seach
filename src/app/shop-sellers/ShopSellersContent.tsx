@@ -23,7 +23,12 @@ const StoreCard = ({ store }: { store: Store }) => (
             <div className="flex items-center gap-3">
                 <div className="w-14 h-14 rounded-full bg-primary/10 relative overflow-hidden shrink-0 ring-2 ring-primary/20 group-hover:ring-primary/40 transition-all">
                     {store.storeLogo ? (
-                        <Image src={store.storeLogo} alt={store.storeName || "Boutique"} fill className="object-cover" unoptimized />
+                        <Image
+                            src={store.storeLogo}
+                            alt={store.storeName || "Boutique"}
+                            fill
+                            className="object-cover"
+                            unoptimized />
                     ) : (
                         <div className="w-full h-full flex items-center justify-center">
                             <Icon icon="solar:shop-2-bold-duotone" className="w-7 h-7 text-primary" />

@@ -173,8 +173,7 @@ export default function ImageSearchModal({ isOpen, onClose, onSearch, isLoading 
                                                     fill
                                                     unoptimized
                                                     className="object-contain"
-                                                    alt="Preview"
-                                                />
+                                                    alt="Preview" />
                                             </div>
                                         )}
                                         {isLoading && (

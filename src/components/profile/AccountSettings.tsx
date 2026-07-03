@@ -435,7 +435,6 @@ export default function AccountSettings() {
                 subtitle={t("akwaba.settings.subtitle")}
                 className="!text-left"
             />
-
             <div className="flex flex-col gap-4">
 
                 {/* 1. PERSONAL INFO */}
@@ -541,7 +540,12 @@ export default function AccountSettings() {
                             <div className="absolute inset-0 flex flex-col items-center justify-center space-y-2 z-10">
                                 {user?.avatar ? (
                                     <div className="relative w-20 h-20 rounded-xl overflow-hidden border-2 border-background shadow-lg">
-                                        <Image src={user.avatar} alt="Avatar" fill className="object-cover group-hover:scale-110 transition-transform duration-500" unoptimized />
+                                        <Image
+                                            src={user.avatar}
+                                            alt="Avatar"
+                                            fill
+                                            className="object-cover group-hover:scale-110 transition-transform duration-500"
+                                            unoptimized />
                                     </div>
                                 ) : (
                                     <div className="w-16 h-16 rounded-xl bg-muted flex items-center justify-center border-2 border-background shadow-lg">
@@ -557,7 +561,12 @@ export default function AccountSettings() {
                             <div className="absolute inset-0 flex flex-col items-center justify-center space-y-2 z-10 px-4">
                                 {user?.cni ? (
                                     <div className="relative w-full h-20 overflow-hidden rounded-lg">
-                                        <Image src={user.cni} alt="CNI" fill className="object-cover group-hover:scale-105 transition-transform duration-500" unoptimized />
+                                        <Image
+                                            src={user.cni}
+                                            alt="CNI"
+                                            fill
+                                            className="object-cover group-hover:scale-105 transition-transform duration-500"
+                                            unoptimized />
                                     </div>
                                 ) : (
                                     <div className="w-16 h-16 rounded-xl bg-muted flex items-center justify-center border-2 border-background shadow-lg">
@@ -573,7 +582,12 @@ export default function AccountSettings() {
                             <div className="absolute inset-0 flex flex-col items-center justify-center space-y-2 z-10 px-4">
                                 {user?.logo ? (
                                     <div className="relative w-full h-20 overflow-hidden rounded-lg">
-                                        <Image src={user.logo} alt="Logo" fill className="object-contain group-hover:scale-105 transition-transform duration-500" unoptimized />
+                                        <Image
+                                            src={user.logo}
+                                            alt="Logo"
+                                            fill
+                                            className="object-contain group-hover:scale-105 transition-transform duration-500"
+                                            unoptimized />
                                     </div>
                                 ) : (
                                     <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center border-2 border-dashed border-border group-hover:border-primary/50 transition-colors">
@@ -589,7 +603,12 @@ export default function AccountSettings() {
                             <div className="absolute inset-0 flex flex-col items-center justify-center space-y-2 z-10 px-4">
                                 {user?.signature ? (
                                     <div className="relative w-full h-20 overflow-hidden rounded-lg">
-                                        <Image src={user.signature} alt="Signature" fill className="object-contain group-hover:scale-105 transition-transform duration-500" unoptimized />
+                                        <Image
+                                            src={user.signature}
+                                            alt="Signature"
+                                            fill
+                                            className="object-contain group-hover:scale-105 transition-transform duration-500"
+                                            unoptimized />
                                     </div>
                                 ) : (
                                     <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center border-2 border-dashed border-border group-hover:border-primary/50 transition-colors">
@@ -970,7 +989,6 @@ export default function AccountSettings() {
                 )}
 
             </div>
-
             {/* MODALS RENDERED OUTSIDE ACCORDION */}
             <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} >
                 <div className="px-1 py-4">
@@ -1020,7 +1038,6 @@ export default function AccountSettings() {
                     )}
                 </div>
             </Modal>
-
             {selectedPlanToRenew && (
                 <SubscriptionPaymentModal
                     isOpen={isSubscriptionModalOpen}

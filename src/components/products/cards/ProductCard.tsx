@@ -81,14 +81,18 @@ const ProductCard = memo(function ProductCard({ product, onEdit, onDelete, onSta
     const isList = viewMode === 'list';
 
     return (
-
         <>
             {/* <div onClick={() => setIsModalOpen(true)} className={`group rounded-xl p-2 md:p-4 bg-card w-full transition-all duration-300 cursor-pointer  flex ${isList ? 'flex-row items-center gap-3 md:gap-4 text-left' : 'flex-col md:items-center text-left md:text-center'}`}> */}
             {/* Image - Scaling on hover */}
             <div onClick={() => setIsModalOpen(true)} className={`group rounded-xl transition-all duration-300 cursor-pointer overflow-hidden ${viewMode === 'grid' ? "p-0 md:p-4 flex flex-col md:items-center text-left md:text-center" : "p-2 md:p-4 flex flex-row items-center gap-4 text-left"}`}>
 
                 <div className={`relative shrink-0 overflow-hidden rounded-lg md:rounded-2xl ${isList ? 'w-24 h-24 md:w-32 md:h-32' : 'w-full aspect-square mb-2 md:mb-3'}`}>
-                    <Image src={product.imageUrl || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=2099&auto=format&fit=crop'} alt={product.name} fill unoptimized className="object-cover group-hover:scale-110 transition-transform duration-500" />
+                    <Image
+                        src={product.imageUrl || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=2099&auto=format&fit=crop'}
+                        alt={product.name}
+                        fill
+                        unoptimized
+                        className="object-cover group-hover:scale-110 transition-transform duration-500" />
                     <div className="absolute top-1 left-1 md:top-2 md:left-2 bg-black/70 md:bg-background/95 backdrop-blur-sm px-1.5 py-0.5 md:px-2 md:py-0.5 rounded-full text-[8px] md:text-[9px] font-black text-white md:text-foreground uppercase tracking-tighter">
                         {product.category?.name || 'Produit'}
                     </div>
@@ -178,15 +182,11 @@ const ProductCard = memo(function ProductCard({ product, onEdit, onDelete, onSta
                 </div>
 
             </div>
-
             <ProductDetailModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} product={product} />
-
             {FEATURES.showBoostButton && (
                 <BoostEntityModal isOpen={isBoostOpen} onClose={() => setIsBoostOpen(false)} entityType="PRODUCT" entityId={product.id} entityName={product.name} />
             )}
-
             <Delete isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} onConfirm={confirmDelete} isDeleting={false} />
-
             <Share
                 isOpen={isShareOpen}
                 onClose={() => setIsShareOpen(false)}
@@ -200,7 +200,7 @@ const ProductCard = memo(function ProductCard({ product, onEdit, onDelete, onSta
                 storeLogo={product.user?.storeLogo || product.user?.avatar}
             />
         </>
-    )
+    );
 });
 
 export default ProductCard;

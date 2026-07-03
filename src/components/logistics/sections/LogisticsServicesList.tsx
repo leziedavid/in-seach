@@ -78,7 +78,7 @@ export default function LogisticsServicesList({ mode = "marketplace", companyNam
         return name
             .trim()
             .replace(/\s+/g, "-")        // remplace les espaces par -
-            .replace(/[^\w\-]+/g, "")    // supprime les caractères spéciaux
+            .replace(/[^\w\-]+/g, "");    // supprime les caractères spéciaux
     }
 
     const handleCopy = async (url: string) => {
@@ -247,7 +247,6 @@ export default function LogisticsServicesList({ mode = "marketplace", companyNam
 
     return (
         <div className="flex flex-col items-center w-full max-w-7xl mx-auto px-4 py-1">
-
             {/* Search Input - Matching Boutique Style - Hidden on Akwaba */}
             {!isAkwaba && (
                 <div className="flex flex-col md:flex-row items-center justify-center gap-4 w-full max-w-2xl mb-2">
@@ -260,7 +259,6 @@ export default function LogisticsServicesList({ mode = "marketplace", companyNam
                     </div>
                 </div>
             )}
-
             {/* Transport Filters */}
             <div className="w-full max-w-3xl mx-auto mb-4">
                 <CategoryFilter
@@ -276,8 +274,6 @@ export default function LogisticsServicesList({ mode = "marketplace", companyNam
                     hasSubCategories={false}
                 />
             </div>
-
-
             {isManagement && (
                 <>
                     <div className="w-full max-w-6xl mb-8">
@@ -307,7 +303,12 @@ export default function LogisticsServicesList({ mode = "marketplace", companyNam
                             <div className="flex items-center gap-4 md:gap-6">
                                 <div className="relative w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/10 overflow-hidden shrink-0">
                                     {providerInfo?.logo ? (
-                                        <Image src={providerInfo.logo} alt={providerInfo.companyName || "Boutique"} fill className="object-cover" unoptimized />
+                                        <Image
+                                            src={providerInfo.logo}
+                                            alt={providerInfo.companyName || "Boutique"}
+                                            fill
+                                            className="object-cover"
+                                            unoptimized />
                                     ) : (
                                         <Icon icon="solar:shop-bold-duotone" className="w-8 h-8 md:w-10 md:h-10 text-primary" />
                                     )}
@@ -346,7 +347,6 @@ export default function LogisticsServicesList({ mode = "marketplace", companyNam
                 </>
 
             )}
-
             {/* Results count header */}
             <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-1">
                 <LogisticsResultsContent
@@ -396,7 +396,6 @@ export default function LogisticsServicesList({ mode = "marketplace", companyNam
                     message="Voulez-vous vraiment supprimer ce service logistique ? Cette action supprimera définitivement toutes les données associées."
                 />
             </div>
-
             {/* Create Modal */}
             <Modal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)}>
                 <div className="p-6">
@@ -412,13 +411,11 @@ export default function LogisticsServicesList({ mode = "marketplace", companyNam
                     />
                 </div>
             </Modal>
-
             <VoiceSearchModal
                 isOpen={isVoiceModalOpen}
                 onClose={() => setIsVoiceModalOpen(false)}
                 onResult={handleVoiceResult}
             />
-
             {/* LIVE FORM MODAL */}
             <LiveFormModal
                 isOpen={isLiveModalOpen}

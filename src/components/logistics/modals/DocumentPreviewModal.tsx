@@ -150,7 +150,12 @@ export default function DocumentPreviewModal({ isOpen, onClose, data, type }: Do
                                             <div className="flex items-center gap-3">
                                                 {company.logo ? (
                                                     <div className="relative w-12 h-12 md:w-16 md:h-16 overflow-hidden">
-                                                        <Image src={company.logo} alt="Logo" fill className="object-contain" unoptimized />
+                                                        <Image
+                                                            src={company.logo}
+                                                            alt="Logo"
+                                                            fill
+                                                            className="object-contain"
+                                                            unoptimized />
                                                     </div>
                                                 ) : (
                                                     <div className="w-12 h-12 md:w-14 md:h-14 bg-primary text-white rounded-2xl flex items-center justify-center shadow-xl shadow-primary/20">
@@ -307,7 +312,12 @@ export default function DocumentPreviewModal({ isOpen, onClose, data, type }: Do
                                                     <p className="text-[8px] md:text-[10px] font-black uppercase text-slate-400 mb-2 tracking-widest relative z-10">Cachet & Signature</p>
                                                     {company.signature ? (
                                                         <div className="relative w-full h-12 md:h-16 opacity-80 mix-blend-multiply">
-                                                            <Image src={company.signature} alt="Signature" fill className="object-contain" unoptimized />
+                                                            <Image
+                                                                src={company.signature}
+                                                                alt="Signature"
+                                                                fill
+                                                                className="object-contain"
+                                                                unoptimized />
                                                         </div>
                                                     ) : (
                                                         <div className="h-8 md:h-12" />

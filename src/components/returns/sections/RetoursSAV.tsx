@@ -139,7 +139,6 @@ function ReturnCard({ ret, role, onRefresh }: { ret: ProductReturn; role: Role; 
                 </div>
                 <Icon icon="solar:alt-arrow-down-bold-duotone" className={`w-4 h-4 text-muted-foreground transition-transform ml-1 shrink-0 ${expanded ? "rotate-180" : ""}`} />
             </button>
-
             {/* Détail expandé */}
             {expanded && (
                 <div className="border-t border-border p-4 space-y-4">
@@ -191,7 +190,12 @@ function ReturnCard({ ret, role, onRefresh }: { ret: ProductReturn; role: Role; 
                                     <a key={f.id} href={f.fileUrl} target="_blank" rel="noreferrer"
                                         className="relative w-16 h-16 rounded-xl overflow-hidden border border-border bg-muted block">
                                         {f.fileMimeType.startsWith("image/") ? (
-                                            <Image src={f.fileUrl} alt={f.fileName} fill className="object-cover" unoptimized />
+                                            <Image
+                                                src={f.fileUrl}
+                                                alt={f.fileName}
+                                                fill
+                                                className="object-cover"
+                                                unoptimized />
                                         ) : (
                                             <div className="w-full h-full flex items-center justify-center">
                                                 <Icon icon="solar:video-frame-bold-duotone" className="w-7 h-7 text-muted-foreground" />

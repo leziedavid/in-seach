@@ -171,7 +171,7 @@ export default function BoostEntityModal({
                         </div>
                     ) : (
                         /* step === "payment" */
-                        <div className="space-y-6">
+                        (<div className="space-y-6">
                             {/* Récap */}
                             <div className="p-4 bg-primary/5 border border-primary/20 rounded-2xl flex items-center justify-between">
                                 <div>
@@ -183,7 +183,6 @@ export default function BoostEntityModal({
                                     <p className="text-xl font-black text-primary">{selectedOption?.total.toLocaleString()} {pricing?.currency}</p>
                                 </div>
                             </div>
-
                             {/* Tabs paiement */}
                             <div>
                                 <h3 className="text-sm font-black uppercase tracking-wider mb-3">Moyen de paiement</h3>
@@ -259,7 +258,7 @@ export default function BoostEntityModal({
                                     </div>
                                 )}
                             </div>
-                        </div>
+                        </div>)
                     )}
                 </div>
 

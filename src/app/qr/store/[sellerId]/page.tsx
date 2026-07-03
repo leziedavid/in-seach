@@ -28,7 +28,13 @@ export default function QrStoreRedirectPage() {
     if (error) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4 text-center gap-4">
-                <Image src="/logo.png" alt="Logo" width={80} height={80} className="opacity-60" unoptimized />
+                <Image
+                    src="/logo.png"
+                    alt="Logo"
+                    width={80}
+                    height={80}
+                    className="opacity-60"
+                    unoptimized />
                 <p className="text-muted-foreground text-sm font-medium">{error}</p>
                 <button
                     onClick={() => router.push("/")}
@@ -37,7 +43,7 @@ export default function QrStoreRedirectPage() {
                     Retour à l&apos;accueil
                 </button>
             </div>
-        )
+        );
     }
 
     return (
@@ -45,12 +51,16 @@ export default function QrStoreRedirectPage() {
             {/* Logo */}
             <div className="relative">
                 <div className="w-20 h-20 rounded-3xl overflow-hidden shadow-lg">
-                    <Image src="/logo.png" alt="Logo" fill className="object-cover" unoptimized />
+                    <Image
+                        src="/logo.png"
+                        alt="Logo"
+                        fill
+                        className="object-cover"
+                        unoptimized />
                 </div>
                 {/* Pulsing ring */}
                 <span className="absolute inset-0 rounded-3xl animate-ping bg-primary/20" />
             </div>
-
             {/* Spinner */}
             <div className="flex flex-col items-center gap-3">
                 <svg
@@ -66,5 +76,5 @@ export default function QrStoreRedirectPage() {
                 <p className="text-muted-foreground text-sm">Veuillez patienter, nous préparons votre boutique.</p>
             </div>
         </div>
-    )
+    );
 }

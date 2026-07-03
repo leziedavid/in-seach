@@ -141,13 +141,20 @@ export default function Header() {
 
     return (
         <header className={`fixed left-4 z-[100] bottom-4 ${isMenuOpen ? "w-[92%]" : "w-fit"} max-w-[800px] md:top-6 md:bottom-auto md:left-1/2 md:-translate-x-1/2 md:w-fit md:px-6 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-lg border border-white/40 dark:border-white/10 rounded-full shadow-lg px-2 py-2 flex items-center justify-start gap-1 md:gap-4 transition-all duration-500 ease-in-out`}>
-
             {/* User Section - Flat on mobile */}
             <div className="flex items-center gap-1 md:gap-4 shrink-0">
                 <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="relative group transition-transform active:scale-95" >
                     <div className="w-12 h-12 md:w-9 md:h-9 bg-primary/20 rounded-full flex items-center justify-center overflow-hidden relative border-2 border-primary/10 group-hover:border-primary/30 transition-all shrink-0">
                         {images.map((img, index) => (
-                            <Image key={img} src={img} alt="Avatar" width={48} height={48} priority={index === 0} unoptimized className={`object-cover w-full h-full absolute top-0 left-0 transition-opacity duration-500 ease-in-out ${index === currentImageIndex ? "opacity-100" : "opacity-0"}`} style={{ width: 'auto', height: 'auto' }} />
+                            <Image
+                                key={img}
+                                src={img}
+                                alt="Avatar"
+                                width={48}
+                                height={48}
+                                priority={index === 0}
+                                unoptimized
+                                className={`object-cover w-full h-full absolute top-0 left-0 transition-opacity duration-500 ease-in-out ${index === currentImageIndex ? "opacity-100" : "opacity-0"}`} />
                         ))}
                     </div>
 
@@ -182,7 +189,6 @@ export default function Header() {
                 </div>
 
             </div>
-
             {/* Content Wrapper for Animation */}
             <AnimatePresence mode="wait">
                 {mounted && (isMenuOpen || isDesktop) && (
@@ -270,7 +276,6 @@ export default function Header() {
                     </motion.div>
                 )}
             </AnimatePresence>
-
             {/* Mobile: ThemeToggle + LanguageToggle flottants au-dessus du header */}
             <AnimatePresence>
                 {isMenuOpen && mounted && (
@@ -285,10 +290,7 @@ export default function Header() {
                     </motion.div>
                 )}
             </AnimatePresence>
-
             <CartDetailModal isOpen={isCartModalOpen} onClose={() => setIsCartModalOpen(false)} />
-
         </header>
-
     );
 }

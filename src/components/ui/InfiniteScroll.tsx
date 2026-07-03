@@ -80,7 +80,7 @@ function measureGrid(gridEl: HTMLDivElement): { cols: number; rowHeight: number 
 
 // ─── Composant principal ──────────────────────────────────────────────────────
 export default function InfiniteScroll<T extends { id: string | number }>({
-    items = [],
+    items: rawItems = [],
     renderItem,
     loadMore,
     hasMore,
@@ -94,6 +94,19 @@ export default function InfiniteScroll<T extends { id: string | number }>({
     gridClassName = "grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6",
     viewMode = 'grid',
 }: InfiniteScrollProps<T>) {
+
+    // Déduplique par id : évite les clés React dupliquées quand l'API renvoie
+    // deux fois la même entité (chevauchement de pages, etc.)
+    const items = useMemo(() => {
+        const seen = new Set<string | number>();
+        const deduped: T[] = [];
+        for (const item of rawItems) {
+            if (seen.has(item.id)) continue;
+            seen.add(item.id);
+            deduped.push(item);
+        }
+        return deduped;
+    }, [rawItems]);
 
     // ── Fenêtre glissante ───────────────────────────────────────────────────
     const [startIndex, setStartIndex] = useState(0);

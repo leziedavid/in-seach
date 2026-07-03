@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Icon } from "@iconify/react";
-import Image from 'next/image';
+import Image from "next/image";
 import { Annonce } from "@/types/interface";
 import { createPortal } from "react-dom";
 import { useNotification } from "@/components/notifications/NotificationProvider";
@@ -94,7 +94,13 @@ export default function AnnonceModal({ isOpen, onClose, annonce }: AnnonceModalP
                                                         {/* Blurred Ambient Background */}
                                                         {/* <Image src={images[activeImageIndex]} fill unoptimized className="object-cover blur-3xl opacity-40 scale-110" alt="" aria-hidden="true" /> */}
                                                         {/* Main Content Image */}
-                                                        <Image src={images[activeImageIndex]} fill unoptimized className="object-contain relative z-10 p-4" alt={annonce.title} priority />
+                                                        <Image
+                                                            src={images[activeImageIndex]}
+                                                            fill
+                                                            unoptimized
+                                                            className="object-contain relative z-10 p-4"
+                                                            alt={annonce.title}
+                                                            priority />
                                                     </motion.div>
                                                 </AnimatePresence>
 

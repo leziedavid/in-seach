@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Icon } from "@iconify/react";
-import Image from 'next/image';
+import Image from "next/image";
 import { Order, OrderItem, OrderStatus } from "@/types/interface";
 import ReturnRequestModal from "@/components/returns/modals/ReturnRequestModal";
 import { Modal } from "@/components/ui/MotionModal";
@@ -133,7 +133,11 @@ export default function OrderDetailModal({ isOpen, onClose, order }: OrderDetail
                                     <div className="flex items-center gap-3">
                                         <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-neutral-100 dark:bg-neutral-800 shrink-0">
                                             {item.product?.imageUrl ? (
-                                                <Image src={item.product.imageUrl} fill className="object-cover" alt={item.product.name} />
+                                                <Image
+                                                    src={item.product.imageUrl}
+                                                    fill
+                                                    className="object-cover"
+                                                    alt={item.product.name} />
                                             ) : (
                                                 <div className="w-full h-full flex items-center justify-center text-neutral-400"><Icon icon="solar:box-bold-duotone" width={24} /></div>
                                             )}

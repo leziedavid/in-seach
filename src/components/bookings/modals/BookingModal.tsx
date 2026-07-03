@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Icon } from "@iconify/react";
-import Image from 'next/image';
+import Image from "next/image";
 import FormsIntervention, { InterventionType } from "@/components/bookings/forms/FormsIntervention";
 import { Service, Annonce } from "@/types/interface";
 import { createBooking, updateBooking } from "@/api/api";
@@ -212,7 +212,12 @@ export default function BookingModal({ isOpen, onClose, item, type, booking, mod
                                                 transition={{ duration: 0.3 }}
                                                 className="absolute inset-0"
                                             >
-                                                <Image src={imageGallery[activeImageIndex].url} fill unoptimized className="object-cover" alt={item.title} />
+                                                <Image
+                                                    src={imageGallery[activeImageIndex].url}
+                                                    fill
+                                                    unoptimized
+                                                    className="object-cover"
+                                                    alt={item.title} />
                                             </motion.div>
                                         </AnimatePresence>
 
@@ -249,7 +254,12 @@ export default function BookingModal({ isOpen, onClose, item, type, booking, mod
                                                             e.stopPropagation();
                                                             setActiveImageIndex(index);
                                                         }} className={`relative w-10 h-10 rounded-xl overflow-hidden border-2 transition-all ${activeImageIndex === index ? 'border-primary ring-2 ring-primary/20 scale-105' : 'border-white/10 opacity-50 hover:opacity-100'} `}>
-                                                            <Image src={image.url} alt={`${item.title} - ${index + 1}`} fill unoptimized className="object-cover" />
+                                                            <Image
+                                                                src={image.url}
+                                                                alt={`${item.title} - ${index + 1}`}
+                                                                fill
+                                                                unoptimized
+                                                                className="object-cover" />
                                                         </button>
                                                     ))}
                                                 </div>

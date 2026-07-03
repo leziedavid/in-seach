@@ -148,7 +148,12 @@ export default function FormsProduit({
                     <div className="flex flex-wrap gap-3">
                         {imagePreviews.map((src, i) => (
                             <div key={i} className="relative w-20 h-20 rounded-xl overflow-hidden border border-border">
-                                <Image src={src} alt={`preview-${i}`} fill className="object-cover" unoptimized />
+                                <Image
+                                    src={src}
+                                    alt={`preview-${i}`}
+                                    fill
+                                    className="object-cover"
+                                    unoptimized />
                                 <button
                                     type="button"
                                     onClick={() => removeImage(i)}
@@ -339,7 +344,6 @@ export default function FormsProduit({
                     </div>
                 </div>
             </div>
-
             <div className="sticky bottom-0 bg-background/95 backdrop-blur-sm p-4 border-t border-border flex items-center justify-end gap-3">
                 <button
                     type="button"

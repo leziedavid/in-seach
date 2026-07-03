@@ -143,7 +143,7 @@ export default function ReturnRequestModal({ isOpen, onClose, orderId, item, onS
                                                     <div className="w-16 h-16 rounded-xl bg-muted border border-border overflow-hidden flex items-center justify-center">
                                                         {f.type.startsWith("image/") ? (
                                                             // eslint-disable-next-line @next/next/no-img-element
-                                                            <img src={URL.createObjectURL(f)} alt="" className="w-full h-full object-cover" />
+                                                            (<img src={URL.createObjectURL(f)} alt="" className="w-full h-full object-cover" />)
                                                         ) : (
                                                             <Icon icon="solar:video-frame-bold-duotone" className="w-7 h-7 text-muted-foreground" />
                                                         )}

@@ -43,7 +43,14 @@ export default function ThemeImage({ lightSrc, darkSrc, alt, width, height, clas
     <div className={`relative flex justify-center items-center ${className}`}>
       <AnimatePresence mode="wait">
         <motion.div key={resolvedTheme} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.05 }} transition={{ duration: 0.4, ease: "easeInOut" }} className="w-full flex justify-center">
-          <Image src={currentSrc} alt={alt} width={width} height={height} className="max-w-[180px] md:max-w-[450px] w-full h-auto object-contain" priority unoptimized />
+          <Image
+            src={currentSrc}
+            alt={alt}
+            width={width}
+            height={height}
+            className="max-w-[180px] md:max-w-[450px] w-full h-auto object-contain"
+            priority
+            unoptimized />
         </motion.div>
       </AnimatePresence>
     </div>

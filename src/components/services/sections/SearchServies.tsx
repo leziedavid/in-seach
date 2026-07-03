@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Icon } from "@iconify/react";
-import Image from 'next/image';
+import Image from "next/image";
 import { getServices, searchServiceIA, searchServiceCategories } from "@/api/api";
 import { UserLocation, Service } from "@/types/interface";
 import { useUserLocation } from "@/utils/location";
@@ -267,7 +267,6 @@ export default function SearchServies() {
                     </div>
                 )}
             </form>
-
             {/* Adresse */}
             {address && (
                 <div className="mb-8 px-4 py-2 rounded-full bg-primary/5 border border-primary/10 flex items-center gap-2 md:mb-8 md:px-4 md:py-2">
@@ -275,7 +274,6 @@ export default function SearchServies() {
                     <span className="text-sm text-foreground/80 md:text-sm">{address}</span>
                 </div>
             )}
-
             {/* Dynamic Results or Initial Steps */}
             {isSearching && (
                 <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-1">
@@ -329,7 +327,12 @@ export default function SearchServies() {
                                     <div key={service.id} onClick={() => withAuth(() => setSelectedService(service))} className="group rounded-lg p-0 md:p-4 flex flex-col md:items-center text-left md:text-center bg-card w-full transition-all duration-300 cursor-pointer">
                                         {/* Image */}
                                         <div className="relative w-full aspect-square mb-1.5 overflow-hidden rounded-lg md:rounded-2xl">
-                                            <Image src={(service.imageUrls && typeof service.imageUrls === 'string' && service.imageUrls !== "") ? service.imageUrls : (Array.isArray(service.images) && service.images[0]) || 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop'} alt={service.title} fill unoptimized className="object-cover group-hover:scale-110 transition-transform duration-500" />
+                                            <Image
+                                                src={(service.imageUrls && typeof service.imageUrls === 'string' && service.imageUrls !== "") ? service.imageUrls : (Array.isArray(service.images) && service.images[0]) || 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop'}
+                                                alt={service.title}
+                                                fill
+                                                unoptimized
+                                                className="object-cover group-hover:scale-110 transition-transform duration-500" />
                                             <div className="absolute top-1 left-1 md:top-2 md:left-2 bg-black/70 md:bg-background/95 backdrop-blur-sm px-1.5 py-0.5 md:px-2 md:py-0.5 rounded-full text-[8px] md:text-[9px] font-black text-white md:text-foreground shadow-sm uppercase tracking-tighter">
                                                 {service.categoryLabel || 'Expert'}
                                             </div>
@@ -367,21 +370,18 @@ export default function SearchServies() {
                     )}
                 </div>
             )}
-
             {/* Booking Modal */}
             <BookingModal
                 isOpen={!!selectedService}
                 onClose={() => setSelectedService(null)}
                 item={selectedService}
                 type="SERVICE" />
-
             <ImageSearchModal
                 isOpen={isImageModalOpen}
                 onClose={() => setIsImageModalOpen(false)}
                 onSearch={handleImageSearch}
                 isLoading={isAiLoading}
             />
-
             <VoiceSearchModal
                 isOpen={isVoiceModalOpen}
                 onClose={() => setIsVoiceModalOpen(false)}

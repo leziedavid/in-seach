@@ -68,7 +68,12 @@ const LogisticsServicesCard = memo(function LogisticsServicesCard({ service, isO
                 <div className={`relative overflow-hidden rounded-lg md:rounded-2xl shrink-0 ${
                     viewMode === 'grid' ? "w-full aspect-square mb-1.5" : "w-24 h-24 md:w-32 md:h-32"
                 }`}>
-                    <Image src={service.images?.[0]?.url || '/placeholder-logistic.jpg'} alt={service.label} fill unoptimized className="object-cover group-hover:scale-110 transition-transform duration-500" />
+                    <Image
+                        src={service.images?.[0]?.url || '/placeholder-logistic.jpg'}
+                        alt={service.label}
+                        fill
+                        unoptimized
+                        className="object-cover group-hover:scale-110 transition-transform duration-500" />
 
                     {/* Badge Overlay */}
                     <div className={`absolute bg-black/70 md:bg-background/95 backdrop-blur-sm px-1.5 py-0.5 md:px-2 md:py-0.5 rounded-full text-[8px] md:text-[9px] font-black text-white md:text-foreground uppercase tracking-tighter flex items-center gap-1 ${
@@ -134,7 +139,6 @@ const LogisticsServicesCard = memo(function LogisticsServicesCard({ service, isO
                     )}
                 </div>
             </div>
-
             {/* Detail Modal */}
             <LogisticsServiceDetailModal
                 isOpen={isDetailModalOpen}
@@ -142,7 +146,6 @@ const LogisticsServicesCard = memo(function LogisticsServicesCard({ service, isO
                 service={service}
                 onRequestQuote={onRequestQuote}
             />
-
             {/* BOOST MODAL */}
             {FEATURES.showBoostButton && (
                 <BoostEntityModal isOpen={isBoostOpen} onClose={() => setIsBoostOpen(false)} entityType="LOGISTIC_SERVICE" entityId={service.id} entityName={service.label} />

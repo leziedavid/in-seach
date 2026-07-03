@@ -88,7 +88,6 @@ export default function FormsLogistics({ initialData, onSubmit, isSubmitting = f
 
     return (
         <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-6 flex flex-col h-full">
-
             <div className="flex-1 overflow-y-auto px-1 space-y-6 pb-20 scrollbar-hide">
 
                 {/* Images Section */}
@@ -110,7 +109,12 @@ export default function FormsLogistics({ initialData, onSubmit, isSubmitting = f
 
                         {existingImages.map((img, i) => (
                             <div key={`exist-${i}`} className="relative h-24 rounded-2xl overflow-hidden group shadow-md">
-                                <Image src={img.url} alt="Service" fill className="object-cover" unoptimized />
+                                <Image
+                                    src={img.url}
+                                    alt="Service"
+                                    fill
+                                    className="object-cover"
+                                    unoptimized />
                                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                     <button type="button" onClick={() => removeImage(i, true)} className="bg-red-500 text-white rounded-xl p-2 hover:scale-110 transition-transform">
                                         <Icon icon="solar:trash-bin-trash-bold" className="w-4 h-4" />
@@ -121,7 +125,12 @@ export default function FormsLogistics({ initialData, onSubmit, isSubmitting = f
 
                         {imagePreviews.map((preview, i) => (
                             <div key={`new-${i}`} className="relative h-24 rounded-2xl overflow-hidden group border-2 border-primary/30 shadow-md">
-                                <Image src={preview} alt="New" fill className="object-cover" unoptimized />
+                                <Image
+                                    src={preview}
+                                    alt="New"
+                                    fill
+                                    className="object-cover"
+                                    unoptimized />
                                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                     <button type="button" onClick={() => removeImage(i, false)} className="bg-red-500 text-white rounded-xl p-2 hover:scale-110 transition-transform">
                                         <Icon icon="solar:trash-bin-trash-bold" className="w-4 h-4" />
@@ -183,7 +192,6 @@ export default function FormsLogistics({ initialData, onSubmit, isSubmitting = f
                 </div>
 
             </div>
-
             {/* Actions */}
             <div className="sticky bottom-0 p-6 bg-card border-t border-border flex flex-col md:flex-row gap-3 z-10">
                 <button type="button" onClick={onClose} className="px-6 py-3 rounded-2xl border border-border text-xs font-bold hover:bg-muted transition-all uppercase tracking-wider flex-1 h-12">
@@ -200,7 +208,6 @@ export default function FormsLogistics({ initialData, onSubmit, isSubmitting = f
                     )}
                 </button>
             </div>
-
         </form>
     );
 }

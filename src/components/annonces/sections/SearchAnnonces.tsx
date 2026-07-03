@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Icon } from "@iconify/react";
-import Image from 'next/image';
+import Image from "next/image";
 import { getAnnonces, searchAnnonceCategories } from "@/api/api";
 import { Annonce, UserLocation } from "@/types/interface";
 import { useUserLocation } from "@/utils/location";
@@ -184,9 +184,7 @@ export default function SearchAnnonces() {
 
     return (
         <div className="flex flex-col items-center w-full max-w-7xl mx-auto px-4 py-2">
-
             {/* Search Input - Centered */}
-
             <form onSubmit={handleSearch} className="flex flex-row items-stretch justify-center gap-2 w-full max-w-2xl mb-2 relative">
                 <div className="flex items-center w-full bg-card border border-primary rounded-xl px-4 py-2 shadow-sm hover:border-secondary transition-colors">
                     <Icon icon="solar:map-point-bold-duotone" className="w-4 h-4 text-muted-foreground mr-2 flex-shrink-0" />
@@ -229,7 +227,6 @@ export default function SearchAnnonces() {
                     </div>
                 )}
             </form>
-
             {/* Adresse */}
             {address && (
                 <div className="mb-8 px-4 py-2 rounded-full bg-primary/5 border border-primary/10 flex items-center gap-2 md:mb-8 md:px-4 md:py-2">
@@ -237,7 +234,6 @@ export default function SearchAnnonces() {
                     <span className="text-sm text-foreground/80 md:text-sm">{address}</span>
                 </div>
             )}
-
             {/* Résultats de recherche */}
             {/* {isSearching && ( */}
             <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-1">
@@ -274,19 +270,22 @@ export default function SearchAnnonces() {
                             const lastImage = annonce.images?.[annonce.images.length - 1];
                             const imageUrl = typeof lastImage === "string" ? lastImage : lastImage || "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop";
                             return (
-
                                 <div key={annonce.id} onClick={() => withAuth(() => setSelectedAnnonce(annonce))} className={`group rounded-xl transition-all duration-300 cursor-pointer bg-card border border-border/40 hover:border-primary/30 overflow-hidden ${viewMode === 'grid' ? "p-0 md:p-4 flex flex-col md:items-center text-left md:text-center" : "p-2 md:p-4 flex flex-row items-center gap-4 text-left"}`}>
                                     {/* Image */}
                                     <div className={`relative overflow-hidden rounded-lg md:rounded-2xl shrink-0 ${viewMode === 'grid' ? "w-full aspect-square mb-1.5" : "w-24 h-24 md:w-32 md:h-32"}`}>
                                         {/* <Image src={(annonce.images?.[0] && typeof annonce.images?.[0] === 'string') ? annonce.images[0] : (Array.isArray(annonce.images) && (annonce.images[0] as any)?.fileUrl) || 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop'} alt={annonce.title} fill unoptimized className="object-cover group-hover:scale-110 transition-transform duration-500" /> */}
-                                        <Image src={imageUrl} alt={annonce.title} fill unoptimized className="object-cover group-hover:scale-110 transition-transform duration-500" />
+                                        <Image
+                                            src={imageUrl}
+                                            alt={annonce.title}
+                                            fill
+                                            unoptimized
+                                            className="object-cover group-hover:scale-110 transition-transform duration-500" />
                                         {annonce.categorie && (
                                             <div className={`absolute bg-black/70 md:bg-background/95 backdrop-blur-sm px-1.5 py-0.5 md:px-2 md:py-0.5 rounded-full text-[8px] md:text-[9px] font-black text-white md:text-foreground shadow-sm uppercase tracking-tighter ${viewMode === 'grid' ? "top-1 left-1 md:top-2 md:left-2" : "top-1 left-1"}`}>
                                                 {annonce.categorie.label}
                                             </div>
                                         )}
                                     </div>
-
                                     {/* Contenu */}
                                     <div className={`flex flex-col flex-1 min-w-0 ${viewMode === 'grid' ? "px-0.5 pb-0 md:px-0 md:pb-0 w-full" : "h-full justify-center"}`}>
                                         <h3 className={`font-black text-foreground mb-1 group-hover:text-primary transition-colors leading-tight truncate ${viewMode === 'grid' ? "text-xs md:text-base line-clamp-2 md:line-clamp-1 text-left md:text-center w-full" : "text-sm md:text-lg"}`}>
@@ -326,12 +325,9 @@ export default function SearchAnnonces() {
                 )}
             </div>
             {/* )} */}
-
             {/* Modal de réservation */}
             <AnnonceModal isOpen={!!selectedAnnonce} onClose={() => setSelectedAnnonce(null)} annonce={selectedAnnonce} />
-
             <VoiceSearchModal isOpen={isVoiceModalOpen} onClose={() => setIsVoiceModalOpen(false)} onResult={handleVoiceResult} />
-
         </div>
     );
 }

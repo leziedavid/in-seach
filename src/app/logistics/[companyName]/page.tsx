@@ -26,7 +26,7 @@ export default function LogisticsCompanyPage(props: Props) {
     const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false)
 
     const cleanName = (slug: string) => {
-        return slug?.replace(/-/g, " ").trim()
+        return slug?.replace(/-/g, " ").trim();
     }
 
     const fetchCompanyInfo = useCallback(async () => {
@@ -82,7 +82,12 @@ export default function LogisticsCompanyPage(props: Props) {
             <div className="flex flex-col items-center text-center w-full max-w-4xl mb-12 space-y-4">
                 <div className="relative w-24 h-24 md:w-32 md:h-32 rounded-full bg-card border-4 border-background shadow-xl overflow-hidden mb-2">
                     {companyInfo?.logo ? (
-                        <Image src={companyInfo.logo} alt={companyInfo.companyName || "Entreprise"} fill className="object-cover" unoptimized />
+                        <Image
+                            src={companyInfo.logo}
+                            alt={companyInfo.companyName || "Entreprise"}
+                            fill
+                            className="object-cover"
+                            unoptimized />
                     ) : (
                         <div className="w-full h-full flex items-center justify-center bg-primary/10">
                             <Icon icon="solar:delivery-bold-duotone" className="w-12 h-12 md:w-16 md:h-16 text-primary" />
@@ -106,7 +111,6 @@ export default function LogisticsCompanyPage(props: Props) {
                     </div>
                 )}
             </div>
-
             {/* Services List */}
             <div className="w-full">
                 <LogisticsServicesList
@@ -115,7 +119,6 @@ export default function LogisticsCompanyPage(props: Props) {
                     onRequestQuote={openQuoteModal}
                 />
             </div>
-
             {/* Review Section */}
             {companyInfo && companyInfo.id && (
                 <div className="w-full max-w-4xl mx-auto px-4 mt-12 mb-8">
@@ -126,7 +129,6 @@ export default function LogisticsCompanyPage(props: Props) {
                     />
                 </div>
             )}
-
             {/* Quote Request Modal */}
             <Modal isOpen={isQuoteModalOpen} onClose={() => setIsQuoteModalOpen(false)}>
                 {selectedServiceForQuote && (
@@ -139,5 +141,5 @@ export default function LogisticsCompanyPage(props: Props) {
                 )}
             </Modal>
         </div>
-    )
+    );
 }

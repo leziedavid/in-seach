@@ -53,8 +53,7 @@ export default function SignatureUploadForm({ currentSignature, onSubmit, onClos
                             alt="Signature Preview"
                             fill
                             className="object-contain p-2"
-                            unoptimized
-                        />
+                            unoptimized />
                     ) : (
                         <div className="text-center p-8">
                             <Icon icon="solar:pen-new-square-bold-duotone" className="w-16 h-16 text-muted-foreground mx-auto mb-2" />
@@ -74,7 +73,6 @@ export default function SignatureUploadForm({ currentSignature, onSubmit, onClos
                     />
                 </label>
             </div>
-
             <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
                 <button
                     type="button"

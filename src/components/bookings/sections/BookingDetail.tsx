@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Icon } from "@iconify/react";
-import Image from 'next/image';
+import Image from "next/image";
 import { Booking, BookingStatus, BookingsCalendar } from "@/types/interface";
 import { QRCodeSVG } from "qrcode.react";
 import { getUserRole } from "@/lib/auth";
@@ -131,7 +131,12 @@ export default function BookingDetailModal({ isOpen, onClose, booking, onEditRdv
                     {/* Receipt-style profile row */}
                     <div className="flex items-center gap-3 mb-4 pb-4 border-b border-neutral-200 dark:border-neutral-800">
                         <div className="relative w-9 h-9 rounded-full overflow-hidden border border-neutral-200 dark:border-neutral-800 shrink-0 bg-white">
-                            <Image src={booking.provider?.avatar || "/avatars/user2.png?q=80&w=200&auto=format&fit=crop"} fill className="object-cover" alt="Provider" unoptimized />
+                            <Image
+                                src={booking.provider?.avatar || "/avatars/user2.png?q=80&w=200&auto=format&fit=crop"}
+                                fill
+                                className="object-cover"
+                                alt="Provider"
+                                unoptimized />
                         </div>
                         <div className="min-w-0">
                             <h1 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 truncate leading-tight">
@@ -383,7 +388,6 @@ export default function BookingDetailModal({ isOpen, onClose, booking, onEditRdv
                     )}
                 </div>
             </div>
-
             {/* Camera Scanner Modal */}
             {mounted && createPortal(
                 <AnimatePresence>

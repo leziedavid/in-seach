@@ -207,8 +207,20 @@ export default function AnnonceDetailPage() {
             <AnimatePresence mode="wait">
                 {imagesList.length > 0 ? (
                     <motion.div key={currentImageIndex} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} className="absolute inset-0">
-                        <Image src={imagesList[currentImageIndex]} fill unoptimized className="object-cover blur-3xl opacity-30 scale-110" alt="" aria-hidden />
-                        <Image src={imagesList[currentImageIndex]} fill unoptimized className="object-contain z-10 p-3 cursor-zoom-in" alt={`${annonce.title} - ${currentImageIndex + 1}`} onClick={() => setLightboxOpen(true)} />
+                        <Image
+                            src={imagesList[currentImageIndex]}
+                            fill
+                            unoptimized
+                            className="object-cover blur-3xl opacity-30 scale-110"
+                            alt=""
+                            aria-hidden />
+                        <Image
+                            src={imagesList[currentImageIndex]}
+                            fill
+                            unoptimized
+                            className="object-contain z-10 p-3 cursor-zoom-in"
+                            alt={`${annonce.title} - ${currentImageIndex + 1}`}
+                            onClick={() => setLightboxOpen(true)} />
                     </motion.div>
                 ) : (
                     <div className="absolute inset-0 flex items-center justify-center text-muted-foreground/20">
@@ -240,7 +252,12 @@ export default function AnnonceDetailPage() {
             <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary relative overflow-hidden shrink-0 ring-2 ring-primary/20">
                     {annonce.user?.avatar ? (
-                        <Image src={annonce.user.avatar} alt={annonce.user.fullName || "Annonceur"} fill className="object-cover" unoptimized />
+                        <Image
+                            src={annonce.user.avatar}
+                            alt={annonce.user.fullName || "Annonceur"}
+                            fill
+                            className="object-cover"
+                            unoptimized />
                     ) : (
                         <Icon icon="solar:user-bold-duotone" className="w-7 h-7 text-primary" />
                     )}
@@ -453,7 +470,6 @@ export default function AnnonceDetailPage() {
                     </button>
                 </div>
             </div>
-
             {/* ══════════════════════ DESKTOP ══════════════════════ */}
             <div className="hidden md:block w-full max-w-4xl mx-auto px-4 py-6">
                 <div className="bg-card overflow-hidden">
@@ -477,8 +493,20 @@ export default function AnnonceDetailPage() {
                                 <AnimatePresence mode="wait">
                                     {imagesList.length > 0 ? (
                                         <motion.div key={currentImageIndex} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} className="absolute inset-0">
-                                            <Image src={imagesList[currentImageIndex]} fill unoptimized className="object-cover blur-3xl opacity-30 scale-110" alt="" aria-hidden />
-                                            <Image src={imagesList[currentImageIndex]} fill unoptimized className="object-contain z-10 p-4 cursor-zoom-in" alt={annonce.title} onClick={() => setLightboxOpen(true)} />
+                                            <Image
+                                                src={imagesList[currentImageIndex]}
+                                                fill
+                                                unoptimized
+                                                className="object-cover blur-3xl opacity-30 scale-110"
+                                                alt=""
+                                                aria-hidden />
+                                            <Image
+                                                src={imagesList[currentImageIndex]}
+                                                fill
+                                                unoptimized
+                                                className="object-contain z-10 p-4 cursor-zoom-in"
+                                                alt={annonce.title}
+                                                onClick={() => setLightboxOpen(true)} />
                                         </motion.div>
                                     ) : (
                                         <div className="absolute inset-0 flex items-center justify-center text-muted-foreground/20">
@@ -502,7 +530,12 @@ export default function AnnonceDetailPage() {
                                     {imagesList.slice(0, 6).map((img, idx) => (
                                         <button key={idx} onClick={() => setCurrentImageIndex(idx)}
                                             className={`w-12 h-12 rounded-lg overflow-hidden border-2 transition-all shrink-0 relative ${currentImageIndex === idx ? "border-primary scale-105" : "border-transparent opacity-60 hover:opacity-100"}`}>
-                                            <Image src={img} fill unoptimized className="object-cover" alt="" />
+                                            <Image
+                                                src={img}
+                                                fill
+                                                unoptimized
+                                                className="object-cover"
+                                                alt="" />
                                         </button>
                                     ))}
                                 </div>
@@ -543,7 +576,6 @@ export default function AnnonceDetailPage() {
                     </div>
                 </div>
             </div>
-
             {/* ══════════════════════ LIGHTBOX ══════════════════════ */}
             <AnimatePresence>
                 {lightboxOpen && (
@@ -567,7 +599,12 @@ export default function AnnonceDetailPage() {
                         <motion.div key={currentImageIndex} initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }}
                             onClick={e => e.stopPropagation()}
                             className="relative w-full h-full max-w-3xl max-h-[90vh] mx-4">
-                            <Image src={imagesList[currentImageIndex]} fill unoptimized className="object-contain" alt={annonce.title} />
+                            <Image
+                                src={imagesList[currentImageIndex]}
+                                fill
+                                unoptimized
+                                className="object-contain"
+                                alt={annonce.title} />
                         </motion.div>
                         {imagesList.length > 1 && (
                             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
@@ -580,7 +617,6 @@ export default function AnnonceDetailPage() {
                     </motion.div>
                 )}
             </AnimatePresence>
-
             <Share
                 isOpen={isShareOpen}
                 onClose={() => setIsShareOpen(false)}
@@ -592,7 +628,6 @@ export default function AnnonceDetailPage() {
                 storeName={annonce.user?.fullName || annonce.companyName || undefined}
                 storeLogo={annonce.user?.avatar}
             />
-
             {isBookingOpen && (
                 <BookingModal
                     isOpen={isBookingOpen}

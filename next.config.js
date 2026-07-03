@@ -4,25 +4,20 @@ const isDev = process.env.NODE_ENV === "development";
 const isProd = process.env.NODE_ENV === "production";
 
 const nextConfig = {
+
+  // Required by Dockerfile - it copies .next/standalone, which only exists
+  // with this output mode.
+  output: "standalone",
+
   // ─── Stabilité & DX ───────────────────────────────────────────────
   reactStrictMode: true,
 
-  // ─── ESLint — exécuté séparément en CI, pas pendant le build Vercel ──
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
 
   // ─── TypeScript — les erreurs TS bloquent toujours le build ──────────
   typescript: {
     ignoreBuildErrors: false,
   },
 
-  // ─── Compression HTTP ─────────────────────────────────────────────
-  // Désactiver si Cloudflare ou Nginx gère déjà la compression.
-  // compress: true,
-
-  // ─── Minification ─────────────────────────────────────────────────
-  // swcMinify: true,
 
   // ─── Headers de sécurité ──────────────────────────────────────────
   async headers() {
@@ -107,13 +102,6 @@ const nextConfig = {
           { key: "Permissions-Policy", value: "camera=*, microphone=*, geolocation=*" },
         ],
       },
-      // Cache immutable pour les assets hashés (JS/CSS/fonts)
-      {
-        source: "/_next/static/(.*)",
-        headers: [
-          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
-        ],
-      },
     ];
   },
 
@@ -146,26 +134,7 @@ const nextConfig = {
     removeConsole: isProd ? { exclude: ["error", "warn"] } : false,
   },
 
-  // ─── Cache webpack en dev ─────────────────────────────────────────
-  // Le cache disque persistant de webpack (.next/cache/webpack/*.pack.gz)
-  // écrit via un remplacement atomique (nouveau fichier -> ancien renommé en
-  // .old -> bascule). N'importe quelle interruption du process pendant cette
-  // fenêtre (kill -9, crash, fermeture brutale du terminal) — même en cours
-  // de session, pas seulement entre deux démarrages — peut laisser le cache
-  // dans un état où webpack croit connaître un module qui ne correspond plus
-  // au code réel : symptôme observé en dev → "Cannot read properties of
-  // undefined (reading 'call')" au chargement d'un Client Component, ou code
-  // qui semble ne jamais se mettre à jour après une modification.
-  // En forçant le cache en mémoire pour `next dev`, on perd le gain de
-  // vitesse du cache disque entre deux redémarrages complets (rebuild from
-  // scratch chaque fois), mais on élimine totalement ce risque de
-  // corruption — HMR au sein d'une même session reste inchangé/rapide.
-  webpack: (config, { dev }) => {
-    if (dev) {
-      config.cache = { type: "memory" };
-    }
-    return config;
-  },
+
 
   // ─── Bundle & optimisations ───────────────────────────────────────
   experimental: {
@@ -178,16 +147,6 @@ const nextConfig = {
     ],
   },
 
-  // ─── Internationalisation (décommenter si besoin) ─────────────────
-  // i18n: {
-  //   locales: ["fr", "en"],
-  //   defaultLocale: "fr",
-  // },
-
-  // ─── Variables d'env publiques ────────────────────────────────────
-  env: {
-    NEXT_PUBLIC_APP_ENV: process.env.NODE_ENV,
-  },
 };
 
 module.exports = nextConfig;

@@ -119,13 +119,11 @@ export default function EasyDeliveryPage() {
 
     return (
         <div className="w-full mx-auto py-4 space-y-6">
-
             <SectionHeader
                 title="Mon Espace Livreur"
                 subtitle="Gérez votre profil EasyDelivery, suivez vos livraisons en cours et consultez votre historique."
                 className="mb-6"
             />
-
             {/* ── Profile Section (mirrors Store.tsx pattern) ── */}
             <div className="w-full max-w-4xl mx-auto mb-2 px-0 md:px-4 mb-6">
                 <div className="group bg-card border-b p-6  flex items-center justify-between gap-6">
@@ -136,8 +134,7 @@ export default function EasyDeliveryPage() {
                                     src={profile.deliveryLogo}
                                     alt={profile.companyName || "Service"}
                                     fill
-                                    className="object-cover"
-                                />
+                                    className="object-cover" />
                             ) : (
                                 <Icon icon="solar:scooter-bold-duotone" className="w-8 h-8 md:w-10 md:h-10 text-primary" />
                             )}
@@ -173,7 +170,6 @@ export default function EasyDeliveryPage() {
                     </button>
                 </div>
             </div>
-
             {/* ── Stats Bar ── */}
             {stats && (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 px-0 md:px-4">
@@ -195,7 +191,6 @@ export default function EasyDeliveryPage() {
                     ))}
                 </div>
             )}
-
             {/* ── Tabs ── */}
             <div className="flex bg-muted/50 p-1 rounded-2xl w-full max-w-lg px-0 md:px-4">
                 {([
@@ -208,7 +203,6 @@ export default function EasyDeliveryPage() {
                     </button>
                 ))}
             </div>
-
             {/* ── Tab Content ── */}
             {activeTab === "en-cours" && (
                 <div className="space-y-3">
@@ -239,7 +233,6 @@ export default function EasyDeliveryPage() {
                     )}
                 </div>
             )}
-
             {activeTab === "historique" && (
                 <div className="space-y-3">
                     {historyLoading && Array.from({ length: 4 }).map((_, i) => <AccountBookingRowSkeleton key={i} />)}
@@ -268,7 +261,6 @@ export default function EasyDeliveryPage() {
                     )}
                 </div>
             )}
-
             <DeliverySettingsModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
@@ -276,7 +268,6 @@ export default function EasyDeliveryPage() {
                 onSave={handleSave}
                 isLoading={upsertMutation.isPending}
             />
-
         </div>
     );
 }
@@ -296,8 +287,7 @@ function DeliveryCard({ delivery, getStatusBadge, onTrack, }: {
                             src={delivery.easyDelivery.deliveryLogo}
                             alt="Logo"
                             fill
-                            className="object-cover"
-                        />
+                            className="object-cover" />
                     ) : (
                         <Icon icon="solar:scooter-bold-duotone" className="w-6 h-6 text-primary" />
                     )}

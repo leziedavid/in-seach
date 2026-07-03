@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Icon } from "@iconify/react";
-import Image from 'next/image';
+import Image from "next/image";
 import { LogisticService, TransportType } from "@/types/interface";
 import { createPortal } from "react-dom";
 import { useNotification } from "@/components/notifications/NotificationProvider";
@@ -110,7 +110,12 @@ export default function LogisticsServiceDetailModal({ isOpen, onClose, service, 
                                     {/* Image Section */}
                                     <div className="relative aspect-square md:aspect-auto md:h-full bg-muted min-h-[300px]">
                                         {service.images?.[0]?.url ? (
-                                            <Image src={service.images[0].url} fill className="object-cover" alt={service.label} unoptimized />
+                                            <Image
+                                                src={service.images[0].url}
+                                                fill
+                                                className="object-cover"
+                                                alt={service.label}
+                                                unoptimized />
                                         ) : (
                                             <div className="w-full h-full flex items-center justify-center text-muted-foreground/20">
                                                 <Icon icon="solar:delivery-bold-duotone" width={80} />

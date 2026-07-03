@@ -27,8 +27,7 @@ export const columns: ColumnDef<Service>[] = [
                         alt={row.original.title}
                         fill
                         className="object-cover rounded"
-                        unoptimized
-                    />
+                        unoptimized />
                 </div>
             </div>
         ),

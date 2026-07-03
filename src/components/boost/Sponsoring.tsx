@@ -38,12 +38,18 @@ const AUTO_SLIDE_MS = 5000;
 
 function EntityImage({ entity, onClick }: { entity: BoostedEntitySummary; onClick: () => void }) {
     return (
-        <button onClick={onClick} className="relative w-[72px] h-[72px] rounded-xl overflow-hidden shrink-0 bg-white/8 focus:outline-none" aria-label={`Voir ${entity.title}`}>
+        <button onClick={onClick} className="relative w-[72px] h-[72px] rounded-xl overflow-hidden shrink-0 bg-black/5 dark:bg-white/8 focus:outline-none" aria-label={`Voir ${entity.title}`}>
             {entity.image ? (
-                <Image src={entity.image} fill unoptimized className="object-cover" alt={entity.title} />
+                <Image
+                    src={entity.image}
+                    fill
+                    unoptimized
+                    className="object-cover"
+                    alt={entity.title}
+                    sizes="72px" />
             ) : (
                 <div className="w-full h-full flex items-center justify-center">
-                    <Icon icon="solar:star-bold-duotone" className="w-8 h-8 text-white/20" />
+                    <Icon icon="solar:star-bold-duotone" className="w-8 h-8 text-black/20 dark:text-white/20" />
                 </div>
             )}
             {/* Gradient overlay bas */}
@@ -69,10 +75,10 @@ function NavDots({ total, current, loadingNext, onSelect, }: { total: number; cu
     return (
         <div className="flex items-center gap-1.5">
             {Array.from({ length: total }).map((_, idx) => (
-                <button key={idx} onClick={() => onSelect(idx)} className={`rounded-full transition-all duration-300 focus:outline-none ${idx === current ? "w-4 h-1.5 bg-white" : "w-1.5 h-1.5 bg-white/30 hover:bg-white/50"}`} aria-label={`Élément ${idx + 1}`} />
+                <button key={idx} onClick={() => onSelect(idx)} className={`rounded-full transition-all duration-300 focus:outline-none ${idx === current ? "w-4 h-1.5 bg-zinc-900 dark:bg-white" : "w-1.5 h-1.5 bg-zinc-900/25 dark:bg-white/30 hover:bg-zinc-900/40 dark:hover:bg-white/50"}`} aria-label={`Élément ${idx + 1}`} />
             ))}
             {loadingNext && (
-                <Icon icon="solar:restart-bold-duotone" className="w-3 h-3 text-white/40 ml-0.5 animate-spin" />
+                <Icon icon="solar:restart-bold-duotone" className="w-3 h-3 text-zinc-500 dark:text-white/40 ml-0.5 animate-spin" />
             )}
         </div>
     );
@@ -204,7 +210,7 @@ export default function Sponsoring() {
                     dragConstraints={{ left: 0, right: 0 }}
                     dragElastic={0.2}
                     onDragEnd={handleDragEnd}
-                    className="pointer-events-auto w-full max-w-sm bg-zinc-900/70 dark:bg-zinc-950/75 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/10 overflow-hidden select-none"
+                    className="pointer-events-auto w-full max-w-sm sm:max-w-xl bg-white/25 dark:bg-zinc-900/60 backdrop-blur-xl rounded-2xl shadow-2xl border border-black/10 dark:border-white/10 overflow-hidden select-none"
                 >
                     {/* Accent line top */}
                     <div className="h-[2px] bg-gradient-to-r from-transparent via-primary/70 to-transparent" />
@@ -212,15 +218,15 @@ export default function Sponsoring() {
                     {/* ── Skeleton ── */}
                     {loading && (
                         <div className="flex items-center gap-3 p-3">
-                            <div className="w-[72px] h-[72px] rounded-xl bg-white/10 animate-pulse shrink-0" />
+                            <div className="w-[72px] h-[72px] rounded-xl bg-black/10 dark:bg-white/10 animate-pulse shrink-0" />
                             <div className="flex-1 space-y-2 min-w-0">
                                 <div className="flex gap-2">
-                                    <div className="h-4 w-4/5 bg-white/10 rounded-full animate-pulse" />
-                                    <div className="w-7 h-7 bg-white/10 rounded-full animate-pulse ml-auto shrink-0" />
+                                    <div className="h-4 w-4/5 bg-black/10 dark:bg-white/10 rounded-full animate-pulse" />
+                                    <div className="w-7 h-7 bg-black/10 dark:bg-white/10 rounded-full animate-pulse ml-auto shrink-0" />
                                 </div>
-                                <div className="h-3 w-1/3 bg-white/10 rounded-full animate-pulse" />
-                                <div className="h-3 w-2/4 bg-white/10 rounded-full animate-pulse" />
-                                <div className="h-8 w-full bg-white/10 rounded-xl animate-pulse" />
+                                <div className="h-3 w-1/3 bg-black/10 dark:bg-white/10 rounded-full animate-pulse" />
+                                <div className="h-3 w-2/4 bg-black/10 dark:bg-white/10 rounded-full animate-pulse" />
+                                <div className="h-8 w-full bg-black/10 dark:bg-white/10 rounded-xl animate-pulse" />
                             </div>
                         </div>
                     )}
@@ -241,60 +247,53 @@ export default function Sponsoring() {
                                                 {entity.badge && BADGE_LABELS[entity.badge] && (
                                                     <EntityBadge label={BADGE_LABELS[entity.badge]} />
                                                 )}
-                                                <span className="text-[9px] text-white/40 font-medium">Sponsorisée</span>
+                                                <span className="text-[9px] text-zinc-500 dark:text-white/40 font-medium">Sponsorisée</span>
                                             </div>
-                                            <button onClick={() => setDismissed(true)} className="w-6 h-6 rounded-full bg-white/12 hover:bg-white/22 flex items-center justify-center transition shrink-0 focus:outline-none" aria-label="Fermer"><Icon icon="solar:close-bold" className="w-3 h-3 text-white/70" /></button>
+                                            <button onClick={() => setDismissed(true)} className="w-6 h-6 rounded-full bg-black/8 hover:bg-black/15 dark:bg-white/15 dark:hover:bg-white/25 flex items-center justify-center transition shrink-0 focus:outline-none" aria-label="Fermer"><Icon icon="solar:close-circle-bold-duotone" className="w-3.5 h-3.5 text-zinc-600 dark:text-white/80" /></button>
                                         </div>
 
-                                        {/* Title */}
-                                        <p className="text-sm font-black text-white leading-tight line-clamp-1">
+                                        {/* Title - cliquable */}
+                                        <button
+                                            onClick={() => handleNavigate(current)}
+                                            className="w-full text-left text-sm font-black text-zinc-900 dark:text-white leading-tight line-clamp-1 focus:outline-none active:opacity-70"
+                                        >
                                             {entity.title}
-                                        </p>
+                                        </button>
 
-                                        {/* Store / provider */}
-                                        {entity.storeName && (
-                                            <p className="text-[11px] text-white/50 font-medium truncate flex items-center gap-1">
-                                                <Icon icon="solar:shop-bold-duotone" className="w-3 h-3 shrink-0 text-white/30" />
-                                                {entity.storeName}
-                                            </p>
-                                        )}
+                                        {/* Store / provider + CTA sur la même ligne */}
+                                        <div className="flex items-center justify-between gap-2 min-w-0">
+                                            {entity.storeName && (
+                                                <p className="text-[11px] text-zinc-500 dark:text-white/50 font-medium truncate flex items-center gap-1 min-w-0">
+                                                    <Icon icon="solar:shop-bold-duotone" className="w-3 h-3 shrink-0 text-zinc-400 dark:text-white/30" />
+                                                    <span className="truncate">{entity.storeName}</span>
+                                                </p>
+                                            )}
+                                            <button
+                                                onClick={() => handleNavigate(current)}
+                                                className="shrink-0 ml-auto px-2.5 py-1 bg-primary hover:bg-primary/90 text-primary-foreground text-[10px] font-black rounded-lg transition-all active:scale-95"
+                                            >
+                                                Voir l&apos;offre
+                                            </button>
+                                        </div>
 
                                         {/* Category */}
                                         {entity.category && (
-                                            <p className="text-[10px] text-white/40 truncate">
+                                            <p className="text-[10px] text-zinc-400 dark:text-white/40 truncate">
                                                 {entity.category}
                                             </p>
                                         )}
-
-                                        {/* Description excerpt */}
-                                        {/* {entity.description && (
-                                            <p className="text-[10px] text-white/35 leading-snug line-clamp-1">
-                                                {entity.description}
-                                            </p>
-                                        )} */}
-
-                                        {/* CTA row */}
-                                        <div className="flex items-center gap-2 pt-0.5">
-                                            <button onClick={() => handleNavigate(current)} className="flex-1 py-1.5 bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-black rounded-xl transition-all active:scale-95">Voir l&apos;offre</button>
-                                            {entity.price != null && (
-                                                <span className="text-xs font-black text-emerald-400 shrink-0 whitespace-nowrap">
-                                                    {entity.price.toLocaleString()} F
-                                                    {/* {entity.frais ? (<span className="text-[9px] font-medium text-white/40 ml-0.5"> +{entity.frais.toLocaleString()} </span>) : null} */}
-                                                </span>
-                                            )}
-                                        </div>
                                     </div>
                                 </div>
 
                                 {/* Navigation dots + arrows */}
                                 {boosts.length > 1 && (
                                     <div className="flex items-center justify-between px-3 pb-2.5">
-                                        <button onClick={goPrev} disabled={currentIndex === 0} className="w-6 h-6 rounded-full bg-white/8 hover:bg-white/18 flex items-center justify-center disabled:opacity-20 transition focus:outline-none" aria-label="Précédent">
-                                            <Icon icon="solar:alt-arrow-left-bold" className="w-3 h-3 text-white" />
+                                        <button onClick={goPrev} disabled={currentIndex === 0} className="w-6 h-6 rounded-full bg-black/5 hover:bg-black/12 dark:bg-white/8 dark:hover:bg-white/18 flex items-center justify-center disabled:opacity-20 transition focus:outline-none" aria-label="Précédent">
+                                            <Icon icon="solar:alt-arrow-left-bold" className="w-3 h-3 text-zinc-700 dark:text-white" />
                                         </button>
 
                                         <NavDots total={boosts.length} current={currentIndex} loadingNext={loadingNext} onSelect={setCurrentIndex} />
-                                        <button onClick={goNext} disabled={isLastItem && !loadingNext} className="w-6 h-6 rounded-full bg-white/8 hover:bg-white/18 flex items-center justify-center disabled:opacity-20 transition focus:outline-none" aria-label="Suivant"><Icon icon="solar:alt-arrow-right-bold" className="w-3 h-3 text-white" /></button>
+                                        <button onClick={goNext} disabled={isLastItem && !loadingNext} className="w-6 h-6 rounded-full bg-black/5 hover:bg-black/12 dark:bg-white/8 dark:hover:bg-white/18 flex items-center justify-center disabled:opacity-20 transition focus:outline-none" aria-label="Suivant"><Icon icon="solar:alt-arrow-right-bold" className="w-3 h-3 text-zinc-700 dark:text-white" /></button>
                                     </div>
                                 )}
                             </motion.div>

@@ -221,7 +221,6 @@ export default function LivePlayer({ live, isActive, onNext, onPrev, showNav }: 
 
     return (
         <div className="relative w-full h-full bg-black overflow-hidden">
-
             {/* ══════════════════════════════════════════════════
                 ZONE VIDÉO
             ══════════════════════════════════════════════════ */}
@@ -239,17 +238,15 @@ export default function LivePlayer({ live, isActive, onNext, onPrev, showNav }: 
                 ) : (
                     /* Plateforme non-embarquable — ne devrait pas être dans le feed
                        mais on affiche quand même un fallback au cas où */
-                    <ExternalPlatformCard
+                    (<ExternalPlatformCard
                         platform={platformInfo}
                         title={live.title}
                         url={live.videoLink}
-                    />
+                    />)
                 )}
             </div>
-
             {/* Gradient bas */}
             <div className="absolute bottom-0 left-0 right-0 h-56 bg-gradient-to-t from-black/95 via-black/40 to-transparent pointer-events-none z-10" />
-
             {/* ══════════════════════════════════════════════════
                 OVERLAY FIN DE VIDÉO
                 Couvre totalement l'iframe pour bloquer l'UI
@@ -283,7 +280,6 @@ export default function LivePlayer({ live, isActive, onNext, onPrev, showNav }: 
                     </button>
                 </div>
             )}
-
             {/* ══════════════════════════════════════════════════
                 BOUTON MUTE / UNMUTE — coin haut gauche
             ══════════════════════════════════════════════════ */}
@@ -299,7 +295,6 @@ export default function LivePlayer({ live, isActive, onNext, onPrev, showNav }: 
                     />
                 </button>
             )}
-
             {/* Indicateur "son coupé" animé — visible 2 s au démarrage si muet */}
             {embedUrl && isMuted && isActive && (
                 <div className="absolute top-14 left-14 z-20 flex items-center gap-1.5 bg-black/60 backdrop-blur-sm rounded-full px-3 py-1.5 pointer-events-none animate-fade-in-out">
@@ -307,7 +302,6 @@ export default function LivePlayer({ live, isActive, onNext, onPrev, showNav }: 
                     <span className="text-white/80 text-[10px] font-bold">Appuyez pour activer le son</span>
                 </div>
             )}
-
             {/* ══════════════════════════════════════════════════
                 INFO BAS
             ══════════════════════════════════════════════════ */}
@@ -349,7 +343,6 @@ export default function LivePlayer({ live, isActive, onNext, onPrev, showNav }: 
                     </a>
                 )}
             </div>
-
             {/* ══════════════════════════════════════════════════
                 ACTIONS DROITE
             ══════════════════════════════════════════════════ */}
@@ -378,7 +371,6 @@ export default function LivePlayer({ live, isActive, onNext, onPrev, showNav }: 
                     <span className="text-white/70 text-[10px] drop-shadow">{live.viewsCount}</span>
                 </div>
             </div>
-
             {/* ══════════════════════════════════════════════════
                 NAV DESKTOP
             ══════════════════════════════════════════════════ */}

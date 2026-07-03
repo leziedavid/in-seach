@@ -163,7 +163,6 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
     return (
         <>
             <style jsx global>{`  @keyframes shimmer { 100% { transform: translateX(100%); } } `}</style>
-
             {/* ═══════════════════════════════
                 DESKTOP SIDEBAR — même UI que mobile
             ═══════════════════════════════ */}
@@ -174,7 +173,12 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
                     <div className="flex flex-col items-center px-2 pb-3">
                         <div className="relative w-16 h-16 rounded-full overflow-hidden bg-muted border-2 border-border shadow-lg shrink-0">
                             {user?.avatar ? (
-                                <Image src={user.avatar} fill className="object-cover" alt="Avatar" unoptimized />
+                                <Image
+                                    src={user.avatar}
+                                    fill
+                                    className="object-cover"
+                                    alt="Avatar"
+                                    unoptimized />
                             ) : (
                                 <div className="w-full h-full flex items-center justify-center">
                                     <Icon icon="solar:user-bold-duotone" className="w-8 h-8 text-muted-foreground" />
@@ -248,7 +252,6 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
                     </div>
                 </div>
             </aside>
-
             {/* ═══════════════════════════════
                 MOBILE — FAB trigger
             ═══════════════════════════════ */}
@@ -258,7 +261,6 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
                     {/* <Image src="/service.svg" alt="Menu" width={32} height={32} className="brightness-0 invert dark:brightness-100 dark:invert-0" style={{ height: 'auto' }} /> */}
                 </button>
             </div>
-
             {/* ═══════════════════════════════
                 MOBILE — Panneau plein écran style Yango
             ═══════════════════════════════ */}
@@ -293,7 +295,12 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
                             <div className="flex flex-col items-center px-6 pb-3">
                                 <div className="relative w-16 h-16 rounded-full overflow-hidden bg-muted border-2 border-border shadow-lg shrink-0">
                                     {user?.avatar ? (
-                                        <Image src={user.avatar} fill className="object-cover" alt="Avatar" unoptimized />
+                                        <Image
+                                            src={user.avatar}
+                                            fill
+                                            className="object-cover"
+                                            alt="Avatar"
+                                            unoptimized />
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center">
                                             <Icon icon="solar:user-bold-duotone" className="w-10 h-10 text-muted-foreground" />

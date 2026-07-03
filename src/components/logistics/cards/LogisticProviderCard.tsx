@@ -23,10 +23,7 @@ export default function LogisticProviderCard({ provider, viewMode = "grid" }: Lo
     };
 
     return (
-
-
         <>
-
             <div onClick={handleNavigate}
                 className={`group rounded-xl transition-all duration-300 cursor-pointer bg-card border border-border/10 hover:border-primary/30 overflow-hidden ${viewMode === 'grid' ? "p-0 md:p-4 flex flex-col md:items-center text-left md:text-center" : "p-2 md:p-4 flex flex-row items-center gap-4 text-left"
                     }`}>
@@ -34,7 +31,12 @@ export default function LogisticProviderCard({ provider, viewMode = "grid" }: Lo
                 {/* Image Section */}
                 <div className={`relative overflow-hidden rounded-lg md:rounded-2xl shrink-0 ${viewMode === 'grid' ? "w-full aspect-square mb-1.5" : "w-24 h-24 md:w-32 md:h-32"
                     }`}>
-                    <Image src={provider.logo || '/placeholder-logistic.jpg'} alt={provider.companyName} fill unoptimized className="object-cover group-hover:scale-110 transition-transform duration-500" />
+                    <Image
+                        src={provider.logo || '/placeholder-logistic.jpg'}
+                        alt={provider.companyName}
+                        fill
+                        unoptimized
+                        className="object-cover group-hover:scale-110 transition-transform duration-500" />
 
                     {/* Badge Overlay */}
                     <div className={`absolute bg-black/70 md:bg-background/95 backdrop-blur-sm px-1.5 py-0.5 md:px-2 md:py-0.5 rounded-full text-[8px] md:text-[9px] font-black text-white md:text-foreground uppercase tracking-tighter flex items-center gap-1 ${viewMode === 'grid' ? "top-1 left-1 md:top-2 md:left-2" : "top-1 left-1"
@@ -70,9 +72,6 @@ export default function LogisticProviderCard({ provider, viewMode = "grid" }: Lo
                     </div>
                 </div>
             </div>
-
         </>
-
-
     );
 }

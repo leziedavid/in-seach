@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Icon } from "@iconify/react";
-import Image from 'next/image';
+import Image from "next/image";
 import { Product, productConditionLabels, StoreUserInfo } from "@/types/interface";
 import { useCart } from "@/components/providers/CartProvider";
 import { useNotification } from "@/components/notifications/NotificationProvider";
@@ -391,7 +391,12 @@ export default function ProductDetailPage() {
                             <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-2xl border border-border/50">
                                 <div className="w-11 h-11 rounded-full bg-primary/10 relative overflow-hidden shrink-0 ring-2 ring-primary/10">
                                     {storeInfo?.storeLogo ? (
-                                        <Image src={storeInfo.storeLogo} alt="" fill className="object-cover" unoptimized />
+                                        <Image
+                                            src={storeInfo.storeLogo}
+                                            alt=""
+                                            fill
+                                            className="object-cover"
+                                            unoptimized />
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center">
                                             <Icon icon="solar:shop-bold-duotone" className="w-6 h-6 text-primary" />
@@ -435,13 +440,12 @@ export default function ProductDetailPage() {
                     </button>
                 </div>
             </div>
-
             {/* ══════════════════════ DESKTOP (centré, card) ══════════════════════ */}
             <div className="hidden md:block w-full max-w-4xl mx-auto px-4 py-6">
                 <div className="bg-card overflow-hidden">
 
                     {/* Header desktop */}
-                    <div className="h-14 flex items-center justify-between px-6 bg-card">
+                    <div className="h-14 flex items-center justify-between px-6 ">
                         <button onClick={() => router.back()} className="flex h-9 w-9 items-center justify-center rounded-full bg-muted hover:bg-accent transition">
                             <Icon icon="solar:alt-arrow-left-bold-duotone" width={18} />
                         </button>
@@ -465,8 +469,20 @@ export default function ProductDetailPage() {
                                 <AnimatePresence mode="wait">
                                     {imagesList.length > 0 ? (
                                         <motion.div key={currentImageIndex} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} className="absolute inset-0">
-                                            <Image src={imagesList[currentImageIndex]} fill unoptimized className="object-cover blur-3xl opacity-30 scale-110" alt="" aria-hidden />
-                                            <Image src={imagesList[currentImageIndex]} fill unoptimized className="object-contain z-10 p-4 cursor-zoom-in" alt={product.name} onClick={() => setLightboxOpen(true)} />
+                                            <Image
+                                                src={imagesList[currentImageIndex]}
+                                                fill
+                                                unoptimized
+                                                className="object-cover blur-3xl opacity-30 scale-110"
+                                                alt=""
+                                                aria-hidden />
+                                            <Image
+                                                src={imagesList[currentImageIndex]}
+                                                fill
+                                                unoptimized
+                                                className="object-contain z-10 p-4 cursor-zoom-in"
+                                                alt={product.name}
+                                                onClick={() => setLightboxOpen(true)} />
                                         </motion.div>
                                     ) : (
                                         <div className="absolute inset-0 flex items-center justify-center text-muted-foreground/20">
@@ -493,7 +509,12 @@ export default function ProductDetailPage() {
                                     {imagesList.slice(0, 6).map((img, idx) => (
                                         <button key={idx} onClick={() => setCurrentImageIndex(idx)}
                                             className={`w-12 h-12 rounded-lg overflow-hidden border-2 transition-all shrink-0 relative ${currentImageIndex === idx ? "border-primary scale-105" : "border-transparent opacity-60 hover:opacity-100"}`}>
-                                            <Image src={img} fill unoptimized className="object-cover" alt="" />
+                                            <Image
+                                                src={img}
+                                                fill
+                                                unoptimized
+                                                className="object-cover"
+                                                alt="" />
                                         </button>
                                     ))}
                                 </div>
@@ -527,7 +548,6 @@ export default function ProductDetailPage() {
                     </div>
                 </div>
             </div>
-
             {/* ══════════════════════ LIGHTBOX ══════════════════════ */}
             <AnimatePresence>
                 {lightboxOpen && (
@@ -551,7 +571,12 @@ export default function ProductDetailPage() {
                         <motion.div key={currentImageIndex} initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }}
                             onClick={e => e.stopPropagation()}
                             className="relative w-full h-full max-w-3xl max-h-[90vh] mx-4">
-                            <Image src={imagesList[currentImageIndex]} fill unoptimized className="object-contain" alt={product.name} />
+                            <Image
+                                src={imagesList[currentImageIndex]}
+                                fill
+                                unoptimized
+                                className="object-contain"
+                                alt={product.name} />
                         </motion.div>
                         {imagesList.length > 1 && (
                             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
@@ -564,7 +589,6 @@ export default function ProductDetailPage() {
                     </motion.div>
                 )}
             </AnimatePresence>
-
             <Share
                 isOpen={isShareOpen}
                 onClose={() => setIsShareOpen(false)}

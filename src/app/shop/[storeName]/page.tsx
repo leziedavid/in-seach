@@ -41,7 +41,7 @@ export default function StorePage(props: Props) {
     // 🔥 fonction pour nettoyer le slug → remettre les espaces
 
     const cleanStoreName = (slug: string) => {
-        return slug?.replace(/-/g, " ").trim()
+        return slug?.replace(/-/g, " ").trim();
     }
 
     const fetchPublicStoreData = useCallback(async () => {
@@ -159,7 +159,12 @@ export default function StorePage(props: Props) {
             <div className="flex flex-col items-center text-center w-full max-w-4xl mb-12 space-y-4">
                 <div className="relative w-24 h-24 md:w-32 md:h-32 rounded-full bg-card border-4 border-background shadow-xl overflow-hidden mb-2">
                     {publicStore?.storeLogo ? (
-                        <Image src={publicStore.storeLogo} alt={publicStore.storeName || "Boutique"} fill className="object-cover" unoptimized />
+                        <Image
+                            src={publicStore.storeLogo}
+                            alt={publicStore.storeName || "Boutique"}
+                            fill
+                            className="object-cover"
+                            unoptimized />
                     ) : (
                         <div className="w-full h-full flex items-center justify-center bg-primary/10">
                             <Icon icon="solar:shop-bold-duotone" className="w-12 h-12 md:w-16 md:h-16 text-primary" />
@@ -183,7 +188,6 @@ export default function StorePage(props: Props) {
                 </div>
 
             </div>
-
             {/* Search Input */}
             <div className="flex flex-col md:flex-row items-center justify-center gap-4 w-full max-w-2xl mb-2">
                 <div className="flex items-center w-full bg-card border border-primary rounded-xl px-4 py-3 shadow-sm hover:border-secondary transition-colors focus-within:border-secondary">
@@ -199,7 +203,6 @@ export default function StorePage(props: Props) {
                     </button>
                 </div>
             </div>
-
             {/* CATEGORIES & SUB-CATEGORIES FILTERS */}
             <div className="w-full max-w-3xl mx-auto mb-6">
                 <CategoryFilter
@@ -221,7 +224,6 @@ export default function StorePage(props: Props) {
                     hasSubCategories={true}
                 />
             </div>
-
             {/* NEW FILTERS & VIEW TOGGLE */}
             <div className="w-full max-w-3xl mx-auto mb-6 flex flex-col md:flex-row items-center hide-scrollbar overflow-x-auto justify-between gap-4">
 
@@ -258,7 +260,6 @@ export default function StorePage(props: Props) {
                     </button>
                 </div>
             </div>
-
             {/* Results count header */}
             <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-1">
                 <div className="flex items-center justify-start md:justify-center w-full px-2 md:px-0 mb-4">
@@ -283,7 +284,6 @@ export default function StorePage(props: Props) {
                     />
                 )}
             </div>
-
             {/* Review Section */}
             {publicStore && publicStore.id && (
                 <div className="w-full max-w-4xl mx-auto px-4 mt-12">
@@ -294,12 +294,11 @@ export default function StorePage(props: Props) {
                     />
                 </div>
             )}
-
             <VoiceSearchModal
                 isOpen={isVoiceModalOpen}
                 onClose={() => setIsVoiceModalOpen(false)}
                 onResult={handleVoiceResult}
             />
         </div>
-    )
+    );
 }

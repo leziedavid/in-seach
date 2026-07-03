@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Icon } from "@iconify/react";
-import Image from 'next/image';
+import Image from "next/image";
 import { useCart } from "@/components/providers/CartProvider";
 import { useNotification } from "@/components/notifications/NotificationProvider";
 import { createPortal } from "react-dom";
@@ -138,7 +138,12 @@ export default function CartDetailModal({ isOpen, onClose }: CartDetailModalProp
                                                 <div key={item.id} className="flex items-center gap-4 p-4 rounded-2xl bg-muted/20 border border-border/50 group">
                                                     <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-muted shrink-0 shadow-sm border border-border/10">
                                                         {item.imageUrl ? (
-                                                            <Image src={item.imageUrl} fill className="object-cover" alt={item.name} unoptimized />
+                                                            <Image
+                                                                src={item.imageUrl}
+                                                                fill
+                                                                className="object-cover"
+                                                                alt={item.name}
+                                                                unoptimized />
                                                         ) : (
                                                             <div className="w-full h-full flex items-center justify-center text-muted-foreground"><Icon icon="solar:box-bold-duotone" width={32} /></div>
                                                         )}

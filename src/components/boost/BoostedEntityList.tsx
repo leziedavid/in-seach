@@ -54,7 +54,6 @@ export default function BoostedEntityList({ entityType, entityLabel }: BoostedEn
                     ))}
                 </div>
             )}
-
             {!loading && boosts.length === 0 && (
                 <div className="py-16 text-center flex flex-col items-center justify-center space-y-4 bg-muted/20 rounded-3xl border-2 border-dashed border-border">
                     <div className="p-4 bg-muted/50 rounded-full">
@@ -68,7 +67,6 @@ export default function BoostedEntityList({ entityType, entityLabel }: BoostedEn
                     </div>
                 </div>
             )}
-
             {!loading && boosts.length > 0 && (
                 <>
                     <div className="space-y-3">
@@ -83,7 +81,12 @@ export default function BoostedEntityList({ entityType, entityLabel }: BoostedEn
                                     <div className="flex items-center gap-3 sm:w-56 shrink-0">
                                         <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-muted shrink-0">
                                             {entity?.image ? (
-                                                <Image src={entity.image} alt={entity.title} fill unoptimized className="object-cover" />
+                                                <Image
+                                                    src={entity.image}
+                                                    alt={entity.title}
+                                                    fill
+                                                    unoptimized
+                                                    className="object-cover" />
                                             ) : (
                                                 <div className="w-full h-full flex items-center justify-center">
                                                     <Icon icon="solar:gallery-bold-duotone" className="w-6 h-6 text-muted-foreground" />
@@ -100,13 +103,11 @@ export default function BoostedEntityList({ entityType, entityLabel }: BoostedEn
                                             )}
                                         </div>
                                     </div>
-
                                     {/* Statut boost */}
                                     <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black w-fit shrink-0 ${statusInfo.className}`}>
                                         <Icon icon={statusInfo.icon} className="w-3.5 h-3.5" />
                                         {statusInfo.label}
                                     </div>
-
                                     {/* Infos boost */}
                                     <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-3 text-[11px] text-muted-foreground">
                                         <div>
@@ -131,7 +132,6 @@ export default function BoostedEntityList({ entityType, entityLabel }: BoostedEn
                                             </div>
                                         )}
                                     </div>
-
                                     {/* Renouvellement si expiré */}
                                     {isExpired && entity && (
                                         <button
@@ -154,7 +154,6 @@ export default function BoostedEntityList({ entityType, entityLabel }: BoostedEn
                     )}
                 </>
             )}
-
             {/* Modal de renouvellement — réutilise le composant de boost existant, préremplie avec l'entité ciblée */}
             {renewTarget?.entity && (
                 <BoostEntityModal

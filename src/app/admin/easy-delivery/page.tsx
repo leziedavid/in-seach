@@ -93,7 +93,6 @@ export default function AdminEasyDeliveryPage() {
                     <p className="text-sm text-zinc-500 dark:text-zinc-400">{t("admin.easy_delivery.subtitle")}</p>
                 </div>
             </div>
-
             <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm">
                 <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex flex-col md:flex-row gap-4 items-center justify-between">
                     <div className="relative w-full md:w-96">
@@ -143,7 +142,11 @@ export default function AdminEasyDeliveryPage() {
                                             <div className="flex items-center gap-3">
                                                 <div className="relative w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/10 overflow-hidden">
                                                     {profile.deliveryLogo ? (
-                                                        <Image src={profile.deliveryLogo} alt="" fill className="object-cover" />
+                                                        <Image
+                                                            src={profile.deliveryLogo}
+                                                            alt=""
+                                                            fill
+                                                            className="object-cover" />
                                                     ) : (
                                                         <User className="w-5 h-5 text-primary" />
                                                     )}
@@ -226,7 +229,6 @@ export default function AdminEasyDeliveryPage() {
                     </div>
                 )}
             </div>
-
             {isEditModalOpen && currentProfile && (
                 <DeliverySettingsModal
                     isOpen={isEditModalOpen}
@@ -237,5 +239,5 @@ export default function AdminEasyDeliveryPage() {
                 />
             )}
         </div>
-    )
+    );
 }

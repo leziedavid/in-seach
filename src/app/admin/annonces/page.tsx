@@ -19,7 +19,7 @@ import CategoryAnnonceForm from '@/components/annonces/forms/CategoryAnnonceForm
 import TypeAnnonceForm from '@/components/annonces/forms/TypeAnnonceForm';
 import SimpleEntityForm from '@/components/common/SimpleEntityForm';
 import TechnicalSheetConfigForm from '@/components/common/TechnicalSheetConfigForm';
-import Image from 'next/image';
+import Image from "next/image";
 import { Modal } from '@/components/ui/MotionModal';
 import { GenericTable } from '@/components/ui/table/table';
 import { ColumnDef } from '@tanstack/react-table';
@@ -514,7 +514,12 @@ export default function AdminAnnoncesPage() {
                 <div className="flex items-center gap-4">
                     <div className="relative w-12 h-12 bg-muted rounded-xl overflow-hidden border border-border/50 flex-shrink-0">
                         {row.original.files && row.original.files[0]?.fileUrl ? (
-                            <Image src={row.original.files[0].fileUrl} alt={row.original.title} fill className="object-cover" unoptimized />
+                            <Image
+                                src={row.original.files[0].fileUrl}
+                                alt={row.original.title}
+                                fill
+                                className="object-cover"
+                                unoptimized />
                         ) : (
                             <div className="absolute inset-0 flex items-center justify-center">
                                 <Radio className="w-5 h-5 text-muted-foreground" />
@@ -576,7 +581,12 @@ export default function AdminAnnoncesPage() {
                 <div className="flex items-center gap-4">
                     <div className="relative w-10 h-10 bg-primary/10 rounded-xl overflow-hidden flex items-center justify-center text-primary border border-primary/20">
                         {row.original.iconName ? (
-                            <Image src={row.original.iconName} alt={row.original.label} fill className="object-cover p-1" unoptimized />
+                            <Image
+                                src={row.original.iconName}
+                                alt={row.original.label}
+                                fill
+                                className="object-cover p-1"
+                                unoptimized />
                         ) : (
                             <TagIcon className="w-5 h-5" />
                         )}

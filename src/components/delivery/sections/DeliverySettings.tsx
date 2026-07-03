@@ -129,7 +129,12 @@ export default function DeliverySettingsModal({ isOpen, onClose, initialData, on
                                     <div className="relative group">
                                         <div className="w-32 h-32 rounded-[2rem] bg-muted border-2 border-dashed border-border overflow-hidden flex items-center justify-center relative">
                                             {logoPreview ? (
-                                                <Image src={logoPreview} alt="Logo preview" fill className="object-cover" unoptimized />
+                                                <Image
+                                                    src={logoPreview}
+                                                    alt="Logo preview"
+                                                    fill
+                                                    className="object-cover"
+                                                    unoptimized />
                                             ) : (
                                                 <Icon icon="solar:camera-bold-duotone" className="w-12 h-12 text-muted-foreground" />
                                             )}
@@ -209,5 +214,5 @@ export default function DeliverySettingsModal({ isOpen, onClose, initialData, on
             )}
         </AnimatePresence>,
         document.body
-    )
+    );
 }

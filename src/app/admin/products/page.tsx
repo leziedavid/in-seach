@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { adminGetProducts, adminDeleteProduct, adminUpdateProduct, adminGetCategoriesProduct, adminCreateCategoryProduct, adminUpdateCategoryProduct, adminDeleteCategoryProduct, adminGetSubCategoriesProduct, adminCreateSubCategoryProduct, adminUpdateSubCategoryProduct, adminDeleteSubCategoryProduct, adminToggleProductStatus, adminToggleCategoryProductStatus, adminToggleSubCategoryProductStatus } from '@/api/api';
 import { ShoppingBag, Package, Trash2, Edit2, Box, Tag, Calendar, Plus, Layers, Grid, ListTree } from 'lucide-react';
 import { useNotification } from '@/components/notifications/NotificationProvider';
-import Image from 'next/image';
+import Image from "next/image";
 import { Product, CategoryProd, SubCategoryProd, productConditionLabels } from '@/types/interface';
 import { Modal } from '@/components/ui/MotionModal';
 import FormsProduit from '@/components/products/forms/FormsProduit';
@@ -277,7 +277,10 @@ export default function AdminProductsPage() {
                 <div className="flex items-center gap-4">
                     <div className="relative w-12 h-12 bg-muted rounded-xl overflow-hidden border border-border/50 flex-shrink-0">
                         {row.original.files && row.original.files[0] ? (
-                            <Image src={row.original.files[0].fileUrl} alt={row.original.name} fill
+                            <Image
+                                src={row.original.files[0].fileUrl}
+                                alt={row.original.name}
+                                fill
                                 className="object-cover"
                                 unoptimized />
                         ) : (

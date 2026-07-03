@@ -7,7 +7,7 @@ import { useNotification } from '@/components/notifications/NotificationProvider
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Boost, BoostStatus } from '@/types/interface';
-import Image from 'next/image';
+import Image from "next/image";
 
 type TabType = 'boosts' | 'transactions';
 

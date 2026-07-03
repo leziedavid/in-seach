@@ -53,8 +53,7 @@ export default function AvatarUploadForm({ currentAvatar, onSubmit, onClose, isS
                             alt="Avatar Preview"
                             fill
                             className="object-cover"
-                            unoptimized
-                        />
+                            unoptimized />
                     ) : (
                         <Icon icon="solar:user-bold-duotone" className="w-16 h-16 text-muted-foreground" />
                     )}
@@ -71,7 +70,6 @@ export default function AvatarUploadForm({ currentAvatar, onSubmit, onClose, isS
                     />
                 </label>
             </div>
-
             <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
                 <button
                     type="button"

@@ -33,7 +33,13 @@ export default function Carousel({ slides, autoScrollInterval = 3000 }: Carousel
                 <div className="flex h-full transition-transform duration-700 ease-in-out" style={{ transform: `translateX(-${currentIndex * 100}%)` }}>
                     {slides.map((slide) => (
                         <div key={slide.id} className="flex-shrink-0 w-full h-full relative">
-                            <Image src={slide.imageUrl} alt={slide.alt} fill className="object-cover transition-scale duration-10000 hover:scale-110" unoptimized priority />
+                            <Image
+                                src={slide.imageUrl}
+                                alt={slide.alt}
+                                fill
+                                className="object-cover transition-scale duration-10000 hover:scale-110"
+                                unoptimized
+                                priority />
                         </div>
                     ))}
                 </div>
@@ -53,7 +59,6 @@ export default function Carousel({ slides, autoScrollInterval = 3000 }: Carousel
                     ))}
                 </div>
             </div>
-
             {/* Arrows */}
             <button
                 onClick={prevSlide}
