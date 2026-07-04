@@ -14,7 +14,7 @@ export default function ComingSoon({ children }: { children: React.ReactNode }) 
 
             <div className="relative z-10 flex flex-col justify-between h-full">
                 <Header />
-                <main className="flex-1 flex flex-col pt-16 md:pt-20 pb-20 md:pb-0">
+                <main className="flex-1 flex flex-col pt-[4.5rem] md:pt-20 pb-20 md:pb-0">
                     {children}
                 </main>
                 <Footer />

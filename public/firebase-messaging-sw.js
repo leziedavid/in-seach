@@ -14,17 +14,12 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const messaging = firebase.messaging();
 
-// Sans ça, un service worker fraîchement installé/mis à jour reste inactif sur les onglets
-// déjà ouverts jusqu'au prochain rechargement — c'est exactement pourquoi activer les
-// notifications ne "prenait" qu'après un refresh manuel (désactiver n'en dépend pas, d'où
-// la différence de comportement observée).
-self.addEventListener('install', (event) => {
-  self.skipWaiting();
-});
-
-self.addEventListener('activate', (event) => {
-  event.waitUntil(self.clients.claim());
-});
+// NOTE : skipWaiting()/clients.claim() ont été testés ici pour éviter le "il faut actualiser
+// une fois après la première activation", mais forcer la prise de contrôle immédiate du SW
+// peut interrompre en plein vol l'échange getToken() de Firebase Messaging avec les serveurs
+// FCM (qui a besoin d'une ServiceWorkerRegistration stable pendant toute la négociation) —
+// ça a cassé l'activation des notifications en test. Retiré : le léger inconvénient du refresh
+// initial est préférable à un abonnement FCM qui casse silencieusement.
 
 // Handle background messages
 messaging.onBackgroundMessage((payload) => {
