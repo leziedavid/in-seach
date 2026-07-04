@@ -400,7 +400,9 @@ interface FilterBarProps {
 
 function FilterBar({ activeFilter, onChange, onBack }: FilterBarProps) {
     return (
-        <div className="flex items-center gap-3 px-4 pt-3 pb-2 bg-gradient-to-b from-black/80 to-transparent">
+        // pt-16 (au lieu de pt-3) : évite le chevauchement avec la rangée d'icônes
+        // du Header mobile (fixed top-6, z-[100], au-dessus de ce feed en z-50)
+        <div className="flex items-center gap-3 px-4 pt-16 pb-2 bg-gradient-to-b from-black/80 to-transparent">
             {onBack && (
                 <button
                     onClick={onBack}
