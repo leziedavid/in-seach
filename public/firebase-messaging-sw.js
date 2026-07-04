@@ -14,6 +14,18 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const messaging = firebase.messaging();
 
+// Sans ça, un service worker fraîchement installé/mis à jour reste inactif sur les onglets
+// déjà ouverts jusqu'au prochain rechargement — c'est exactement pourquoi activer les
+// notifications ne "prenait" qu'après un refresh manuel (désactiver n'en dépend pas, d'où
+// la différence de comportement observée).
+self.addEventListener('install', (event) => {
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(self.clients.claim());
+});
+
 // Handle background messages
 messaging.onBackgroundMessage((payload) => {
   console.log('[firebase-messaging-sw.js] Received background message ', payload);
