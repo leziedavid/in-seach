@@ -76,6 +76,7 @@ const MENU_GROUPS: { title?: string; items: MenuItem[] }[] = [
             { label: 'Logs position', icon: 'solar:map-point-wave-bold-duotone',      href: '/admin/location-logs' },
             { label: 'Logs système',  icon: 'solar:code-square-bold-duotone',         href: '/admin/logs' },
             { label: 'Signalements',  icon: 'solar:flag-bold-duotone',                href: '/admin/reports' },
+            { label: 'WebPush',       icon: 'solar:bell-bing-bold-duotone',           href: '/admin/webpush' },
         ],
     },
 ];

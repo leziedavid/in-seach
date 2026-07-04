@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { notificationService } from "@/services/notification.service";
+import { shouldDisplayNotification } from "@/lib/notificationDedup";
 import Image from "next/image";
 
 interface WebPushNotification { id: string; title: string; body: string; icon?: string; timestamp: number; }
@@ -106,11 +107,16 @@ export const WebPushManager = () => {
         if (typeof window === "undefined") return;
         const unsubscribe = notificationService.onForegroundMessage((payload) => {
             if (payload.notification) {
+                const title = payload.notification.title || "Nouvelle notification";
+                const body = payload.notification.body || "";
+                // Même évènement potentiellement déjà affiché via le WebSocket (voir SocketProvider.tsx) : dédup par contenu
+                if (!shouldDisplayNotification(`${title}|${body}`)) return;
+
                 const n: WebPushNotification = {
                     id: Math.random().toString(36).substr(2, 9),
-                    title: payload.notification.title || "Nouvelle notification",
-                    body: payload.notification.body || "",
-                    icon: payload.notification.image || "/favicon.png",
+                    title,
+                    body,
+                    icon: payload.notification.image || "/icons/pwa/icon-192.png",
                     timestamp: Date.now(),
                 };
                 setNotifications(prev => [n, ...prev].slice(0, 3));

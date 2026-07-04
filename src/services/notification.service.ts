@@ -2,8 +2,7 @@ import { getToken, onMessage, Messaging } from "firebase/messaging";
 import { messaging } from "@/lib/firebase";
 import { subscribePush } from "@/api/api";
 
-const VAPID_KEY1 = "BGKUqRQ2ZOlg2TlsWu9t8L2Od0vhLohkLi1kZoj8A0c48G-ZKKCGZNPoBEQocPCZo-8BNX6w9TQpMah3ds4Eun8"; // Existing VAPID key in context, verify if FCM needs its own or this one
-const VAPID_KEY = "BPDlcMpaFaR-5qJv_qOOX7uTvM2vyGHkAGyWURkfA5wLvF2RcLxC0wU-XhdCMALeZ40xSNUyT5Ujcjex3EnXqPM"
+const VAPID_KEY = "BPDlcMpaFaR-5qJv_qOOX7uTvM2vyGHkAGyWURkfA5wLvF2RcLxC0wU-XhdCMALeZ40xSNUyT5Ujcjex3EnXqPM";
 
 
 export const notificationService = {

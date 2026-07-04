@@ -1,5 +1,5 @@
 import { getCookie } from '@/lib/cookies';
-import { BaseResponse, Category, Pagination, ReverseGeocodeData, Service, MySpaceResponse, Annonce, BookingsCalendar, Product, CategoryProd, Order, AdminQueryParams, AdminUserUpdateDto, AdminProductUpdateDto, AdminServiceUpdateDto, AdminAnnonceUpdateDto, AdminSubscriptionPlanDto, User, AdminLog, SubscriptionPlan, PlanEntity, AdminUserSubscription, Subscription, OrdersGroupedResponse, BookingsGroupedResponse, LogisticService, Quote, Delivery, DeliveryTracking, QuoteStatus, DeliveryStatus, TransportType, LocationLog, CategorieAnnonce, TypeAnnonce, LogisticsClient, Video, StoreUserInfo, EasyDelivery, HistoryDelivery, EasyDeliveryStatus, DriverStats, SubCategoryProd, Slider, Live, LiveFeedResponse, LiveListResponse, LiveStatus, LiveEntityType, Boost, BoostPricing, BoostEntityType, BoostPaymentMethod } from '@/types/interface';
+import { BaseResponse, Category, Pagination, ReverseGeocodeData, Service, MySpaceResponse, Annonce, BookingsCalendar, Product, CategoryProd, Order, AdminQueryParams, AdminUserUpdateDto, AdminProductUpdateDto, AdminServiceUpdateDto, AdminAnnonceUpdateDto, AdminSubscriptionPlanDto, User, AdminLog, SubscriptionPlan, PlanEntity, AdminUserSubscription, Subscription, OrdersGroupedResponse, BookingsGroupedResponse, LogisticService, Quote, Delivery, DeliveryTracking, QuoteStatus, DeliveryStatus, TransportType, LocationLog, CategorieAnnonce, TypeAnnonce, LogisticsClient, Video, StoreUserInfo, EasyDelivery, HistoryDelivery, EasyDeliveryStatus, DriverStats, SubCategoryProd, Slider, Live, LiveFeedResponse, LiveListResponse, LiveStatus, LiveEntityType, Boost, BoostPricing, BoostEntityType, BoostPaymentMethod, WebPushNotifActiveResponse, WebPushNotifStatus, WebPushNotifAdminListResponse } from '@/types/interface';
 
 export const getBaseUrl = (): string => {
     return process.env.NEXT_PUBLIC_API_URL || 'https://api.djamko.com/api/v1';
@@ -1243,6 +1243,39 @@ export const testWebPushNotification = async (): Promise<BaseResponse<any>> => {
 export const testWebSocketNotification = async (): Promise<BaseResponse<any>> => {
     const response = await secureFetch(`${getBaseUrl()}/notifications/test-socket`, {
         method: 'POST',
+    });
+    return await response.json();
+};
+
+/** Notifications WebPush PENDING/SENT (non lues) de l'utilisateur connecté, avec leur nombre. */
+export const getMyActiveWebPushNotifs = async (): Promise<BaseResponse<WebPushNotifActiveResponse>> => {
+    const response = await secureFetch(`${getBaseUrl()}/notifications/webpush/me/active`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
+/** Marque une notification WebPush comme lue (appelé au clic sur la notification). */
+export const markWebPushNotifAsRead = async (id: string): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/notifications/webpush/${id}/read`, {
+        method: 'PUT',
+    });
+    return await response.json();
+};
+
+/** Vue admin : toutes les notifications WebPush, paginée, filtrable par statut. */
+export const adminGetWebPushNotifs = async (params: { page?: number; limit?: number; status?: WebPushNotifStatus }): Promise<BaseResponse<WebPushNotifAdminListResponse>> => {
+    const queryString = toQueryString(params);
+    const response = await secureFetch(`${getBaseUrl()}/notifications/webpush/admin?${queryString}`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
+/** Relance manuelle (admin) d'une notification READ ou FAILED. */
+export const adminReplayWebPushNotif = async (id: string): Promise<BaseResponse<{ success: boolean }>> => {
+    const response = await secureFetch(`${getBaseUrl()}/notifications/webpush/${id}/replay`, {
+        method: 'PUT',
     });
     return await response.json();
 };

@@ -32,6 +32,7 @@ const ChatWidget = dynamic(() => import("@/components/ai/ChatWidget"), { ssr: fa
 import { Modal } from '@/components/ui/MotionModal';
 import Overview from '@/components/profile/Overview';
 import { BiometricSetupModal } from '@/components/auth/BiometricSetupModal';
+import InstallPWA from '@/components/pwa/InstallPWA';
 import MyLivesList from '@/components/lives/MyLivesList';
 import RetoursSAV from '@/components/returns/sections/RetoursSAV';
 import { useTranslation } from '@/utils/langue/hooks';
@@ -324,6 +325,9 @@ export default function Page() {
 
             {/* Biometric setup — s'affiche une seule fois si PWA installée et non configurée */}
             <BiometricSetupModal />
+
+            {/* Rappel d'installation PWA — s'affiche tant que l'app n'est pas installée */}
+            <InstallPWA />
 
             {/* Global Modals */}
             <Modal isOpen={isQuoteModalOpen} onClose={() => setIsQuoteModalOpen(false)}>

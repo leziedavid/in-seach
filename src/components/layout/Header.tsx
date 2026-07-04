@@ -15,6 +15,7 @@ import CartDetailModal from "@/components/store/modals/CartDetailModal";
 import { useNotification } from "@/components/notifications/NotificationProvider";
 import { motion, AnimatePresence } from "framer-motion";
 import { LanguageToggle } from "./LanguageToggle";
+import NotificationBell from "./NotificationBell";
 
 const NAVIGATION_TABS = [
     { key: "accueil", label: "Accueil", icon: "solar:home-2-linear", path: "/" },
@@ -140,11 +141,55 @@ export default function Header() {
     };
 
     return (
-        <header className={`fixed left-4 z-[100] bottom-4 ${isMenuOpen ? "w-[92%]" : "w-fit"} max-w-[800px] md:top-6 md:bottom-auto md:left-1/2 md:-translate-x-1/2 md:w-fit md:px-6 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-lg border border-white/40 dark:border-white/10 rounded-full shadow-lg px-2 py-2 flex items-center justify-start gap-1 md:gap-4 transition-all duration-500 ease-in-out`}>
-            {/* User Section - Flat on mobile */}
+        <>
+            {/* Icônes mobiles hautes — photo + nom (gauche), thème/langue/notifications (droite).
+                Aucun fond/bandeau visible : uniquement les icônes, posées sur l'espace blanc de la
+                page (voir ComingSoon.tsx pt-20, qui repousse le contenu/slide sous cette zone,
+                donc pas de superposition). Desktop inchangé : n'existe qu'en mobile (md:hidden). */}
+            <div className="md:hidden fixed top-6 left-4 right-4 z-[100] flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-9 h-9 bg-primary/20 rounded-full flex items-center justify-center overflow-hidden relative border-2 border-primary/10 shrink-0 shadow-md">
+                        {images.map((img, index) => (
+                            <Image
+                                key={img}
+                                src={img}
+                                alt="Avatar"
+                                width={36}
+                                height={36}
+                                priority={index === 0}
+                                unoptimized
+                                className={`object-cover w-full h-full absolute top-0 left-0 transition-opacity duration-500 ease-in-out ${index === currentImageIndex ? "opacity-100" : "opacity-0"}`} />
+                        ))}
+                    </div>
+                    <div className="min-w-0">
+                        <p className="text-[9px] text-muted-foreground dark:text-zinc-400 leading-tight">Salut, 👋</p>
+                        <p className="font-bold text-foreground dark:text-white text-xs truncate max-w-[110px]">
+                            {userName ? (userName.length > 14 ? userName.substring(0, 12) + '..' : userName) : "Explorateur"}
+                        </p>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 shrink-0">
+                    <ThemeToggle />
+                    <LanguageToggle />
+                    <button onClick={() => setIsCartModalOpen(true)} className="relative bg-primary p-2 rounded-full transition hover:scale-110 active:scale-95 flex items-center justify-center" aria-label="Panier">
+                        <Icon icon="solar:cart-bold" className="text-white w-5 h-5" />
+                        {totalItems > 0 && (
+                            <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-1.5 py-0.5 text-[8px] font-black text-white bg-red-500 rounded-full border-2 border-white dark:border-zinc-900">
+                                {totalItems}
+                            </span>
+                        )}
+                    </button>
+                    <NotificationBell />
+                </div>
+            </div>
+
+            <header className={`fixed left-4 z-[100] bottom-4 ${isMenuOpen ? "w-[92%]" : "w-fit"} max-w-[800px] md:top-6 md:bottom-auto md:left-1/2 md:-translate-x-1/2 md:w-fit md:px-6 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-lg border border-white/40 dark:border-white/10 rounded-full shadow-lg px-2 py-2 flex items-center justify-start gap-1 md:gap-4 transition-all duration-500 ease-in-out`}>
+            {/* User Section - Desktop: avatar+nom inchangés | Mobile: bouton Menu (photo/nom déplacés en haut) */}
             <div className="flex items-center gap-1 md:gap-4 shrink-0">
-                <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="relative group transition-transform active:scale-95" >
-                    <div className="w-12 h-12 md:w-9 md:h-9 bg-primary/20 rounded-full flex items-center justify-center overflow-hidden relative border-2 border-primary/10 group-hover:border-primary/30 transition-all shrink-0">
+                {/* Desktop uniquement : avatar identique à avant */}
+                <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="hidden md:flex relative group transition-transform active:scale-95" >
+                    <div className="w-9 h-9 bg-primary/20 rounded-full flex items-center justify-center overflow-hidden relative border-2 border-primary/10 group-hover:border-primary/30 transition-all shrink-0">
                         {images.map((img, index) => (
                             <Image
                                 key={img}
@@ -157,34 +202,24 @@ export default function Header() {
                                 className={`object-cover w-full h-full absolute top-0 left-0 transition-opacity duration-500 ease-in-out ${index === currentImageIndex ? "opacity-100" : "opacity-0"}`} />
                         ))}
                     </div>
+                </button>
 
-                    {/* Floating indicator (Mobile Only) — indique ouvert/fermé */}
+                {/* Mobile uniquement : bouton Menu — prend exactement l'ancien emplacement de l'avatar */}
+                <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden relative flex items-center justify-center w-12 h-12 bg-primary/20 rounded-full border-2 border-primary/10 active:scale-95 transition-transform shrink-0" aria-label={isMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}>
                     <motion.div
-                        animate={{
-                            rotate: isMenuOpen ? 180 : 0,
-                            scale: isMenuOpen ? 1 : [1, 1.2, 1],
-                        }}
-                        transition={{
-                            rotate: { duration: 0.35, ease: "easeInOut" },
-                            scale: { repeat: isMenuOpen ? 0 : Infinity, duration: 1.8, ease: "easeInOut" }
-                        }}
-                        className={`absolute -right-1 -bottom-1 md:hidden w-5 h-5 rounded-full flex items-center justify-center border-2 border-white dark:border-zinc-900 shadow-lg z-20 transition-colors duration-300 ${isMenuOpen ? 'bg-primary/80' : 'bg-primary'}`}>
-                        <Icon icon={isMenuOpen ? "solar:close-circle-bold-duotone" : "solar:hamburger-menu-bold-duotone"} className="w-3 h-3 text-white" />
+                        animate={{ rotate: isMenuOpen ? 180 : 0 }}
+                        transition={{ duration: 0.35, ease: "easeInOut" }}
+                    >
+                        <Icon icon={isMenuOpen ? "solar:close-circle-bold-duotone" : "solar:hamburger-menu-bold-duotone"} className="w-6 h-6 text-primary" />
                     </motion.div>
                 </button>
 
-                <div className={`${isMenuOpen ? "block" : "hidden"} md:block shrink-0 ml-1`}>
+                <div className="hidden md:block shrink-0 ml-1">
                     <p className="text-[10px] text-muted-foreground dark:text-zinc-400 leading-tight">
-                        <span className="hidden md:inline">Salut, </span>👋
+                        Salut, 👋
                     </p>
-                    <p className="font-bold text-foreground dark:text-white text-[10px] sm:text-xs uppercase md:normal-case">
-                        {/* Mobile: Initiales | Desktop: Nom complet */}
-                        <span className="md:hidden">
-                            {userName ? userName.substring(0, 2).toUpperCase() : "EX"}
-                        </span>
-                        <span className="hidden md:inline">
-                            {userName ? (userName.length > 12 ? userName.substring(0, 10) + '..' : userName) : "EXPLORE"}
-                        </span>
+                    <p className="font-bold text-foreground dark:text-white text-xs">
+                        {userName ? (userName.length > 12 ? userName.substring(0, 10) + '..' : userName) : "EXPLORE"}
                     </p>
                 </div>
 
@@ -238,7 +273,8 @@ export default function Header() {
 
                         {/* Actions Section */}
                         <div className="flex items-center gap-3 md:gap-4 ml-2 md:ml-0">
-                            <button onClick={() => setIsCartModalOpen(true)} className="relative bg-primary p-2 rounded-full transition hover:scale-110 active:scale-95 flex items-center justify-center hover:rotate-6" >
+                            {/* Panier — desktop uniquement ici (déplacé en haut sur mobile, voir la rangée d'icônes mobile) */}
+                            <button onClick={() => setIsCartModalOpen(true)} className="relative hidden md:flex bg-primary p-2 rounded-full transition hover:scale-110 active:scale-95 items-center justify-center hover:rotate-6" >
                                 <Icon icon="solar:cart-bold" className="text-white w-5 h-5 md:w-5 md:h-5" />
                                 {totalItems > 0 && (
                                     <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-1.5 py-0.5 text-[8px] font-black text-white bg-red-500 rounded-full border-2 border-white dark:border-zinc-900">
@@ -247,19 +283,21 @@ export default function Header() {
                                 )}
                             </button>
 
+                            {/* Nos solutions — mobile uniquement, prend la place laissée par le panier.
+                                Icône distincte du menu /akwaba (qui utilise solar:widget-5-bold-duotone). */}
+                            <Link href="/solutions" className="relative md:hidden bg-primary p-2 rounded-full transition hover:scale-110 active:scale-95 flex items-center justify-center">
+                                <Icon icon="solar:global-bold-duotone" className="text-white w-5 h-5" />
+                            </Link>
+
                             <span className="hidden md:block">
                                 <QrCodeLogo user={userId} />
                             </span>
 
                             <button onClick={() => handleProtectedNavigation("/chat-ia")} className="relative bg-primary p-2 rounded-full transition hover:scale-110 active:scale-95 flex items-center justify-center hover:-rotate-6">
-                                <Icon icon="solar:bell-bing-bold-duotone" className="text-white w-5 h-5 md:w-5 md:h-5" />
+                                <Icon icon="solar:chat-round-dots-bold-duotone" className="text-white w-5 h-5 md:w-5 md:h-5" />
                                 {unreadMessages > 0 && (
                                     <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-1.5 py-0.5 text-[8px] font-black text-white bg-red-500 rounded-full border-2 border-white dark:border-zinc-900">  {unreadMessages}  </span>
                                 )}
-                            </button>
-
-                            <button onClick={() => handleProtectedNavigation("/akwaba")} className="relative bg-primary p-2 rounded-full transition hover:scale-110 active:scale-95 flex items-center justify-center">
-                                <Icon icon="solar:user-bold" className="text-white w-5 h-5 md:w-5 md:h-5" />
                             </button>
 
                             <Link href="/shop-sellers" className="relative bg-primary p-2 rounded-full transition hover:scale-110 active:scale-95 flex items-center justify-center">
@@ -272,25 +310,21 @@ export default function Header() {
                             <div className="hidden md:block">
                                 <LanguageToggle />
                             </div>
+                            {/* Notifications Web Push — seul ajout visuel côté desktop */}
+                            <div className="hidden md:block">
+                                <NotificationBell />
+                            </div>
+
+                            {/* Compte utilisateur — toujours en dernière position, web comme mobile */}
+                            <button onClick={() => handleProtectedNavigation("/akwaba")} className="relative bg-primary p-2 rounded-full transition hover:scale-110 active:scale-95 flex items-center justify-center">
+                                <Icon icon="solar:user-bold" className="text-white w-5 h-5 md:w-5 md:h-5" />
+                            </button>
                         </div>
                     </motion.div>
                 )}
             </AnimatePresence>
-            {/* Mobile: ThemeToggle + LanguageToggle flottants au-dessus du header */}
-            <AnimatePresence>
-                {isMenuOpen && mounted && (
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.8, y: 10 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.8, y: 10 }}
-                        className="absolute -top-24 right-0 md:hidden flex flex-col items-end gap-2"
-                    >
-                        <ThemeToggle />
-                        <LanguageToggle className="shadow-lg !bg-white/80 dark:!bg-zinc-900/80 backdrop-blur-md border-white/40 dark:border-white/10" />
-                    </motion.div>
-                )}
-            </AnimatePresence>
             <CartDetailModal isOpen={isCartModalOpen} onClose={() => setIsCartModalOpen(false)} />
-        </header>
+            </header>
+        </>
     );
 }

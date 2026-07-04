@@ -1179,3 +1179,36 @@ export interface BoostPricing {
     options: BoostPricingOption[];
     currency: string;
 }
+
+export type WebPushNotifStatus = 'PENDING' | 'SENT' | 'READ' | 'FAILED';
+
+export interface WebPushNotif {
+    id: string;
+    userId: string;
+    oneSignalNotificationId: string | null;
+    title: string;
+    body: string;
+    data?: Record<string, any> | null;
+    status: WebPushNotifStatus;
+    sentCount: number;
+    lastAttemptAt: string | null;
+    readAt: string | null;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface WebPushNotifActiveResponse {
+    count: number;
+    notifications: WebPushNotif[];
+}
+
+export interface WebPushNotifAdminItem extends WebPushNotif {
+    user?: { id: string; fullName?: string | null; email?: string | null; phone?: string | null } | null;
+}
+
+export interface WebPushNotifAdminListResponse {
+    items: WebPushNotifAdminItem[];
+    total: number;
+    page: number;
+    totalPages: number;
+}

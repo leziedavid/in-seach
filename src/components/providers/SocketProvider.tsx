@@ -4,6 +4,7 @@ import React, { createContext, useContext, useEffect, useRef, useState } from 'r
 import { io, Socket } from 'socket.io-client';
 import { useNotification } from '@/components/notifications/NotificationProvider';
 import { getUserId } from '@/lib/auth';
+import { shouldDisplayNotification } from '@/lib/notificationDedup';
 
 interface SocketContextValue {
     socket: Socket | null;
@@ -41,6 +42,8 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
         newSocket.on('disconnect', () => setConnected(false));
 
         newSocket.on('notification', (data: { title: string; message: string; type?: string }) => {
+            // Même évènement potentiellement doublé par le push Firebase (voir webPush.tsx) : dédup par contenu
+            if (!shouldDisplayNotification(`${data.title}|${data.message}`)) return;
             showNotification(data.message, (data.type as 'info' | 'success' | 'error' | 'warning') || 'info');
         });
 
