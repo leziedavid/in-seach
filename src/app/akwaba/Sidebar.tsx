@@ -285,7 +285,9 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
                             className="fixed inset-0 z-[61] bg-background md:hidden overflow-y-auto flex flex-col scrollbar-hide [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
                         >
                             {/* ── Header avec flèche retour ── */}
-                            <div className="flex items-center px-4 pt-10 pb-2">
+                            {/* pt-16 (au lieu de pt-10) : évite le chevauchement avec la rangée d'icônes
+                                du Header mobile (fixed top-6, z-[100], au-dessus de ce panneau) */}
+                            <div className="flex items-center px-4 pt-16 pb-2">
                                 <button onClick={() => setOpen(false)} className="p-2 -ml-2 rounded-full hover:bg-muted active:scale-90 transition-all">
                                     <Icon icon="solar:alt-arrow-left-bold" className="w-6 h-6 text-foreground" />
                                 </button>
