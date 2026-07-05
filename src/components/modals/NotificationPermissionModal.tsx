@@ -4,11 +4,13 @@ import React, { useState, useEffect } from 'react';
 import { useNotifications } from '@/hooks/useNotifications';
 import { Icon } from '@iconify/react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
 
 export const NotificationPermissionModal = () => {
-    const { showModal, dismissModal, subscribe, isPushSupported } = useNotifications();
+    const { showModal, dismissModal, subscribe, isPushSupported, lastError } = useNotifications();
     const [isVisible, setIsVisible] = useState(false);
     const [isIOS, setIsIOS] = useState(false);
+    const [isSubscribing, setIsSubscribing] = useState(false);
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -26,9 +28,19 @@ export const NotificationPermissionModal = () => {
     }, [showModal]);
 
     const handleAccept = async () => {
-        const success = await subscribe();
-        if (success) {
-            setIsVisible(false);
+        setIsSubscribing(true);
+        try {
+            const success = await subscribe();
+            if (success) {
+                toast.success("Notifications activées !");
+                setIsVisible(false);
+            } else {
+                // Avant : en cas d'échec, rien ne s'affichait — la modale restait plantée sans
+                // aucun retour. On affiche désormais la vraie raison (voir useNotifications.lastError).
+                toast.error(lastError || "Impossible d'activer les notifications.");
+            }
+        } finally {
+            setIsSubscribing(false);
         }
     };
 
@@ -87,10 +99,11 @@ export const NotificationPermissionModal = () => {
 
                                     {/* Buttons on one line */}
                                     <div className="flex w-full gap-2 sm:gap-3">
-                                        <button onClick={handleDecline} className="flex-1 py-2.5 sm:py-3.5 px-3 sm:px-4 bg-[#F2EFE7] text-[#0F2944] rounded-xl sm:rounded-[14px] font-bold text-xs sm:text-sm transition-all hover:bg-[#E8E2D6] active:scale-[0.98]">
+                                        <button onClick={handleDecline} disabled={isSubscribing} className="flex-1 py-2.5 sm:py-3.5 px-3 sm:px-4 bg-[#F2EFE7] text-[#0F2944] rounded-xl sm:rounded-[14px] font-bold text-xs sm:text-sm transition-all hover:bg-[#E8E2D6] active:scale-[0.98] disabled:opacity-50">
                                             Refuser
                                         </button>
-                                        <button onClick={handleAccept} className="flex-1 py-2.5 sm:py-3.5 px-3 sm:px-4 bg-primary text-white rounded-xl sm:rounded-[14px] font-bold text-xs sm:text-sm shadow-lg shadow-primary/25 transition-all hover:opacity-90 active:scale-[0.98]">
+                                        <button onClick={handleAccept} disabled={isSubscribing} className="flex-1 py-2.5 sm:py-3.5 px-3 sm:px-4 bg-primary text-white rounded-xl sm:rounded-[14px] font-bold text-xs sm:text-sm shadow-lg shadow-primary/25 transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-60 flex items-center justify-center gap-2">
+                                            {isSubscribing && <Icon icon="solar:refresh-bold-duotone" className="w-4 h-4 animate-spin" />}
                                             Autoriser
                                         </button>
                                     </div>

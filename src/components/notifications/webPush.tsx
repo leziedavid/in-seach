@@ -90,42 +90,56 @@ export const WebPushManager = () => {
 
     useEffect(() => { setMounted(true); }, []);
 
-    const playNotificationSound = useCallback(() => {
-        try {
-            const audio = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
-            audio.volume = 0.4;
-            const p = audio.play();
-            if (p !== undefined) p.catch(() => {});
-        } catch {}
-    }, []);
-
     const removeNotification = useCallback((id: string) => {
         setNotifications(prev => prev.filter(n => n.id !== id));
     }, []);
 
+    // Notification système native (via le service worker), même quand l'app est au premier plan :
+    // c'est ce qui la fait ressembler à WhatsApp/Messenger (bandeau OS) plutôt qu'à un simple toast
+    // interne au site. Bonus : le son de notification est géré par l'OS, donc il joue même sur
+    // mobile — contrairement à un <audio> déclenché en JS, bloqué par les restrictions d'autoplay.
+    const showNativeNotification = useCallback(async (title: string, body: string, icon: string, data?: any) => {
+        if (typeof window === "undefined" || !("Notification" in window) || Notification.permission !== "granted") return false;
+        if (!("serviceWorker" in navigator)) return false;
+        try {
+            const registration = await navigator.serviceWorker.ready;
+            await registration.showNotification(title, { body, icon, badge: icon, data, silent: false });
+            return true;
+        } catch (err) {
+            console.error("[WebPushManager] Failed to show native notification:", err);
+            return false;
+        }
+    }, []);
+
     useEffect(() => {
         if (typeof window === "undefined") return;
-        const unsubscribe = notificationService.onForegroundMessage((payload) => {
+        const unsubscribe = notificationService.onForegroundMessage(async (payload) => {
             if (payload.notification) {
                 const title = payload.notification.title || "Nouvelle notification";
                 const body = payload.notification.body || "";
                 // Même évènement potentiellement déjà affiché via le WebSocket (voir SocketProvider.tsx) : dédup par contenu
                 if (!shouldDisplayNotification(`${title}|${body}`)) return;
 
-                const n: WebPushNotification = {
-                    id: Math.random().toString(36).substr(2, 9),
-                    title,
-                    body,
-                    icon: payload.notification.image || "/icons/pwa/icon-192.png",
-                    timestamp: Date.now(),
-                };
-                setNotifications(prev => [n, ...prev].slice(0, 3));
-                playNotificationSound();
-                setTimeout(() => removeNotification(n.id), 6000);
+                const icon = payload.notification.image || "/icons/pwa/icon-192.png";
+                const shownNatively = await showNativeNotification(title, body, icon, payload.data);
+
+                // Repli sur le toast interne uniquement si la notification système n'a pas pu s'afficher
+                // (permission non accordée / pas de service worker) — évite le doublon toast + bandeau OS.
+                if (!shownNatively) {
+                    const n: WebPushNotification = {
+                        id: Math.random().toString(36).substr(2, 9),
+                        title,
+                        body,
+                        icon,
+                        timestamp: Date.now(),
+                    };
+                    setNotifications(prev => [n, ...prev].slice(0, 3));
+                    setTimeout(() => removeNotification(n.id), 6000);
+                }
             }
         });
         return () => unsubscribe();
-    }, [playNotificationSound, removeNotification]);
+    }, [showNativeNotification, removeNotification]);
 
     if (!mounted) return null;
 
