@@ -195,7 +195,7 @@ export default function ShopSellersContent() {
                     <ViewToggle viewMode={viewMode} setViewMode={setViewMode} />
                 </div>
                 <div className="flex-1 px-4 pb-24">
-                    {grid("grid grid-cols-1 gap-3 pt-2", "flex flex-col gap-2 pt-2")}
+                    {grid("grid grid-cols-2 gap-2 pt-2", "flex flex-col gap-2 pt-2")}
                 </div>
             </div>
 
