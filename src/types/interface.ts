@@ -1212,3 +1212,67 @@ export interface WebPushNotifAdminListResponse {
     page: number;
     totalPages: number;
 }
+
+/* ─── Abonnés WebPush (Admin) ─────────────────────────────── */
+export interface NotificationSubscriptionAdminUser {
+    id: string;
+    fullName?: string | null;
+    email?: string | null;
+    phone?: string | null;
+    avatar?: string | null;
+}
+
+export interface NotificationSubscriptionAdminItem {
+    id: string;
+    endpoint: string;
+    isActive: boolean;
+    createdAt: string;
+    updatedAt: string;
+    browser: string;
+    platform: string;
+    user: NotificationSubscriptionAdminUser;
+}
+
+export interface NotificationSubscriptionListResponse {
+    items: NotificationSubscriptionAdminItem[];
+    total: number;
+    page: number;
+    totalPages: number;
+}
+
+export interface PushNotificationPayload {
+    title: string;
+    body: string;
+    icon?: string;
+    badge?: string;
+    image?: string;
+    clickAction?: string;
+    tag?: string;
+    lang?: string;
+    dir?: 'ltr' | 'rtl' | 'auto';
+    vibrate?: number[];
+    requireInteraction?: boolean;
+    silent?: boolean;
+    renotify?: boolean;
+    timestamp?: number;
+    priority?: 'high' | 'normal';
+    ttl?: number;
+    collapseKey?: string;
+    data?: Record<string, any>;
+}
+
+export interface SendPushResult {
+    batchId?: string;
+    total: number;
+    processed: number;
+    successCount: number;
+    failureCount: number;
+}
+
+export interface SendPushProgressEvent {
+    batchId?: string;
+    total: number;
+    processed: number;
+    successCount: number;
+    failureCount: number;
+}

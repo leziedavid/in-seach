@@ -27,12 +27,32 @@ const messaging = firebase.messaging();
 // Handle background messages
 messaging.onBackgroundMessage((payload) => {
   console.log('[firebase-messaging-sw.js] Received background message ', payload);
-  
+
+  // pushOptions (voir backend WebPush.ts/FirebaseService) transporte les champs riches d'un
+  // envoi admin (image, vibration, tag...) dans data, en JSON stringifié (contrainte FCM : les
+  // valeurs de `data` doivent être des strings). Absent pour les notifications "classiques"
+  // (booking/order/chat...), qui gardent donc exactement le rendu d'avant cette extension.
+  let pushOptions = {};
+  try {
+    if (payload.data && payload.data.pushOptions) pushOptions = JSON.parse(payload.data.pushOptions);
+  } catch (e) {
+    console.warn('[firebase-messaging-sw.js] Failed to parse pushOptions', e);
+  }
+
   const notificationTitle = payload.notification.title;
   const notificationOptions = {
     body: payload.notification.body,
-    icon: '/icons/pwa/icon-192.png',
-    badge: '/icons/pwa/icon-192.png',
+    icon: pushOptions.icon || '/icons/pwa/icon-192.png',
+    badge: pushOptions.badge || '/icons/pwa/icon-192.png',
+    image: pushOptions.image,
+    tag: pushOptions.tag,
+    lang: pushOptions.lang,
+    dir: pushOptions.dir,
+    vibrate: pushOptions.vibrate,
+    requireInteraction: pushOptions.requireInteraction,
+    silent: pushOptions.silent,
+    renotify: pushOptions.renotify,
+    timestamp: pushOptions.timestamp,
     data: payload.data || {}, // Pass data for click handler
   };
 
@@ -52,6 +72,10 @@ self.addEventListener('notificationclick', function(event) {
     url = `/orders/${data.entityId}`;
   } else if (data.entityType === 'Delivery') {
     url = `/logistics/tracking/${data.code}`;
+  } else if (data.url) {
+    // Notification composée depuis l'admin (voir PushNotificationModal) : pas d'entité applicative,
+    // juste une URL cible explicite.
+    url = data.url;
   }
 
   event.waitUntil(

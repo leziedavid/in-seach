@@ -102,8 +102,35 @@ export const WebPushManager = () => {
         if (typeof window === "undefined" || !("Notification" in window) || Notification.permission !== "granted") return false;
         if (!("serviceWorker" in navigator)) return false;
         try {
+            // pushOptions (envois admin riches — voir PushNotificationModal/backend WebPush.ts) est
+            // transporté en JSON stringifié dans data (contrainte FCM). Absent pour les notifications
+            // classiques (booking/order/chat...), qui gardent le rendu d'avant cette extension.
+            let pushOptions: Record<string, any> = {};
+            try {
+                if (data?.pushOptions) pushOptions = JSON.parse(data.pushOptions);
+            } catch {
+                // JSON invalide : on ignore silencieusement, la notif garde son rendu par défaut.
+            }
+
             const registration = await navigator.serviceWorker.ready;
-            await registration.showNotification(title, { body, icon, badge: icon, data, silent: false });
+            // `image`/`renotify`/`vibrate`/`timestamp` sont des NotificationOptions standard côté
+            // navigateur mais absents du lib.dom.d.ts de TypeScript — cast ciblé, sans `any`.
+            const options: NotificationOptions & { image?: string; renotify?: boolean; timestamp?: number; vibrate?: number[] } = {
+                body,
+                icon: pushOptions.icon || icon,
+                badge: pushOptions.badge || icon,
+                image: pushOptions.image,
+                tag: pushOptions.tag,
+                lang: pushOptions.lang,
+                dir: pushOptions.dir,
+                vibrate: pushOptions.vibrate,
+                requireInteraction: pushOptions.requireInteraction,
+                renotify: pushOptions.renotify,
+                timestamp: pushOptions.timestamp,
+                data,
+                silent: pushOptions.silent ?? false,
+            };
+            await registration.showNotification(title, options);
             return true;
         } catch (err) {
             console.error("[WebPushManager] Failed to show native notification:", err);

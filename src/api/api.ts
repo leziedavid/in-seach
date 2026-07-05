@@ -1,5 +1,5 @@
 import { getCookie } from '@/lib/cookies';
-import { BaseResponse, Category, Pagination, ReverseGeocodeData, Service, MySpaceResponse, Annonce, BookingsCalendar, Product, CategoryProd, Order, AdminQueryParams, AdminUserUpdateDto, AdminProductUpdateDto, AdminServiceUpdateDto, AdminAnnonceUpdateDto, AdminSubscriptionPlanDto, User, AdminLog, SubscriptionPlan, PlanEntity, AdminUserSubscription, Subscription, OrdersGroupedResponse, BookingsGroupedResponse, LogisticService, Quote, Delivery, DeliveryTracking, QuoteStatus, DeliveryStatus, TransportType, LocationLog, CategorieAnnonce, TypeAnnonce, LogisticsClient, Video, StoreUserInfo, EasyDelivery, HistoryDelivery, EasyDeliveryStatus, DriverStats, SubCategoryProd, Slider, Live, LiveFeedResponse, LiveListResponse, LiveStatus, LiveEntityType, Boost, BoostPricing, BoostEntityType, BoostPaymentMethod, WebPushNotifActiveResponse, WebPushNotifStatus, WebPushNotifAdminListResponse } from '@/types/interface';
+import { BaseResponse, Category, Pagination, ReverseGeocodeData, Service, MySpaceResponse, Annonce, BookingsCalendar, Product, CategoryProd, Order, AdminQueryParams, AdminUserUpdateDto, AdminProductUpdateDto, AdminServiceUpdateDto, AdminAnnonceUpdateDto, AdminSubscriptionPlanDto, User, AdminLog, SubscriptionPlan, PlanEntity, AdminUserSubscription, Subscription, OrdersGroupedResponse, BookingsGroupedResponse, LogisticService, Quote, Delivery, DeliveryTracking, QuoteStatus, DeliveryStatus, TransportType, LocationLog, CategorieAnnonce, TypeAnnonce, LogisticsClient, Video, StoreUserInfo, EasyDelivery, HistoryDelivery, EasyDeliveryStatus, DriverStats, SubCategoryProd, Slider, Live, LiveFeedResponse, LiveListResponse, LiveStatus, LiveEntityType, Boost, BoostPricing, BoostEntityType, BoostPaymentMethod, WebPushNotifActiveResponse, WebPushNotifStatus, WebPushNotifAdminListResponse, NotificationSubscriptionListResponse, PushNotificationPayload, SendPushResult } from '@/types/interface';
 
 export const getBaseUrl = (): string => {
     return process.env.NEXT_PUBLIC_API_URL || 'https://api.djamko.com/api/v1';
@@ -1276,6 +1276,60 @@ export const adminGetWebPushNotifs = async (params: { page?: number; limit?: num
 export const adminReplayWebPushNotif = async (id: string): Promise<BaseResponse<{ success: boolean }>> => {
     const response = await secureFetch(`${getBaseUrl()}/notifications/webpush/${id}/replay`, {
         method: 'PUT',
+    });
+    return await response.json();
+};
+
+/** Liste paginée des abonnements WebPush (Admin), avec recherche/filtre/tri. */
+export const adminGetWebPushSubscriptions = async (params: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    isActive?: boolean;
+    sortBy?: 'createdAt' | 'updatedAt';
+    sortOrder?: 'asc' | 'desc';
+}): Promise<BaseResponse<NotificationSubscriptionListResponse>> => {
+    const queryString = toQueryString(params);
+    const response = await secureFetch(`${getBaseUrl()}/admin/webpush/subscriptions?${queryString}`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
+/** Envoie une notification Push à un seul abonné (Admin). */
+export const adminSendWebPushToUser = async (
+    subscriptionId: string,
+    notification: PushNotificationPayload,
+    batchId?: string,
+): Promise<BaseResponse<SendPushResult & { webPushNotifId: string | null }>> => {
+    const response = await secureFetch(`${getBaseUrl()}/admin/webpush/send-user`, {
+        method: 'POST',
+        body: JSON.stringify({ subscriptionId, notification, batchId }),
+    });
+    return await response.json();
+};
+
+/** Envoie une notification Push à une sélection d'abonnés (Admin). */
+export const adminSendWebPushToUsers = async (
+    subscriptionIds: string[],
+    notification: PushNotificationPayload,
+    batchId?: string,
+): Promise<BaseResponse<SendPushResult>> => {
+    const response = await secureFetch(`${getBaseUrl()}/admin/webpush/send-users`, {
+        method: 'POST',
+        body: JSON.stringify({ subscriptionIds, notification, batchId }),
+    });
+    return await response.json();
+};
+
+/** Envoie une notification Push à tous les abonnés actifs (Admin). */
+export const adminSendWebPushToAll = async (
+    notification: PushNotificationPayload,
+    batchId?: string,
+): Promise<BaseResponse<SendPushResult>> => {
+    const response = await secureFetch(`${getBaseUrl()}/admin/webpush/send-all`, {
+        method: 'POST',
+        body: JSON.stringify({ notification, batchId }),
     });
     return await response.json();
 };
