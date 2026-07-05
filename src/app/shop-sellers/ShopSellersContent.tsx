@@ -17,42 +17,61 @@ const slugify = (text: string) =>
 
 // ── Composants stables (hors du composant principal) ─────────────────────────
 
-const StoreCard = ({ store }: { store: Store }) => (
-    <Link href={`/shop/${slugify(store.storeName || "boutique")}`}>
-        <div className="bg-card rounded-2xl p-4 space-y-3 hover:shadow-md transition-all duration-200 cursor-pointer group border border-transparent hover:border-primary/20 h-full">
-            <div className="flex items-center gap-3">
-                <div className="w-14 h-14 rounded-full bg-primary/10 relative overflow-hidden shrink-0 ring-2 ring-primary/20 group-hover:ring-primary/40 transition-all">
-                    {store.storeLogo ? (
-                        <Image
-                            src={store.storeLogo}
-                            alt={store.storeName || "Boutique"}
-                            fill
-                            className="object-cover"
-                            unoptimized />
-                    ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                            <Icon icon="solar:shop-2-bold-duotone" className="w-7 h-7 text-primary" />
-                        </div>
-                    )}
+const StoreCard = ({ store, viewMode = 'grid' }: { store: Store; viewMode?: 'grid' | 'list' }) => {
+    const isList = viewMode === 'list';
+    return (
+        <Link href={`/shop/${slugify(store.storeName || "boutique")}`}>
+            <div className={`bg-card rounded-2xl hover:shadow-md transition-all duration-200 cursor-pointer group border border-transparent hover:border-primary/20 h-full ${isList ? "flex items-center gap-3 p-3" : "p-4 space-y-3"}`}>
+                <div className={`flex items-center gap-3 ${isList ? "flex-1 min-w-0" : ""}`}>
+                    <div className={`rounded-full bg-primary/10 relative overflow-hidden shrink-0 ring-2 ring-primary/20 group-hover:ring-primary/40 transition-all ${isList ? "w-11 h-11" : "w-14 h-14"}`}>
+                        {store.storeLogo ? (
+                            <Image src={store.storeLogo} alt={store.storeName || "Boutique"} fill className="object-cover" unoptimized />
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                                <Icon icon="solar:shop-2-bold-duotone" className={isList ? "w-5 h-5 text-primary" : "w-7 h-7 text-primary"} />
+                            </div>
+                        )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <p className="font-black text-sm truncate group-hover:text-primary transition-colors">
+                            {store.storeName}
+                        </p>
+                        {store.fullName && (
+                            <p className="text-xs text-muted-foreground truncate">{store.fullName}</p>
+                        )}
+                    </div>
+                    {!isList && <Icon icon="solar:alt-arrow-right-bold" className="w-4 h-4 text-muted-foreground shrink-0 group-hover:text-primary transition-colors" />}
                 </div>
-                <div className="flex-1 min-w-0">
-                    <p className="font-black text-sm truncate group-hover:text-primary transition-colors">
-                        {store.storeName}
-                    </p>
-                    {store.fullName && (
-                        <p className="text-xs text-muted-foreground truncate">{store.fullName}</p>
-                    )}
-                </div>
-                <Icon icon="solar:alt-arrow-right-bold" className="w-4 h-4 text-muted-foreground shrink-0 group-hover:text-primary transition-colors" />
+                {isList ? (
+                    <div className="flex items-center gap-2 shrink-0 pl-3 border-l border-border/40">
+                        <Icon icon="solar:box-bold-duotone" className="w-3.5 h-3.5 text-primary shrink-0" />
+                        <span className="text-xs text-muted-foreground whitespace-nowrap">
+                            <strong className="text-foreground font-black">{store.productCount}</strong> art.
+                        </span>
+                        <Icon icon="solar:alt-arrow-right-bold" className="w-4 h-4 text-muted-foreground shrink-0 group-hover:text-primary transition-colors" />
+                    </div>
+                ) : (
+                    <div className="flex items-center gap-2 pt-1 border-t border-border/40">
+                        <Icon icon="solar:box-bold-duotone" className="w-3.5 h-3.5 text-primary shrink-0" />
+                        <span className="text-xs text-muted-foreground">
+                            <strong className="text-foreground font-black">{store.productCount}</strong> article{store.productCount !== 1 ? "s" : ""}
+                        </span>
+                    </div>
+                )}
             </div>
-            <div className="flex items-center gap-2 pt-1 border-t border-border/40">
-                <Icon icon="solar:box-bold-duotone" className="w-3.5 h-3.5 text-primary shrink-0" />
-                <span className="text-xs text-muted-foreground">
-                    <strong className="text-foreground font-black">{store.productCount}</strong> article{store.productCount !== 1 ? "s" : ""}
-                </span>
-            </div>
-        </div>
-    </Link>
+        </Link>
+    );
+};
+
+const ViewToggle = ({ viewMode, setViewMode }: { viewMode: 'grid' | 'list'; setViewMode: (v: 'grid' | 'list') => void }) => (
+    <div className="flex items-center bg-card border border-border/50 rounded-xl p-1 shadow-sm shrink-0">
+        <button onClick={() => setViewMode("grid")} className={`p-1.5 rounded-lg transition-colors ${viewMode === "grid" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"}`} title="Vue Grille">
+            <Icon icon="solar:widget-5-bold-duotone" className="w-5 h-5" />
+        </button>
+        <button onClick={() => setViewMode("list")} className={`p-1.5 rounded-lg transition-colors ${viewMode === "list" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"}`} title="Vue Liste">
+            <Icon icon="solar:list-bold-duotone" className="w-5 h-5" />
+        </button>
+    </div>
 );
 
 const EmptyState = () => (
@@ -65,13 +84,7 @@ const EmptyState = () => (
 const SearchBar = ({ value, onChange, onClear }: { value: string; onChange: (v: string) => void; onClear: () => void }) => (
     <div className="flex items-center gap-2 bg-muted rounded-2xl px-4 py-3">
         <Icon icon="solar:magnifer-bold-duotone" className="w-4 h-4 text-muted-foreground shrink-0" />
-        <input
-            type="text"
-            placeholder="Rechercher une boutique..."
-            value={value}
-            onChange={e => onChange(e.target.value)}
-            className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-        />
+        <input type="text" placeholder="Rechercher une boutique..." value={value} onChange={e => onChange(e.target.value)} className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground" />
         {value && (
             <button onClick={onClear}>
                 <Icon icon="solar:close-circle-bold" className="w-4 h-4 text-muted-foreground" />
@@ -89,6 +102,7 @@ export default function ShopSellersContent() {
     const [hasMore, setHasMore] = useState(true);
     const [isLoading, setIsLoading] = useState(true);
     const [search, setSearch] = useState("");
+    const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
     useEffect(() => { setMounted(true); }, []);
     const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -152,15 +166,16 @@ export default function ShopSellersContent() {
 
     const showEmpty = !isLoading && stores.length === 0;
 
-    const grid = (cols: string) => (
+    const grid = (gridCols: string, listCols: string) => (
         showEmpty ? <EmptyState /> : (
             <InfiniteScroll
                 items={stores}
-                renderItem={(store) => <StoreCard store={store as Store} />}
+                renderItem={(store) => <StoreCard store={store as Store} viewMode={viewMode} />}
                 loadMore={loadMore}
                 hasMore={hasMore}
                 isLoading={isLoading}
-                gridClassName={cols}
+                viewMode={viewMode}
+                gridClassName={viewMode === 'grid' ? gridCols : listCols}
                 endMessage="Fin des boutiques"
             />
         )
@@ -173,11 +188,14 @@ export default function ShopSellersContent() {
                 <div className="sticky top-0 z-50 h-14 flex items-center px-4 bg-[#FBFAF6]/95 dark:bg-zinc-900/95 backdrop-blur-md border-b border-[#EEF1F4] dark:border-zinc-800">
                     <h1 className="font-black text-sm mx-auto">Toutes les boutiques</h1>
                 </div>
-                <div className="px-4 pt-4 pb-2">
-                    <SearchBar value={search} onChange={setSearch} onClear={() => setSearch("")} />
+                <div className="px-4 pt-4 pb-2 flex items-center gap-2">
+                    <div className="flex-1">
+                        <SearchBar value={search} onChange={setSearch} onClear={() => setSearch("")} />
+                    </div>
+                    <ViewToggle viewMode={viewMode} setViewMode={setViewMode} />
                 </div>
                 <div className="flex-1 px-4 pb-24">
-                    {grid("grid grid-cols-1 gap-3 pt-2")}
+                    {grid("grid grid-cols-1 gap-3 pt-2", "flex flex-col gap-2 pt-2")}
                 </div>
             </div>
 
@@ -186,12 +204,13 @@ export default function ShopSellersContent() {
                 <div className="bg-card overflow-hidden">
                     <div className="h-14 flex items-center justify-between px-6">
                         <h1 className="font-black text-lg">Toutes les boutiques</h1>
+                        <ViewToggle viewMode={viewMode} setViewMode={setViewMode} />
                     </div>
                     <div className="px-6 pb-4">
                         <SearchBar value={search} onChange={setSearch} onClear={() => setSearch("")} />
                     </div>
                     <div className="px-6 pb-6">
-                        {grid("grid grid-cols-2 gap-4")}
+                        {grid("grid grid-cols-2 gap-4", "flex flex-col gap-2")}
                     </div>
                 </div>
             </div>

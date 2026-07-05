@@ -29,10 +29,7 @@ export function useBiometrics() {
     const [failCount, setFailCount] = useState(0);
 
     useEffect(() => {
-        const supported =
-            typeof window !== 'undefined' &&
-            !!window.PublicKeyCredential &&
-            typeof window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable === 'function';
+        const supported = typeof window !== 'undefined' && !!window.PublicKeyCredential && typeof window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable === 'function';
 
         if (supported) {
             window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()
