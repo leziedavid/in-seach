@@ -113,7 +113,7 @@ function AccordionSection({
 export default function AccountSettings() {
     const { t } = useTranslation();
 
-    const { permission, subscribe, unsubscribe, loading, isNotificationsEnabled, isPushSupported } = useNotifications();
+    const { permission, subscribe, unsubscribe, loading, isNotificationsEnabled, isPushSupported, lastError } = useNotifications();
 
     const handleToggleNotifications = async () => {
         if (!isPushSupported) {
@@ -131,14 +131,15 @@ export default function AccountSettings() {
             if (success) {
                 toast.success(t("akwaba.settings.notifications_disabled_success") || "Notifications désactivées.");
             } else {
-                toast.error(t("akwaba.settings.notifications_error") || "Une erreur est survenue.");
+                // Message diagnostique réel (voir useNotifications.lastError) au lieu du message générique
+                toast.error(lastError || t("akwaba.settings.notifications_error") || "Une erreur est survenue.");
             }
         } else {
             const success = await subscribe();
             if (success) {
                 toast.success(t("akwaba.settings.notifications_enabled_success") || "Notifications activées !");
             } else {
-                toast.error(t("akwaba.settings.notifications_error") || "Une erreur est survenue.");
+                toast.error(lastError || t("akwaba.settings.notifications_error") || "Une erreur est survenue.");
             }
         }
     };
@@ -152,8 +153,9 @@ export default function AccountSettings() {
             } else {
                 toast.error(res.message || t("akwaba.settings.test_push_failed"));
             }
-        } catch (error) {
-            toast.error(t("akwaba.settings.test_push_failed"));
+        } catch (error: any) {
+            console.error('[AccountSettings] Test Web Push failed:', error);
+            toast.error(error?.message || t("akwaba.settings.test_push_failed"));
         } finally {
             setIsTestingPush(false);
         }
@@ -168,8 +170,9 @@ export default function AccountSettings() {
             } else {
                 toast.error(res.message || t("akwaba.settings.test_socket_failed"));
             }
-        } catch (error) {
-            toast.error(t("akwaba.settings.test_socket_failed"));
+        } catch (error: any) {
+            console.error('[AccountSettings] Test WebSocket failed:', error);
+            toast.error(error?.message || t("akwaba.settings.test_socket_failed"));
         } finally {
             setIsTestingSocket(false);
         }
@@ -856,56 +859,6 @@ export default function AccountSettings() {
                     </div>
                 </AccordionSection>
 
-                {/* 6. DANGER ZONE */}
-                <AccordionSection activeSection={activeSection} onToggle={toggleSection}
-                    id="danger"
-                    title={t("akwaba.settings.danger_zone")}
-                    subtitle={t("akwaba.settings.danger_subtitle")}
-                    icon="solar:shield-warning-bold-duotone"
-                    variant="danger"
-                >
-                    <div className="space-y-5 pt-4">
-                        <div className="flex items-center justify-between p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-rose-500/20 flex items-center justify-center text-rose-600">
-                                    <Icon icon="solar:user-block-bold-duotone" className="w-5 h-5" />
-                                </div>
-                                <div>
-                                    <span className="block text-sm font-black text-rose-900 dark:text-rose-400">{t("akwaba.settings.suspend_account")}</span>
-                                    <span className="block text-[10px] text-rose-700/60 font-medium italic">{t("akwaba.settings.immediate_action")}</span>
-                                </div>
-                            </div>
-                            <Switch
-                                checked={false}
-                                onCheckedChange={async (checked) => {
-                                    if (checked) {
-                                        const confirmed = window.confirm(t("akwaba.settings.confirm_suspension"));
-                                        if (confirmed) {
-                                            try {
-                                                const res = await suspendMe();
-                                                if (res.statusCode === 200) {
-                                                    toast.success("Compte suspendu.");
-                                                    router.push('/login');
-                                                }
-                                            } catch (error) {
-                                                toast.error("Erreur technique lors de la suspension");
-                                            }
-                                        }
-                                    }
-                                }}
-                                className="data-[state=checked]:bg-rose-600"
-                            />
-                        </div>
-
-                        <div className="p-4 rounded-xl bg-rose-500/5 border border-rose-500/10 flex gap-3">
-                            <Icon icon="solar:info-circle-bold-duotone" className="w-5 h-5 text-rose-600 shrink-0" />
-                            <p className="text-[11px] text-rose-800 dark:text-rose-400 font-medium leading-relaxed italic">
-                                {t("akwaba.settings.suspension_note")}
-                            </p>
-                        </div>
-                    </div>
-                </AccordionSection>
-
                 {/* ── BIOMETRICS ── */}
                 {isAvailable && (
                     <AccordionSection
@@ -973,12 +926,7 @@ export default function AccountSettings() {
                                             ))}
                                         </div>
                                     )}
-                                    <button
-                                        type="button"
-                                        onClick={handleBioRegister}
-                                        disabled={bioRegLoading}
-                                        className="w-full h-9 border border-border text-foreground rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-60 hover:bg-muted/40"
-                                    >
+                                    <button type="button" onClick={handleBioRegister} disabled={bioRegLoading} className="w-full h-9 border border-border text-foreground rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-60 hover:bg-muted/40" >
                                         <Icon icon="solar:add-circle-bold-duotone" width={14} className="text-primary" />
                                         Ajouter un nouvel appareil
                                     </button>
@@ -987,6 +935,58 @@ export default function AccountSettings() {
                         </div>
                     </AccordionSection>
                 )}
+
+                {/* 6. DANGER ZONE */}
+                <AccordionSection activeSection={activeSection} onToggle={toggleSection}
+                    id="danger"
+                    title={t("akwaba.settings.danger_zone")}
+                    subtitle={t("akwaba.settings.danger_subtitle")}
+                    icon="solar:shield-warning-bold-duotone"
+                    variant="danger"
+                >
+                    <div className="space-y-5 pt-4">
+                        <div className="flex items-center justify-between p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-rose-500/20 flex items-center justify-center text-rose-600">
+                                    <Icon icon="solar:user-block-bold-duotone" className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <span className="block text-sm font-black text-rose-900 dark:text-rose-400">{t("akwaba.settings.suspend_account")}</span>
+                                    <span className="block text-[10px] text-rose-700/60 font-medium italic">{t("akwaba.settings.immediate_action")}</span>
+                                </div>
+                            </div>
+                            <Switch
+                                checked={false}
+                                onCheckedChange={async (checked) => {
+                                    if (checked) {
+                                        const confirmed = window.confirm(t("akwaba.settings.confirm_suspension"));
+                                        if (confirmed) {
+                                            try {
+                                                const res = await suspendMe();
+                                                if (res.statusCode === 200) {
+                                                    toast.success("Compte suspendu.");
+                                                    router.push('/login');
+                                                }
+                                            } catch (error) {
+                                                toast.error("Erreur technique lors de la suspension");
+                                            }
+                                        }
+                                    }
+                                }}
+                                className="data-[state=checked]:bg-rose-600"
+                            />
+                        </div>
+
+                        <div className="p-4 rounded-xl bg-rose-500/5 border border-rose-500/10 flex gap-3">
+                            <Icon icon="solar:info-circle-bold-duotone" className="w-5 h-5 text-rose-600 shrink-0" />
+                            <p className="text-[11px] text-rose-800 dark:text-rose-400 font-medium leading-relaxed italic">
+                                {t("akwaba.settings.suspension_note")}
+                            </p>
+                        </div>
+                    </div>
+                </AccordionSection>
+
+
 
             </div>
             {/* MODALS RENDERED OUTSIDE ACCORDION */}

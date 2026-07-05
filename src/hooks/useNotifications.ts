@@ -12,6 +12,9 @@ export const useNotifications = () => {
   const [loading, setLoading] = useState(true);
   const [isNotificationsEnabled, setIsNotificationsEnabled] = useState(false);
   const [hasRefused, setHasRefused] = useState(false);
+  // Raison précise du dernier échec d'activation/désactivation — pour affichage diagnostique
+  // (l'ancien code avalait l'erreur réelle et affichait toujours le même message générique).
+  const [lastError, setLastError] = useState<string | null>(null);
 
   // Détecter si le Push est supporté sur cet appareil/navigateur
   const checkPushSupport = useCallback(() => {
@@ -76,13 +79,19 @@ export const useNotifications = () => {
   };
 
   const subscribe = async () => {
+    setLastError(null);
+
     if (!userId) {
-      console.error("User not authenticated");
+      const msg = "Utilisateur non authentifié.";
+      console.error("[useNotifications] " + msg);
+      setLastError(msg);
       return false;
     }
 
     if (!isPushSupported) {
-      console.warn("Push notifications not supported on this device/browser (iOS Safari must be standalone)");
+      const msg = "Les notifications ne sont pas supportées sur ce navigateur (sur iOS, l'application doit être installée sur l'écran d'accueil).";
+      console.warn("[useNotifications] " + msg);
+      setLastError(msg);
       return false;
     }
 
@@ -93,12 +102,16 @@ export const useNotifications = () => {
         currentPermission = await Notification.requestPermission();
         setPermission(currentPermission);
       } catch (err) {
-        console.error("Failed to request permission synchronously:", err);
+        console.error("[useNotifications] Failed to request permission:", err);
       }
     }
 
     if (currentPermission !== 'granted') {
-      console.warn("Permission not granted:", currentPermission);
+      const msg = currentPermission === 'denied'
+        ? "Les notifications sont bloquées dans les paramètres de votre navigateur."
+        : "Autorisation refusée ou non accordée.";
+      console.warn("[useNotifications] Permission not granted:", currentPermission);
+      setLastError(msg);
       return false;
     }
 
@@ -114,9 +127,12 @@ export const useNotifications = () => {
         setHasRefused(false);
         return true;
       }
+      setLastError("Impossible d'obtenir un token de notification (voir la console pour le détail).");
       return false;
-    } catch (error) {
-      console.error('Failed to subscribe to FCM', error);
+    } catch (error: any) {
+      const msg = error?.message || String(error);
+      console.error('[useNotifications] Failed to subscribe to FCM:', error);
+      setLastError(msg);
       return false;
     } finally {
       setLoading(false);
@@ -124,6 +140,7 @@ export const useNotifications = () => {
   };
 
   const unsubscribe = async () => {
+    setLastError(null);
     if (!userId || !token) return false;
     setLoading(true);
 
@@ -134,9 +151,11 @@ export const useNotifications = () => {
         setIsNotificationsEnabled(false);
         return true;
       }
+      setLastError(res.message || "Échec de la désactivation.");
       return false;
-    } catch (error) {
-      console.error('Failed to unsubscribe', error);
+    } catch (error: any) {
+      console.error('[useNotifications] Failed to unsubscribe:', error);
+      setLastError(error?.message || String(error));
       return false;
     } finally {
       setLoading(false);
@@ -171,7 +190,8 @@ export const useNotifications = () => {
     showModal,
     dismissModal,
     resetRefusal,
-    userId
+    userId,
+    lastError,
   };
 };
 

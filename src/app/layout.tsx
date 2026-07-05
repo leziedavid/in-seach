@@ -162,16 +162,26 @@ export default function RootLayout({ children, }: Readonly<{ children: React.Rea
           </I18nProvider>
         </ThemeProvider>
 
-        {/* PWA & Firebase Messaging Service Worker Registration */}
+        {/* PWA & Firebase Messaging Service Worker Registration.
+            Ne pas attendre l'évènement 'load' : avec Next.js (Script strategy="afterInteractive"),
+            ce script s'exécute après l'hydratation — 'load' a donc déjà été déclenché la plupart
+            du temps, et le listener ci-dessous ne se déclenchait jamais (SW jamais enregistré,
+            navigator.serviceWorker.ready restait en attente indéfiniment). On enregistre
+            immédiatement, avec 'load' seulement en repli si le document n'est pas encore prêt. */}
         <Script id="sw-register" strategy="afterInteractive">{`
           if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function() {
+            function registerFirebaseSW() {
               navigator.serviceWorker.register('/firebase-messaging-sw.js').then(function(registration) {
                 console.log('Firebase ServiceWorker registration successful with scope: ', registration.scope);
               }, function(err) {
                 console.log('Firebase ServiceWorker registration failed: ', err);
               });
-            });
+            }
+            if (document.readyState === 'complete') {
+              registerFirebaseSW();
+            } else {
+              window.addEventListener('load', registerFirebaseSW);
+            }
           }
         `}</Script>
       </body>

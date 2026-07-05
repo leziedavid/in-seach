@@ -56,8 +56,10 @@ const nextConfig = {
         "wss://api.djamko.com",                          // Socket.IO WebSocket
         "https://nominatim.openstreetmap.org",            // reverse geocoding
         "https://tile.openstreetmap.org",                 // tuiles Leaflet
-        "https://fcm.googleapis.com",                     // Firebase Cloud Messaging
+        "https://fcm.googleapis.com",                     // Firebase Cloud Messaging (legacy send)
+        "https://fcmregistrations.googleapis.com",        // FCM Web Push : endpoint réel de getToken()/abonnement
         "https://firebaseinstallations.googleapis.com",   // Firebase Installations
+        "https://firebase.googleapis.com",                // Firebase Remote Config (Analytics)
         "https://www.google-analytics.com",               // Firebase Analytics
         "https://analytics.google.com",                   // Firebase Analytics
         "https://region1.google-analytics.com",           // Firebase Analytics (région)
