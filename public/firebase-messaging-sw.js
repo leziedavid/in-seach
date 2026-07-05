@@ -1,5 +1,8 @@
-importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js');
+// Version alignée sur le SDK npm "firebase" utilisé par l'app (package.json) — un écart de
+// version (SW en v9.0.0 vs app en v12.x) est une cause connue de push silencieusement perdu sur
+// Safari/iOS, dont l'implémentation standard du Web Push est plus stricte que celle de Chrome.
+importScripts('https://www.gstatic.com/firebasejs/12.12.1/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/12.12.1/firebase-messaging-compat.js');
 
 const firebaseConfig = {
   apiKey: "AIzaSyDQnELn_IjnzPWrBlRKwB8jKJ6eQhY0vNE",
