@@ -14,7 +14,7 @@ import { InputPhone } from '@/components/ui/InputPhone';
 import { useTranslation } from '@/utils/langue/hooks';
 
 export default function RegisterPage() {
-    const { t } = useTranslation();
+    const { t, tRich } = useTranslation();
 
     const registerSchema = z.object({
         email: z.string().email(),
@@ -250,7 +250,7 @@ export default function RegisterPage() {
                     <div className="flex items-center gap-4 p-4 rounded-2xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800">
                         <div className="flex-1">
                             <p className="text-[11px] sm:text-xs font-bold text-gray-700 dark:text-gray-300">
-                                {t("auth.register.terms_acceptance", {
+                                {tRich("auth.register.terms_acceptance", {
                                     terms: <Link href="/terms-of-use" className="text-primary hover:underline">{t("auth.login.terms_link")}</Link>,
                                     privacy: <Link href="/privacy-policy" className="text-primary hover:underline">{t("auth.login.privacy_link")}</Link>
                                 })}

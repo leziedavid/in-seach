@@ -158,7 +158,8 @@ export default function Header() {
                                 height={36}
                                 priority={index === 0}
                                 unoptimized
-                                className={`object-cover w-full h-full absolute top-0 left-0 transition-opacity duration-500 ease-in-out ${index === currentImageIndex ? "opacity-100" : "opacity-0"}`} />
+                                onClick={() => handleProtectedNavigation("/akwaba")}
+                                className={`object-cover w-full h-full absolute top-0 left-0 transition-opacity duration-500 ease-in-out cursor-pointer ${index === currentImageIndex ? "opacity-100" : "opacity-0"}`} />
                         ))}
                     </div>
                     <div className="min-w-0">
@@ -199,7 +200,8 @@ export default function Header() {
                                 height={48}
                                 priority={index === 0}
                                 unoptimized
-                                className={`object-cover w-full h-full absolute top-0 left-0 transition-opacity duration-500 ease-in-out ${index === currentImageIndex ? "opacity-100" : "opacity-0"}`} />
+                                onClick={() => handleProtectedNavigation("/akwaba")}
+                                className={`object-cover w-full h-full absolute top-0 left-0 transition-opacity duration-500 ease-in-out cursor-pointer ${index === currentImageIndex ? "opacity-100" : "opacity-0"}`} />
                         ))}
                     </div>
                 </button>

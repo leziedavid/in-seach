@@ -37,7 +37,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                     <PageTransition>
                         {children}
                     </PageTransition>
-                    <Sponsoring />
+                    {pathname !== "/akwaba" && <Sponsoring />}
                 </ComingSoon>
             )}
         </div>
