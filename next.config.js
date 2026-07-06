@@ -104,6 +104,16 @@ const nextConfig = {
           { key: "Permissions-Policy", value: "camera=*, microphone=*, geolocation=*" },
         ],
       },
+      {
+        // Le service worker Firebase ne doit jamais être servi depuis un cache HTTP
+        // intermédiaire (navigateur/CDN) : sinon une mise à jour du SW peut ne jamais être
+        // récupérée par certains navigateurs, cassant silencieusement la réception en
+        // arrière-plan / application fermée.
+        source: "/firebase-messaging-sw.js",
+        headers: [
+          { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
+        ],
+      },
     ];
   },
 

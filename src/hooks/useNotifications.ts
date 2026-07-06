@@ -60,6 +60,17 @@ export const useNotifications = () => {
             const activeSub = res.data.find(sub => sub.isActive);
             setIsNotificationsEnabled(!!activeSub);
             if (activeSub) setToken(activeSub.endpoint);
+
+            // Renouvellement silencieux du token FCM : le SDK peut faire pivoter le token
+            // (purge du storage navigateur, longue inactivité...) sans que l'app ne le sache.
+            // Sans ce resync, le backend continuerait d'envoyer vers un token mort jusqu'à ce
+            // que l'utilisateur désactive/réactive manuellement les notifications. Fire-and-forget :
+            // ne bloque pas le chargement et n'affecte pas les utilisateurs sans souscription active.
+            if (activeSub && isPushSupported && 'Notification' in window && Notification.permission === 'granted') {
+              notificationService.subscribeUser(userId).catch((err) => {
+                console.warn('[useNotifications] Silent token refresh failed:', err);
+              });
+            }
           }
         } catch (error) {
           console.error('Error checking notification status:', error);
@@ -69,7 +80,7 @@ export const useNotifications = () => {
     };
 
     checkStatus();
-  }, [userId]);
+  }, [userId, isPushSupported]);
 
   const requestPermission = async () => {
     if (typeof window === 'undefined' || !('Notification' in window)) return 'default';

@@ -171,7 +171,7 @@ export default function RootLayout({ children, }: Readonly<{ children: React.Rea
         <Script id="sw-register" strategy="afterInteractive">{`
           if ('serviceWorker' in navigator) {
             function registerFirebaseSW() {
-              navigator.serviceWorker.register('/firebase-messaging-sw.js').then(function(registration) {
+              navigator.serviceWorker.register('/firebase-messaging-sw.js', { updateViaCache: 'none' }).then(function(registration) {
                 console.log('Firebase ServiceWorker registration successful with scope: ', registration.scope);
               }, function(err) {
                 console.log('Firebase ServiceWorker registration failed: ', err);
