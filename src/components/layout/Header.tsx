@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Icon } from "@iconify/react";
 import Link from "next/link";
 import Image from "next/image";
@@ -64,6 +64,45 @@ export default function Header() {
         window.addEventListener('resize', checkDesktop);
         return () => window.removeEventListener('resize', checkDesktop);
     }, []);
+
+    // 📱 MASQUAGE HEADER AU SCROLL (mobile uniquement, type WhatsApp/Instagram) — écouteur
+    // désactivé sur desktop (return anticipé) pour ne rien coûter en dehors du mobile. Le
+    // throttle via requestAnimationFrame limite les mises à jour de state à une par frame,
+    // et le seuil (SCROLL_THRESHOLD) ignore les micro-scrolls qui provoqueraient un clignotement.
+    const [hideOnScroll, setHideOnScroll] = useState(false);
+    const lastScrollY = useRef(0);
+    const scrollTicking = useRef(false);
+
+    useEffect(() => {
+        if (isDesktop) {
+            setHideOnScroll(false);
+            return;
+        }
+
+        lastScrollY.current = window.scrollY;
+        const SCROLL_THRESHOLD = 8;
+
+        const handleScroll = () => {
+            if (scrollTicking.current) return;
+            scrollTicking.current = true;
+            requestAnimationFrame(() => {
+                const currentY = window.scrollY;
+                const delta = currentY - lastScrollY.current;
+
+                if (currentY <= 0) {
+                    setHideOnScroll(false);
+                    lastScrollY.current = currentY;
+                } else if (Math.abs(delta) > SCROLL_THRESHOLD) {
+                    setHideOnScroll(delta > 0);
+                    lastScrollY.current = currentY;
+                }
+                scrollTicking.current = false;
+            });
+        };
+
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, [isDesktop]);
 
     // 🔄 ANIMATION AVATAR
     useEffect(() => {
@@ -146,7 +185,7 @@ export default function Header() {
                 Aucun fond/bandeau visible : uniquement les icônes, posées sur l'espace blanc de la
                 page (voir ComingSoon.tsx pt-20, qui repousse le contenu/slide sous cette zone,
                 donc pas de superposition). Desktop inchangé : n'existe qu'en mobile (md:hidden). */}
-            <div className="md:hidden fixed top-6 left-4 right-4 z-[100] flex items-center justify-between gap-2">
+            <div className={`md:hidden fixed top-6 left-4 right-4 z-[100] flex items-center justify-between gap-2 transition-all duration-500 ease-in-out will-change-transform ${hideOnScroll ? "-translate-y-24 opacity-0 pointer-events-none" : "translate-y-0 opacity-100"}`}>
                 <div className="flex items-center gap-2.5 min-w-0">
                     <div className="w-9 h-9 bg-primary/20 rounded-full flex items-center justify-center overflow-hidden relative border-2 border-primary/10 shrink-0 shadow-md">
                         {images.map((img, index) => (
@@ -185,7 +224,7 @@ export default function Header() {
                 </div>
             </div>
 
-            <header className={`fixed left-4 z-[100] bottom-4 ${isMenuOpen ? "w-[92%]" : "w-fit"} max-w-[800px] md:top-6 md:bottom-auto md:left-1/2 md:-translate-x-1/2 md:w-fit md:px-6 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-lg border border-white/40 dark:border-white/10 rounded-full shadow-lg px-2 py-2 flex items-center justify-start gap-1 md:gap-4 transition-all duration-500 ease-in-out`}>
+            <header className={`fixed left-4 z-[100] bottom-4 ${isMenuOpen ? "w-[92%]" : "w-fit"} max-w-[800px] md:top-6 md:bottom-auto md:left-1/2 md:-translate-x-1/2 md:w-fit md:px-6 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-lg border border-white/40 dark:border-white/10 rounded-full shadow-lg px-2 py-2 flex items-center justify-start gap-1 md:gap-4 transition-all duration-500 ease-in-out will-change-transform ${hideOnScroll ? "translate-y-32 opacity-0 pointer-events-none" : "translate-y-0 opacity-100"} md:translate-y-0 md:opacity-100 md:pointer-events-auto`}>
             {/* User Section - Desktop: avatar+nom inchangés | Mobile: bouton Menu (photo/nom déplacés en haut) */}
             <div className="flex items-center gap-1 md:gap-4 shrink-0">
                 {/* Desktop uniquement : avatar identique à avant */}
