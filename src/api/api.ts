@@ -211,6 +211,38 @@ export const getPublicStoreInfo = async (storeName: string): Promise<BaseRespons
     return await response.json();
 };
 
+/** Liste paginée des boutiques (Admin) — réutilise UserService.getAllStores() via /admin/stores. */
+export const adminGetStores = async (params: { page?: number; limit?: number; storeName?: string } = {}): Promise<BaseResponse<Pagination<StoreUserInfo & { productCount: number }>>> => {
+    const response = await secureFetch(`${getBaseUrl()}/admin/stores?${toQueryString(params)}`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
+/** Produits d'une boutique (Admin). */
+export const adminGetStoreProducts = async (storeName: string, params: { page?: number; limit?: number } = {}): Promise<BaseResponse<Pagination<Product>>> => {
+    const response = await secureFetch(`${getBaseUrl()}/admin/stores/${storeName}/products?${toQueryString(params)}`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
+/** Commandes contenant des produits d'une boutique (Admin). */
+export const adminGetStoreOrders = async (storeName: string, params: { page?: number; limit?: number } = {}): Promise<BaseResponse<Pagination<Order>>> => {
+    const response = await secureFetch(`${getBaseUrl()}/admin/stores/${storeName}/orders?${toQueryString(params)}`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
+/** Notifications WebPush d'une boutique (Admin) — rejouables via adminReplayWebPushNotif. */
+export const adminGetStoreNotifications = async (storeName: string, params: { page?: number; limit?: number; status?: WebPushNotifStatus } = {}): Promise<BaseResponse<WebPushNotifAdminListResponse>> => {
+    const response = await secureFetch(`${getBaseUrl()}/admin/stores/${storeName}/notifications?${toQueryString(params)}`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
 export const getPublicLogisticsInfo = async (companyName: string): Promise<BaseResponse<any>> => {
     const response = await fetch(`${getBaseUrl()}/users/logistics/${companyName}`, {
         method: 'GET',

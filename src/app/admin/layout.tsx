@@ -31,6 +31,7 @@ const MENU_GROUPS: { title?: string; items: MenuItem[] }[] = [
         items: [
             { label: 'Utilisateurs',  icon: 'solar:users-group-rounded-bold-duotone', href: '/admin/users' },
             { label: 'Produits',      icon: 'solar:bag-heart-bold-duotone',           href: '/admin/products' },
+            { label: 'Boutiques',     icon: 'solar:shop-2-bold-duotone',              href: '/admin/stores' },
             { label: 'Services',      icon: 'solar:hand-stars-bold-duotone',          href: '/admin/services' },
             { label: 'Annonces',      icon: 'solar:lightbulb-bolt-bold-duotone',      href: '/admin/annonces' },
             { label: 'Vidéos',        icon: 'solar:video-library-bold-duotone',       href: '/admin/videos' },
