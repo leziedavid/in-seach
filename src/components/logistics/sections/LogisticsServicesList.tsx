@@ -22,6 +22,7 @@ import CategoryFilter from "@/components/ui/CategoryFilter"
 import LiveFormModal from "@/components/lives/LiveFormModal";
 import { LiveEntityType } from "@/types/interface";
 import BoostedContentTabs from "@/components/boost/BoostedContentTabs";
+import { createStoreSlug } from "@/utils/storeSlug";
 
 // Lazy-load des composants lourds non nécessaires au premier rendu
 const FormsLogistics = dynamic(() => import("@/components/logistics/forms/FormsLogistics"), { ssr: false });
@@ -73,13 +74,6 @@ export default function LogisticsServicesList({ mode = "marketplace", companyNam
     const pathname = usePathname();
     const isAkwaba = pathname === "/akwaba";
 
-
-    const slugify = (name: string) => {
-        return name
-            .trim()
-            .replace(/\s+/g, "-")        // remplace les espaces par -
-            .replace(/[^\w\-]+/g, "");    // supprime les caractères spéciaux
-    }
 
     const handleCopy = async (url: string) => {
         try {
@@ -336,7 +330,7 @@ export default function LogisticsServicesList({ mode = "marketplace", companyNam
                             </div>
 
                             <div className="flex items-center gap-2">
-                                <button onClick={() => handleCopy(`${process.env.NEXT_PUBLIC_BASE_URL}/shop/${slugify(providerInfo?.companyName || "")}`)} className="w-8 h-8 md:w-10 md:h-10 rounded-2xl bg-muted flex items-center justify-center hover:bg-primary/20 hover:text-primary transition-all active:scale-90 shrink-0">
+                                <button onClick={() => handleCopy(`${process.env.NEXT_PUBLIC_BASE_URL}/shop/${createStoreSlug(providerInfo?.companyName || "")}`)} className="w-8 h-8 md:w-10 md:h-10 rounded-2xl bg-muted flex items-center justify-center hover:bg-primary/20 hover:text-primary transition-all active:scale-90 shrink-0">
                                     {copied ? <Icon icon="solar:check-circle-bold-duotone" className="w-5 h-5 md:w-6 md:h-6" /> : <Icon icon="solar:share-bold-duotone" className="w-5 h-5 md:w-6 md:h-6" />}
                                 </button>
                             </div>

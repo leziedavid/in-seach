@@ -13,6 +13,7 @@ import Image from "next/image"
 import NotFound from "@/components/common/NotFound"
 import Loader from "@/components/common/Loader"
 import { ReviewSection } from "@/components/shared/ReviewSection"
+import { restoreStoreName } from "@/utils/storeSlug"
 
 type Props = { params: Promise<{ storeName: string }> }
 
@@ -38,15 +39,12 @@ export default function StorePage(props: Props) {
     const [publicStore, setPublicStore] = useState<(StoreUserInfo) | null>(null)
     const [storeLoading, setStoreLoading] = useState(true)
 
-    // 🔥 fonction pour nettoyer le slug → remettre les espaces
-
-    const cleanStoreName = (slug: string) => {
-        return slug?.replace(/-/g, " ").trim();
-    }
+    // Slug d'URL -> nom exploitable par les API existantes (voir src/utils/storeSlug.ts)
+    const restoredStoreName = restoreStoreName(storeName)
 
     const fetchPublicStoreData = useCallback(async () => {
         try {
-            const res = await getPublicStoreInfo(storeName)
+            const res = await getPublicStoreInfo(restoredStoreName)
             if (res.statusCode === 200 && res.data) {
                 setPublicStore(res.data)
             }
@@ -55,7 +53,7 @@ export default function StorePage(props: Props) {
         } finally {
             setStoreLoading(false)
         }
-    }, [storeName])
+    }, [restoredStoreName])
 
     useEffect(() => {
         fetchPublicStoreData()
@@ -89,7 +87,7 @@ export default function StorePage(props: Props) {
                 query: search || undefined,
                 categoryId: selectedCategory === "all" ? undefined : selectedCategory,
                 subCategoryId: selectedSubCategory === "all" ? undefined : selectedSubCategory,
-                storeName: cleanStoreName(storeName) || undefined,
+                storeName: restoredStoreName || undefined,
                 typeVente: typeVente === "ALL" ? undefined : typeVente,
                 minPrice: minPrice ? Number(minPrice) : undefined,
                 maxPrice: maxPrice ? Number(maxPrice) : undefined,
@@ -109,14 +107,14 @@ export default function StorePage(props: Props) {
         } finally {
             setLoading(false)
         }
-    }, [search, selectedCategory, selectedSubCategory, storeName, typeVente, minPrice, maxPrice])
+    }, [search, selectedCategory, selectedSubCategory, restoredStoreName, typeVente, minPrice, maxPrice])
 
     // Load more when page changes (infinite scroll)
     useEffect(() => {
         if (page > 1) {
             fetchProducts(page, false)
         }
-    }, [page, fetchProducts, storeName])
+    }, [page, fetchProducts, restoredStoreName])
 
     const handleVoiceResult = (text: string) => {
         setSearch(text)
@@ -126,7 +124,7 @@ export default function StorePage(props: Props) {
     useEffect(() => {
         setPage(1)
         fetchProducts(1, true)
-    }, [search, selectedCategory, selectedSubCategory, typeVente, minPrice, maxPrice, fetchProducts, storeName])
+    }, [search, selectedCategory, selectedSubCategory, typeVente, minPrice, maxPrice, fetchProducts, restoredStoreName])
 
 
     if (storeLoading) {
@@ -174,7 +172,7 @@ export default function StorePage(props: Props) {
 
                 <div className="space-y-1">
                     <h1 className="text-2xl md:text-4xl font-black text-foreground uppercase tracking-tight leading-none">
-                        {publicStore?.storeName || cleanStoreName(storeName)}
+                        {publicStore?.storeName || restoredStoreName}
                     </h1>
                     <p className="text-xs md:text-sm font-black text-muted-foreground uppercase tracking-[0.2em]">
                         {publicStore?.productCount || 0} Produits

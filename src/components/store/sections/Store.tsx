@@ -22,6 +22,7 @@ import LiveFormModal from "@/components/lives/LiveFormModal"
 import { LiveEntityType } from "@/types/interface"
 import BoostedContentTabs from "@/components/boost/BoostedContentTabs"
 import { Share } from "@/components/shared/Share"
+import { createStoreSlug } from "@/utils/storeSlug"
 
 const ITEMS_PER_PAGE = 10
 
@@ -59,13 +60,6 @@ export default function Store() {
     const [isStoreUpdating, setIsStoreUpdating] = useState(false)
     const [copied, setCopied] = useState(false);
     const [isShareOpen, setIsShareOpen] = useState(false);
-
-    const slugify = (name: string) => {
-        return name
-            .trim()
-            .replace(/\s+/g, "-")        // remplace les espaces par -
-            .replace(/[^\w\-]+/g, "");    // supprime les caractères spéciaux
-    }
 
     const handleCopy = async (url: string) => {
         try {
@@ -340,7 +334,7 @@ export default function Store() {
             <Share
                 isOpen={isShareOpen}
                 onClose={() => setIsShareOpen(false)}
-                url={`${process.env.NEXT_PUBLIC_BASE_URL}/shop/${slugify(storeInfo?.storeName || '')}`}
+                url={`${process.env.NEXT_PUBLIC_BASE_URL}/shop/${createStoreSlug(storeInfo?.storeName || '')}`}
                 title={storeInfo?.storeName || ""}
                 description={""}
                 image={storeInfo?.storeLogo || ""}

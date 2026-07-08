@@ -9,6 +9,7 @@ import {
     getEmbedType,
     detectPlatform,
 } from "./liveUtils";
+import { createStoreSlug } from "@/utils/storeSlug";
 
 interface LivePlayerProps {
     live: Live;
@@ -197,7 +198,7 @@ export default function LivePlayer({ live, isActive, onNext, onPrev, showNav }: 
     const showShopCTA = live.entityType === LiveEntityType.PRODUCT || !live.entityType;
     const shopHref = live.entityId
         ? (live.entityType === LiveEntityType.PRODUCT ? `/products/${live.entityId}` : "#")
-        : `/shop/${live.user.storeName || live.userId}`;
+        : (live.user.storeName ? `/shop/${createStoreSlug(live.user.storeName)}` : `/shop/${live.userId}`);
 
     return (
         <div className="relative w-full h-full bg-black overflow-hidden">

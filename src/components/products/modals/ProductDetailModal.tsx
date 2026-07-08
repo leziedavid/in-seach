@@ -15,6 +15,7 @@ import ReportButton from "@/components/shared/ReportButton";
 import { Share } from "@/components/shared/Share";
 import TextDisplayBox from "@/components/home/TextDisplayBox";
 import Link from "next/link";
+import { createStoreSlug } from "@/utils/storeSlug";
 
 interface ProductDetailModalProps {
     isOpen: boolean;
@@ -39,9 +40,6 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
 
     // Données affichées : prop par défaut, remplacé par les données fraîches dès qu'elles arrivent
     const displayProduct = freshProduct ?? product;
-
-    const slugify = (name: string) =>
-        name.trim().replace(/\s+/g, "-").replace(/[^\w\-]+/g, "");
 
     const resolveImages = (p: Product | null) => {
         if (!p) return [];
@@ -219,7 +217,7 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
 
     // ── SELLER CARD ───────────────────────────────────────────────────────
     const SellerCard = () => (
-        <Link href={`/shop/${slugify(storeInfo?.storeName || "boutique")}`}>
+        <Link href={`/shop/${createStoreSlug(storeInfo?.storeName || "boutique")}`}>
             <div className="p-4 bg-muted/30 rounded-2xl border border-border/50 space-y-3 hover:border-primary/30 transition">
                 <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary relative overflow-hidden shrink-0 ring-2 ring-primary/20">
@@ -480,7 +478,7 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
 
                                         {/* Seller */}
                                         {displayProduct.user && (
-                                            <Link href={`/shop/${slugify(storeInfo?.storeName || "boutique")}`}>
+                                            <Link href={`/shop/${createStoreSlug(storeInfo?.storeName || "boutique")}`}>
                                                 <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-2xl border border-border/50">
                                                     <div className="w-11 h-11 rounded-full bg-primary/10 relative overflow-hidden shrink-0 ring-2 ring-primary/10">
                                                         {storeInfo?.storeLogo ? (

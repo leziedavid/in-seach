@@ -7,20 +7,18 @@ import Link from "next/link";
 import { StoreUserInfo } from "@/types/interface";
 import { getAllStores } from "@/api/api";
 import InfiniteScroll from "@/components/ui/InfiniteScroll";
+import { createStoreSlug } from "@/utils/storeSlug";
 
 type Store = StoreUserInfo & { productCount: number; id: string };
 
 const LIMIT = 12;
-
-const slugify = (text: string) =>
-    text.trim().replace(/\s+/g, "-").replace(/[^\w\-]+/g, "");
 
 // ── Composants stables (hors du composant principal) ─────────────────────────
 
 const StoreCard = ({ store, viewMode = 'grid' }: { store: Store; viewMode?: 'grid' | 'list' }) => {
     const isList = viewMode === 'list';
     return (
-        <Link href={`/shop/${slugify(store.storeName || "boutique")}`}>
+        <Link href={`/shop/${createStoreSlug(store.storeName || "boutique")}`}>
             <div className={`bg-card rounded-2xl hover:shadow-md transition-all duration-200 cursor-pointer group border border-transparent hover:border-primary/20 h-full ${isList ? "flex items-center gap-3 p-3" : "p-4 space-y-3"}`}>
                 <div className={`flex items-center gap-3 ${isList ? "flex-1 min-w-0" : ""}`}>
                     <div className={`rounded-full bg-primary/10 relative overflow-hidden shrink-0 ring-2 ring-primary/20 group-hover:ring-primary/40 transition-all ${isList ? "w-11 h-11" : "w-14 h-14"}`}>
