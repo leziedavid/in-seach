@@ -1,19 +1,43 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { getAllUsers, getSuspendedUsersAdmin, getRecoveryRequestsAdmin, suspendUserAdmin, reactivateUserAdmin, deleteUserAdmin, updateUser, resetFreePlanForUserAdmin, resetFreePlanForAllUsersAdmin } from '@/api/api';
-import { Users, Shield, UserX, Mail, Phone, Calendar, Edit2, RotateCcw, Ban, Trash2, Search, AlertCircle, RefreshCcw } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Icon } from '@iconify/react';
+import { getAllUsers, getSuspendedUsersAdmin, getRecoveryRequestsAdmin, suspendUserAdmin, reactivateUserAdmin, deleteUserAdmin, updateUser, resetFreePlanForUserAdmin, resetFreePlanForAllUsersAdmin, createUserAdmin } from '@/api/api';
+import { Mail, Phone, Calendar, Edit2, RotateCcw, Ban, Trash2, Search, RefreshCcw, UserPlus } from 'lucide-react';
 import { useNotification } from '@/components/notifications/NotificationProvider';
 import { User, Role } from '@/types/interface';
 import { Modal } from '@/components/ui/MotionModal';
 import FormsUser from '@/components/profile/forms/FormsUser';
+import FormsUserCreate, { CreateUserFormData } from '@/components/profile/forms/FormsUserCreate';
 import { GenericTable } from '@/components/ui/table/table';
 import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useTranslation } from "@/utils/langue/hooks";
+import type { TKey } from '@/utils/langue';
 
 type ViewMode = 'all' | 'suspended' | 'recovery';
+
+/* ─── KPI Card (même composant/style que /admin/kpi et /admin/webpush) ─── */
+function KpiCard({ icon, label, value, color }: { icon: string; label: string; value: string | number; color: string; }) {
+    return (
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl p-4 border border-border shadow-sm flex items-start gap-3 min-w-0 overflow-hidden">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${color}18` }}>
+                <Icon icon={icon} width={20} style={{ color }} />
+            </div>
+            <div className="min-w-0 flex-1">
+                <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider leading-tight truncate">{label}</p>
+                <p className="text-xl font-bold mt-0.5 text-foreground truncate">{value}</p>
+            </div>
+        </div>
+    );
+}
+
+const TABS: { value: ViewMode; labelKey: TKey }[] = [
+    { value: 'all', labelKey: 'admin.users.all_users' },
+    { value: 'suspended', labelKey: 'admin.users.suspended_users' },
+    { value: 'recovery', labelKey: 'admin.users.recovery_requests' },
+];
 
 export default function AdminUsersPage() {
     const { t } = useTranslation();
@@ -25,10 +49,31 @@ export default function AdminUsersPage() {
     const [searchPhone, setSearchPhone] = useState('');
     const { addNotification } = useNotification();
 
-    // Modal state
+    // Modal state (édition)
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Modal state (création)
+    const [isCreateOpen, setIsCreateOpen] = useState(false);
+    const [isCreating, setIsCreating] = useState(false);
+
+    // Statistiques (cartes en haut de page) — même pattern que /admin/webpush : appels légers
+    // limit=1 sur les endpoints déjà utilisés par cette page, le `total` paginé suffit comme compteur.
+    const [counts, setCounts] = useState({ all: 0, suspended: 0, recovery: 0 });
+
+    const fetchCounts = useCallback(async () => {
+        const [allRes, suspendedRes, recoveryRes] = await Promise.all([
+            getAllUsers({ page: 1, limit: 1 }).catch(() => null),
+            getSuspendedUsersAdmin({ page: 1, limit: 1 }).catch(() => null),
+            getRecoveryRequestsAdmin({ page: 1, limit: 1 }).catch(() => null),
+        ]);
+        setCounts({
+            all: allRes?.data?.total ?? 0,
+            suspended: suspendedRes?.data?.total ?? 0,
+            recovery: recoveryRes?.data?.total ?? 0,
+        });
+    }, []);
 
     const fetchUsers = async () => {
         setLoading(true);
@@ -59,6 +104,8 @@ export default function AdminUsersPage() {
         fetchUsers();
     }, [page, viewMode]);
 
+    useEffect(() => { fetchCounts(); }, [fetchCounts]);
+
     const handleSuspend = async (user: User) => {
         if (!confirm(t("admin.users.suspend_confirm", { name: user.fullName || user.email }))) return;
         try {
@@ -66,6 +113,7 @@ export default function AdminUsersPage() {
             if (res.statusCode === 200) {
                 addNotification(t("admin.users.success_suspend"), "success");
                 fetchUsers();
+                fetchCounts();
             }
         } catch (error) {
             addNotification(t("admin.users.error_suspend"), "error");
@@ -78,6 +126,7 @@ export default function AdminUsersPage() {
             if (res.statusCode === 200) {
                 addNotification(t("admin.users.success_reactivate"), "success");
                 fetchUsers();
+                fetchCounts();
             }
         } catch (error) {
             addNotification(t("admin.users.error_reactivate"), "error");
@@ -91,6 +140,7 @@ export default function AdminUsersPage() {
             if (res.statusCode === 200) {
                 addNotification(t("admin.users.success_delete"), "success");
                 fetchUsers();
+                fetchCounts();
             }
         } catch (error) {
             addNotification(t("admin.users.error_delete"), "error");
@@ -137,6 +187,26 @@ export default function AdminUsersPage() {
             addNotification(t("admin.users.error_update"), "error");
         } finally {
             setIsSubmitting(false);
+        }
+    };
+
+    const handleCreateUser = async (data: CreateUserFormData) => {
+        setIsCreating(true);
+        try {
+            const res = await createUserAdmin(data);
+            if (res.statusCode === 200 || res.statusCode === 201) {
+                addNotification("Utilisateur créé avec succès", "success");
+                setIsCreateOpen(false);
+                setPage(1);
+                fetchUsers();
+                fetchCounts();
+            } else {
+                addNotification(res.message || "Erreur lors de la création de l'utilisateur", "error");
+            }
+        } catch (error: any) {
+            addNotification(error?.message || "Erreur lors de la création de l'utilisateur", "error");
+        } finally {
+            setIsCreating(false);
         }
     };
 
@@ -225,42 +295,42 @@ export default function AdminUsersPage() {
         }
     ];
 
-    const TabButton = ({ mode, label, icon: Icon, count }: { mode: ViewMode, label: string, icon: any, count?: number }) => (
-        <button
-            onClick={() => { setViewMode(mode); setPage(1); }}
-            className={cn("flex items-center gap-2 px-6 py-3 rounded-2xl font-black text-xs transition-all border-2", viewMode === mode ? "bg-primary border-primary text-white shadow-lg shadow-primary/20 scale-105" : "bg-card border-border/50 text-muted-foreground hover:border-primary/30")}>
-            <Icon className="w-4 h-4" />
-            {label}
-            {count !== undefined && count > 0 && (
-                <span className={cn(
-                    "ml-1 px-1.5 py-0.5 rounded-full text-[10px]",
-                    viewMode === mode ? "bg-white text-primary" : "bg-primary/10 text-primary"
-                )}>
-                    {count}
-                </span>
-            )}
-        </button>
-    );
-
     return (
-        <div className="p-8 space-y-8 animate-in fade-in duration-500">
-            <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div>
-                    <h1 className="text-4xl font-black tracking-tight mb-2">{t("admin.users.title")}</h1>
-                    <p className="text-muted-foreground font-medium">{t("admin.users.subtitle")}</p>
+        <div className="min-h-screen bg-background p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
+            {/* ── Header ───────────────────────────────────────── */}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                <div className="flex-1 min-w-0">
+                    <h1 className="text-xl sm:text-2xl font-bold text-foreground truncate">{t("admin.users.title")}</h1>
+                    <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">{t("admin.users.subtitle")}</p>
                 </div>
-                <div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                    <button
+                        onClick={() => setIsCreateOpen(true)}
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-white text-xs sm:text-sm font-bold hover:bg-secondary transition-all whitespace-nowrap"
+                    >
+                        <UserPlus className="w-4 h-4" />
+                        Nouvel utilisateur
+                    </button>
                     <button
                         onClick={handleResetAllFreePlans}
-                        className="flex items-center gap-2 px-6 py-3 rounded-2xl font-black text-xs transition-all bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-500/20"
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs sm:text-sm font-bold transition-all whitespace-nowrap"
                     >
                         <RefreshCcw className="w-4 h-4" />
-                        Réinitialiser TOUS les plans Free
+                        <span className="hidden lg:inline">Réinitialiser TOUS les plans Free</span>
+                        <span className="lg:hidden">Reset Free</span>
                     </button>
                 </div>
-            </header>
+            </div>
 
-            <div className="flex flex-col sm:flex-row items-center gap-4">
+            {/* ── Statistiques (même style que /admin/kpi) ────────── */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <KpiCard icon="solar:users-group-rounded-bold-duotone" label="Total utilisateurs" value={counts.all} color="#3B82F6" />
+                <KpiCard icon="solar:forbidden-circle-bold-duotone" label="Comptes suspendus" value={counts.suspended} color="#EF4444" />
+                <KpiCard icon="solar:refresh-circle-bold-duotone" label="Demandes de récupération" value={counts.recovery} color="#F59E0B" />
+            </div>
+
+            {/* ── Recherche + Tabs (même composant/design que /admin/kpi) ── */}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                 <div className="relative w-full sm:w-64">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <form onSubmit={(e) => {
@@ -285,58 +355,62 @@ export default function AdminUsersPage() {
                             placeholder={t("admin.users.search_placeholder")}
                             value={searchPhone}
                             onChange={(e) => setSearchPhone(e.target.value)}
-                            className="w-full h-11 pl-10 pr-4 rounded-2xl bg-card border border-border/50 outline-none focus:border-primary text-xs font-bold transition-all"
+                            className="w-full h-10 pl-9 pr-3 rounded-xl bg-white dark:bg-zinc-900 border border-border text-sm outline-none focus:border-primary transition-all"
                         />
                     </form>
                 </div>
 
-                <div className="flex flex-wrap gap-2">
-                    <TabButton mode="all" label={t("admin.users.all_users")} icon={Users} />
-                    <TabButton mode="suspended" label={t("admin.users.suspended_users")} icon={Ban} />
-                    <TabButton mode="recovery" label={t("admin.users.recovery_requests")} icon={RotateCcw} />
+                <div className="flex gap-1 bg-muted rounded-xl p-1 w-fit overflow-x-auto scrollbar-hide">
+                    {TABS.map((tab) => (
+                        <button
+                            key={tab.value}
+                            onClick={() => { setViewMode(tab.value); setPage(1); }}
+                            className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${viewMode === tab.value ? 'bg-white dark:bg-zinc-800 text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+                                }`}
+                        >
+                            {t(tab.labelKey)}
+                        </button>
+                    ))}
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-3">
-                    <div className="bg-card rounded-[2.5rem] border border-border/50 shadow-sm p-4">
-                        <GenericTable
-                            columns={columns.filter(c => (c as any).accessorKey !== 'isSuspended')}
-                            data={users}
-                            loading={loading}
-                            totalItems={total}
-                            currentPage={page}
-                            itemsPerPage={10}
-                            onPageChange={setPage}
-                            searchKey="fullName"
-                            enableSwitch={true}
-                            getActive={(row) => !row.isSuspended}
-                            onToggleActive={(row, value) => {
-                                if (value) handleReactivate(row);
-                                else handleSuspend(row);
-                            }}
-                            actions={[
-                                { icon: RefreshCcw, label: "Réinitialiser Plan Free", value: "reset-free-plan", className: "text-amber-600" },
-                                { icon: Edit2, label: t("common.edit"), value: "edit" },
-                                { icon: Ban, label: t("admin.users.suspend"), value: "suspend", className: "text-rose-600", disabled: (row) => row.isSuspended },
-                                { icon: RotateCcw, label: t("admin.users.reactivate"), value: "reactivate", className: "text-green-600", disabled: (row) => !row.isSuspended },
-                                { icon: Trash2, label: t("common.delete"), value: "delete", className: "text-rose-700" }
-                            ]}
-                            onAction={(action, row) => {
-                                if (action === "reset-free-plan") handleResetFreePlan(row);
-                                if (action === "edit") { setSelectedUser(row); setIsEditOpen(true); }
-                                if (action === "suspend") handleSuspend(row);
-                                if (action === "reactivate") handleReactivate(row);
-                                if (action === "delete") handleDelete(row);
-                            }}
-                            emptyMessage={
-                                viewMode === 'recovery' ? t("admin.users.no_recovery") :
-                                    viewMode === 'suspended' ? t("admin.users.no_suspended") :
-                                        t("admin.users.no_users")
-                            }
-                        />
-                    </div>
-                </div>
+            {/* ── Table ────────────────────────────────────────── */}
+            <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-border p-4 sm:p-5">
+                <GenericTable
+                    columns={columns.filter(c => (c as any).accessorKey !== 'isSuspended')}
+                    data={users}
+                    loading={loading}
+                    totalItems={total}
+                    currentPage={page}
+                    itemsPerPage={10}
+                    onPageChange={setPage}
+                    searchKey="fullName"
+                    enableSwitch={true}
+                    getActive={(row) => !row.isSuspended}
+                    onToggleActive={(row, value) => {
+                        if (value) handleReactivate(row);
+                        else handleSuspend(row);
+                    }}
+                    actions={[
+                        { icon: RefreshCcw, label: "Réinitialiser Plan Free", value: "reset-free-plan", className: "text-amber-600" },
+                        { icon: Edit2, label: t("common.edit"), value: "edit" },
+                        { icon: Ban, label: t("admin.users.suspend"), value: "suspend", className: "text-rose-600", disabled: (row) => row.isSuspended },
+                        { icon: RotateCcw, label: t("admin.users.reactivate"), value: "reactivate", className: "text-green-600", disabled: (row) => !row.isSuspended },
+                        { icon: Trash2, label: t("common.delete"), value: "delete", className: "text-rose-700" }
+                    ]}
+                    onAction={(action, row) => {
+                        if (action === "reset-free-plan") handleResetFreePlan(row);
+                        if (action === "edit") { setSelectedUser(row); setIsEditOpen(true); }
+                        if (action === "suspend") handleSuspend(row);
+                        if (action === "reactivate") handleReactivate(row);
+                        if (action === "delete") handleDelete(row);
+                    }}
+                    emptyMessage={
+                        viewMode === 'recovery' ? t("admin.users.no_recovery") :
+                            viewMode === 'suspended' ? t("admin.users.no_suspended") :
+                                t("admin.users.no_users")
+                    }
+                />
             </div>
 
             {/* Modals */}
@@ -349,6 +423,14 @@ export default function AdminUsersPage() {
                         onClose={() => setIsEditOpen(false)}
                     />
                 )}
+            </Modal>
+
+            <Modal isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)}>
+                <FormsUserCreate
+                    onSubmit={handleCreateUser}
+                    isSubmitting={isCreating}
+                    onClose={() => setIsCreateOpen(false)}
+                />
             </Modal>
         </div>
     );
