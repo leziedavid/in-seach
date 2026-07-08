@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useRef, useState } from "react";
 import { Icon } from "@iconify/react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,10 +10,9 @@ import { Select2 } from "@/components/ui/Select2";
 import { InputPhone } from "@/components/ui/InputPhone";
 
 // Mêmes règles que registerSchema (src/app/register/page.tsx), qui correspondent au RegisterDto
-// backend (email valide, téléphone >= 8, mot de passe >= 5) — réutilisées à l'identique pour que
-// la création admin respecte les mêmes règles métier que l'inscription publique. Le mot de passe
-// est ici un champ classique (pas l'OTP à 4 chiffres du formulaire public), plus adapté à une
-// création directe par un administrateur déjà authentifié.
+// backend (email valide, téléphone >= 8, mot de passe >= 5) — réutilisées à l'identique, y compris
+// le mot de passe en OTP à 4 chiffres préfixé de "@" (voir handleOtpChange plus bas), pour que la
+// création admin respecte exactement les mêmes règles/format que l'inscription publique.
 const createUserSchema = z.object({
     email: z.string().email("Email invalide"),
     indicatif: z.string().optional(),
@@ -44,11 +43,33 @@ const ROLE_OPTIONS = [
 export default function FormsUserCreate({ onSubmit, isSubmitting, onClose }: FormsUserCreateProps) {
     const { register, handleSubmit, control, watch, setValue, formState: { errors } } = useForm<CreateUserFormData>({
         resolver: zodResolver(createUserSchema),
-        defaultValues: { indicatif: "+225", role: Role.CLIENT },
+        defaultValues: { indicatif: "+225", role: Role.CLIENT, password: "" },
     });
 
     const role = watch("role");
     const showCompany = role === Role.PRESTATAIRE || role === Role.ENTREPRISE;
+
+    // Mot de passe en OTP à 4 chiffres, préfixé de "@" — identique à register/page.tsx
+    // (const password = '@' + otp.join('')), pour produire exactement le même format de mot
+    // de passe que l'inscription publique.
+    const [otp, setOtp] = useState(["", "", "", ""]);
+    const [showPassword, setShowPassword] = useState(false);
+    const otpInputsRef = useRef<HTMLInputElement[]>([]);
+
+    const handleOtpChange = (value: string, index: number) => {
+        if (!/^[0-9]?$/.test(value)) return;
+        const newOtp = [...otp];
+        newOtp[index] = value;
+        setOtp(newOtp);
+        setValue("password", "@" + newOtp.join(""), { shouldValidate: true });
+        if (value && index < 3) otpInputsRef.current[index + 1]?.focus();
+    };
+
+    const handleOtpKeyDown = (e: React.KeyboardEvent, index: number) => {
+        if (e.key === "Backspace" && !otp[index] && index > 0) {
+            otpInputsRef.current[index - 1]?.focus();
+        }
+    };
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 flex flex-col h-full">
@@ -95,9 +116,30 @@ export default function FormsUserCreate({ onSubmit, isSubmitting, onClose }: For
                         </div>
 
                         <div className="space-y-1">
-                            <label className="text-[10px] font-black text-muted-foreground uppercase ml-1">Mot de passe</label>
-                            <input type="password" {...register("password")} placeholder="••••••••" className="w-full h-12 px-4 rounded-xl border border-border bg-muted/30 outline-none focus:border-primary transition-all font-bold text-sm" />
-                            {errors.password && <p className="text-red-500 text-[10px] font-bold mt-1 uppercase">{errors.password.message}</p>}
+                            <div className="flex items-center justify-between">
+                                <label className="text-[10px] font-black text-muted-foreground uppercase ml-1">Mot de passe (OTP)</label>
+                                <button type="button" onClick={() => setShowPassword(!showPassword)} className="text-[10px] text-primary font-bold flex items-center gap-1">
+                                    <Icon icon={showPassword ? "solar:eye-closed-bold-duotone" : "solar:eye-bold-duotone"} width={12} />
+                                    {showPassword ? "Masquer" : "Voir"}
+                                </button>
+                            </div>
+                            <div className="flex justify-center gap-1.5">
+                                {otp.map((digit, i) => (
+                                    <input
+                                        key={i}
+                                        ref={(el) => { if (el) otpInputsRef.current[i] = el; }}
+                                        type={showPassword ? "text" : "password"}
+                                        value={digit}
+                                        maxLength={1}
+                                        onChange={(e) => handleOtpChange(e.target.value, i)}
+                                        onKeyDown={(e) => handleOtpKeyDown(e, i)}
+                                        className="w-10 h-10 text-center text-sm font-bold rounded-lg border border-border bg-muted/30 focus:border-primary outline-none transition-all"
+                                        inputMode="numeric"
+                                        style={{ fontSize: "16px" }}
+                                    />
+                                ))}
+                            </div>
+                            {errors.password && <p className="text-red-500 text-[10px] font-bold mt-1 uppercase text-center">{errors.password.message}</p>}
                         </div>
                     </div>
 
