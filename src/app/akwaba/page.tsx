@@ -285,13 +285,14 @@ export default function Page() {
     return (
         <div className="min-h-screen">
 
-            <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-6 px-4 py-10">
+            <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-6 px-2 md:px-4 py-10">
 
                 {/* SIDEBAR (Desktop & Mobile) */}
                 <Sidebar activeTab={activeTab} onTabChange={handleTabChange} user={data?.user} onLogout={handleLogout} />
 
-                {/* CONTENT AREA */}
-                <main className="md:col-span-8 lg:col-span-9 p-2">
+                {/* CONTENT AREA — pas de padding horizontal propre sur mobile : le wrapper ci-dessus
+                    fournit déjà une marge discrète, chaque contenu gère ensuite son propre padding interne */}
+                <main className="md:col-span-8 lg:col-span-9 px-0 py-2 md:p-2">
                     {renderContent()}
                     {/* <ChatWidget /> */}
                 </main>
