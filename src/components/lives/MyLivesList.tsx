@@ -3,14 +3,15 @@
 import { useCallback, useEffect, useState } from "react";
 import { Icon } from "@iconify/react";
 import { useRouter } from "next/navigation";
-import { getMyLives, deleteLive } from "@/api/api";
-import { Live, LiveStatus, LiveEntityType } from "@/types/interface";
+import { getMyLives, getMyLiveStats, deleteLive } from "@/api/api";
+import { Live, LiveStatus, LiveEntityType, LiveStats } from "@/types/interface";
 import { useNotification } from "@/components/notifications/NotificationProvider";
 import { Button } from "@/components/ui/button";
 import { TablePagination } from "@/components/ui/table/Pagination";
 import { SectionHeader } from "@/components/shared/SectionHeader";
 import LiveFormModal from "./LiveFormModal";
 import CreateButton from "@/components/ui/CreateButton";
+import LiveStatCard from "./components/LiveStatCard";
 
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
 
@@ -47,22 +48,6 @@ function detectSource(url: string) {
     return { icon: "solar:link-bold-duotone", label: "Lien" };
 }
 
-// ─── STAT CARD ───────────────────────────────────────────────────────────────
-
-function StatCard({ icon, value, label, color }: { icon: string; value: number; label: string; color: string }) {
-    return (
-        <div className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border">
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${color}`}>
-                <Icon icon={icon} className="w-5 h-5" />
-            </div>
-            <div>
-                <p className="text-xl font-black text-foreground leading-none">{value}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{label}</p>
-            </div>
-        </div>
-    );
-}
-
 // ─── COMPONENT ───────────────────────────────────────────────────────────────
 
 export default function MyLivesList() {
@@ -82,7 +67,7 @@ export default function MyLivesList() {
     const [statusFilter, setStatusFilter] = useState<LiveStatus | "">("");
 
     // Stats
-    const [stats, setStats] = useState<{ total: number; published: number; pending: number; rejected: number } | null>(null);
+    const [stats, setStats] = useState<LiveStats | null>(null);
 
     // Modals
     const [isFormOpen, setIsFormOpen] = useState(false);
@@ -112,7 +97,19 @@ export default function MyLivesList() {
         }
     }, [page, limit, statusFilter, search]);
 
+    const fetchStats = useCallback(async () => {
+        try {
+            const res = await getMyLiveStats();
+            if (res.statusCode === 200 && res.data) {
+                setStats(res.data);
+            }
+        } catch (error) {
+            console.error("Error fetching live stats:", error);
+        }
+    }, []);
+
     useEffect(() => { fetchLives(); }, [fetchLives]);
+    useEffect(() => { fetchStats(); }, [fetchStats]);
 
     // ─── ACTIONS ──────────────────────────────────────────────────────────
 
@@ -124,6 +121,7 @@ export default function MyLivesList() {
             if (res.statusCode === 200) {
                 showNotification("Live supprimé.", "success");
                 fetchLives();
+                fetchStats();
             } else {
                 showNotification(res.message || "Erreur.", "error");
             }
@@ -159,10 +157,10 @@ export default function MyLivesList() {
             {/* Stats */}
             {stats && (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <StatCard icon="solar:videocamera-bold-duotone" value={stats.total} label="Total" color="bg-primary/10 text-primary" />
-                    <StatCard icon="solar:play-circle-bold-duotone" value={stats.published} label="Publiés" color="bg-green-100 text-green-600 dark:bg-green-900/30" />
-                    <StatCard icon="solar:clock-circle-bold-duotone" value={stats.pending} label="En attente" color="bg-amber-100 text-amber-600 dark:bg-amber-900/30" />
-                    <StatCard icon="solar:close-circle-bold-duotone" value={stats.rejected} label="Refusés" color="bg-red-100 text-red-600 dark:bg-red-900/30" />
+                    <LiveStatCard icon="solar:videocamera-bold-duotone" value={stats.total} label="Total" color="bg-primary/10 text-primary" />
+                    <LiveStatCard icon="solar:play-circle-bold-duotone" value={stats.published} label="Publiés" color="bg-green-100 text-green-600 dark:bg-green-900/30" />
+                    <LiveStatCard icon="solar:clock-circle-bold-duotone" value={stats.pending} label="En attente" color="bg-amber-100 text-amber-600 dark:bg-amber-900/30" />
+                    <LiveStatCard icon="solar:close-circle-bold-duotone" value={stats.rejected} label="Refusés" color="bg-red-100 text-red-600 dark:bg-red-900/30" />
                 </div>
             )}
 
@@ -338,7 +336,7 @@ export default function MyLivesList() {
             <LiveFormModal
                 isOpen={isFormOpen}
                 onClose={() => { setIsFormOpen(false); setEditingLive(null); }}
-                onSuccess={() => { setIsFormOpen(false); setEditingLive(null); fetchLives(); }}
+                onSuccess={() => { setIsFormOpen(false); setEditingLive(null); fetchLives(); fetchStats(); }}
                 editingLive={editingLive}
             />
         </div>

@@ -173,12 +173,7 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
                     <div className="flex flex-col items-center px-2 pb-3">
                         <div className="relative w-16 h-16 rounded-full overflow-hidden bg-muted border-2 border-border shadow-lg shrink-0">
                             {user?.avatar ? (
-                                <Image
-                                    src={user.avatar}
-                                    fill
-                                    className="object-cover"
-                                    alt="Avatar"
-                                    unoptimized />
+                                <Image src={user.avatar} fill className="object-cover" alt="Avatar" unoptimized />
                             ) : (
                                 <div className="w-full h-full flex items-center justify-center">
                                     <Icon icon="solar:user-bold-duotone" className="w-8 h-8 text-muted-foreground" />
@@ -297,12 +292,7 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
                             <div className="flex flex-col items-center px-6 pb-3">
                                 <div className="relative w-16 h-16 rounded-full overflow-hidden bg-muted border-2 border-border shadow-lg shrink-0">
                                     {user?.avatar ? (
-                                        <Image
-                                            src={user.avatar}
-                                            fill
-                                            className="object-cover"
-                                            alt="Avatar"
-                                            unoptimized />
+                                        <Image src={user.avatar} fill className="object-cover" alt="Avatar" unoptimized />
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center">
                                             <Icon icon="solar:user-bold-duotone" className="w-10 h-10 text-muted-foreground" />

@@ -1,5 +1,5 @@
 import { getCookie } from '@/lib/cookies';
-import { BaseResponse, Category, Pagination, ReverseGeocodeData, Role, Service, MySpaceResponse, Annonce, BookingsCalendar, Product, CategoryProd, Order, AdminQueryParams, AdminUserUpdateDto, AdminProductUpdateDto, AdminServiceUpdateDto, AdminAnnonceUpdateDto, AdminSubscriptionPlanDto, User, AdminLog, SubscriptionPlan, PlanEntity, AdminUserSubscription, Subscription, OrdersGroupedResponse, BookingsGroupedResponse, LogisticService, Quote, Delivery, DeliveryTracking, QuoteStatus, DeliveryStatus, TransportType, LocationLog, CategorieAnnonce, TypeAnnonce, LogisticsClient, Video, StoreUserInfo, EasyDelivery, HistoryDelivery, EasyDeliveryStatus, DriverStats, SubCategoryProd, Slider, Live, LiveFeedResponse, LiveListResponse, LiveStatus, LiveEntityType, Boost, BoostPricing, BoostEntityType, BoostPaymentMethod, WebPushNotifActiveResponse, WebPushNotifStatus, WebPushNotifAdminListResponse, NotificationSubscriptionListResponse, PushNotificationPayload, SendPushResult } from '@/types/interface';
+import { BaseResponse, Category, Pagination, ReverseGeocodeData, Role, Service, MySpaceResponse, Annonce, BookingsCalendar, Product, CategoryProd, Order, AdminQueryParams, AdminUserUpdateDto, AdminProductUpdateDto, AdminServiceUpdateDto, AdminAnnonceUpdateDto, AdminSubscriptionPlanDto, User, AdminLog, SubscriptionPlan, PlanEntity, AdminUserSubscription, Subscription, OrdersGroupedResponse, BookingsGroupedResponse, LogisticService, Quote, Delivery, DeliveryTracking, QuoteStatus, DeliveryStatus, TransportType, LocationLog, CategorieAnnonce, TypeAnnonce, LogisticsClient, Video, StoreUserInfo, StoreStats, ServiceStats, AnnonceStats, LiveStats, LogisticProvider, LogisticStats, EasyDelivery, HistoryDelivery, EasyDeliveryStatus, DriverStats, SubCategoryProd, Slider, Live, LiveFeedResponse, LiveListResponse, LiveStatus, LiveEntityType, Boost, BoostPricing, BoostEntityType, BoostPaymentMethod, WebPushNotifActiveResponse, WebPushNotifStatus, WebPushNotifAdminListResponse, NotificationSubscriptionListResponse, PushNotificationPayload, SendPushResult } from '@/types/interface';
 
 export const getBaseUrl = (): string => {
     return process.env.NEXT_PUBLIC_API_URL || 'https://api.djamko.com/api/v1';
@@ -191,6 +191,13 @@ export const getStoreUserInfo = async (): Promise<BaseResponse<StoreUserInfo>> =
     return await response.json();
 };
 
+export const getStoreStats = async (): Promise<BaseResponse<StoreStats>> => {
+    const response = await secureFetch(`${getBaseUrl()}/users/get/store/stats`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
 export const resolveStoreByUserId = async (sellerId: string): Promise<BaseResponse<{ sellerId: string; storeName: string; slug: string }>> => {
     const response = await fetch(`${getBaseUrl()}/users/store/resolve/${sellerId}`, {
         method: 'GET',
@@ -250,8 +257,15 @@ export const getPublicLogisticsInfo = async (companyName: string): Promise<BaseR
     return await response.json();
 };
 
-export const getLogisticInfoDatas = async (): Promise<BaseResponse<any>> => {
+export const getLogisticInfoDatas = async (): Promise<BaseResponse<LogisticProvider & { serviceCount: number }>> => {
     const response = await secureFetch(`${getBaseUrl()}/users/get/logistic/info/datas`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
+export const getLogisticStats = async (): Promise<BaseResponse<LogisticStats>> => {
+    const response = await secureFetch(`${getBaseUrl()}/users/get/logistic/stats`, {
         method: 'GET',
     });
     return await response.json();
@@ -300,6 +314,20 @@ export const updateService = async (id: string, data: FormData): Promise<BaseRes
 export const deleteService = async (id: string): Promise<BaseResponse<any>> => {
     const response = await secureFetch(`${getBaseUrl()}/services/${id}`, {
         method: 'DELETE',
+    });
+    return await response.json();
+};
+
+export const getServiceStats = async (): Promise<BaseResponse<ServiceStats>> => {
+    const response = await secureFetch(`${getBaseUrl()}/users/get/service/stats`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
+export const getAnnonceStats = async (): Promise<BaseResponse<AnnonceStats>> => {
+    const response = await secureFetch(`${getBaseUrl()}/users/get/annonce/stats`, {
+        method: 'GET',
     });
     return await response.json();
 };
@@ -2522,6 +2550,12 @@ export const getMyLives = async (params: {
     let url = `${getBaseUrl()}/lives/my?page=${page}&limit=${limit}`;
     if (status) url += `&status=${status}`;
     const response = await secureFetch(url, { method: 'GET' });
+    return await response.json();
+};
+
+/** KPI de mes Lives (propriétaire) */
+export const getMyLiveStats = async (): Promise<BaseResponse<LiveStats>> => {
+    const response = await secureFetch(`${getBaseUrl()}/lives/my/stats`, { method: 'GET' });
     return await response.json();
 };
 

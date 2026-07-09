@@ -27,9 +27,13 @@ interface CommandesProps {
     loading?: boolean;
     onPageChange?: (page: number) => void;
     onSuccess?: () => void;
+    /** true quand ce composant est ouvert depuis <Store /> — affiche le bouton "Retour à la boutique" */
+    fromStore?: boolean;
+    /** Callback pour revenir à <Store /> — requis si fromStore est true */
+    onBackToStore?: () => void;
 }
 
-export default function Commandes({ data: propData, page: propPage, limit: propLimit = 6, total: propTotal, totalPages: propTotalPages, loading: propLoading, onPageChange, onSuccess }: CommandesProps) {
+export default function Commandes({ data: propData, page: propPage, limit: propLimit = 6, total: propTotal, totalPages: propTotalPages, loading: propLoading, onPageChange, onSuccess, fromStore, onBackToStore }: CommandesProps) {
 
     const [internalPage, setInternalPage] = useState(1);
     const page = propPage ?? internalPage;
@@ -176,6 +180,16 @@ export default function Commandes({ data: propData, page: propPage, limit: propL
 
     return (
         <div className="w-full mx-auto py-4">
+
+            {fromStore && onBackToStore && (
+                <button
+                    onClick={onBackToStore}
+                    className="flex items-center gap-2 mb-4 text-xs font-black text-primary hover:underline"
+                >
+                    <Icon icon="solar:alt-arrow-left-bold-duotone" className="w-4 h-4" />
+                    Retour à la boutique
+                </button>
+            )}
 
             <SectionHeader
                 title="Mes Commandes"

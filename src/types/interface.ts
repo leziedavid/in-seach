@@ -151,6 +151,49 @@ export interface StoreUserInfo {
     productCount?: number;
 }
 
+export interface StoreStats {
+    totalProducts: number;
+    activeProducts: number;
+    ordersReceivedCount: number;
+    pendingOrdersCount: number;
+    boostedProductsCount: number;
+    totalRevenue: number;
+}
+
+export interface ServiceStats {
+    totalServices: number;
+    activeServices: number;
+    bookingsReceivedCount: number;
+    pendingBookingsCount: number;
+    boostedServicesCount: number;
+    totalRevenue: number;
+}
+
+export interface AnnonceStats {
+    totalAnnonces: number;
+    activeAnnonces: number;
+    bookingsReceivedCount: number;
+    pendingBookingsCount: number;
+    boostedAnnoncesCount: number;
+    totalRevenue: number;
+}
+
+export interface LiveStats {
+    total: number;
+    published: number;
+    pending: number;
+    rejected: number;
+}
+
+export interface LogisticStats {
+    totalServices: number;
+    activeServices: number;
+    quotesReceivedCount: number;
+    pendingQuotesCount: number;
+    boostedServicesCount: number;
+    totalRevenue: number;
+}
+
 
 
 export interface SubscriptionPlan {

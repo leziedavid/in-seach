@@ -120,6 +120,10 @@ export default function Page() {
     const [selectedServiceForQuote, setSelectedServiceForQuote] = useState<any>(null);
     const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
 
+    // Origine de la navigation vers "Commandes" — permet d'afficher un bouton "Retour à la boutique"
+    // uniquement quand on y arrive depuis <Store />, sans jamais casser la navigation via la Sidebar.
+    const [commandesOrigin, setCommandesOrigin] = useState<'store' | null>(null);
+
     // React Query for global data
     const { data: response, isLoading, refetch } = useQuery({
         queryKey: ['my-space', activeTab, page, limit],
@@ -190,7 +194,20 @@ export default function Page() {
             router.push('/pricing');
             return;
         }
+        setCommandesOrigin(null);
         setActiveTab(tab);
+        setPage(1);
+    };
+
+    const handleNavigateFromStoreToOrders = () => {
+        setCommandesOrigin('store');
+        setActiveTab('Commandes');
+        setPage(1);
+    };
+
+    const handleBackToStoreFromOrders = () => {
+        setCommandesOrigin(null);
+        setActiveTab('Boutique');
         setPage(1);
     };
 
@@ -210,11 +227,11 @@ export default function Page() {
 
             case 'Services':
                 return (
-                    <AccountServicesList data={tabData.items as Service[]} page={page} limit={limit} total={tabData.total} totalPages={tabData.totalPages} loading={isLoading} onPageChange={setPage} onSuccess={() => { void refetch(); }} />
+                    <AccountServicesList data={tabData.items as Service[]} page={page} limit={limit} total={tabData.total} totalPages={tabData.totalPages} loading={isLoading} onPageChange={setPage} onSuccess={() => { void refetch(); }} user={data?.user} onNavigateToBookings={() => setActiveTab('Rendez-vous')} />
                 );
             case 'Annonces':
                 return (
-                    <AccountAnnonces data={tabData.items as Annonce[]} page={page} limit={limit} total={tabData.total} totalPages={tabData.totalPages} loading={isLoading} onPageChange={setPage} onSuccess={() => { void refetch(); }} />
+                    <AccountAnnonces data={tabData.items as Annonce[]} page={page} limit={limit} total={tabData.total} totalPages={tabData.totalPages} loading={isLoading} onPageChange={setPage} onSuccess={() => { void refetch(); }} user={data?.user} onNavigateToBookings={() => setActiveTab('Rendez-vous-annonces')} />
                 );
             case 'Rendez-vous':
                 return (
@@ -231,13 +248,13 @@ export default function Page() {
             case 'Historique-commandes':
                 return <HistoriqueCommandes />;
             case 'Boutique':
-                return <Store />;
+                return <Store onNavigateToOrders={handleNavigateFromStoreToOrders} />;
             case 'Commandes':
-                return <Commandes onSuccess={() => { void refetch(); }} />;
+                return <Commandes onSuccess={() => { void refetch(); }} fromStore={commandesOrigin === 'store'} onBackToStore={handleBackToStoreFromOrders} />;
             case 'Services-logistiques':
                 return (<LogisticsServicesList mode="marketplace" onRequestQuote={(service) => { setSelectedServiceForQuote(service); setIsQuoteModalOpen(true); }} />);
             case 'Mes-services-logistiques':
-                return <LogisticsServicesList mode="management" />;
+                return <LogisticsServicesList mode="management" onNavigateToQuotes={() => setActiveTab('Devis-recus')} onNavigateToDeliveries={() => setActiveTab('Livraisons')} />;
             case 'Mes-devis':
                 return <QuotesList role="CLIENT" />;
             case 'Devis-recus':

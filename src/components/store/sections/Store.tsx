@@ -1,32 +1,43 @@
 "use client"
 
-import { useState, useEffect, useRef, useCallback, memo } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useDebounce } from "@/hooks/useDebounce"
-import { getMyProducts, createProduct, updateProduct, deleteProduct, handleToggleProductActive, getStoreUserInfo, updateStoreNameLogo } from "@/api/api"
-import { Product, StoreUserInfo } from "@/types/interface"
+import { getMyProducts, createProduct, updateProduct, deleteProduct, handleToggleProductActive, getStoreUserInfo, updateStoreNameLogo, getStoreStats, getMyOrders } from "@/api/api"
+import { Product, StoreUserInfo, StoreStats, Order } from "@/types/interface"
 import Image from "next/image"
-import ProductCard from "@/components/products/cards/ProductCard"
 import { Icon } from "@iconify/react"
-import { QRCodeCanvas } from "qrcode.react"
+import { AccordionSection } from "@/components/ui/AccordionSection"
 import { useNotification } from "@/components/notifications/NotificationProvider"
 import { Modal } from "@/components/ui/MotionModal"
 import FormsProduit from "@/components/products/forms/FormsProduit"
 import { useSubscriptionCheck } from "@/hooks/useSubscriptionCheck"
-import NotFound from "@/components/common/NotFound"
 import VoiceSearchModal from "@/components/services/sections/VoiceSearchModal"
 import { SectionHeader } from "@/components/shared/SectionHeader"
 
-import InfiniteScroll from "@/components/ui/InfiniteScroll"
 import CreateButton from "@/components/ui/CreateButton"
 import LiveFormModal from "@/components/lives/LiveFormModal"
 import { LiveEntityType } from "@/types/interface"
-import BoostedContentTabs from "@/components/boost/BoostedContentTabs"
+import BoostedEntityList from "@/components/boost/BoostedEntityList"
 import { Share } from "@/components/shared/Share"
 import { createStoreSlug } from "@/utils/storeSlug"
+import { useRealTimeUpdate } from "@/hooks/useRealTimeUpdate"
+import OrderDetailModal from "@/components/orders/modals/OrderDetailModal"
+
+// ─── Sous-composants de Store — extraits dans ./components pour la lisibilité ──
+import ProductsManagementContent from "./components/ProductsManagementContent"
+import StorePerformance from "./components/StorePerformance"
+import SharePanel from "@/components/shared/SharePanel"
+import RecentOrders from "./components/RecentOrders"
+import QRCodeSection from "./components/QRCodeSection"
 
 const ITEMS_PER_PAGE = 10
 
-export default function Store() {
+interface StoreProps {
+    /** Permet de naviguer vers l'onglet "Commandes" du dashboard (optionnel — reçu depuis akwaba/page.tsx) */
+    onNavigateToOrders?: () => void
+}
+
+export default function Store({ onNavigateToOrders }: StoreProps) {
 
     const [search, setSearch] = useState("")
     // [PERF] Debounce 400ms : évite une requête API à chaque frappe clavier
@@ -60,6 +71,60 @@ export default function Store() {
     const [isStoreUpdating, setIsStoreUpdating] = useState(false)
     const [copied, setCopied] = useState(false);
     const [isShareOpen, setIsShareOpen] = useState(false);
+
+    // KPI Stats State
+    const [storeStats, setStoreStats] = useState<StoreStats | null>(null)
+
+    // Commandes récentes State
+    const [recentOrders, setRecentOrders] = useState<Order[]>([])
+    const [recentOrdersLoading, setRecentOrdersLoading] = useState(false)
+    const [previewOrder, setPreviewOrder] = useState<Order | null>(null)
+    const [isOrderPreviewOpen, setIsOrderPreviewOpen] = useState(false)
+
+    // Actions rapides — accordéons repliés par défaut, un seul ouvert à la fois
+    const [activeQuickAction, setActiveQuickAction] = useState<string | null>(null)
+    const toggleQuickAction = (id: string) => setActiveQuickAction(prev => prev === id ? null : id)
+
+    const fetchStoreStats = useCallback(async () => {
+        try {
+            const res = await getStoreStats()
+            if (res.statusCode === 200 && res.data) {
+                setStoreStats(res.data)
+            }
+        } catch (error) {
+            console.error("Error fetching store stats:", error)
+        }
+    }, [])
+
+    const fetchRecentOrders = useCallback(async () => {
+        setRecentOrdersLoading(true)
+        try {
+            const res = await getMyOrders({ page: 1, limit: 5 })
+            if (res.statusCode === 200 && res.data) {
+                setRecentOrders(res.data.ordersReceived?.data || [])
+            }
+        } catch (error) {
+            console.error("Error fetching recent orders:", error)
+        } finally {
+            setRecentOrdersLoading(false)
+        }
+    }, [])
+
+    useEffect(() => {
+        fetchStoreStats()
+        fetchRecentOrders()
+    }, [fetchStoreStats, fetchRecentOrders])
+
+    // 🔄 Rafraîchit stats + commandes récentes quand une commande évolue en temps réel
+    useRealTimeUpdate('Order', () => {
+        fetchStoreStats()
+        fetchRecentOrders()
+    })
+
+    const openOrderPreview = (order: Order) => {
+        setPreviewOrder(order)
+        setIsOrderPreviewOpen(true)
+    }
 
     const handleCopy = async (url: string) => {
         try {
@@ -135,6 +200,7 @@ export default function Store() {
                 setIsEditing(false)
                 setSelectedProduct(null)
                 fetchProducts(1, true)
+                fetchStoreStats()
             } else {
                 addNotification(res.message || "Une erreur est survenue", "error")
             }
@@ -152,6 +218,7 @@ export default function Store() {
             if (res.statusCode === 200) {
                 addNotification("Produit supprimé", "success")
                 fetchProducts(1, true)
+                fetchStoreStats()
             } else {
                 addNotification(res.message || "Erreur lors de la suppression", "error")
             }
@@ -167,6 +234,7 @@ export default function Store() {
             if (res.statusCode === 200) {
                 addNotification(res.message || "Statut mis à jour", "success")
                 fetchProducts(1, true)
+                fetchStoreStats()
             } else {
                 addNotification(res.message || "Erreur lors de la mise à jour", "error")
             }
@@ -249,51 +317,25 @@ export default function Store() {
 
     return (
         <div className="flex flex-col items-center w-full max-w-7xl mx-auto px-0 md:px-4 py-2">
-            {/* Action Bar */}
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4 w-full max-w-4xl px-2 md:px-0 mb-6">
-
-                {/* Zone recherche - cachée en mobile */}
-                <div className="hidden md:flex flex-col gap-1 flex-1">
-                </div>
-
-                {/* Boutons */}
-                <div className="flex flex-col md:flex-row w-full md:w-auto gap-2 md:gap-4">
-
-                    <div className="w-full md:min-w-[240px]">
-                        <CreateButton label="Publier un article" loading={checkLoading} onClick={openCreateModal} />
-                    </div>
-
-                    <div className="w-full md:min-w-[200px]">
-                        <CreateButton label="Créer un Live" icon="solar:play-circle-bold-duotone" onClick={() => openLiveModal()} />
-                    </div>
-                </div>
-
-            </div>
-            <SectionHeader
-                title="La vente en ligne n'a jamais été aussi facile"
-                subtitle="Montez votre boutique en ligne en quelques clics et bénéficiez de tous les outils essentiels pour reussir dans l'e-commerce : ,
-                Achetez, vendez ou échangez tous types de produits d'occasion en toute simplicité"
-                className="mb-8"
+            <SectionHeader title="La vente en ligne n'a jamais été aussi facile"
+                subtitle="Montez votre boutique en ligne en quelques clics et bénéficiez de tous les outils essentiels pour reussir dans l'e-commerce : , Achetez, vendez ou échangez tous types de produits d'occasion en toute simplicité"
+                className="mb-6"
             />
-            {/* Store Information Section */}
-            <div className="w-full max-w-4xl mx-auto mb-2 px-0 md:px-4">
-                <div className="group bg-card border-b p-6  flex items-center justify-between gap-6">
 
-                    <div className="flex items-center gap-4 md:gap-6">
+            {/* ── Hero : identité de la boutique ── */}
+            <div className="w-full max-w-4xl mx-auto mb-4 px-0 md:px-4">
+                <div className="group bg-card border border-border rounded-3xl p-5 md:p-6 flex items-center justify-between gap-6 shadow-sm">
+
+                    <div className="flex items-center gap-4 md:gap-6 min-w-0">
                         <div className="relative w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/10 overflow-hidden shrink-0">
                             {storeInfo?.storeLogo ? (
-                                <Image
-                                    src={storeInfo.storeLogo}
-                                    alt={storeInfo.storeName || "Boutique"}
-                                    fill
-                                    className="object-cover"
-                                    unoptimized />
+                                <Image src={storeInfo.storeLogo} alt={storeInfo.storeName || "Boutique"} fill className="object-cover" unoptimized />
                             ) : (
                                 <Icon icon="solar:shop-bold-duotone" className="w-8 h-8 md:w-10 md:h-10 text-primary" />
                             )}
                         </div>
 
-                        <div className="space-y-1">
+                        <div className="space-y-1 min-w-0">
                             <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-1">Ma Boutique Pro</p>
                             <h3 className="text-xl md:text-2xl font-black text-foreground uppercase tracking-tight leading-none truncate max-w-[150px] md:max-w-md">
                                 {storeInfo?.storeName || "Ma Boutique"}
@@ -315,9 +357,7 @@ export default function Store() {
                     </div>
 
 
-                    <div className="flex items-center gap-2">
-
-                        {/* <button onClick={() => handleCopy(`${process.env.NEXT_PUBLIC_BASE_URL}/shop/${slugify(storeInfo?.storeName || "")}`)} className="w-8 h-8 md:w-10 md:h-10 rounded-2xl bg-muted flex items-center justify-center hover:bg-primary/20 hover:text-primary transition-all active:scale-90 shrink-0"> */}
+                    <div className="flex items-center gap-2 shrink-0">
                         <button onClick={handleShare} className="w-8 h-8 md:w-10 md:h-10 rounded-2xl bg-muted flex items-center justify-center hover:bg-primary/20 hover:text-primary transition-all active:scale-90 shrink-0">
                             <Icon icon="solar:share-bold-duotone" className="w-5 h-5 md:w-6 md:h-6" />
                         </button>
@@ -326,11 +366,115 @@ export default function Store() {
                             className="w-8 h-8 md:w-10 md:h-10 rounded-2xl bg-muted flex items-center justify-center hover:bg-primary/20 hover:text-primary transition-all active:scale-90 shrink-0">
                             <Icon icon="solar:pen-bold-duotone" className="w-5 h-5 md:w-6 md:h-6" />
                         </button>
-
                     </div>
 
                 </div>
             </div>
+
+            {/* ── Actions principales ── */}
+            <div className="flex flex-col md:flex-row w-full max-w-4xl mx-auto px-2 md:px-4 gap-2 md:gap-4 mb-8">
+                <div className="w-full">
+                    <CreateButton label="Publier un article" loading={checkLoading} onClick={openCreateModal} />
+                </div>
+                <div className="w-full md:min-w-[200px] md:w-auto">
+                    <CreateButton label="Créer un Live" icon="solar:play-circle-bold-duotone" onClick={() => openLiveModal()} />
+                </div>
+            </div>
+
+            {/* ── Performances ── */}
+            <div className="w-full max-w-4xl mx-auto px-2 md:px-4 mb-8">
+                <StorePerformance stats={storeStats} />
+            </div>
+
+            {/* ── Actions rapides ── */}
+            <div className="w-full max-w-4xl mx-auto px-2 md:px-4 mb-8">
+                <h3 className="text-lg font-black text-foreground mb-4">Développez votre boutique</h3>
+
+                {/* Accordéons — repliés par défaut, un seul ouvert à la fois. "Commandes reçues" navigue vers un autre onglet, ce n'est pas un accordéon. */}
+                <div className="flex flex-col gap-3">
+
+                    {storeInfo?.id && (<QRCodeSection storeInfo={storeInfo} activeSection={activeQuickAction} onToggle={toggleQuickAction} />)}
+
+                    <AccordionSection id="catalogue"
+                        title="Catalogue"
+                        subtitle="Gérez vos produits en ligne"
+                        icon="solar:widget-2-bold-duotone"
+                        activeSection={activeQuickAction}
+                        onToggle={toggleQuickAction} >
+
+                        <ProductsManagementContent
+                            loading={loading}
+                            products={products}
+                            total={total}
+                            search={search}
+                            setSearch={setSearch}
+                            setIsVoiceModalOpen={setIsVoiceModalOpen}
+                            hasMore={hasMore}
+                            setPage={setPage}
+                            openEditModal={openEditModal}
+                            handleDeleteProduct={handleDeleteProduct}
+                            handleToggleStatus={handleToggleStatus}
+                            openLiveModal={openLiveModal}
+                            storeName={storeInfo?.storeName || ""}
+                        />
+                    </AccordionSection>
+
+                    <AccordionSection
+                        id="boost"
+                        title="Booster mes produits"
+                        subtitle="Gagnez en visibilité auprès des clients"
+                        icon="solar:rocket-bold-duotone"
+                        activeSection={activeQuickAction}
+                        onToggle={toggleQuickAction}
+                    >
+                        <p className="text-xs text-muted-foreground mb-4">
+                            Depuis le Catalogue, cliquez sur l&apos;icône <Icon icon="solar:rocket-bold-duotone" className="inline w-3.5 h-3.5 text-primary" /> d&apos;un produit pour le booster. Retrouvez ici tous vos produits boostés.
+                        </p>
+                        <BoostedEntityList entityType="PRODUCT" entityLabel="produit" />
+                    </AccordionSection>
+
+                    {/* Commandes reçues — navigue vers l'onglet Commandes, ce n'est pas un accordéon */}
+                    <button onClick={onNavigateToOrders} className="w-full flex items-center gap-4 p-5 bg-card border border-border/60 hover:border-border rounded-2xl shadow-sm transition-all text-left" >
+                        <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-muted text-muted-foreground">
+                            <Icon icon="solar:cart-large-4-bold-duotone" className="w-6 h-6" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                                <h3 className="font-black tracking-tight text-foreground">Commandes reçues</h3>
+                                {!!storeStats?.pendingOrdersCount && (<span className="text-[10px] font-black bg-primary text-white rounded-full px-2 py-0.5">{storeStats.pendingOrdersCount}</span>)}
+                            </div>
+                            <p className="text-[11px] font-medium text-muted-foreground">Suivez vos ventes et leurs statuts</p>
+                        </div>
+                        <Icon icon="solar:alt-arrow-right-bold-duotone" className="w-5 h-5 text-muted-foreground/40 shrink-0" />
+                    </button>
+
+                    <AccordionSection
+                        id="partager"
+                        title="Partager ma boutique"
+                        subtitle="Invitez de nouveaux clients"
+                        icon="solar:share-bold-duotone"
+                        activeSection={activeQuickAction}
+                        onToggle={toggleQuickAction}
+                    >
+                        <SharePanel
+                            url={`${process.env.NEXT_PUBLIC_BASE_URL}/shop/${createStoreSlug(storeInfo?.storeName || '')}`}
+                            label={storeInfo?.storeName || "Ma Boutique"}
+                        />
+                    </AccordionSection>
+
+                </div>
+
+            </div>
+
+            {/* ── Commandes récentes ── */}
+            <div className="w-full max-w-4xl mx-auto px-2 md:px-4 mb-8">
+                <RecentOrders orders={recentOrders}
+                    loading={recentOrdersLoading}
+                    onSelect={openOrderPreview}
+                    onSeeAll={onNavigateToOrders}
+                />
+            </div>
+
             <Share
                 isOpen={isShareOpen}
                 onClose={() => setIsShareOpen(false)}
@@ -342,28 +486,9 @@ export default function Store() {
                 storeName={storeInfo?.storeName || ""}
                 storeLogo={storeInfo?.storeLogo || ""}
             />
-            {/* QR Code Section */}
-            {storeInfo?.id && (
-                <QRCodeSection storeInfo={storeInfo} />
-            )}
-            <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-2">
-                <ProductsManagementContent
-                    loading={loading}
-                    products={products}
-                    total={total}
-                    search={search}
-                    setSearch={setSearch}
-                    setIsVoiceModalOpen={setIsVoiceModalOpen}
-                    hasMore={hasMore}
-                    setPage={setPage}
-                    openEditModal={openEditModal}
-                    handleDeleteProduct={handleDeleteProduct}
-                    handleToggleStatus={handleToggleStatus}
-                    openLiveModal={openLiveModal}
-                    storeName={storeInfo?.storeName || ""}
-                />
-            </div>
+            <OrderDetailModal isOpen={isOrderPreviewOpen} onClose={() => { setIsOrderPreviewOpen(false); setPreviewOrder(null); }} order={previewOrder} />
             {/* Product Form Modal */}
+
             <Modal isOpen={isModalOpen} onClose={() => { setIsModalOpen(false); setIsEditing(false); setSelectedProduct(null); }}>
                 <div className="p-4 md:p-0">
                     <div className="mb-6 md:mb-8 md:p-6 md:pb-0">
@@ -388,7 +513,9 @@ export default function Store() {
                     />
                 </div>
             </Modal>
+
             <VoiceSearchModal isOpen={isVoiceModalOpen} onClose={() => setIsVoiceModalOpen(false)} onResult={handleVoiceResult} />
+
             {/* Store Update Modal */}
             <Modal isOpen={isStoreModalOpen} onClose={() => setIsStoreModalOpen(false)} >
                 <div className="p-6 space-y-6">
@@ -434,6 +561,7 @@ export default function Store() {
                     </div>
                 </div>
             </Modal>
+
             {/* Live Form Modal */}
             <LiveFormModal
                 isOpen={isLiveModalOpen}
@@ -444,333 +572,7 @@ export default function Store() {
                 lockedEntity={!!liveEntityId}
                 entityLabel={liveEntityLabel}
             />
-        </div>
-    );
-}
 
-// ─── Contenu "Mes Produits" — composant stable, évite le pattern IIFE inline ────
-interface ProductsManagementContentProps {
-    loading: boolean;
-    products: Product[];
-    total: number;
-    search: string;
-    setSearch: (v: string) => void;
-    setIsVoiceModalOpen: (v: boolean) => void;
-    hasMore: boolean;
-    setPage: (fn: (prev: number) => number) => void;
-    openEditModal: (product: Product) => void;
-    handleDeleteProduct: (id: string) => void;
-    handleToggleStatus: (product: Product, value: boolean) => void;
-    openLiveModal: (product?: Product) => void;
-    storeName: string;
-}
-
-function ProductsManagementContent({ loading, products, total, search, setSearch, setIsVoiceModalOpen, hasMore, setPage, openEditModal, handleDeleteProduct, handleToggleStatus, openLiveModal, storeName, }: ProductsManagementContentProps) {
-
-    const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
-
-    const myProducts = (
-        <>
-            <div className="flex items-center justify-between w-full px-2 md:px-0 mb-4 border-b border-border pb-4">
-                <h3 className="text-lg font-black text-foreground">
-                    {loading && products.length === 0 ? 'Chargement...' : products.length === 0 ? 'Ma Boutique' : `Mes Produits (${total})`}
-                </h3>
-                {/* Toggle grid / liste */}
-                <div className="flex items-center gap-1 bg-muted rounded-xl p-1">
-                    <button onClick={() => setViewMode('list')} className={`p-1.5 rounded-lg transition-all ${viewMode === 'list' ? 'bg-background shadow text-primary' : 'text-muted-foreground hover:text-foreground'}`} title="Vue liste">
-                        <Icon icon="solar:list-bold-duotone" className="w-4 h-4" />
-                    </button>
-                    <button onClick={() => setViewMode('grid')} className={`p-1.5 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-background shadow text-primary' : 'text-muted-foreground hover:text-foreground'}`}
-                        title="Vue grille">
-                        <Icon icon="solar:widget-bold-duotone" className="w-4 h-4" />
-                    </button>
-                </div>
-            </div>
-
-            <div className="flex w-full bg-card border border-border rounded-xl px-4 py-2.5 shadow-sm focus-within:border-primary transition-all mb-4">
-                <Icon icon="solar:magnifer-bold-duotone" className="w-5 h-5 text-muted-foreground mr-3 flex-shrink-0" />
-                <input type="text" placeholder="Rechercher dans mes produits..." className="flex-1 bg-transparent text-foreground outline-none text-sm placeholder:text-muted-foreground" value={search} onChange={(e) => setSearch(e.target.value)} />
-                <button type="button" onClick={() => setIsVoiceModalOpen(true)} className="p-1 text-muted-foreground hover:text-primary transition-colors hover:scale-110 active:scale-90" title="Recherche vocale" >
-                    <Icon icon="solar:microphone-bold-duotone" className="w-5 h-5" />
-                </button>
-            </div>
-            <InfiniteScroll
-                items={products}
-                hasMore={hasMore}
-                isLoading={loading}
-                loadMore={() => setPage(prev => prev + 1)}
-                skeletonType="product"
-                skeletonCount={3}
-                gridClassName={viewMode === 'grid' ? "grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-6" : "flex flex-col gap-2"}
-                renderItem={(product) => (
-                    <ProductCard
-                        key={product.id}
-                        product={product}
-                        onEdit={openEditModal}
-                        onDelete={handleDeleteProduct}
-                        onStatusChange={handleToggleStatus}
-                        onCreateLive={(p) => openLiveModal(p)}
-                        storeNames={storeName}
-                        viewMode={viewMode}
-                    />
-                )}
-                className="w-full"
-            />
-        </>
-    );
-
-    return (
-        <BoostedContentTabs entityType="PRODUCT" entityLabel="produit" entityLabelPlural="Produits" iconMine="solar:bag-heart-bold-duotone">
-            {myProducts}
-        </BoostedContentTabs>
-    );
-}
-
-// ─── QR Code Section ───────────────────────────────────────────────────────────
-
-// Couleur secondary du projet (hsl(195, 69%, 27%))
-const SECONDARY_HEX = "#0D4D6E"
-
-function QRCodeSection({ storeInfo }: { storeInfo: StoreUserInfo }) {
-    const { addNotification } = useNotification()
-    const [baseUrl, setBaseUrl] = useState("")
-    const [open, setOpen] = useState(false)
-
-    useEffect(() => {
-        setBaseUrl(typeof window !== "undefined" ? window.location.origin : "")
-    }, [])
-
-    const qrUrl = baseUrl ? `${baseUrl}/qr/store/${storeInfo.id}` : ""
-    const storeName = storeInfo.storeName || "Ma Boutique"
-    const logoSrc = storeInfo.storeLogo || "/logo.png"
-
-    // Canvas Wave-style : fond secondary plein, encadré blanc avec QR noir centré
-    const buildWaveCanvas = async (): Promise<HTMLCanvasElement | null> => {
-        const qrCanvas = document.getElementById("store-qr-canvas") as HTMLCanvasElement | null
-        if (!qrCanvas) return null
-
-        const W = 600
-        const H = 800
-        const c = document.createElement("canvas")
-        c.width = W; c.height = H
-        const ctx = c.getContext("2d")
-        if (!ctx) return null
-
-        // ── Fond secondary plein ──
-        ctx.fillStyle = SECONDARY_HEX
-        ctx.fillRect(0, 0, W, H)
-
-        // ── Logo (cercle blanc) ──
-        const logoSize = 80
-        const logoX = W / 2 - logoSize / 2
-        const logoY = 60
-        ctx.save()
-        ctx.beginPath()
-        ctx.arc(W / 2, logoY + logoSize / 2, logoSize / 2 + 6, 0, Math.PI * 2)
-        ctx.fillStyle = "rgba(255,255,255,0.2)"
-        ctx.fill()
-        ctx.restore()
-
-        // Charger et dessiner le logo
-        await new Promise<void>((resolve) => {
-            const img = new window.Image()
-            img.crossOrigin = "anonymous"
-            img.onload = () => {
-                ctx.save()
-                ctx.beginPath()
-                ctx.arc(W / 2, logoY + logoSize / 2, logoSize / 2, 0, Math.PI * 2)
-                ctx.closePath()
-                ctx.clip()
-                ctx.drawImage(img, logoX, logoY, logoSize, logoSize)
-                ctx.restore()
-                resolve()
-            }
-            img.onerror = () => resolve()
-            img.src = logoSrc
-        })
-
-        // ── Nom de la boutique ──
-        ctx.fillStyle = "#ffffff"
-        ctx.font = "bold 32px 'Segoe UI', Arial, sans-serif"
-        ctx.textAlign = "center"
-        ctx.textBaseline = "middle"
-        // Tronquer si trop long
-        let displayName = storeName.toUpperCase()
-        while (ctx.measureText(displayName).width > W - 80 && displayName.length > 3) {
-            displayName = displayName.slice(0, -1)
-        }
-        if (displayName !== storeName.toUpperCase()) displayName += "…"
-        ctx.fillText(displayName, W / 2, logoY + logoSize + 36)
-
-        // ── Encadré blanc pour QR ──
-        const qrBoxSize = 340
-        const qrBoxX = (W - qrBoxSize) / 2
-        const qrBoxY = logoY + logoSize + 80
-        const radius = 24
-        ctx.beginPath()
-        ctx.moveTo(qrBoxX + radius, qrBoxY)
-        ctx.lineTo(qrBoxX + qrBoxSize - radius, qrBoxY)
-        ctx.quadraticCurveTo(qrBoxX + qrBoxSize, qrBoxY, qrBoxX + qrBoxSize, qrBoxY + radius)
-        ctx.lineTo(qrBoxX + qrBoxSize, qrBoxY + qrBoxSize - radius)
-        ctx.quadraticCurveTo(qrBoxX + qrBoxSize, qrBoxY + qrBoxSize, qrBoxX + qrBoxSize - radius, qrBoxY + qrBoxSize)
-        ctx.lineTo(qrBoxX + radius, qrBoxY + qrBoxSize)
-        ctx.quadraticCurveTo(qrBoxX, qrBoxY + qrBoxSize, qrBoxX, qrBoxY + qrBoxSize - radius)
-        ctx.lineTo(qrBoxX, qrBoxY + radius)
-        ctx.quadraticCurveTo(qrBoxX, qrBoxY, qrBoxX + radius, qrBoxY)
-        ctx.closePath()
-        ctx.fillStyle = "#ffffff"
-        ctx.fill()
-
-        // ── QR noir centré dans l'encadré ──
-        const qrPad = 24
-        const qrSize = qrBoxSize - qrPad * 2
-        ctx.drawImage(qrCanvas, qrBoxX + qrPad, qrBoxY + qrPad, qrSize, qrSize)
-
-        // ── Tagline ──
-        ctx.fillStyle = "rgba(255,255,255,0.85)"
-        ctx.font = "600 18px 'Segoe UI', Arial, sans-serif"
-        ctx.textAlign = "center"
-        ctx.fillText("Scannez pour découvrir notre boutique", W / 2, qrBoxY + qrBoxSize + 48)
-
-        return c
-    }
-
-    const handleDownload = async () => {
-        const canvas = await buildWaveCanvas()
-        if (!canvas) return
-        const link = document.createElement("a")
-        link.download = `qr-boutique-${storeName.replace(/\s+/g, "-").toLowerCase()}.png`
-        link.href = canvas.toDataURL("image/png")
-        link.click()
-        addNotification("QR Code téléchargé", "success")
-    }
-
-    const handlePrint = async () => {
-        const canvas = await buildWaveCanvas()
-        if (!canvas) return
-        const dataUrl = canvas.toDataURL("image/png")
-        const win = window.open("", "_blank")
-        if (!win) return
-        win.document.write(`<!DOCTYPE html>
-        <html lang="fr">
-        <head>
-        <meta charset="UTF-8"/>
-        <title>QR Code – ${storeName}</title>
-        <style>
-            * { margin:0; padding:0; box-sizing:border-box; -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
-            body { background:#e0e0e0; display:flex; align-items:center; justify-content:center; min-height:100vh; }
-            img { width:420px; height:560px; object-fit:contain; border-radius:20px; box-shadow:0 8px 40px rgba(0,0,0,0.18); display:block; }
-            @media print { body { background:#fff; } img { box-shadow:none; } }
-        </style>
-        </head>
-        <body>
-        <img src="${dataUrl}" alt="QR Code ${storeName}" />
-        <script>window.onload=()=>{ window.print(); }<\/script>
-        </body>
-        </html>`)
-        win.document.close()
-    }
-
-    if (!qrUrl) return null
-
-    return (
-        <div className="w-full mb-2">
-            <div className="bg-card border-b">
-
-                {/* ── Accordéon trigger ── */}
-                <button onClick={() => setOpen(prev => !prev)} className="w-full flex items-center justify-between gap-3 px-4 md:px-6 py-5 hover:bg-muted/40 transition-colors">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 bg-primary/10 rounded-xl shrink-0">
-                            <Icon icon="solar:qr-code-bold-duotone" className="w-5 h-5 text-primary" />
-                        </div>
-                        <div className="text-left">
-                            <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Affichage physique</p>
-                            <h3 className="text-base font-black text-foreground">QR Code de votre boutique</h3>
-                        </div>
-                    </div>
-                    <Icon icon="solar:alt-arrow-down-bold-duotone" className={`w-5 h-5 text-muted-foreground transition-transform duration-300 shrink-0 ${open ? "rotate-180" : ""}`} />
-                </button>
-
-                {/* ── Contenu accordéon ── */}
-                {open && (
-                    <div className="px-2 md:px-6 pb-6">
-                        <div className="w-full max-w-4xl mx-auto flex flex-col md:flex-row items-stretch gap-6 md:gap-10">
-
-                            {/* ── Carte style Wave ── */}
-                            <div className="w-full md:flex-[3]">
-                                <div className="w-full h-full rounded-3xl overflow-hidden shadow-lg flex flex-col items-center py-8 px-3 md:px-6 gap-3" style={{ backgroundColor: SECONDARY_HEX }} >
-                                    {/* Logo — sans fond, taille généreuse */}
-                                    <div className="w-28 h-28 relative shrink-0">
-                                        {storeInfo.storeLogo ? (
-                                            <Image
-                                                src={storeInfo.storeLogo}
-                                                alt={storeName}
-                                                fill
-                                                className="object-contain"
-                                                unoptimized />
-                                        ) : (
-                                            <Image
-                                                src="/logo.png"
-                                                alt="Logo"
-                                                fill
-                                                className="object-contain"
-                                                unoptimized />
-                                        )}
-                                    </div>
-
-                                    {/* Nom boutique */}
-                                    <p className="text-white font-black text-lg uppercase tracking-wide text-center leading-tight line-clamp-2">
-                                        {storeName}
-                                    </p>
-
-                                    {/* QR noir sur fond blanc — occupe tout l'espace dispo */}
-                                    <div className="bg-white rounded-2xl p-2 md:p-4 w-full flex items-center justify-center">
-                                        <QRCodeCanvas
-                                            id="store-qr-canvas"
-                                            value={qrUrl}
-                                            size={260}
-                                            level="H"
-                                            bgColor="#ffffff"
-                                            fgColor="#111111"
-                                            style={{ display: "block", width: "100%", height: "auto" }}
-                                        />
-                                    </div>
-
-                                    {/* Tagline */}
-                                    <p className="text-white/80 text-[11px] font-bold uppercase tracking-widest text-center">
-                                        Scannez pour découvrir notre boutique
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* ── Info + boutons ── */}
-                            <div className="flex flex-col gap-4 w-full md:flex-[2]">
-                                <div className="bg-primary/5 border border-primary/10 rounded-2xl p-4 space-y-1">
-                                    <p className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-1">
-                                        <Icon icon="solar:shield-check-bold-duotone" className="w-3 h-3" />
-                                        QR Code permanent
-                                    </p>
-                                    <p className="text-xs text-muted-foreground">
-                                        Ce QR Code reste valide même si vous modifiez le nom, le logo ou la description de votre boutique.
-                                    </p>
-                                </div>
-
-                                <div className="flex gap-2">
-                                    <button onClick={handleDownload} className="flex-1 min-w-0 flex items-center justify-center gap-1.5 bg-primary text-white font-black text-[10px] uppercase tracking-wide py-2.5 px-2 rounded-xl shadow-sm shadow-primary/20 hover:bg-secondary transition-all active:scale-95">
-                                        <Icon icon="solar:download-bold-duotone" className="w-3.5 h-3.5 shrink-0" />
-                                        <span className="truncate">Télécharger</span>
-                                    </button>
-                                    <button onClick={handlePrint} className="flex-1 min-w-0 flex items-center justify-center gap-1.5 bg-muted text-foreground font-black text-[10px] uppercase tracking-wide py-2.5 px-2 rounded-xl hover:bg-primary/10 hover:text-primary transition-all active:scale-95">
-                                        <Icon icon="solar:printer-bold-duotone" className="w-3.5 h-3.5 shrink-0" />
-                                        <span className="truncate">Imprimer</span>
-                                    </button>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-                )}
-            </div>
         </div>
     );
 }
