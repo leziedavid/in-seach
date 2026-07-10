@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Icon } from "@iconify/react";
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import { Annonce } from "@/types/interface";
 import { createPortal } from "react-dom";
 import { useNotification } from "@/components/notifications/NotificationProvider";
@@ -12,6 +13,15 @@ import TextDisplayBox from "./TextDisplayBox";
 import { useTranslation } from "@/utils/langue/hooks";
 import ReportButton from "@/components/shared/ReportButton";
 import { hasValidPrice } from "@/utils/price";
+
+const UserMap = dynamic(() => import("@/components/ui/Maps"), {
+    ssr: false,
+    loading: () => (
+        <div className="w-full h-40 bg-muted animate-pulse flex items-center justify-center rounded-2xl">
+            <Icon icon="solar:map-bold-duotone" width={32} className="text-muted-foreground" />
+        </div>
+    ),
+});
 
 interface AnnonceModalProps {
     isOpen: boolean;
@@ -276,13 +286,22 @@ export default function AnnonceModal({ isOpen, onClose, annonce }: AnnonceModalP
                                             {/* Location Preview (Left Column on Desktop) */}
                                             <div className="space-y-3">
                                                 <h3 className="text-xs font-black uppercase text-muted-foreground px-1 tracking-widest">Emplacement</h3>
-                                                <div className="relative h-40 rounded-2xl overflow-hidden border border-border bg-muted/40 flex items-center justify-center">
-                                                    <Icon icon="solar:map-bold-duotone" className="w-12 h-12 text-muted-foreground/30" />
-                                                    <div className="absolute bottom-3 left-3 right-3 p-2.5 bg-background/90 backdrop-blur-md rounded-xl border border-border flex items-center justify-between shadow-lg">
-                                                        <span className="text-[10px] font-black uppercase tracking-tight">Abidjan, Côte d'Ivoire</span>
-                                                        <button className="text-[9px] font-black text-primary uppercase tracking-widest">Ouvrir</button>
+                                                {annonce.latitude != null && annonce.longitude != null ? (
+                                                    <div className="relative rounded-2xl overflow-hidden border border-border h-40">
+                                                        <UserMap lat={annonce.latitude} lng={annonce.longitude} userName={annonce.title} />
+                                                        <button
+                                                            onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${annonce.latitude},${annonce.longitude}`, "_blank")}
+                                                            className="absolute bottom-3 left-3 right-3 p-2.5 bg-background/90 backdrop-blur-md rounded-xl border border-border flex items-center justify-between shadow-lg z-[500]"
+                                                        >
+                                                            <span className="text-[10px] font-black uppercase tracking-tight">Abidjan, Côte d'Ivoire</span>
+                                                            <span className="text-[9px] font-black text-primary uppercase tracking-widest">Ouvrir</span>
+                                                        </button>
                                                     </div>
-                                                </div>
+                                                ) : (
+                                                    <div className="relative h-40 rounded-2xl overflow-hidden border border-border bg-muted/40 flex items-center justify-center">
+                                                        <Icon icon="solar:map-bold-duotone" className="w-12 h-12 text-muted-foreground/30" />
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
 

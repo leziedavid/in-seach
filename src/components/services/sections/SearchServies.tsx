@@ -237,9 +237,9 @@ export default function SearchServies() {
                         <Icon icon="solar:microphone-bold-duotone" className="w-5 h-5" />
                     </button>
 
-                    <button type="button" onClick={() => setIsImageModalOpen(true)} className="p-2 text-muted-foreground hover:text-primary transition-colors" title={t("common.image_search")} >
+                    {/* <button type="button" onClick={() => setIsImageModalOpen(true)} className="p-2 text-muted-foreground hover:text-primary transition-colors" title={t("common.image_search")} >
                         <Icon icon="solar:camera-bold-duotone" className="w-5 h-5" />
-                    </button>
+                    </button> */}
 
                     <button type="button" onClick={handleUseMyLocation} className="p-2 text-muted-foreground hover:text-primary transition-colors" title={t("common.my_location")} >
                         <Icon icon="solar:gps-bold-duotone" className="w-5 h-5" />

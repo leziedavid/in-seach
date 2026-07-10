@@ -11,6 +11,14 @@ import ReportButton from "@/components/shared/ReportButton";
 import { useNotification } from "@/components/notifications/NotificationProvider";
 import dynamic from 'next/dynamic';
 const RichTextEditor = dynamic(() => import("@/components/ui/editor"), { ssr: false, loading: () => <div className="min-h-[200px] border rounded-lg animate-pulse bg-muted" /> });
+const UserMap = dynamic(() => import("@/components/ui/Maps"), {
+    ssr: false,
+    loading: () => (
+        <div className="w-full h-40 bg-muted animate-pulse flex items-center justify-center rounded-2xl">
+            <Icon icon="solar:map-bold-duotone" width={32} className="text-muted-foreground" />
+        </div>
+    ),
+});
 import { useForm, Controller } from "react-hook-form";
 import { createPortal } from "react-dom";
 import { Booking, BookingsCalendar } from "@/types/interface";
@@ -287,6 +295,22 @@ export default function BookingModal({ isOpen, onClose, item, type, booking, mod
                                         </p>
                                     </div>
                                 </div>
+
+                                {(item as any).latitude != null && (item as any).longitude != null && (
+                                    <div className="space-y-3">
+                                        <h3 className="text-xs font-black uppercase text-muted-foreground px-1 tracking-widest">Emplacement</h3>
+                                        <div className="relative rounded-2xl overflow-hidden border border-border h-40">
+                                            <UserMap lat={(item as any).latitude} lng={(item as any).longitude} userName={item.title} />
+                                            <button
+                                                onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${(item as any).latitude},${(item as any).longitude}`, "_blank")}
+                                                className="absolute bottom-3 right-3 flex items-center gap-1.5 px-3 py-2 bg-background/90 backdrop-blur-md rounded-xl border border-border text-[9px] font-black text-primary uppercase tracking-widest shadow-lg z-[500]"
+                                            >
+                                                <Icon icon="solar:map-point-bold-duotone" className="w-3.5 h-3.5" />
+                                                Google Maps
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
 
                                 <div className="bg-muted/50 p-4 md:p-6 rounded-3xl">
                                     <FormsIntervention onSelectionChange={setInterventionType} initialValue={interventionType} />

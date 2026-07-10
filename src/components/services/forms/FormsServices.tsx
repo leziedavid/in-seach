@@ -12,6 +12,14 @@ import { Category, ServiceStatus, ServiceType, UserLocation } from "@/types/inte
 import { useUserLocation } from "@/utils/location";
 import dynamic from 'next/dynamic';
 const RichTextEditor = dynamic(() => import("@/components/ui/editor"), { ssr: false, loading: () => <div className="min-h-[200px] border rounded-lg animate-pulse bg-muted" /> });
+const UserMap = dynamic(() => import("@/components/ui/Maps"), {
+    ssr: false,
+    loading: () => (
+        <div className="w-full h-40 bg-muted animate-pulse flex items-center justify-center rounded-2xl">
+            <Icon icon="solar:map-bold-duotone" width={32} className="text-muted-foreground" />
+        </div>
+    ),
+});
 import { useTranslation } from "@/utils/langue/hooks";
 
 const serviceSchema = (t: any) => z.object({
@@ -293,12 +301,20 @@ export default function FormsServices({ initialData, onSubmit, isSubmitting = fa
                     <div className="bg-card rounded-[2rem] border border-border p-6  space-y-4">
                         <h3 className="text-xs font-black text-muted-foreground uppercase tracking-tight flex items-center justify-between">
                             {t("akwaba.forms.annonce.location_title")}
-                            <button type="button" onClick={getCurrentLocation} className="text-primary hover:underline">{locationLoading ? '...' : t("akwaba.forms.annonce.location_gps")}</button>
+                            <button type="button" onClick={getCurrentLocation} disabled={locationLoading} className="text-primary hover:underline flex items-center gap-1 disabled:opacity-50">
+                                {locationLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-3.5 h-3.5" /> : <Icon icon="solar:gps-bold-duotone" className="w-3.5 h-3.5" />}
+                                {locationLoading ? '...' : t("akwaba.forms.annonce.location_gps")}
+                            </button>
                         </h3>
                         <div className="flex items-center gap-2 text-sm font-bold text-foreground">
                             <Icon icon="solar:map-point-bold-duotone" className="text-primary w-5 h-5" />
                             {address || t("akwaba.forms.annonce.location_select")}
                         </div>
+                        {!!watch("latitude") && !!watch("longitude") && (
+                            <div className="rounded-2xl overflow-hidden h-40">
+                                <UserMap lat={watch("latitude")!} lng={watch("longitude")!} userName={watch("title") || undefined} />
+                            </div>
+                        )}
                         {(errors.latitude || errors.longitude) && <p className="text-red-500 text-[10px] font-bold uppercase">{t("akwaba.forms.service.errors.location_required")}</p>}
                     </div>
 
