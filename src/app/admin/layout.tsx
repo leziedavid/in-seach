@@ -50,6 +50,7 @@ const MENU_GROUPS: { title?: string; items: MenuItem[] }[] = [
         items: [
             { label: 'Easy Delivery', icon: 'solar:delivery-bold-duotone',            href: '/admin/easy-delivery' },
             { label: 'Logistique',    icon: 'solar:ship-bold-duotone',               href: '/admin/logistics' },
+            { label: 'Recharge de gaz', icon: 'mdi:propane-tank',                    href: '/admin/gas-delivery' },
         ],
     },
     {

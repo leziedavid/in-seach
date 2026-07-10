@@ -3,12 +3,8 @@
 import { useState, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { Icon } from "@iconify/react";
-import {
-    getMyGasProvider, upsertGasProvider,
-    getMyGasBottles, createGasBottle, updateGasBottle, deleteGasBottle,
-    getPendingGasDeliveries, getAssignedGasDeliveries, acceptGasDelivery, updateGasDeliveryStatus,
-} from "@/api/api";
-import { GasProvider, GasBottle, GasBottleFormat, GasDelivery, GasDeliveryStatus } from "@/types/interface";
+import { getMyGasProvider, upsertGasProvider, getGasProviderStats, getMyGasBottles, createGasBottle, updateGasBottle, deleteGasBottle, getPendingGasDeliveries, getAssignedGasDeliveries, acceptGasDelivery, updateGasDeliveryStatus, getMe, } from "@/api/api";
+import { GasProvider, GasBottle, GasBottleFormat, GasDelivery, GasDeliveryStatus, GasProviderStats, User } from "@/types/interface";
 import { useUserLocation } from "@/utils/location";
 import { Switch } from "@/components/ui/switch";
 import { Modal } from "@/components/ui/MotionModal";
@@ -62,6 +58,10 @@ export default function GasProviderDashboard() {
     const [locating, setLocating] = useState(false);
     const [savingProfile, setSavingProfile] = useState(false);
     const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+    const [currentUser, setCurrentUser] = useState<User | null>(null);
+
+    // KPI
+    const [stats, setStats] = useState<GasProviderStats | null>(null);
 
     // Catalogue
     const [bottles, setBottles] = useState<GasBottle[]>([]);
@@ -115,11 +115,38 @@ export default function GasProviderDashboard() {
         }
     }, []);
 
+    const fetchStats = useCallback(async () => {
+        try {
+            const res = await getGasProviderStats();
+            if (res.statusCode === 200 && res.data) setStats(res.data);
+        } catch (error) {
+            console.error("Error fetching gas provider stats:", error);
+        }
+    }, []);
+
+    const fetchCurrentUser = useCallback(async () => {
+        const res = await getMe();
+        if (res.statusCode === 200 && res.data) setCurrentUser(res.data);
+    }, []);
+
     useEffect(() => {
         fetchProvider();
         fetchBottles();
         fetchRequests();
-    }, [fetchProvider, fetchBottles, fetchRequests]);
+        fetchStats();
+        fetchCurrentUser();
+    }, [fetchProvider, fetchBottles, fetchRequests, fetchStats, fetchCurrentUser]);
+
+    // Pré-remplit le profil avec les infos du compte connecté tant que le prestataire
+    // n'a pas encore renseigné ses propres valeurs (les champs déjà remplis ne sont jamais écrasés).
+    useEffect(() => {
+        if (!currentUser) return;
+        const defaultPhone = currentUser.indicatif ? `${currentUser.indicatif}${currentUser.phone || ""}` : (currentUser.phone || "");
+        setCompanyName(prev => prev || currentUser.companyName || currentUser.fullName || "");
+        setPhone(prev => prev || defaultPhone);
+        setWhatsapp(prev => prev || defaultPhone);
+        setAddress(prev => prev || currentUser.siegeSocial || "");
+    }, [currentUser]);
 
     const handleSaveProfile = async () => {
         if (!companyName.trim()) {
@@ -191,6 +218,7 @@ export default function GasProviderDashboard() {
                 addNotification(editingBottle ? "Bouteille mise à jour" : "Bouteille ajoutée", "success");
                 setIsBottleModalOpen(false);
                 fetchBottles();
+                fetchStats();
             } else {
                 addNotification(res.message || "Erreur lors de l'enregistrement", "error");
             }
@@ -205,6 +233,7 @@ export default function GasProviderDashboard() {
             if (res.statusCode === 200) {
                 addNotification("Bouteille supprimée", "success");
                 fetchBottles();
+                fetchStats();
             } else {
                 addNotification(res.message || "Erreur lors de la suppression", "error");
             }
@@ -217,6 +246,7 @@ export default function GasProviderDashboard() {
             if (res.statusCode === 200) {
                 addNotification("Demande acceptée — les coordonnées du client sont maintenant visibles", "success");
                 fetchRequests();
+                fetchStats();
             } else {
                 addNotification(res.message || "Erreur lors de l'acceptation", "error");
             }
@@ -229,6 +259,7 @@ export default function GasProviderDashboard() {
             if (res.statusCode === 200) {
                 addNotification("Statut mis à jour", "success");
                 fetchRequests();
+                fetchStats();
             } else {
                 addNotification(res.message || "Erreur lors de la mise à jour", "error");
             }
@@ -247,6 +278,29 @@ export default function GasProviderDashboard() {
                 subtitle="Gérez votre profil, votre catalogue de bouteilles et vos demandes de livraison."
                 className="mb-6"
             />
+
+            {/* ── Performances ── */}
+            <div className="w-full max-w-4xl mx-auto mb-8">
+                <div className="flex items-center gap-2 mb-4">
+                    <h3 className="text-lg font-black text-foreground">Performances de mon activité</h3>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {[
+                        { icon: "solar:box-bold-duotone", label: "Bouteilles actives", value: stats ? `${stats.activeBottles}/${stats.totalBottles}` : "—" },
+                        { icon: "solar:delivery-bold-duotone", label: "Livraisons en cours", value: stats ? stats.inProgressDeliveriesCount : "—" },
+                        { icon: "solar:wallet-money-bold-duotone", label: "Chiffre d'affaires", value: stats ? `${stats.totalRevenue.toLocaleString()} FCFA` : "—" },
+                        { icon: "solar:clipboard-list-bold-duotone", label: "Livraisons assignées", value: stats ? stats.deliveriesAssignedCount : "—" },
+                    ].map((tile) => (
+                        <div key={tile.label} className="bg-card border border-border rounded-2xl p-4 flex flex-col gap-2 shadow-sm">
+                            <div className="p-2 bg-primary/10 rounded-xl w-fit">
+                                <Icon icon={tile.icon} className="w-5 h-5 text-primary" />
+                            </div>
+                            <p className="text-xl md:text-2xl font-black text-foreground truncate">{tile.value}</p>
+                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{tile.label}</p>
+                        </div>
+                    ))}
+                </div>
+            </div>
 
             <div className="w-full flex flex-col gap-3">
                 <AccordionSection
@@ -313,13 +367,13 @@ export default function GasProviderDashboard() {
                                             <Icon icon={GAS_BOTTLE_FORMAT_CONFIG[bottle.format].icon} className="w-5 h-5 text-primary" />
                                         </div>
                                         <div className="min-w-0">
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <p className="text-sm font-black text-foreground">{bottle.brand} — {GAS_BOTTLE_FORMAT_CONFIG[bottle.format].label} ({bottle.weight}kg)</p>
-                                            {!bottle.isAvailable && (
-                                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-muted text-muted-foreground">Indisponible</span>
-                                            )}
-                                        </div>
-                                        <p className="text-xs text-muted-foreground">{bottle.price.toLocaleString()} FCFA</p>
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <p className="text-sm font-black text-foreground">{bottle.brand} — {GAS_BOTTLE_FORMAT_CONFIG[bottle.format].label} ({bottle.weight}kg)</p>
+                                                {!bottle.isAvailable && (
+                                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-muted text-muted-foreground">Indisponible</span>
+                                                )}
+                                            </div>
+                                            <p className="text-xs text-muted-foreground">{bottle.price.toLocaleString()} FCFA</p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-1 shrink-0">

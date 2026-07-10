@@ -44,20 +44,20 @@ export interface TabConfig {
 }
 
 export const TABS_CONFIG: TabConfig[] = [
-    { labelKey: 'akwaba.sidebar.overview', icon: "solar:graph-bold-duotone", key: 'Overview', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ADMIN, Role.ENTREPRISE] },
+    { labelKey: 'akwaba.sidebar.overview', icon: "solar:graph-bold-duotone", key: 'Overview', roles: [Role.CLIENT, Role.GAZIER, Role.PRESTATAIRE, Role.ADMIN, Role.ENTREPRISE] },
     { labelKey: 'akwaba.sidebar.calendar', icon: "solar:calendar-date-bold-duotone", key: 'Calendrier', roles: [Role.PRESTATAIRE, Role.ADMIN, Role.CLIENT] },
     { labelKey: 'akwaba.sidebar.services', icon: "solar:box-bold-duotone", key: 'Services', roles: [Role.PRESTATAIRE, Role.ADMIN] },
     { labelKey: 'akwaba.sidebar.annonces', icon: "solar:eye-bold-duotone", key: 'Annonces', roles: [Role.PRESTATAIRE, Role.ADMIN] },
     { labelKey: 'akwaba.sidebar.my_lives', icon: "solar:play-circle-bold-duotone", key: 'Mes-lives', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ADMIN, Role.ENTREPRISE] },
-    { labelKey: 'akwaba.sidebar.rd_services', icon: "solar:clipboard-list-bold-duotone", key: 'Rendez-vous', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ADMIN, Role.ENTREPRISE, Role.CHAUFFEUR] },
-    { labelKey: 'akwaba.sidebar.rd_annonces', icon: "solar:clipboard-check-bold-duotone", key: 'Rendez-vous-annonces', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ADMIN, Role.ENTREPRISE, Role.CHAUFFEUR] },
-    { labelKey: 'akwaba.sidebar.history_rdv', icon: "solar:history-bold-duotone", key: 'Historique-rdv', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ADMIN, Role.ENTREPRISE, Role.CHAUFFEUR] },
+    { labelKey: 'akwaba.sidebar.rd_services', icon: "solar:clipboard-list-bold-duotone", key: 'Rendez-vous', roles: [Role.CLIENT, Role.GAZIER, Role.PRESTATAIRE, Role.ADMIN, Role.ENTREPRISE, Role.CHAUFFEUR] },
+    { labelKey: 'akwaba.sidebar.rd_annonces', icon: "solar:clipboard-check-bold-duotone", key: 'Rendez-vous-annonces', roles: [Role.CLIENT, Role.GAZIER, Role.PRESTATAIRE, Role.ADMIN, Role.ENTREPRISE, Role.CHAUFFEUR] },
+    { labelKey: 'akwaba.sidebar.history_rdv', icon: "solar:history-bold-duotone", key: 'Historique-rdv', roles: [Role.CLIENT, Role.GAZIER, Role.PRESTATAIRE, Role.ADMIN, Role.ENTREPRISE, Role.CHAUFFEUR] },
     { labelKey: 'akwaba.sidebar.store', icon: "solar:shop-bold-duotone", key: 'Boutique', roles: [Role.CLIENT, Role.ADMIN, Role.PRESTATAIRE, Role.ENTREPRISE] },
-    { labelKey: 'akwaba.sidebar.orders', icon: "solar:cart-large-bold-duotone", key: 'Commandes', roles: [Role.CLIENT, Role.ADMIN, Role.PRESTATAIRE, Role.ENTREPRISE, Role.CHAUFFEUR] },
-    { labelKey: 'akwaba.sidebar.history_orders', icon: "solar:history-bold-duotone", key: 'Historique-commandes', roles: [Role.CLIENT, Role.ADMIN, Role.PRESTATAIRE, Role.ENTREPRISE, Role.CHAUFFEUR] },
-    { labelKey: 'akwaba.sidebar.returns_sav', icon: "solar:refresh-back-bold-duotone", key: 'Retours-SAV', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ENTREPRISE, Role.ADMIN] },
-    { labelKey: 'akwaba.sidebar.my_quotes', icon: "solar:chat-round-money-bold-duotone", key: 'Mes-devis', roles: [Role.CLIENT, Role.ADMIN] },
-    { labelKey: 'akwaba.sidebar.my_deliveries', icon: "solar:map-point-wave-bold-duotone", key: 'Mes-livraisons', roles: [Role.CLIENT, Role.ADMIN] },
+    { labelKey: 'akwaba.sidebar.orders', icon: "solar:cart-large-bold-duotone", key: 'Commandes', roles: [Role.CLIENT, Role.GAZIER, Role.ADMIN, Role.PRESTATAIRE, Role.ENTREPRISE, Role.CHAUFFEUR] },
+    { labelKey: 'akwaba.sidebar.history_orders', icon: "solar:history-bold-duotone", key: 'Historique-commandes', roles: [Role.CLIENT, Role.GAZIER, Role.ADMIN, Role.PRESTATAIRE, Role.ENTREPRISE, Role.CHAUFFEUR] },
+    { labelKey: 'akwaba.sidebar.returns_sav', icon: "solar:refresh-back-bold-duotone", key: 'Retours-SAV', roles: [Role.CLIENT, Role.GAZIER, Role.PRESTATAIRE, Role.ENTREPRISE, Role.ADMIN] },
+    { labelKey: 'akwaba.sidebar.my_quotes', icon: "solar:chat-round-money-bold-duotone", key: 'Mes-devis', roles: [Role.CLIENT, Role.GAZIER, Role.ADMIN] },
+    { labelKey: 'akwaba.sidebar.my_deliveries', icon: "solar:map-point-wave-bold-duotone", key: 'Mes-livraisons', roles: [Role.CLIENT, Role.GAZIER, Role.ADMIN] },
     { labelKey: 'akwaba.sidebar.my_logistics_services', icon: "solar:box-bold-duotone", key: 'Mes-services-logistiques', roles: [Role.ENTREPRISE, Role.ADMIN] },
     { labelKey: 'akwaba.sidebar.received_quotes', icon: "solar:chat-round-money-bold-duotone", key: 'Devis-recus', roles: [Role.ENTREPRISE, Role.ADMIN] },
     { labelKey: 'akwaba.sidebar.deliveries', icon: "solar:delivery-bold-duotone", key: 'Livraisons', roles: [Role.ENTREPRISE, Role.ADMIN] },
@@ -119,8 +119,7 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
         userRole === Role.ENTREPRISE ? t("akwaba.sidebar.roles.entreprise") :
             userRole === Role.CHAUFFEUR ? t("akwaba.sidebar.roles.chauffeur") :
                 userRole === Role.LIVREUR ? t("akwaba.sidebar.roles.livreur") :
-                    userRole === Role.GAZIER ? t("akwaba.sidebar.roles.gazier") :
-                        t("akwaba.sidebar.roles.client");
+                    userRole === Role.GAZIER ? t("akwaba.sidebar.roles.gazier") : t("akwaba.sidebar.roles.client");
 
     // ── Desktop menu item ──
     const renderMenuItem = (item: TabConfig) => {

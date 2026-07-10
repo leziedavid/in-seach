@@ -909,6 +909,29 @@ export interface GasDelivery {
     updatedAt: string;
 }
 
+export interface GasProviderStats {
+    totalBottles: number;
+    activeBottles: number;
+    deliveriesAssignedCount: number;
+    inProgressDeliveriesCount: number;
+    totalRevenue: number;
+}
+
+export interface GasAdminOverview {
+    totalProviders: number;
+    activeProviders: number;
+    totalBottles: number;
+    totalDeliveries: number;
+    pendingDeliveries: number;
+    deliveredDeliveriesCount: number;
+    totalRevenue: number;
+}
+
+export interface GasProviderAdminRow extends GasProvider {
+    user?: Pick<User, 'id' | 'fullName' | 'phone' | 'email' | 'indicatif' | 'isSuspended'>;
+    _count?: { bottles: number; deliveries: number };
+}
+
 export enum FloteType {
     VEHICULE = 'VEHICULE',
     CAMION = 'CAMION',

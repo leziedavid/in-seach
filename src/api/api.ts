@@ -1,5 +1,5 @@
 import { getCookie } from '@/lib/cookies';
-import { BaseResponse, Category, Pagination, ReverseGeocodeData, Role, Service, MySpaceResponse, Annonce, BookingsCalendar, Product, CategoryProd, Order, AdminQueryParams, AdminUserUpdateDto, AdminProductUpdateDto, AdminServiceUpdateDto, AdminAnnonceUpdateDto, AdminSubscriptionPlanDto, User, AdminLog, SubscriptionPlan, PlanEntity, AdminUserSubscription, Subscription, OrdersGroupedResponse, BookingsGroupedResponse, LogisticService, Quote, Delivery, DeliveryTracking, QuoteStatus, DeliveryStatus, TransportType, LocationLog, CategorieAnnonce, TypeAnnonce, LogisticsClient, Video, StoreUserInfo, StoreStats, ServiceStats, AnnonceStats, LiveStats, LogisticProvider, LogisticStats, GasProvider, GasBottle, GasBottleFormat, GasDelivery, GasDeliveryStatus, EasyDelivery, HistoryDelivery, EasyDeliveryStatus, DriverStats, SubCategoryProd, Slider, Live, LiveFeedResponse, LiveListResponse, LiveStatus, LiveEntityType, Boost, BoostPricing, BoostEntityType, BoostPaymentMethod, WebPushNotifActiveResponse, WebPushNotifStatus, WebPushNotifAdminListResponse, NotificationSubscriptionListResponse, PushNotificationPayload, SendPushResult } from '@/types/interface';
+import { BaseResponse, Category, Pagination, ReverseGeocodeData, Role, Service, MySpaceResponse, Annonce, BookingsCalendar, Product, CategoryProd, Order, AdminQueryParams, AdminUserUpdateDto, AdminProductUpdateDto, AdminServiceUpdateDto, AdminAnnonceUpdateDto, AdminSubscriptionPlanDto, User, AdminLog, SubscriptionPlan, PlanEntity, AdminUserSubscription, Subscription, OrdersGroupedResponse, BookingsGroupedResponse, LogisticService, Quote, Delivery, DeliveryTracking, QuoteStatus, DeliveryStatus, TransportType, LocationLog, CategorieAnnonce, TypeAnnonce, LogisticsClient, Video, StoreUserInfo, StoreStats, ServiceStats, AnnonceStats, LiveStats, LogisticProvider, LogisticStats, GasProvider, GasBottle, GasBottleFormat, GasDelivery, GasDeliveryStatus, GasProviderStats, GasAdminOverview, GasProviderAdminRow, EasyDelivery, HistoryDelivery, EasyDeliveryStatus, DriverStats, SubCategoryProd, Slider, Live, LiveFeedResponse, LiveListResponse, LiveStatus, LiveEntityType, Boost, BoostPricing, BoostEntityType, BoostPaymentMethod, WebPushNotifActiveResponse, WebPushNotifStatus, WebPushNotifAdminListResponse, NotificationSubscriptionListResponse, PushNotificationPayload, SendPushResult } from '@/types/interface';
 
 export const getBaseUrl = (): string => {
     return process.env.NEXT_PUBLIC_API_URL || 'https://api.djamko.com/api/v1';
@@ -2065,6 +2065,13 @@ export const getMyGasProvider = async (): Promise<BaseResponse<GasProvider>> => 
     return await response.json();
 };
 
+export const getGasProviderStats = async (): Promise<BaseResponse<GasProviderStats>> => {
+    const response = await secureFetch(`${getBaseUrl()}/gas-delivery/providers/stats`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
 // --- Catalogue de bouteilles (prestataire) ---
 export const createGasBottle = async (data: { brand: string; format: GasBottleFormat; weight: number; price: number; isAvailable?: boolean }): Promise<BaseResponse<GasBottle>> => {
     const response = await secureFetch(`${getBaseUrl()}/gas-delivery/bottles`, {
@@ -2145,6 +2152,29 @@ export const updateGasDeliveryStatus = async (id: string, status: GasDeliverySta
     const response = await secureFetch(`${getBaseUrl()}/gas-delivery/deliveries/${id}/status`, {
         method: 'PATCH',
         body: JSON.stringify({ status }),
+    });
+    return await response.json();
+};
+
+// --- Administration ---
+export const adminGetGasOverview = async (): Promise<BaseResponse<GasAdminOverview>> => {
+    const response = await secureFetch(`${getBaseUrl()}/gas-delivery/admin/overview`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
+export const adminGetGasProviders = async (params?: { page?: number; limit?: number; search?: string }): Promise<BaseResponse<Pagination<GasProviderAdminRow>>> => {
+    const response = await secureFetch(`${getBaseUrl()}/gas-delivery/admin/providers?${toQueryString(params || {})}`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
+export const adminSetGasProviderAvailability = async (id: string, isAvailable: boolean): Promise<BaseResponse<GasProvider>> => {
+    const response = await secureFetch(`${getBaseUrl()}/gas-delivery/admin/providers/${id}/availability`, {
+        method: 'PATCH',
+        body: JSON.stringify({ isAvailable }),
     });
     return await response.json();
 };
