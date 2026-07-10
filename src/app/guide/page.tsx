@@ -21,6 +21,7 @@ const TOC = [
     { id: "services-demande", label: "Services à la demande" },
     { id: "annonces", label: "Les annonces" },
     { id: "logistique", label: "Service logistique" },
+    { id: "gaz", label: "Recharge de gaz" },
     { id: "installation", label: "Installer l'application" },
     { id: "faq", label: "Questions fréquentes" },
 ];
@@ -234,6 +235,24 @@ export default function GuidePage() {
                     info="Le suivi affiche les statuts clés de la livraison (préparation, en transit, dédouanement, livraison) en temps réel."
                 />
 
+                <GuideSection
+                    id="gaz"
+                    eyebrow="11 — Recharge de gaz"
+                    title="À propos de la recharge de gaz à domicile"
+                    description="L'onglet « Gaz » vous met en relation avec des prestataires de recharge de bouteilles de gaz près de chez vous, avec livraison directement à domicile."
+                    icon="mdi:propane-tank"
+                    accentIcon="solar:map-point-bold-duotone"
+                    tone="fuchsia"
+                    steps={[
+                        { title: "Trouver un prestataire", description: "Autorisez la géolocalisation pour voir en priorité les prestataires disponibles les plus proches de vous." },
+                        { title: "Consulter le catalogue", description: "Ouvrez la fiche d'un prestataire pour voir ses bouteilles disponibles par format, marque et prix." },
+                        { title: "Commander la livraison", description: "Choisissez le format de bouteille souhaité, confirmez votre adresse et votre position GPS, puis validez votre demande." },
+                        { title: "Suivre la demande", description: "Un prestataire disponible accepte votre demande et vient livrer votre bouteille à l'adresse indiquée." },
+                    ]}
+                    info="Si aucun prestataire n'est disponible à proximité, l'application affiche automatiquement tous les prestataires disponibles, classés par ordre de disponibilité."
+                    tip="Passez toujours votre commande depuis l'application plutôt que par appel ou WhatsApp direct : c'est la seule façon de bénéficier du suivi et des garanties de Djamko en cas de litige."
+                />
+
             </div>
 
             {/* ── Installation de l'application ── */}
@@ -241,7 +260,7 @@ export default function GuidePage() {
                 <div className="max-w-5xl mx-auto px-6">
                     <section id="installation" className="scroll-mt-28">
                         <div className="text-center max-w-2xl mx-auto mb-10">
-                            <p className="text-[11px] font-black text-primary uppercase tracking-[0.2em] mb-2">11 — Installation</p>
+                            <p className="text-[11px] font-black text-primary uppercase tracking-[0.2em] mb-2">12 — Installation</p>
                             <h2 className="text-2xl md:text-3xl font-black text-foreground tracking-tight mb-4">
                                 Installer l'application Djamko
                             </h2>

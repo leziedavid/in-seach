@@ -324,10 +324,9 @@ export default function Header() {
                                 )}
                             </button>
 
-                            {/* Nos solutions — mobile uniquement, prend la place laissée par le panier.
-                                Icône distincte du menu /akwaba (qui utilise solar:widget-5-bold-duotone). */}
-                            <Link href="/solutions" className="relative md:hidden bg-primary p-2 rounded-full transition hover:scale-110 active:scale-95 flex items-center justify-center">
-                                <Icon icon="solar:global-bold-duotone" className="text-white w-5 h-5" />
+                            {/* Guide — mobile uniquement, remplace l'ancien accès "Nos solutions" à cet emplacement. */}
+                            <Link href="/guide" title="Guide" className="relative md:hidden bg-primary p-2 rounded-full transition hover:scale-110 active:scale-95 flex items-center justify-center">
+                                <Icon icon="solar:book-bookmark-bold-duotone" className="text-white w-5 h-5" />
                             </Link>
 
                             <span className="hidden md:block">
@@ -345,7 +344,7 @@ export default function Header() {
                                 <Icon icon="solar:shop-2-bold-duotone" className="text-white w-5 h-5" />
                             </Link>
 
-                            <Link href="/guide" title="Guide" className="relative bg-primary p-2 rounded-full transition hover:scale-110 active:scale-95 flex items-center justify-center">
+                            <Link href="/guide" title="Guide" className="relative hidden md:flex bg-primary p-2 rounded-full transition hover:scale-110 active:scale-95 items-center justify-center">
                                 <Icon icon="solar:book-bookmark-bold-duotone" className="text-white w-5 h-5" />
                             </Link>
 

@@ -71,12 +71,25 @@ export default function CategoryFilter({
                 <div ref={categoryRef} className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide w-full px-2 md:px-4" >
                     {categories.map((cat) => {
                         const isActive = selectedCategoryId === cat.id;
+                        const isDeselectable = isActive && cat.id !== "all";
                         return (
                             <button key={cat.id} onClick={() => onCategoryChange(cat.id)}
                                 className={`  relative px-6 py-2.5 rounded-full text-xs font-black uppercase tracking-tighter whitespace-nowrap transition-all duration-300 border-2 ${isActive ? "bg-primary border-primary text-white shadow-lg shadow-primary/20 scale-105 z-20" : "bg-card border-border text-muted-foreground hover:border-primary/30 hover:bg-muted/50"}`}>
                                 {cat.name}
                                 {isActive && (
                                     <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-white rounded-full animate-pulse" />
+                                )}
+                                {isDeselectable && (
+                                    <span
+                                        role="button"
+                                        tabIndex={0}
+                                        aria-label={`Désélectionner ${cat.name}`}
+                                        onClick={(e) => { e.stopPropagation(); onCategoryChange("all"); }}
+                                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.stopPropagation(); onCategoryChange("all"); } }}
+                                        className="absolute -top-1.5 -right-1.5 z-30 w-5 h-5 rounded-full bg-red-500 border-2 border-background shadow-md flex items-center justify-center hover:bg-red-600 hover:scale-110 active:scale-90 transition-all duration-200 animate-in fade-in zoom-in cursor-pointer"
+                                    >
+                                        <Icon icon="solar:close-circle-bold" className="w-3.5 h-3.5 text-white" />
+                                    </span>
                                 )}
                             </button>
                         );
@@ -119,7 +132,7 @@ export default function CategoryFilter({
                                     key={sub.id}
                                     onClick={() => onSubCategoryChange?.(sub.id)}
                                     className={`
-                                        px-4 py-1.5 rounded-full text-[10px] font-medium uppercase transition-all whitespace-nowrap border
+                                        relative px-4 py-1.5 rounded-full text-[10px] font-medium uppercase transition-all whitespace-nowrap border
                                         ${isSubActive
                                             ? "bg-secondary text-white border-secondary shadow-md scale-105"
                                             : "bg-card text-muted-foreground/60 border-border hover:border-secondary/50"
@@ -127,6 +140,18 @@ export default function CategoryFilter({
                                     `}
                                 >
                                     {sub.name}
+                                    {isSubActive && (
+                                        <span
+                                            role="button"
+                                            tabIndex={0}
+                                            aria-label={`Désélectionner ${sub.name}`}
+                                            onClick={(e) => { e.stopPropagation(); onSubCategoryChange?.("all"); }}
+                                            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.stopPropagation(); onSubCategoryChange?.("all"); } }}
+                                            className="absolute -top-1.5 -right-1.5 z-30 w-4 h-4 rounded-full bg-red-500 border-2 border-background shadow-md flex items-center justify-center hover:bg-red-600 hover:scale-110 active:scale-90 transition-all duration-200 animate-in fade-in zoom-in cursor-pointer"
+                                        >
+                                            <Icon icon="solar:close-circle-bold" className="w-3 h-3 text-white" />
+                                        </span>
+                                    )}
                                 </button>
                             );
                         })}
