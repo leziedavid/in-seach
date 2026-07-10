@@ -140,7 +140,7 @@ export default function GasProviderDashboard() {
             });
             if (res.statusCode === 200) {
                 addNotification("Profil mis à jour avec succès", "success");
-                setProvider(res.data);
+                setProvider(res.data ?? null);
                 setIsProfileModalOpen(false);
             } else {
                 addNotification(res.message || "Erreur lors de la mise à jour", "error");

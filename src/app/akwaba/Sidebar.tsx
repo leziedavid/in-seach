@@ -89,10 +89,10 @@ const LOGISTICS_KEYS: TabType[] = [
 // Groupes pour la vue mobile style Yango
 const MOBILE_GROUPS = [
     { keys: ['Overview', 'Calendrier'] },
+    { keys: ['Recharge-gaz', 'Mes-bouteilles-gaz'] },
     { keys: ['Services', 'Annonces', 'Boutique', 'Mes-lives', 'Commandes', 'Historique-commandes', 'Retours-SAV'] },
     { keys: ['Rendez-vous', 'Rendez-vous-annonces', 'Historique-rdv'] },
     { keys: ['Mes-devis', 'Mes-livraisons', 'Mes-services-logistiques', 'Devis-recus', 'Livraisons', 'Livraisons-chauffeur', 'Ma-flotte', 'Livreur-dashboard'] },
-    { keys: ['Recharge-gaz', 'Mes-bouteilles-gaz'] },
     { keys: ['Tarifs', 'Documentation-API', 'Paramètres'] },
 ];
 
