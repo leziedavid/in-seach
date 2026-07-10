@@ -35,6 +35,8 @@ import { BiometricSetupModal } from '@/components/auth/BiometricSetupModal';
 import InstallPWA from '@/components/pwa/InstallPWA';
 import MyLivesList from '@/components/lives/MyLivesList';
 import RetoursSAV from '@/components/returns/sections/RetoursSAV';
+import GasRefillRequest from '@/components/gas-delivery/sections/GasRefillRequest';
+import GasProviderDashboard from '@/components/gas-delivery/sections/GasProviderDashboard';
 import { useTranslation } from '@/utils/langue/hooks';
 
 
@@ -277,6 +279,10 @@ export default function Page() {
                 return <EasyDeliveryPage />;
             case 'Retours-SAV':
                 return <RetoursSAV />;
+            case 'Recharge-gaz':
+                return <GasRefillRequest />;
+            case 'Mes-bouteilles-gaz':
+                return <GasProviderDashboard />;
             default:
                 return null;
         }

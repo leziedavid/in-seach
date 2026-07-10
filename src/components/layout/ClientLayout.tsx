@@ -8,9 +8,13 @@ import { NotificationPermissionModal } from "@/components/modals/NotificationPer
 import { storage } from "@/lib/storage";
 import { trackVisit } from "@/lib/visitTracking";
 import Sponsoring from "@/components/boost/Sponsoring";
+import { useLaunchQueueConsumer } from "@/hooks/useLaunchQueueConsumer";
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
+
+    // Deep links PWA : route en interne l'URL cible quand l'app installée est relancée
+    useLaunchQueueConsumer();
 
     // [PERF] Nettoie les entrées localStorage expirées au démarrage (1 fois par session)
     useEffect(() => {

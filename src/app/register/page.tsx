@@ -20,7 +20,7 @@ export default function RegisterPage() {
         email: z.string().email(),
         indicatif: z.string().optional(),
         phone: z.string().min(8),
-        role: z.enum(['CLIENT', 'PRESTATAIRE', 'LOGISTICIAN', 'LIVREUR']),
+        role: z.enum(['CLIENT', 'PRESTATAIRE', 'LOGISTICIAN', 'LIVREUR', 'GAZIER']),
         password: z.string().min(5),
         fullName: z.string().optional(),
         company: z.string().optional(),
@@ -30,7 +30,7 @@ export default function RegisterPage() {
     });
     const router = useRouter();
 
-    const [role, setRole] = useState<'CLIENT' | 'PRESTATAIRE' | 'LOGISTICIAN' | 'LIVREUR'>('CLIENT');
+    const [role, setRole] = useState<'CLIENT' | 'PRESTATAIRE' | 'LOGISTICIAN' | 'LIVREUR' | 'GAZIER'>('CLIENT');
     const [email, setEmail] = useState('');
     const [indicatif, setIndicatif] = useState('+225');
     const [phone, setPhone] = useState('');
@@ -77,7 +77,7 @@ export default function RegisterPage() {
                 password,
                 role,
                 fullName: fullname || undefined,
-                company: (role === 'PRESTATAIRE' || role === 'LOGISTICIAN' || role === 'LIVREUR') && company ? company : undefined,
+                company: (role === 'PRESTATAIRE' || role === 'LOGISTICIAN' || role === 'LIVREUR' || role === 'GAZIER') && company ? company : undefined,
                 acceptedTerms,
             };
 
@@ -137,6 +137,10 @@ export default function RegisterPage() {
                     <div onClick={() => setRole('LIVREUR')} className={`p-4 rounded-2xl border-2 cursor-pointer transition-all flex flex-col items-center gap-2 ${role === 'LIVREUR' ? 'border-primary bg-primary/20' : 'border-gray-200 bg-gray-50 hover:bg-gray-100'}`} >
                         <Icon icon="solar:case-minimalistic-bold-duotone" className={role === 'LIVREUR' ? 'text-primary' : 'text-gray-400'} width={24} />
                         <span className={`text-xs font-bold uppercase ${role === 'LIVREUR' ? 'text-primary' : 'text-gray-500'}`}>{t("auth.register.role_deliverer")}</span>
+                    </div>
+                    <div onClick={() => setRole('GAZIER')} className={`p-4 rounded-2xl border-2 cursor-pointer transition-all flex flex-col items-center gap-2 ${role === 'GAZIER' ? 'border-primary bg-primary/20' : 'border-gray-200 bg-gray-50 hover:bg-gray-100'}`} >
+                        <Icon icon="solar:fire-bold-duotone" className={role === 'GAZIER' ? 'text-primary' : 'text-gray-400'} width={24} />
+                        <span className={`text-xs font-bold uppercase ${role === 'GAZIER' ? 'text-primary' : 'text-gray-500'}`}>{t("auth.register.role_gas_provider")}</span>
                     </div>
                 </div>
 
@@ -200,7 +204,7 @@ export default function RegisterPage() {
                     </div>
 
                     {/* Optional Company if PRESTATAIRE */}
-                    {(role === 'PRESTATAIRE' || role === 'LOGISTICIAN') && (
+                    {(role === 'PRESTATAIRE' || role === 'LOGISTICIAN' || role === 'GAZIER') && (
                         <div className="space-y-2">
                             <label className="text-[11px] sm:text-xs font-black text-gray-600">{t("auth.register.company_label")}</label>
                             <div className="relative">

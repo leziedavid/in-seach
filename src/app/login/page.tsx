@@ -104,6 +104,8 @@ export default function LoginPage() {
                     router.push('/akwaba');
                 } else if (res.data.role === Role.CHAUFFEUR) {
                     router.push('/akwaba');
+                } else if (res.data.role === Role.GAZIER) {
+                    router.push('/akwaba');
                 } else {
                     router.push('/');
                 }

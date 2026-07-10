@@ -1,10 +1,14 @@
 {
+    "id": "/",
     "name": "Djamko",
     "short_name": "Djamko",
     "description": "L'écosystème tout-en-un pour vos services, vos biens et vos échanges globaux.",
     "start_url": "/",
     "scope": "/",
     "display": "standalone",
+    "launch_handler": {
+        "client_mode": "navigate-existing"
+    },
     "orientation": "portrait",
     "background_color": "#b07b5e",
     "theme_color": "#b07b5e",

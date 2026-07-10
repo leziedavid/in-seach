@@ -28,7 +28,8 @@ export enum Role {
     ADMIN = 'ADMIN',
     ENTREPRISE = 'ENTREPRISE',
     CHAUFFEUR = 'CHAUFFEUR',
-    LIVREUR = 'LIVREUR'
+    LIVREUR = 'LIVREUR',
+    GAZIER = 'GAZIER'
 }
 
 export enum TransportType {
@@ -841,6 +842,71 @@ export interface DeliveryTracking {
     location: string;
     note?: string;
     createdAt: string;
+}
+
+// ===============================
+// GAS DELIVERY (recharge de gaz à domicile)
+// ===============================
+
+export enum GasDeliveryStatus {
+    PENDING = 'PENDING',
+    ACCEPTED = 'ACCEPTED',
+    DELIVERED = 'DELIVERED',
+    CANCELED = 'CANCELED'
+}
+
+export interface GasProvider {
+    id: string;
+    userId: string;
+    companyName: string;
+    whatsapp?: string;
+    phone?: string;
+    isAvailable: boolean;
+    address?: string;
+    latitude?: number;
+    longitude?: number;
+    description?: string;
+    bottlesCount?: number;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export enum GasBottleFormat {
+    B6 = 'B6',
+    B12 = 'B12',
+    B15 = 'B15',
+    B28 = 'B28',
+    B38 = 'B38'
+}
+
+export interface GasBottle {
+    id: string;
+    providerId: string;
+    provider?: GasProvider;
+    brand: string;
+    format: GasBottleFormat;
+    weight: number;
+    price: number;
+    isAvailable: boolean;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface GasDelivery {
+    id: string;
+    clientId: string;
+    client?: Pick<User, 'fullName' | 'phone' | 'indicatif'>;
+    clientPhone?: string;
+    address?: string;
+    latitude?: number;
+    longitude?: number;
+    bottleId: string;
+    bottle?: GasBottle;
+    providerId?: string;
+    provider?: GasProvider;
+    status: GasDeliveryStatus;
+    createdAt: string;
+    updatedAt: string;
 }
 
 export enum FloteType {

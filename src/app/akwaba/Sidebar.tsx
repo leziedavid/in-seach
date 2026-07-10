@@ -31,7 +31,9 @@ export type TabType =
     | "Ma-flotte"
     | "Livreur-dashboard"
     | "Mes-lives"
-    | "Retours-SAV";
+    | "Retours-SAV"
+    | "Recharge-gaz"
+    | "Mes-bouteilles-gaz";
 
 export interface TabConfig {
     key: TabType;
@@ -61,10 +63,14 @@ export const TABS_CONFIG: TabConfig[] = [
     { labelKey: 'akwaba.sidebar.deliveries', icon: "solar:delivery-bold-duotone", key: 'Livraisons', roles: [Role.ENTREPRISE, Role.ADMIN] },
     { labelKey: 'akwaba.sidebar.driver_deliveries', icon: "solar:delivery-bold-duotone", key: 'Livraisons-chauffeur', roles: [Role.CHAUFFEUR] },
     { labelKey: 'akwaba.sidebar.my_fleet', icon: "solar:bus-bold-duotone", key: 'Ma-flotte', roles: [Role.ENTREPRISE, Role.ADMIN] },
-    { labelKey: 'akwaba.sidebar.pricing', icon: "solar:bill-list-bold-duotone", key: 'Tarifs', roles: [Role.ENTREPRISE, Role.ADMIN, Role.PRESTATAIRE, Role.CLIENT] },
+    { labelKey: 'akwaba.sidebar.pricing', icon: "solar:bill-list-bold-duotone", key: 'Tarifs', roles: [Role.ENTREPRISE, Role.ADMIN, Role.PRESTATAIRE, Role.CLIENT, Role.GAZIER] },
     // { labelKey: 'akwaba.sidebar.api_doc', icon: "solar:document-bold-duotone", key: 'Documentation-API', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ADMIN, Role.ENTREPRISE] },
-    { labelKey: 'akwaba.sidebar.settings', icon: "solar:settings-bold-duotone", key: 'Paramètres', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ADMIN, Role.ENTREPRISE, Role.CHAUFFEUR, Role.LIVREUR] },
+    { labelKey: 'akwaba.sidebar.settings', icon: "solar:settings-bold-duotone", key: 'Paramètres', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ADMIN, Role.ENTREPRISE, Role.CHAUFFEUR, Role.LIVREUR, Role.GAZIER] },
     { labelKey: 'akwaba.sidebar.deliverer_space', icon: "solar:delivery-bold-duotone", key: 'Livreur-dashboard', roles: [Role.LIVREUR, Role.ADMIN] },
+
+    // Recharge de gaz à domicile
+    { labelKey: 'akwaba.sidebar.gas_refill', icon: "solar:fire-bold-duotone", key: 'Recharge-gaz', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ENTREPRISE, Role.ADMIN] },
+    { labelKey: 'akwaba.sidebar.my_gas_bottles', icon: "solar:box-bold-duotone", key: 'Mes-bouteilles-gaz', roles: [Role.GAZIER, Role.ADMIN] },
 ];
 
 interface SidebarProps {
@@ -86,6 +92,7 @@ const MOBILE_GROUPS = [
     { keys: ['Services', 'Annonces', 'Boutique', 'Mes-lives', 'Commandes', 'Historique-commandes', 'Retours-SAV'] },
     { keys: ['Rendez-vous', 'Rendez-vous-annonces', 'Historique-rdv'] },
     { keys: ['Mes-devis', 'Mes-livraisons', 'Mes-services-logistiques', 'Devis-recus', 'Livraisons', 'Livraisons-chauffeur', 'Ma-flotte', 'Livreur-dashboard'] },
+    { keys: ['Recharge-gaz', 'Mes-bouteilles-gaz'] },
     { keys: ['Tarifs', 'Documentation-API', 'Paramètres'] },
 ];
 
@@ -99,6 +106,7 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
         if (userRole === Role.CHAUFFEUR || userRole === Role.ENTREPRISE || userRole === Role.LIVREUR) {
             const logisticsItems = baseMenu.filter(item => LOGISTICS_KEYS.includes(item.key));
             const otherItems = baseMenu.filter(item => !LOGISTICS_KEYS.includes(item.key));
+
             return [...logisticsItems, ...otherItems];
         }
         return baseMenu;
@@ -111,7 +119,8 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
         userRole === Role.ENTREPRISE ? t("akwaba.sidebar.roles.entreprise") :
             userRole === Role.CHAUFFEUR ? t("akwaba.sidebar.roles.chauffeur") :
                 userRole === Role.LIVREUR ? t("akwaba.sidebar.roles.livreur") :
-                    t("akwaba.sidebar.roles.client");
+                    userRole === Role.GAZIER ? t("akwaba.sidebar.roles.gazier") :
+                        t("akwaba.sidebar.roles.client");
 
     // ── Desktop menu item ──
     const renderMenuItem = (item: TabConfig) => {

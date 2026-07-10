@@ -114,6 +114,24 @@ const nextConfig = {
           { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
         ],
       },
+      {
+        // Digital Asset Links (Android App Links / TWA) — doit être servi en JSON
+        // et rester accessible sans redirection pour que le vérificateur Android le lise.
+        source: "/.well-known/assetlinks.json",
+        headers: [
+          { key: "Content-Type", value: "application/json; charset=utf-8" },
+          { key: "Cache-Control", value: "public, max-age=3600" },
+        ],
+      },
+      {
+        // Apple App Site Association (Universal Links) — fichier sans extension,
+        // doit être servi en JSON pour être validé par le CDN d'Apple.
+        source: "/.well-known/apple-app-site-association",
+        headers: [
+          { key: "Content-Type", value: "application/json; charset=utf-8" },
+          { key: "Cache-Control", value: "public, max-age=3600" },
+        ],
+      },
     ];
   },
 

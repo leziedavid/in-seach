@@ -4,9 +4,10 @@ import { useState, useRef, useEffect } from "react"
 import { motion } from "framer-motion"
 import SearchAnnonces from "@/components/annonces/sections/SearchAnnonces"
 import Boutique from "@/components/store/sections/Boutique"
-import { OpportunitiesIcon, BoutiqueIcon, SearchIcon, LogisticsIcon } from "@/components/layout/TabIcons"
+import { OpportunitiesIcon, BoutiqueIcon, SearchIcon, LogisticsIcon, GazIcon } from "@/components/layout/TabIcons"
 import SearchServies from "@/components/services/sections/SearchServies"
 import LogisticProvider from "@/components/logistics/sections/LogisticProvider"
+import SearchGaz from "@/components/gas-delivery/sections/SearchGaz"
 import { useTranslation } from "@/utils/langue/hooks"
 
 export default function AppTabs() {
@@ -49,6 +50,15 @@ export default function AppTabs() {
         //         description: t("home.tabs.logistics.description")
         //     }
         // },
+        {
+            id: "gaz",
+            label: t("home.tabs.gaz.label"),
+            Icon: GazIcon,
+            info: {
+                title: t("home.tabs.gaz.title"),
+                description: t("home.tabs.gaz.description")
+            }
+        },
     ]
 
     const [active, setActive] = useState("search")
@@ -156,6 +166,12 @@ export default function AppTabs() {
                 {active === "logistics" && (
                     <div className="w-full flex flex-col items-center px-0 sm:px-0 stagger-item">
                         <LogisticProvider />
+                    </div>
+                )}
+
+                {active === "gaz" && (
+                    <div className="w-full flex flex-col items-center px-0 sm:px-0 stagger-item">
+                        <SearchGaz />
                     </div>
                 )}
             </div>

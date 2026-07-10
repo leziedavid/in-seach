@@ -122,6 +122,11 @@
                 "label": "Logistique",
                 "title": "Logistique Globale",
                 "description": "Expédiez sans frontières. Solutions de transport maritime, aérien et suivi en temps réel pour vos flux internationaux."
+            },
+            "gaz": {
+                "label": "Gaz",
+                "title": "Recharge de Gaz à Domicile",
+                "description": "Trouvez un prestataire de gaz près de chez vous et faites-vous livrer votre bouteille en toute simplicité."
             }
         },
         "image_search": {
@@ -653,6 +658,7 @@
             "role_professional": "Professionnel",
             "role_logistician": "Logisticien",
             "role_deliverer": "Livreur",
+            "role_gas_provider": "Fournisseur de gaz",
             "email_label": "Email",
             "phone_label": "Numéro de téléphone",
             "fullname_label": "Nom & Prénom (optionnel)",
@@ -702,6 +708,8 @@
             "api_doc": "Documentation API",
             "settings": "Paramètres",
             "deliverer_space": "Mon Espace Livreur",
+            "gas_refill": "Recharge de gaz",
+            "my_gas_bottles": "Mon espace gaz",
             "total_gains": "Total Gains",
             "logout": "Déconnexion",
             "my_account": "Mon compte",
@@ -710,6 +718,7 @@
                 "entreprise": "Entreprise Logistique",
                 "chauffeur": "Chauffeur",
                 "livreur": "Livreur EasyDelivery",
+                "gazier": "Fournisseur de gaz",
                 "client": "Client"
             },
             "my_lives": "Mes Lives"

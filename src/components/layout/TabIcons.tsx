@@ -39,6 +39,13 @@ export function LogisticsIcon({ active, className }: IconProps) {
     )
 }
 
+// Pour "Gaz" : bouteille de gaz
+export function GazIcon({ active, className }: IconProps) {
+    return (
+        <Icon icon="mdi:propane-tank" className={`${defaultSizeClasses} ${className}`} style={{ color: strokeColor(active) }} />
+    )
+}
+
 // Anciens exports pour compatibilité au cas où
 export const HistoryIcon = OpportunitiesIcon;
 export const AccountIcon = BoutiqueIcon;

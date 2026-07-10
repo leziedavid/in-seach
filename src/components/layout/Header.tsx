@@ -345,6 +345,10 @@ export default function Header() {
                                 <Icon icon="solar:shop-2-bold-duotone" className="text-white w-5 h-5" />
                             </Link>
 
+                            <Link href="/guide" title="Guide" className="relative bg-primary p-2 rounded-full transition hover:scale-110 active:scale-95 flex items-center justify-center">
+                                <Icon icon="solar:book-bookmark-bold-duotone" className="text-white w-5 h-5" />
+                            </Link>
+
                             <div className="hidden md:block">
                                 <ThemeToggle />
                             </div>

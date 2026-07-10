@@ -122,6 +122,11 @@
                 "label": "Logistics",
                 "title": "Global Logistics",
                 "description": "Ship without borders. Maritime, air transport solutions and real-time tracking for your international flows."
+            },
+            "gaz": {
+                "label": "Gas",
+                "title": "Home Gas Refill Delivery",
+                "description": "Find a gas provider near you and get your gas bottle delivered with ease."
             }
         },
         "image_search": {
@@ -653,6 +658,7 @@
             "role_professional": "Professional",
             "role_logistician": "Logistician",
             "role_deliverer": "Deliverer",
+            "role_gas_provider": "Gas Provider",
             "email_label": "Email",
             "phone_label": "Phone number",
             "fullname_label": "Full Name (optional)",
@@ -702,6 +708,8 @@
             "api_doc": "API Documentation",
             "settings": "Settings",
             "deliverer_space": "My Deliverer Space",
+            "gas_refill": "Gas Refill",
+            "my_gas_bottles": "My Gas Space",
             "total_gains": "Total Earnings",
             "logout": "Logout",
             "my_account": "My account",
@@ -710,6 +718,7 @@
                 "entreprise": "Logistics Company",
                 "chauffeur": "Driver",
                 "livreur": "EasyDelivery Deliverer",
+                "gazier": "Gas Provider",
                 "client": "Client"
             },
             "my_lives": "My Lives"

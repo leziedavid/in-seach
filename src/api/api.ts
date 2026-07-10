@@ -1,5 +1,5 @@
 import { getCookie } from '@/lib/cookies';
-import { BaseResponse, Category, Pagination, ReverseGeocodeData, Role, Service, MySpaceResponse, Annonce, BookingsCalendar, Product, CategoryProd, Order, AdminQueryParams, AdminUserUpdateDto, AdminProductUpdateDto, AdminServiceUpdateDto, AdminAnnonceUpdateDto, AdminSubscriptionPlanDto, User, AdminLog, SubscriptionPlan, PlanEntity, AdminUserSubscription, Subscription, OrdersGroupedResponse, BookingsGroupedResponse, LogisticService, Quote, Delivery, DeliveryTracking, QuoteStatus, DeliveryStatus, TransportType, LocationLog, CategorieAnnonce, TypeAnnonce, LogisticsClient, Video, StoreUserInfo, StoreStats, ServiceStats, AnnonceStats, LiveStats, LogisticProvider, LogisticStats, EasyDelivery, HistoryDelivery, EasyDeliveryStatus, DriverStats, SubCategoryProd, Slider, Live, LiveFeedResponse, LiveListResponse, LiveStatus, LiveEntityType, Boost, BoostPricing, BoostEntityType, BoostPaymentMethod, WebPushNotifActiveResponse, WebPushNotifStatus, WebPushNotifAdminListResponse, NotificationSubscriptionListResponse, PushNotificationPayload, SendPushResult } from '@/types/interface';
+import { BaseResponse, Category, Pagination, ReverseGeocodeData, Role, Service, MySpaceResponse, Annonce, BookingsCalendar, Product, CategoryProd, Order, AdminQueryParams, AdminUserUpdateDto, AdminProductUpdateDto, AdminServiceUpdateDto, AdminAnnonceUpdateDto, AdminSubscriptionPlanDto, User, AdminLog, SubscriptionPlan, PlanEntity, AdminUserSubscription, Subscription, OrdersGroupedResponse, BookingsGroupedResponse, LogisticService, Quote, Delivery, DeliveryTracking, QuoteStatus, DeliveryStatus, TransportType, LocationLog, CategorieAnnonce, TypeAnnonce, LogisticsClient, Video, StoreUserInfo, StoreStats, ServiceStats, AnnonceStats, LiveStats, LogisticProvider, LogisticStats, GasProvider, GasBottle, GasBottleFormat, GasDelivery, GasDeliveryStatus, EasyDelivery, HistoryDelivery, EasyDeliveryStatus, DriverStats, SubCategoryProd, Slider, Live, LiveFeedResponse, LiveListResponse, LiveStatus, LiveEntityType, Boost, BoostPricing, BoostEntityType, BoostPaymentMethod, WebPushNotifActiveResponse, WebPushNotifStatus, WebPushNotifAdminListResponse, NotificationSubscriptionListResponse, PushNotificationPayload, SendPushResult } from '@/types/interface';
 
 export const getBaseUrl = (): string => {
     return process.env.NEXT_PUBLIC_API_URL || 'https://api.djamko.com/api/v1';
@@ -2030,6 +2030,124 @@ export const getTrackingByDelivery = async (deliveryId: string, params?: { page?
     return await response.json();
 };
 
+
+/* =======================================================
+   GAS DELIVERY API (recharge de gaz à domicile)
+======================================================= */
+
+// --- Marketplace public ---
+export const getPublicGasBottles = async (params?: { page?: number; limit?: number; providerId?: string }): Promise<BaseResponse<Pagination<GasBottle>>> => {
+    const response = await fetch(`${getBaseUrl()}/gas-delivery/bottles?${toQueryString(params || {})}`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
+export const getPublicGasProviders = async (params: { page?: number; limit?: number; query?: string; lat?: number; lng?: number; radiusKm?: number }): Promise<BaseResponse<Pagination<GasProvider> & { isFallback?: boolean }>> => {
+    const queryString = toQueryString(params);
+    const response = await fetch(`${getBaseUrl()}/gas-delivery/providers?${queryString}`);
+    return await response.json();
+};
+
+// --- Profil prestataire ---
+export const upsertGasProvider = async (data: { companyName: string; whatsapp?: string; phone?: string; isAvailable?: boolean; address?: string; latitude?: number; longitude?: number; description?: string }): Promise<BaseResponse<GasProvider>> => {
+    const response = await secureFetch(`${getBaseUrl()}/gas-delivery/providers/profile`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const getMyGasProvider = async (): Promise<BaseResponse<GasProvider>> => {
+    const response = await secureFetch(`${getBaseUrl()}/gas-delivery/providers/profile`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
+// --- Catalogue de bouteilles (prestataire) ---
+export const createGasBottle = async (data: { brand: string; format: GasBottleFormat; weight: number; price: number; isAvailable?: boolean }): Promise<BaseResponse<GasBottle>> => {
+    const response = await secureFetch(`${getBaseUrl()}/gas-delivery/bottles`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const updateGasBottle = async (id: string, data: { brand?: string; format?: GasBottleFormat; weight?: number; price?: number; isAvailable?: boolean }): Promise<BaseResponse<GasBottle>> => {
+    const response = await secureFetch(`${getBaseUrl()}/gas-delivery/bottles/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const deleteGasBottle = async (id: string): Promise<BaseResponse<boolean>> => {
+    const response = await secureFetch(`${getBaseUrl()}/gas-delivery/bottles/${id}`, {
+        method: 'DELETE',
+    });
+    return await response.json();
+};
+
+export const getMyGasBottles = async (params?: { page?: number; limit?: number }): Promise<BaseResponse<Pagination<GasBottle>>> => {
+    const response = await secureFetch(`${getBaseUrl()}/gas-delivery/bottles/my?${toQueryString(params || {})}`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
+// --- Demandes de recharge (client) ---
+export const createGasDelivery = async (data: { clientPhone: string; address: string; latitude: number; longitude: number; bottleId: string }): Promise<BaseResponse<GasDelivery>> => {
+    const response = await secureFetch(`${getBaseUrl()}/gas-delivery/deliveries`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const getMyGasDeliveries = async (): Promise<BaseResponse<GasDelivery[]>> => {
+    const response = await secureFetch(`${getBaseUrl()}/gas-delivery/deliveries/my`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
+export const cancelMyGasDelivery = async (id: string): Promise<BaseResponse<GasDelivery>> => {
+    const response = await secureFetch(`${getBaseUrl()}/gas-delivery/deliveries/${id}/cancel`, {
+        method: 'PATCH',
+    });
+    return await response.json();
+};
+
+// --- Gestion des demandes (prestataire) ---
+export const getPendingGasDeliveries = async (): Promise<BaseResponse<GasDelivery[]>> => {
+    const response = await secureFetch(`${getBaseUrl()}/gas-delivery/deliveries/pending`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
+export const getAssignedGasDeliveries = async (): Promise<BaseResponse<GasDelivery[]>> => {
+    const response = await secureFetch(`${getBaseUrl()}/gas-delivery/deliveries/assigned`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
+export const acceptGasDelivery = async (id: string): Promise<BaseResponse<GasDelivery>> => {
+    const response = await secureFetch(`${getBaseUrl()}/gas-delivery/deliveries/${id}/accept`, {
+        method: 'PATCH',
+    });
+    return await response.json();
+};
+
+export const updateGasDeliveryStatus = async (id: string, status: GasDeliveryStatus): Promise<BaseResponse<GasDelivery>> => {
+    const response = await secureFetch(`${getBaseUrl()}/gas-delivery/deliveries/${id}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status }),
+    });
+    return await response.json();
+};
 
 /* =======================================================
    LOCATION LOG API
