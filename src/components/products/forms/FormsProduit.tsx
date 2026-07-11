@@ -86,6 +86,7 @@ export default function FormsProduit({
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(e.target.files || []);
         if (!files.length) return;
+        if (imagePreviews.length + files.length > 3) return;
         setImages(prev => [...prev, ...files]);
         files.forEach(file => {
             const reader = new FileReader();
@@ -141,10 +142,13 @@ export default function FormsProduit({
 
                 {/* Images */}
                 <div className="bg-card rounded-xl border border-border p-4">
-                    <h3 className="text-sm font-black mb-3 flex items-center gap-2">
-                        <Icon icon="solar:gallery-bold-duotone" className="w-5 h-5 text-primary" />
-                        Photos du produit
-                    </h3>
+                    <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-sm font-black flex items-center gap-2">
+                            <Icon icon="solar:gallery-bold-duotone" className="w-5 h-5 text-primary" />
+                            Photos du produit
+                        </h3>
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{imagePreviews.length}/3</span>
+                    </div>
                     <div className="flex flex-wrap gap-3">
                         {imagePreviews.map((src, i) => (
                             <div key={i} className="relative w-20 h-20 rounded-xl overflow-hidden border border-border">
@@ -163,10 +167,10 @@ export default function FormsProduit({
                                 </button>
                             </div>
                         ))}
-                        <label className="w-20 h-20 rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-colors bg-muted">
+                        <label className={`w-20 h-20 rounded-xl border-2 border-dashed flex flex-col items-center justify-center transition-colors bg-muted ${imagePreviews.length >= 3 ? 'opacity-50 cursor-not-allowed border-border' : 'border-border hover:border-primary cursor-pointer'}`}>
                             <Icon icon="solar:upload-bold-duotone" className="w-6 h-6 text-muted-foreground" />
                             <span className="text-[10px] text-muted-foreground font-black mt-1">AJOUTER</span>
-                            <input type="file" accept="image/*" multiple onChange={handleImageChange} className="hidden" />
+                            <input type="file" accept="image/*" multiple onChange={handleImageChange} disabled={imagePreviews.length >= 3} className="hidden" />
                         </label>
                     </div>
                 </div>

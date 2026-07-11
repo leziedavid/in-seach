@@ -991,7 +991,7 @@
                 "submit_update": "Mettre à jour l'annonce",
                 "submit_publish": "Publier mon annonce",
                 "cancel": "Annuler",
-                "max_photos": "{{count}}/8 Photos",
+                "max_photos": "{{count}}/3 Photos",
                 "errors": {
                     "title_min": "Titre trop court (min 3)",
                     "title_max": "Titre trop long (max 100)",

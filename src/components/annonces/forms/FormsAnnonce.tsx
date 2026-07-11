@@ -306,7 +306,7 @@ export default function FormsAnnonce({ initialData, onSubmit, isSubmitting = fal
     // ── Image handlers ────────────────────────────────────────────────────────
     const handleImageUpload = (files: FileList) => {
         const newFiles = Array.from(files);
-        if (existingImageUrls.length + images.length + newFiles.length > 8) return;
+        if (existingImageUrls.length + images.length + newFiles.length > 3) return;
         setImages(prev => [...prev, ...newFiles]);
         newFiles.forEach(file => {
             const reader = new FileReader();
@@ -410,10 +410,10 @@ export default function FormsAnnonce({ initialData, onSubmit, isSubmitting = fal
                         </span>
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-4">
-                        <label className={`h-24 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center bg-muted/30 transition-colors ${(existingImageUrls.length + images.length) >= 8 ? "opacity-50 cursor-not-allowed" : "border-border hover:border-primary cursor-pointer border-primary/20"}`}>
+                        <label className={`h-24 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center bg-muted/30 transition-colors ${(existingImageUrls.length + images.length) >= 3 ? "opacity-50 cursor-not-allowed" : "border-border hover:border-primary cursor-pointer border-primary/20"}`}>
                             <Icon icon="solar:camera-add-bold-duotone" className="w-6 h-6 text-muted-foreground" />
                             <span className="text-[10px] font-black text-muted-foreground mt-1 uppercase">{t("akwaba.forms.annonce.add_photo")}</span>
-                            <input type="file" accept="image/*" onChange={(e) => e.target.files && handleImageUpload(e.target.files)} multiple disabled={(existingImageUrls.length + images.length) >= 8} className="hidden" />
+                            <input type="file" accept="image/*" onChange={(e) => e.target.files && handleImageUpload(e.target.files)} multiple disabled={(existingImageUrls.length + images.length) >= 3} className="hidden" />
                         </label>
                         {existingImageUrls.map((img, i) => (
                             <div key={`exist-${i}`} className="relative h-24 rounded-2xl overflow-hidden group shadow-md">

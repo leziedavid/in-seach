@@ -53,6 +53,7 @@ export default function FormsLogistics({ initialData, onSubmit, isSubmitting = f
 
     const handleImageUpload = (files: FileList) => {
         const newFiles = Array.from(files);
+        if (existingImages.length + images.length + newFiles.length > 3) return;
         setImages(prev => [...prev, ...newFiles]);
 
         newFiles.forEach(file => {
@@ -97,14 +98,14 @@ export default function FormsLogistics({ initialData, onSubmit, isSubmitting = f
                             <Icon icon="solar:gallery-bold-duotone" className="w-5 h-5 text-primary" />
                             Photos du service
                         </h3>
-                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{existingImages.length + images.length}/5</span>
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{existingImages.length + images.length}/3</span>
                     </div>
 
                     <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-4">
-                        <label className={`h-24 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center bg-muted/30 transition-colors ${(existingImages.length + images.length) >= 5 ? 'opacity-50 cursor-not-allowed' : 'border-border hover:border-primary cursor-pointer border-primary/20'}`}>
+                        <label className={`h-24 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center bg-muted/30 transition-colors ${(existingImages.length + images.length) >= 3 ? 'opacity-50 cursor-not-allowed' : 'border-border hover:border-primary cursor-pointer border-primary/20'}`}>
                             <Icon icon="solar:camera-add-bold-duotone" className="w-6 h-6 text-muted-foreground" />
                             <span className="text-[10px] font-black text-muted-foreground mt-1 uppercase">Ajouter</span>
-                            <input type="file" accept="image/*" onChange={(e) => e.target.files && handleImageUpload(e.target.files)} multiple disabled={(existingImages.length + images.length) >= 5} className="hidden" />
+                            <input type="file" accept="image/*" onChange={(e) => e.target.files && handleImageUpload(e.target.files)} multiple disabled={(existingImages.length + images.length) >= 3} className="hidden" />
                         </label>
 
                         {existingImages.map((img, i) => (

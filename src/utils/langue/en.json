@@ -992,7 +992,7 @@
                 "submit_update": "Update Ad",
                 "submit_publish": "Publish my Ad",
                 "cancel": "Cancel",
-                "max_photos": "{{count}}/8 Photos",
+                "max_photos": "{{count}}/3 Photos",
                 "errors": {
                     "title_min": "Title too short (min 3)",
                     "title_max": "Title too long (max 100)",
