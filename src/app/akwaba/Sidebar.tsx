@@ -6,6 +6,12 @@ import Image from "next/image";
 import { Role } from "@/types/interface";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "@/utils/langue/hooks";
+import { useNotifications } from "@/hooks/useNotifications";
+import { useNotification } from "@/components/notifications/NotificationProvider";
+
+// Numéro WhatsApp de l'assistance Djamko (indicatif +225 conservé avec le 0 initial,
+// conforme au plan de numérotation ivoirien en vigueur)
+const ADMIN_WHATSAPP_NUMBER = "2250153686819";
 
 export type TabType =
     | "Overview"
@@ -33,7 +39,8 @@ export type TabType =
     | "Mes-lives"
     | "Retours-SAV"
     | "Recharge-gaz"
-    | "Mes-bouteilles-gaz";
+    | "Mes-bouteilles-gaz"
+    | "Historique";
 
 export interface TabConfig {
     key: TabType;
@@ -71,6 +78,9 @@ export const TABS_CONFIG: TabConfig[] = [
     // Recharge de gaz à domicile
     { labelKey: 'akwaba.sidebar.gas_refill', icon: "solar:fire-bold-duotone", key: 'Recharge-gaz', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ENTREPRISE, Role.ADMIN] },
     { labelKey: 'akwaba.sidebar.my_gas_bottles', icon: "solar:box-bold-duotone", key: 'Mes-bouteilles-gaz', roles: [Role.GAZIER, Role.ADMIN] },
+
+    // Historique unifié (commandes, réservations, livraisons de gaz) — accessible via l'action rapide "Historique"
+    { labelKey: 'akwaba.sidebar.history', icon: "solar:clock-circle-bold-duotone", key: 'Historique', roles: [Role.CLIENT, Role.GAZIER, Role.PRESTATAIRE, Role.ADMIN, Role.ENTREPRISE, Role.CHAUFFEUR] },
 ];
 
 interface SidebarProps {
@@ -98,6 +108,8 @@ const MOBILE_GROUPS = [
 
 export default function Sidebar({ activeTab, onTabChange, user, onLogout }: SidebarProps) {
     const { t } = useTranslation();
+    const { addNotification } = useNotification();
+    const { permission, subscribe, unsubscribe, isNotificationsEnabled, isPushSupported, lastError } = useNotifications();
     const userRole = user?.role as Role;
 
     const baseMenu = TABS_CONFIG.filter(item => item.roles.includes(userRole));
@@ -121,6 +133,32 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
                 userRole === Role.LIVREUR ? t("akwaba.sidebar.roles.livreur") :
                     userRole === Role.GAZIER ? t("akwaba.sidebar.roles.gazier") : t("akwaba.sidebar.roles.client");
 
+    // ── Assistance — ouvre WhatsApp avec un message prédéfini vers l'admin ──
+    const handleOpenAssistance = () => {
+        const message = encodeURIComponent("Bonjour, j'ai besoin d'assistance concernant mon compte Djamko.");
+        window.open(`https://wa.me/${ADMIN_WHATSAPP_NUMBER}?text=${message}`, "_blank", "noopener,noreferrer");
+        setOpen(false);
+    };
+
+    // ── Notifications — appelle le workflow existant (useNotifications), aucune nouvelle logique ──
+    const handleToggleNotifications = async () => {
+        if (!isPushSupported) {
+            addNotification(t("akwaba.settings.notifications_not_supported"), "error");
+            return;
+        }
+        if (permission === 'denied') {
+            addNotification(t("akwaba.settings.notifications_blocked"), "error");
+            return;
+        }
+        if (isNotificationsEnabled) {
+            const success = await unsubscribe();
+            addNotification(success ? t("akwaba.settings.notifications_disabled_success") : (lastError || t("akwaba.settings.notifications_error")), success ? "success" : "error");
+        } else {
+            const success = await subscribe();
+            addNotification(success ? t("akwaba.settings.notifications_enabled_success") : (lastError || t("akwaba.settings.notifications_error")), success ? "success" : "error");
+        }
+    };
+
     // ── Desktop menu item ──
     const renderMenuItem = (item: TabConfig) => {
         const isActive = activeTab === item.key;
@@ -132,13 +170,15 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
         );
     };
 
-    // ── Mobile row item style Yango ──
-    const renderMobileRow = (item: TabConfig, isLast: boolean) => {
+    // ── Ligne de menu style Yango — variant "desktop" = icônes légèrement réduites pour ne pas déborder ──
+    const renderMobileRow = (item: TabConfig, isLast: boolean, variant: 'mobile' | 'desktop' = 'mobile') => {
         const isActive = activeTab === item.key;
+        const circleSize = variant === 'desktop' ? 'w-8 h-8' : 'w-9 h-9';
+        const iconWidth = variant === 'desktop' ? 16 : 19;
         return (
             <button key={item.key} onClick={() => { onTabChange(item.key); setOpen(false); }} className="w-full flex items-center gap-3 px-3 py-2.5 active:bg-muted/60 transition-colors">
                 {/* Icône dans un cercle */}
-                <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${isActive ? 'bg-primary/15' : 'bg-muted'}`}> <Icon icon={item.icon} width={19} className={isActive ? 'text-primary' : 'text-foreground/70'} />
+                <div className={`${circleSize} rounded-full flex items-center justify-center shrink-0 ${isActive ? 'bg-primary/15' : 'bg-muted'}`}> <Icon icon={item.icon} width={iconWidth} className={isActive ? 'text-primary' : 'text-foreground/70'} />
                 </div>
 
                 {/* Label */}
@@ -151,6 +191,41 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
                 {/* Chevron */}
                 <Icon icon="solar:alt-arrow-right-bold" className={`w-4 h-4 shrink-0 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
             </button>
+        );
+    };
+
+    // ── Action rapide circulaire style app mobile native (Historique / Assistance / Paramètres) ──
+    const renderQuickAction = (icon: string, label: string, onClick: () => void, key: string, variant: 'mobile' | 'desktop' = 'mobile') => {
+        const circleSize = variant === 'desktop' ? 'w-11 h-11' : 'w-14 h-14';
+        const iconWidth = variant === 'desktop' ? 19 : 24;
+        return (
+            <button key={key} onClick={onClick} className="flex flex-col items-center gap-1.5 active:scale-95 transition-transform">
+                <div className={`${circleSize} rounded-full bg-muted flex items-center justify-center`}>
+                    <Icon icon={icon} width={iconWidth} className="text-foreground/80" />
+                </div>
+                <span className={`font-semibold text-foreground text-center ${variant === 'desktop' ? 'text-[10px]' : 'text-xs'}`}>{label}</span>
+            </button>
+        );
+    };
+
+    // ── Carte "Activer les notifications" — icône verte si activées, rouge sinon ──
+    const renderNotificationRow = (variant: 'mobile' | 'desktop' = 'mobile') => {
+        const circleSize = variant === 'desktop' ? 'w-8 h-8' : 'w-9 h-9';
+        const iconWidth = variant === 'desktop' ? 16 : 19;
+        return (
+            <div className="bg-muted/40 dark:bg-zinc-800/40 rounded-2xl overflow-hidden border border-border/40">
+                <button onClick={handleToggleNotifications} className="w-full flex items-center gap-3 px-3 py-2.5 active:bg-muted/60 transition-colors">
+                    <div className={`${circleSize} rounded-full flex items-center justify-center shrink-0 ${isNotificationsEnabled ? 'bg-green-500/15' : 'bg-red-500/15'}`}>
+                        <Icon icon="solar:bell-bold-duotone" width={iconWidth} className={isNotificationsEnabled ? 'text-green-500' : 'text-red-500'} />
+                    </div>
+                    <div className="flex-1 text-left min-w-0">
+                        <p className="text-sm font-semibold truncate text-foreground">
+                            {isNotificationsEnabled ? t("akwaba.sidebar.notifications_active") : t("akwaba.sidebar.enable_notifications")}
+                        </p>
+                    </div>
+                    <Icon icon="solar:alt-arrow-right-bold" className="w-4 h-4 shrink-0 text-muted-foreground" />
+                </button>
+            </div>
         );
     };
 
@@ -216,6 +291,40 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
                         )}
                     </div>
 
+                    {/* Actions rapides */}
+                    {!isLoading && (
+                        <div className="flex items-center justify-center gap-6 px-2 pb-4">
+                            {menu.some(i => i.key === 'Historique') && renderQuickAction(
+                                "solar:clock-circle-bold-duotone",
+                                t("akwaba.sidebar.history"),
+                                () => onTabChange('Historique'),
+                                "history-desktop",
+                                'desktop'
+                            )}
+                            {renderQuickAction(
+                                "solar:headphones-round-bold-duotone",
+                                t("akwaba.sidebar.assistance"),
+                                handleOpenAssistance,
+                                "assistance-desktop",
+                                'desktop'
+                            )}
+                            {menu.some(i => i.key === 'Paramètres') && renderQuickAction(
+                                "solar:settings-bold-duotone",
+                                t("akwaba.sidebar.settings"),
+                                () => onTabChange('Paramètres'),
+                                "settings-desktop",
+                                'desktop'
+                            )}
+                        </div>
+                    )}
+
+                    {/* Notifications */}
+                    {!isLoading && (
+                        <div className="pb-3">
+                            {renderNotificationRow('desktop')}
+                        </div>
+                    )}
+
                     {/* Menu groupé — même style que mobile */}
                     <div className="space-y-2 pb-2">
                         {isLoading ? (
@@ -229,7 +338,7 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
                                         <div key={gi} className="bg-muted/40 dark:bg-zinc-800/40 rounded-2xl overflow-hidden border border-border/40">
                                             {groupItems.map((item, idx) => (
                                                 <React.Fragment key={item.key}>
-                                                    {renderMobileRow(item, idx === groupItems.length - 1)}
+                                                    {renderMobileRow(item, idx === groupItems.length - 1, 'desktop')}
                                                     {idx < groupItems.length - 1 && (
                                                         <div className="h-px bg-border/40 mx-4" />
                                                     )}
@@ -242,7 +351,7 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
                                 {/* Déconnexion */}
                                 <div className="bg-muted/40 dark:bg-zinc-800/40 rounded-2xl overflow-hidden border border-border/40">
                                     <button onClick={onLogout} className="w-full flex items-center gap-3 px-3 py-2.5 active:bg-red-50/60 dark:active:bg-red-900/20 transition-colors">
-                                        <div className="w-9 h-9 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center shrink-0"><Icon icon="solar:logout-bold-duotone" width={19} className="text-red-500" />
+                                        <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center shrink-0"><Icon icon="solar:logout-bold-duotone" width={16} className="text-red-500" />
                                         </div>
                                         <span className="flex-1 text-left text-sm font-semibold text-red-500">
                                             {t("akwaba.sidebar.logout")}
@@ -336,6 +445,37 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
                                     </div>
                                 )}
                             </div>
+
+                            {/* ── Actions rapides style app mobile native ── */}
+                            {!isLoading && (
+                                <div className="flex items-center justify-center gap-8 px-6 pb-5">
+                                    {menu.some(i => i.key === 'Historique') && renderQuickAction(
+                                        "solar:clock-circle-bold-duotone",
+                                        t("akwaba.sidebar.history"),
+                                        () => { onTabChange('Historique'); setOpen(false); },
+                                        "history"
+                                    )}
+                                    {renderQuickAction(
+                                        "solar:headphones-round-bold-duotone",
+                                        t("akwaba.sidebar.assistance"),
+                                        handleOpenAssistance,
+                                        "assistance"
+                                    )}
+                                    {menu.some(i => i.key === 'Paramètres') && renderQuickAction(
+                                        "solar:settings-bold-duotone",
+                                        t("akwaba.sidebar.settings"),
+                                        () => { onTabChange('Paramètres'); setOpen(false); },
+                                        "settings"
+                                    )}
+                                </div>
+                            )}
+
+                            {/* ── Notifications ── */}
+                            {!isLoading && (
+                                <div className="px-4 pb-4">
+                                    {renderNotificationRow()}
+                                </div>
+                            )}
 
                             {/* ── Menu groupé ── */}
                             <div className="flex-1 px-4 pb-4 space-y-2">

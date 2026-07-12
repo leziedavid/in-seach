@@ -713,6 +713,10 @@
             "total_gains": "Total Earnings",
             "logout": "Logout",
             "my_account": "My account",
+            "history": "History",
+            "assistance": "Support",
+            "enable_notifications": "Enable notifications",
+            "notifications_active": "Notifications enabled",
             "roles": {
                 "prestataire": "Provider",
                 "entreprise": "Logistics Company",
