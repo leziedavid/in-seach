@@ -45,6 +45,28 @@ export default function GuidePage() {
                     <h1 className="text-3xl md:text-5xl font-black text-foreground tracking-tight mb-4">
                         Le guide complet de <span className="text-primary">Djamko</span>
                     </h1>
+
+                    <p className="text-foreground/90 text-base md:text-xl font-bold leading-relaxed max-w-3xl mx-auto mb-5">
+                        Djamko est une super-application qui réunit en un seul endroit tout ce dont particuliers, prestataires et entreprises ont besoin au quotidien : achat et vente en boutique en ligne, réservation de services à la demande, publication d'annonces, recharge de gaz à domicile, livraison express, logistique nationale et internationale, et lives shopping pour vendre en direct.
+                    </p>
+
+                    <div className="flex flex-wrap items-center justify-center gap-2 mb-6">
+                        {[
+                            { icon: "solar:bag-heart-bold-duotone", label: "Boutique en ligne" },
+                            { icon: "solar:hand-stars-bold-duotone", label: "Services à la demande" },
+                            { icon: "solar:megaphone-bold-duotone", label: "Annonces" },
+                            { icon: "mdi:propane-tank", label: "Recharge de gaz" },
+                            { icon: "solar:delivery-bold-duotone", label: "Livraison express" },
+                            { icon: "solar:ship-bold-duotone", label: "Logistique" },
+                            { icon: "solar:play-circle-bold-duotone", label: "Lives shopping" },
+                        ].map((s) => (
+                            <span key={s.label} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/10 text-xs font-bold text-foreground/80">
+                                <Icon icon={s.icon} className="w-3.5 h-3.5 text-primary" />
+                                {s.label}
+                            </span>
+                        ))}
+                    </div>
+
                     <p className="text-muted-foreground text-base md:text-lg leading-relaxed max-w-2xl mx-auto">
                         Catalogue, produits, services, annonces, commandes, logistique... tout ce qu'il faut savoir pour tirer le meilleur parti de votre activité sur Djamko.
                     </p>
