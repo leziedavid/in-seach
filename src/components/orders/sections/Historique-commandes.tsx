@@ -48,7 +48,10 @@ export default function HistoriqueCommandes() {
 
     useEffect(() => {
         fetchOrders();
-    }, [page]);
+        // activeTab inclus volontairement : un changement d'onglet (reçues/passées) doit
+        // rapatrier des données fraîches, car le statut peut avoir changé côté vendeur ou
+        // client sans que l'utilisateur courant ait rafraîchi la page.
+    }, [page, activeTab]);
 
     const displayedOrders = activeTab === 'recues' ? ordersReceived : ordersPlaced;
     const totalPages = activeTab === 'recues' ? receivedTotalPages : placedTotalPages;

@@ -110,7 +110,10 @@ export default function Commandes({ data: propData, page: propPage, limit: propL
         if (!propData) {
             fetchOrders();
         }
-    }, [page, propData]);
+        // activeTab inclus volontairement : un changement d'onglet (reçues/passées) doit
+        // rapatrier des données fraîches, car le statut peut avoir changé côté vendeur ou
+        // client sans que l'utilisateur courant ait rafraîchi la page.
+    }, [page, propData, activeTab]);
 
     const handleStatusChange = async (orderId: string, newStatus: string, requiresSubscription = false, targetType: 'order' | 'suborder' = 'order') => {
         if (requiresSubscription) {
