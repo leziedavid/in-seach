@@ -41,14 +41,20 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
         newSocket.on('connect', () => setConnected(true));
         newSocket.on('disconnect', () => setConnected(false));
 
-        newSocket.on('notification', (data: { title: string; message: string; type?: string }) => {
+        newSocket.on('notification', (data: { title: string; message: string; type?: string; entityType?: string; entityId?: string; status?: string }) => {
             // Même évènement potentiellement doublé par le push Firebase (voir webPush.tsx) : dédup par contenu
-            if (!shouldDisplayNotification(`${data.title}|${data.message}`)) return;
-            showNotification(data.message, (data.type as 'info' | 'success' | 'error' | 'warning') || 'info');
-        });
+            if (shouldDisplayNotification(`${data.title}|${data.message}`)) {
+                showNotification(data.message, (data.type as 'info' | 'success' | 'error' | 'warning') || 'info');
+            }
 
-        newSocket.on('status_update', (data: unknown) => {
-            window.dispatchEvent(new CustomEvent('realtime:status-change', { detail: data }));
+            // Ce même évènement 'notification' porte aussi entityType/status (voir
+            // NotificationService.sendSocketNotification côté backend) — c'est le seul
+            // canal WebSocket réellement émis pour les changements de statut (Order,
+            // SubOrder, Booking, Quote...). On le redispatche pour que useRealTimeUpdate()
+            // rafraîchisse les vues concernées sans attendre un changement d'onglet/reload.
+            if (data.entityType) {
+                window.dispatchEvent(new CustomEvent('realtime:status-change', { detail: data }));
+            }
         });
 
         newSocket.on('FORCE_LOGOUT', (data: { message: string }) => {
