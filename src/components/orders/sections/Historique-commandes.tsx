@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Order, OrderStatus } from "@/types/interface";
+import { Order, OrderStatus, SubOrder } from "@/types/interface";
 import { getMyOrders } from "@/api/api";
 import { Icon } from "@iconify/react";
 import AccountBookingRowSkeleton from "@/components/bookings/ui/AccountBookingRowSkeleton";
@@ -10,6 +10,8 @@ import OrderDetailModal from "@/components/orders/modals/OrderDetailModal";
 import ReceiptModal, { ReceiptData } from "@/components/shared/ReceiptModal";
 import { useRealTimeUpdate } from "@/hooks/useRealTimeUpdate";
 import { SectionHeader } from "@/components/shared/SectionHeader";
+import { getUserId } from "@/lib/auth";
+import { getOrderStatusStyle, getOrderStatusStyleObj, getOrderStatusBadgeLabel } from "@/components/orders/utils/orderStatus";
 
 export default function HistoriqueCommandes() {
     const [page, setPage] = useState(1);
@@ -57,76 +59,39 @@ export default function HistoriqueCommandes() {
     });
 
     const handleViewReceipt = (order: Order) => {
+        // Commande moderne (vendeur, avec SubOrder) : le bon de préparation ne contient
+        // que les articles de la sous-commande du vendeur connecté. Commande legacy ou
+        // vue "passées" (client) : comportement inchangé, tous les items de l'Order.
+        const mySubOrder: SubOrder | undefined = activeTab === 'recues'
+            ? order.subOrders?.find(so => so.vendorId === getUserId())
+            : undefined;
+
+        const items = mySubOrder ? mySubOrder.items : order.items;
+        const totalAmount = mySubOrder ? mySubOrder.totalPrice : order.totalAmount;
+        const status = mySubOrder ? mySubOrder.status : order.status;
+
         const data: ReceiptData = {
             title: `Commande #${order.code}`,
             code: order.code,
             date: new Date(order.createdAt).toLocaleDateString(),
-            status: order.status,
-            statusLabel: order.status === OrderStatus.PAID ? 'PAYÉ' :
-                order.status === OrderStatus.PENDING ? 'EN ATTENTE' :
-                    order.status === OrderStatus.PROCESSING ? 'EN COURS' :
-                        order.status === OrderStatus.VALIDATED ? 'VALIDÉ' :
-                            order.status === OrderStatus.SHIPPED ? 'EXPÉDIÉ' :
-                                order.status === OrderStatus.DELIVERED ? 'LIVRÉ' :
-                                    order.status === OrderStatus.CANCELLED ? 'ANNULÉ' : order.status,
-            statusColor: getStatusStyleObj(order.status),
+            status,
+            statusLabel: getOrderStatusBadgeLabel(status),
+            statusColor: getOrderStatusStyleObj(status),
             clientName: order.user?.fullName || "Client Inconnu",
             clientEmail: order.user?.email,
             clientPhone: order.user?.phone,
-            items: order.items.map(item => ({
+            items: items.map(item => ({
                 name: item.product?.name || "Produit inconnu",
                 quantity: item.quantity,
                 price: item.price
             })),
-            totalAmount: order.totalAmount,
+            totalAmount,
             type: 'COMMANDE',
             paymentMethod: order.paymentMethod
         };
 
         setReceiptData(data);
         setIsReceiptOpen(true);
-    };
-
-    const getStatusStyleObj = (status: string) => {
-        switch (status) {
-            case "PAID":
-                return { bg: "bg-green-500/10", text: "text-green-600 dark:text-green-400" };
-            case "PENDING":
-                return { bg: "bg-yellow-500/10", text: "text-yellow-600 dark:text-yellow-400" };
-            case "PROCESSING":
-                return { bg: "bg-orange-500/10", text: "text-orange-600 dark:text-orange-400" };
-            case "VALIDATED":
-                return { bg: "bg-blue-500/10", text: "text-blue-600 dark:text-blue-400" };
-            case "CANCELLED":
-                return { bg: "bg-red-500/10", text: "text-red-600 dark:text-red-400" };
-            case "SHIPPED":
-                return { bg: "bg-purple-500/10", text: "text-purple-600 dark:text-purple-400" };
-            case "DELIVERED":
-                return { bg: "bg-indigo-500/10", text: "text-indigo-600 dark:text-indigo-400" };
-            default:
-                return { bg: "bg-muted", text: "text-muted-foreground" };
-        }
-    };
-
-    const getStatusStyle = (status: string) => {
-        switch (status) {
-            case "PAID":
-                return "bg-green-500/10 text-green-600 dark:text-green-400";
-            case "PENDING":
-                return "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400";
-            case "PROCESSING":
-                return "bg-orange-500/10 text-orange-600 dark:text-orange-400";
-            case "VALIDATED":
-                return "bg-blue-500/10 text-blue-600 dark:text-blue-400";
-            case "CANCELLED":
-                return "bg-red-500/10 text-red-600 dark:text-red-400";
-            case "SHIPPED":
-                return "bg-purple-500/10 text-purple-600 dark:text-purple-400";
-            case "DELIVERED":
-                return "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400";
-            default:
-                return "bg-muted text-muted-foreground";
-        }
     };
 
     return (
@@ -172,19 +137,21 @@ export default function HistoriqueCommandes() {
                 {!loading && displayedOrders.length > 0 && (
                     <>
                         <div className="space-y-3">
-                            {displayedOrders.map((order) => (
+                            {displayedOrders.map((order) => {
+                                // Vue "reçues" (vendeur) sur une commande moderne : affiche le statut de SA
+                                // sous-commande plutôt que le statut global mélangé. Sinon comportement inchangé.
+                                const mySubOrder: SubOrder | undefined = activeTab === 'recues'
+                                    ? order.subOrders?.find(so => so.vendorId === getUserId())
+                                    : undefined;
+                                const displayStatus: OrderStatus = mySubOrder ? mySubOrder.status : order.status;
+
+                                return (
                                 <div key={order.id} className="flex items-center justify-between gap-4 py-4 px-4 rounded-2xl border border-border bg-card shadow-sm hover:shadow-md transition-all group" >
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2 mb-1">
                                             <span className="text-[10px] font-black text-muted-foreground uppercase tracking-wider">#{order.code}</span>
-                                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${getStatusStyle(order.status)}`}>
-                                                {order.status === OrderStatus.PAID ? 'PAYÉ' :
-                                                    order.status === OrderStatus.PENDING ? 'EN ATTENTE' :
-                                                        order.status === OrderStatus.PROCESSING ? 'EN COURS' :
-                                                            order.status === OrderStatus.VALIDATED ? 'VALIDÉ' :
-                                                                order.status === OrderStatus.SHIPPED ? 'EXPÉDIÉ' :
-                                                                    order.status === OrderStatus.DELIVERED ? 'LIVRÉ' :
-                                                                        order.status === OrderStatus.CANCELLED ? 'ANNULÉ' : order.status}
+                                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${getOrderStatusStyle(displayStatus)}`}>
+                                                {getOrderStatusBadgeLabel(displayStatus)}
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-2">
@@ -202,7 +169,8 @@ export default function HistoriqueCommandes() {
                                         </button>
                                     </div>
                                 </div>
-                            ))}
+                                );
+                            })}
                         </div>
                         {totalPages > 1 && (
                             <div className="mt-6">

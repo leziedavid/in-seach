@@ -634,6 +634,7 @@ export interface Product {
 export interface OrderItem {
     id: string
     productId: string
+    subOrderId?: string | null
     quantity: number
     price: number
     achatType?: 'UNITE' | 'GROS'
@@ -647,7 +648,27 @@ export enum OrderStatus {
     PAID = 'PAID',
     SHIPPED = 'SHIPPED',
     DELIVERED = 'DELIVERED',
-    CANCELLED = 'CANCELLED'
+    CANCELLED = 'CANCELLED',
+    PARTIELLEMENT_EXPEDIEE = 'PARTIELLEMENT_EXPEDIEE',
+    PARTIELLEMENT_COMPLETE = 'PARTIELLEMENT_COMPLETE'
+}
+
+export interface SubOrder {
+    id: string
+    orderId: string
+    vendorId: string
+    vendor?: Partial<User>
+    status: OrderStatus
+    totalPrice: number
+    shippingPrice: number
+    discount: number
+    taxes: number
+    trackingNumber?: string | null
+    deliveryProvider?: string | null
+    notes?: string | null
+    items: OrderItem[]
+    createdAt: string
+    updatedAt: string
 }
 
 export interface Order {
@@ -658,6 +679,7 @@ export interface Order {
     paymentMethod?: OrderPaymentMethod
     totalAmount: number
     items: OrderItem[]
+    subOrders?: SubOrder[]
     user?: User
     createdAt: string
     updatedAt: string

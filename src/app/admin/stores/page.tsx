@@ -37,6 +37,8 @@ const ORDER_STATUS_META: Record<OrderStatus, { label: string; badgeClass: string
     SHIPPED: { label: 'Expédiée', badgeClass: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-300' },
     DELIVERED: { label: 'Livrée', badgeClass: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300' },
     CANCELLED: { label: 'Annulée', badgeClass: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300' },
+    PARTIELLEMENT_EXPEDIEE: { label: 'Part. expédiée', badgeClass: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-300' },
+    PARTIELLEMENT_COMPLETE: { label: 'Part. complétée', badgeClass: 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300' },
 };
 
 function formatDate(iso: string): string {
