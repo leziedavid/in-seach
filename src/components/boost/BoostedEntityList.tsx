@@ -131,6 +131,15 @@ export default function BoostedEntityList({ entityType, entityLabel }: BoostedEn
                                                 Paiement : <span className="font-bold text-foreground/80">{PAYMENT_STATUS_LABELS[b.paymentStatus] ?? b.paymentStatus}</span>
                                             </div>
                                         )}
+                                        {/* Statistiques sponsoring — additif, CTR calculé à la volée (jamais stocké côté backend) */}
+                                        <div className="col-span-2 sm:col-span-4 flex flex-wrap items-center gap-x-4 gap-y-1 pt-2 mt-1 border-t border-dashed border-border/60">
+                                            <span className="flex items-center gap-1"><Icon icon="solar:eye-bold-duotone" width={12} /> {(b.impressions ?? 0).toLocaleString()} impr.</span>
+                                            <span className="flex items-center gap-1"><Icon icon="solar:cursor-bold-duotone" width={12} /> {(b.views ?? 0).toLocaleString()} vues</span>
+                                            <span className="flex items-center gap-1"><Icon icon="solar:mouse-bold-duotone" width={12} /> {(b.clicks ?? 0).toLocaleString()} clics</span>
+                                            <span className="flex items-center gap-1 font-bold text-foreground/80">
+                                                CTR : {b.impressions ? ((b.clicks ?? 0) / b.impressions * 100).toFixed(1) : "0.0"}%
+                                            </span>
+                                        </div>
                                     </div>
                                     {/* Renouvellement si expiré */}
                                     {isExpired && entity && (

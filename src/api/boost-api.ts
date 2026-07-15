@@ -52,3 +52,12 @@ export const getActiveBoosts = async (params?: {
     const response = await fetch(`${getBaseUrl()}/boosts/active?${qs}`);
     return await response.json();
 };
+
+/** Fire-and-forget : n'échoue jamais bruyamment, ne doit pas bloquer la navigation. */
+export const recordBoostClick = async (boostId: string): Promise<void> => {
+    try {
+        await fetch(`${getBaseUrl()}/boosts/${boostId}/click`, { method: 'POST' });
+    } catch {
+        // silencieux
+    }
+};

@@ -180,7 +180,7 @@ export default function HistoriqueCommandes() {
                                 <TablePagination page={page} limit={limit} total={displayedOrders.length} totalPages={totalPages} onPageChange={setPage} />
                             </div>
                         )}
-                        <OrderDetailModal isOpen={open} onClose={() => { setOpen(false); setSelectedOrder(null); }} order={selectedOrder} />
+                        <OrderDetailModal isOpen={open} onClose={() => { setOpen(false); setSelectedOrder(null); }} order={selectedOrder} onItemRemoved={fetchOrders} />
 
                         {/* Receipt Modal */}
                         <ReceiptModal isOpen={isReceiptOpen} onClose={() => { setIsReceiptOpen(false); setReceiptData(null); }} data={receiptData} />

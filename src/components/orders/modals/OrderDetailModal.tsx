@@ -7,11 +7,17 @@ import { Order, OrderItem, OrderStatus, SubOrder } from "@/types/interface";
 import ReturnRequestModal from "@/components/returns/modals/ReturnRequestModal";
 import { Modal } from "@/components/ui/MotionModal";
 import { ORDER_STATUS_DETAIL_CONFIG } from "@/components/orders/utils/orderStatus";
+import { getUserId } from "@/lib/auth";
+import { removeSubOrderItems } from "@/api/api";
+import { useNotification } from "@/components/notifications/NotificationProvider";
+import ConfirmAction from "@/components/ui/ConfirmAction";
 
 interface OrderDetailModalProps {
     isOpen: boolean;
     onClose: () => void;
     order: Order | null;
+    /** Appelé après un retrait d'article réussi, pour que le parent rafraîchisse ses données. */
+    onItemRemoved?: () => void;
 }
 
 const statusConfig = ORDER_STATUS_DETAIL_CONFIG;
@@ -26,9 +32,12 @@ function InfoRow({ label, value }: { icon?: string; label: string; value?: strin
     );
 }
 
-export default function OrderDetailModal({ isOpen, onClose, order }: OrderDetailModalProps) {
+export default function OrderDetailModal({ isOpen, onClose, order, onItemRemoved }: OrderDetailModalProps) {
     const [mounted, setMounted] = useState(false);
     const [returnItem, setReturnItem] = useState<OrderItem | null>(null);
+    const [removingItem, setRemovingItem] = useState<{ subOrderId: string; item: OrderItem } | null>(null);
+    const [isRemoving, setIsRemoving] = useState(false);
+    const { showNotification } = useNotification();
 
     useEffect(() => { setMounted(true); }, []);
 
@@ -39,7 +48,26 @@ export default function OrderDetailModal({ isOpen, onClose, order }: OrderDetail
     // sont pas encore. Commande legacy (sans SubOrder) : comportement inchangé (order.status).
     const canReturnFor = (subOrderStatus?: OrderStatus) => (subOrderStatus ?? order.status) === OrderStatus.DELIVERED;
 
-    const renderItemRow = (item: OrderItem, canReturnItem: boolean) => (
+    const handleConfirmRemove = async () => {
+        if (!removingItem || isRemoving) return;
+        setIsRemoving(true);
+        try {
+            const res = await removeSubOrderItems(removingItem.subOrderId, [removingItem.item.id]);
+            if (res.statusCode === 200) {
+                showNotification("Article retiré avec succès", "success");
+                onItemRemoved?.();
+            } else {
+                showNotification(res.message || "Erreur lors du retrait", "error");
+            }
+        } catch (error: any) {
+            showNotification(error.message || "Erreur de connexion", "error");
+        } finally {
+            setIsRemoving(false);
+            setRemovingItem(null);
+        }
+    };
+
+    const renderItemRow = (item: OrderItem, canReturnItem: boolean, canRemoveItem: boolean = false, subOrderId?: string) => (
         <div key={item.id} className="py-4 first:pt-0 last:pb-0">
             <div className="flex items-center gap-3">
                 <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-neutral-100 dark:bg-neutral-800 shrink-0">
@@ -50,16 +78,31 @@ export default function OrderDetailModal({ isOpen, onClose, order }: OrderDetail
                     )}
                 </div>
                 <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-neutral-900 dark:text-neutral-50 truncate">{item.product?.name || "Produit inconnu"}</p>
+                    <p className={`text-sm font-medium truncate ${item.removed ? "line-through text-neutral-400" : "text-neutral-900 dark:text-neutral-50"}`}>{item.product?.name || "Produit inconnu"}</p>
                     <p className="text-sm text-neutral-400 mt-0.5">Qty {item.quantity}</p>
                 </div>
-                <span className="text-sm font-medium text-neutral-900 dark:text-neutral-50 shrink-0">{(item.price * item.quantity).toLocaleString()} FCFA</span>
+                <span className={`text-sm font-medium shrink-0 ${item.removed ? "line-through text-neutral-400" : "text-neutral-900 dark:text-neutral-50"}`}>{(item.price * item.quantity).toLocaleString()} FCFA</span>
             </div>
-            {canReturnItem && (
-                <button onClick={() => setReturnItem(item)} className="mt-3 w-full flex items-center justify-center gap-1.5 py-2 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition-all text-xs font-semibold active:scale-95">
-                    <Icon icon="solar:refresh-back-bold-duotone" className="w-3.5 h-3.5" />
-                    Retourner l&apos;article
-                </button>
+            {item.removed ? (
+                <p className="mt-2 text-[10px] font-semibold text-red-500 flex items-center gap-1">
+                    <Icon icon="solar:close-circle-bold" width={12} />
+                    Article retiré{item.removedAt ? ` le ${new Date(item.removedAt).toLocaleDateString()}` : ""}
+                </p>
+            ) : (
+                <>
+                    {canReturnItem && (
+                        <button onClick={() => setReturnItem(item)} className="mt-3 w-full flex items-center justify-center gap-1.5 py-2 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition-all text-xs font-semibold active:scale-95">
+                            <Icon icon="solar:refresh-back-bold-duotone" className="w-3.5 h-3.5" />
+                            Retourner l&apos;article
+                        </button>
+                    )}
+                    {canRemoveItem && subOrderId && (
+                        <button onClick={() => setRemovingItem({ subOrderId, item })} className="mt-3 w-full flex items-center justify-center gap-1.5 py-2 rounded-xl bg-amber-50 text-amber-600 hover:bg-amber-100 transition-all text-xs font-semibold active:scale-95">
+                            <Icon icon="solar:trash-bin-minimalistic-bold-duotone" className="w-3.5 h-3.5" />
+                            Retirer l&apos;article (indisponible)
+                        </button>
+                    )}
+                </>
             )}
         </div>
     );
@@ -149,6 +192,10 @@ export default function OrderDetailModal({ isOpen, onClose, order }: OrderDetail
                                 {order.subOrders.map((subOrder: SubOrder) => {
                                     const subStatus = statusConfig[subOrder.status] || statusConfig.PENDING;
                                     const vendorLabel = subOrder.vendor?.storeName || subOrder.vendor?.fullName || "Vendeur";
+                                    const isMyVendorSubOrder = subOrder.vendorId === getUserId();
+                                    const canRemoveFromThisSubOrder = isMyVendorSubOrder
+                                        && subOrder.status !== OrderStatus.CANCELLED
+                                        && subOrder.status !== OrderStatus.DELIVERED;
                                     return (
                                         <div key={subOrder.id} className="border border-neutral-100 dark:border-neutral-800 rounded-xl overflow-hidden">
                                             <div className="flex items-center justify-between gap-2 px-4 py-2.5 bg-neutral-50 dark:bg-neutral-800/50">
@@ -161,7 +208,7 @@ export default function OrderDetailModal({ isOpen, onClose, order }: OrderDetail
                                                 </span>
                                             </div>
                                             <div className="divide-y divide-neutral-100 dark:divide-neutral-800 px-4">
-                                                {subOrder.items.map((item) => renderItemRow(item, canReturnFor(subOrder.status)))}
+                                                {subOrder.items.map((item) => renderItemRow(item, canReturnFor(subOrder.status), canRemoveFromThisSubOrder, subOrder.id))}
                                             </div>
                                         </div>
                                     );
@@ -186,6 +233,17 @@ export default function OrderDetailModal({ isOpen, onClose, order }: OrderDetail
                 </div>
             </Modal>
             {returnModal}
+            <ConfirmAction
+                isOpen={!!removingItem}
+                onClose={() => setRemovingItem(null)}
+                onConfirm={handleConfirmRemove}
+                title="Retirer l'article"
+                message={`Confirmez-vous le retrait de « ${removingItem?.item.product?.name || "cet article"} » ? Le client sera notifié. Cette action est irréversible.`}
+                confirmLabel="Oui, retirer"
+                variant="warning"
+                icon="solar:trash-bin-minimalistic-bold-duotone"
+                isLoading={isRemoving}
+            />
         </>
     );
 }

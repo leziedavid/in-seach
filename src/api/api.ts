@@ -37,6 +37,27 @@ export function toQueryString(params: Record<string, any>): string {
 }
 
 
+/**
+ * Pour les fiches publiques (produit/service/annonce) : attache le token si l'utilisateur est
+ * connecté, sinon un fingerprint d'appareil — utilisé côté backend pour dédupliquer les vues
+ * boostées par utilisateur/appareil et par jour (voir boost.service.ts::recordView). Import
+ * dynamique de visitTracking.ts pour éviter un cycle d'import statique (ce fichier lui importe
+ * déjà getBaseUrl depuis api.ts).
+ */
+const getIdentityHeadersAndQuery = async (): Promise<{ headers: Record<string, string>; qs: string }> => {
+    const token = getCookie('token');
+    if (token) {
+        return { headers: { Authorization: `Bearer ${token}` }, qs: '' };
+    }
+    try {
+        const { getOrCreateFingerprint } = await import('@/lib/visitTracking');
+        const fp = await getOrCreateFingerprint();
+        return { headers: {}, qs: `?fp=${encodeURIComponent(fp)}` };
+    } catch {
+        return { headers: {}, qs: '' };
+    }
+};
+
 // secureFetch: used only for protected routes
 export const secureFetch = async (url: string, options: RequestInit = {}): Promise<Response> => {
     await authMiddleware();
@@ -290,7 +311,8 @@ export const getServices = async (params: { page?: number; limit?: number; categ
 };
 
 export const getServiceById = async (id: string): Promise<BaseResponse<any>> => {
-    const response = await fetch(`${getBaseUrl()}/services/${id}`);
+    const { headers, qs } = await getIdentityHeadersAndQuery();
+    const response = await fetch(`${getBaseUrl()}/services/${id}${qs}`, { headers });
     return await response.json();
 };
 
@@ -611,7 +633,8 @@ export const getForSelectEquipmentNames = async (): Promise<BaseResponse<any[]>>
 };
 
 export const getAnnonceById = async (id: string): Promise<BaseResponse<any>> => {
-    const response = await fetch(`${getBaseUrl()}/annonces/${id}`);
+    const { headers, qs } = await getIdentityHeadersAndQuery();
+    const response = await fetch(`${getBaseUrl()}/annonces/${id}${qs}`, { headers });
     return await response.json();
 };
 
@@ -1462,7 +1485,8 @@ export const getMyProducts = async (params: { page?: number; limit?: number; que
 };
 
 export const getProductById = async (id: string): Promise<BaseResponse<Product>> => {
-    const response = await fetch(`${getBaseUrl()}/products/${id}`);
+    const { headers, qs } = await getIdentityHeadersAndQuery();
+    const response = await fetch(`${getBaseUrl()}/products/${id}${qs}`, { headers });
     return await response.json();
 };
 
@@ -1544,6 +1568,14 @@ export const updateSubOrderStatus = async (subOrderId: string, status: string): 
     const response = await secureFetch(`${getBaseUrl()}/orders/sub-orders/${subOrderId}/status`, {
         method: 'POST',
         body: JSON.stringify({ status }),
+    });
+    return await response.json();
+};
+
+export const removeSubOrderItems = async (subOrderId: string, orderItemIds: string[]): Promise<BaseResponse<SubOrder>> => {
+    const response = await secureFetch(`${getBaseUrl()}/orders/sub-orders/${subOrderId}/remove-items`, {
+        method: 'POST',
+        body: JSON.stringify({ orderItemIds }),
     });
     return await response.json();
 };

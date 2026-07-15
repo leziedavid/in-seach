@@ -6,7 +6,7 @@ import { Icon } from "@iconify/react";
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
 import { Boost, BoostEntityType, BoostedEntitySummary } from "@/types/interface";
-import { getActiveBoosts } from "@/api/boost-api";
+import { getActiveBoosts, recordBoostClick } from "@/api/boost-api";
 
 // ── Routing ──────────────────────────────────────────────────────────────────
 const ENTITY_ROUTES: Partial<Record<BoostEntityType, string>> = {
@@ -184,7 +184,10 @@ export default function Sponsoring() {
 
     const handleNavigate = useCallback((boost: Boost) => {
         const route = getRoute(boost.entityType, boost.entityId);
-        if (route) router.push(route);
+        if (route) {
+            recordBoostClick(boost.id); // fire-and-forget, ne bloque pas la navigation
+            router.push(route);
+        }
     }, [router]);
 
     const current = boosts[currentIndex];

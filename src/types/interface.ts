@@ -638,6 +638,8 @@ export interface OrderItem {
     quantity: number
     price: number
     achatType?: 'UNITE' | 'GROS'
+    removed?: boolean
+    removedAt?: string | null
     product?: Product
 }
 
@@ -1300,6 +1302,11 @@ export interface Boost {
     paymentStatus?: BoostPaymentStatus;
     adminNote?: string;
     activatedAt?: string;
+    impressions?: number;
+    views?: number;
+    clicks?: number;
+    lastViewedAt?: string;
+    lastClickedAt?: string;
     createdAt: string;
     updatedAt: string;
     transaction?: BoostTransaction;

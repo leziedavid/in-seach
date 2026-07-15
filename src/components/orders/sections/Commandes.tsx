@@ -352,7 +352,7 @@ export default function Commandes({ data: propData, page: propPage, limit: propL
                             </div>
                         )}
 
-                        <OrderDetailModal isOpen={open} onClose={() => { setOpen(false); setSelectedOrder(null); }} order={selectedOrder} />
+                        <OrderDetailModal isOpen={open} onClose={() => { setOpen(false); setSelectedOrder(null); }} order={selectedOrder} onItemRemoved={() => { if (!propData) fetchOrders(); else onSuccess?.(); }} />
                         {/* Driver Selector Modal */}
                         <DriverSelectorModal isOpen={driverModalOpen} onClose={() => { setDriverModalOpen(false); setOrderForDriver(null); }} orderId={orderForDriver?.id} onSuccess={() => { setDriverModalOpen(false); setOrderForDriver(null); fetchOrders(); }} />
                     </>

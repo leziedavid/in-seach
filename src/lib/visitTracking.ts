@@ -27,7 +27,7 @@ async function sha256Hex(input: string): Promise<string> {
     return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-async function getOrCreateFingerprint(): Promise<string> {
+export async function getOrCreateFingerprint(): Promise<string> {
     const cached = localStorage.getItem(FINGERPRINT_KEY);
     if (cached) return cached;
 
