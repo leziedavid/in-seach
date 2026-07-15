@@ -5,12 +5,14 @@ import InstallGuide from "./components/InstallGuide";
 import GuideFAQ from "./components/GuideFAQ";
 import ScrollSmoothEffect from "./components/ScrollSmoothEffect";
 
+
 export const metadata = {
     title: "Guide & Centre d'aide | Djamko",
     description: "Découvrez comment créer votre catalogue, gérer vos produits et services, passer commande, et profiter de toutes les fonctionnalités de Djamko.",
 };
 
 const TOC = [
+    { id: "compte-connexion", label: "Compte & connexion" },
     { id: "catalogue-intro", label: "Le catalogue" },
     { id: "catalogue-gestion", label: "Gérer un catalogue" },
     { id: "collection", label: "Les collections" },
@@ -94,8 +96,25 @@ export default function GuidePage() {
             <div className="max-w-5xl mx-auto px-6">
 
                 <GuideSection
+                    id="compte-connexion"
+                    eyebrow="01 — Compte & connexion"
+                    title="Créer un compte et se connecter"
+                    description="Avant d'explorer le catalogue, créez votre compte Djamko ou connectez-vous si vous en avez déjà un — c'est la première étape pour commander, vendre ou publier."
+                    icon="solar:user-circle-bold-duotone"
+                    accentIcon="solar:login-3-bold-duotone"
+                    tone="primary"
+                    steps={[
+                        { title: "Créer un compte", description: "Depuis la page d'accueil, cliquez sur « Créer un compte », renseignez votre numéro de téléphone (ou email), votre nom et un mot de passe, puis validez. Choisissez ensuite votre profil : client, prestataire ou entreprise." },
+                        { title: "Se connecter", description: "Si vous avez déjà un compte, cliquez sur « Se connecter » et saisissez votre téléphone ou email avec votre mot de passe pour accéder à votre espace." },
+                        { title: "Accéder à son compte depuis l'accueil", description: "Une fois connecté, cliquez à tout moment sur l'icône de profil en haut de la page d'accueil pour retrouver votre espace personnel « Mon espace »." },
+                    ]}
+                    info="Mot de passe oublié ? Utilisez le lien « Mot de passe oublié » sur la page de connexion pour le réinitialiser en quelques étapes."
+                    tip="Complétez votre profil (nom, photo, adresse) dès la création du compte : cela accélère vos prochaines commandes et rassure vos futurs clients si vous vendez."
+                />
+
+                <GuideSection
                     id="catalogue-intro"
-                    eyebrow="01 — Le catalogue"
+                    eyebrow="02 — Le catalogue"
                     title="À propos du catalogue"
                     description="Le catalogue, c'est la vitrine de votre boutique en ligne : l'ensemble des produits ou services que vous proposez, présentés de façon claire et organisée à vos clients."
                     icon="solar:widget-2-bold-duotone"
@@ -110,7 +129,7 @@ export default function GuidePage() {
 
                 <GuideSection
                     id="catalogue-gestion"
-                    eyebrow="02 — Gestion"
+                    eyebrow="03 — Gestion"
                     title="Comment créer et gérer un catalogue"
                     description="La gestion de votre catalogue se fait entièrement depuis l'onglet « Boutique » de votre espace personnel."
                     icon="solar:box-bold-duotone"
@@ -128,7 +147,7 @@ export default function GuidePage() {
 
                 <GuideSection
                     id="collection"
-                    eyebrow="03 — Collections"
+                    eyebrow="04 — Collections"
                     title="Comment créer et gérer une collection"
                     description="Une collection permet de regrouper plusieurs produits par thème (nouveautés, promotions, catégorie particulière) pour faciliter la navigation dans votre catalogue."
                     icon="solar:folder-bookmark-bold-duotone"
@@ -143,7 +162,7 @@ export default function GuidePage() {
 
                 <GuideSection
                     id="partage-catalogue"
-                    eyebrow="04 — Partage"
+                    eyebrow="05 — Partage"
                     title="Partager le lien d'un catalogue"
                     description="Chaque boutique dispose d'un lien unique que vous pouvez partager partout pour amener directement vos clients vers votre catalogue."
                     icon="solar:link-circle-bold-duotone"
@@ -160,7 +179,7 @@ export default function GuidePage() {
 
                 <GuideSection
                     id="partage-produits"
-                    eyebrow="05 — Partage produits & services"
+                    eyebrow="06 — Partage produits & services"
                     title="Partager ses produits ou ses services"
                     description="En plus du catalogue entier, chaque produit et chaque service dispose de son propre lien de partage — idéal pour mettre en avant un article précis."
                     icon="solar:share-circle-bold-duotone"
@@ -175,7 +194,7 @@ export default function GuidePage() {
 
                 <GuideSection
                     id="commande"
-                    eyebrow="06 — Commander"
+                    eyebrow="07 — Commander"
                     title="Comment passer une commande"
                     description="Commander un produit sur Djamko se fait en quelques étapes simples, du choix de l'article jusqu'au suivi de la livraison."
                     icon="solar:cart-large-4-bold-duotone"
@@ -193,7 +212,7 @@ export default function GuidePage() {
 
                 <GuideSection
                     id="panier"
-                    eyebrow="07 — Le panier"
+                    eyebrow="08 — Le panier"
                     title="Comment gérer son panier"
                     description="Le panier rassemble tous les produits que vous souhaitez acheter avant de passer commande."
                     icon="solar:cart-check-bold-duotone"
@@ -209,7 +228,7 @@ export default function GuidePage() {
 
                 <GuideSection
                     id="services-demande"
-                    eyebrow="08 — Services à la demande"
+                    eyebrow="09 — Services à la demande"
                     title="À propos des services à la demande"
                     description="Les services à la demande mettent en relation des clients ayant besoin d'une intervention (dépannage, prestation, entretien...) avec des prestataires disponibles autour d'eux."
                     icon="solar:hand-stars-bold-duotone"
@@ -226,7 +245,7 @@ export default function GuidePage() {
 
                 <GuideSection
                     id="annonces"
-                    eyebrow="09 — Annonces"
+                    eyebrow="10 — Annonces"
                     title="À propos des annonces"
                     description="Les annonces permettent de publier des biens (immobilier, véhicules, équipements...) à vendre, louer ou échanger."
                     icon="solar:megaphone-bold-duotone"
@@ -242,7 +261,7 @@ export default function GuidePage() {
 
                 <GuideSection
                     id="logistique"
-                    eyebrow="10 — Logistique"
+                    eyebrow="11 — Logistique"
                     title="À propos du service logistique"
                     description="Le service logistique de Djamko connecte des entreprises de transport à des clients ayant besoin d'acheminer des marchandises, localement ou à l'international."
                     icon="solar:delivery-bold-duotone"
@@ -259,7 +278,7 @@ export default function GuidePage() {
 
                 <GuideSection
                     id="gaz"
-                    eyebrow="11 — Recharge de gaz"
+                    eyebrow="12 — Recharge de gaz"
                     title="À propos de la recharge de gaz à domicile"
                     description="L'onglet « Gaz » vous met en relation avec des prestataires de recharge de bouteilles de gaz près de chez vous, avec livraison directement à domicile."
                     icon="mdi:propane-tank"
@@ -282,7 +301,7 @@ export default function GuidePage() {
                 <div className="max-w-5xl mx-auto px-6">
                     <section id="installation" className="scroll-mt-28">
                         <div className="text-center max-w-2xl mx-auto mb-10">
-                            <p className="text-[11px] font-black text-primary uppercase tracking-[0.2em] mb-2">12 — Installation</p>
+                            <p className="text-[11px] font-black text-primary uppercase tracking-[0.2em] mb-2">13 — Installation</p>
                             <h2 className="text-2xl md:text-3xl font-black text-foreground tracking-tight mb-4">
                                 Installer l'application Djamko
                             </h2>
