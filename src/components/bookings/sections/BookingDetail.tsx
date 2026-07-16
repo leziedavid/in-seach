@@ -6,7 +6,7 @@ import { Icon } from "@iconify/react";
 import Image from "next/image";
 import { Booking, BookingStatus, BookingsCalendar } from "@/types/interface";
 import { QRCodeSVG } from "qrcode.react";
-import { getUserRole, getUserId } from "@/lib/auth";
+import { getUserId } from "@/lib/auth";
 import jsQR from "jsqr";
 import { scanBookingQr } from "@/lib/api";
 import { toast } from "sonner";
@@ -32,7 +32,6 @@ export default function BookingDetailModal({ isOpen, onClose, booking, onEditRdv
     const [mounted, setMounted] = useState(false);
     const [currentTab, setCurrentTab] = useState("QR Code");
     const [activeTab, setActiveTab] = useState<"provider" | "client">("provider");
-    const [role, setRole] = useState<"CLIENT" | "PRESTATAIRE">("PRESTATAIRE");
     const [isCameraOpen, setIsCameraOpen] = useState(false);
     const [isScanning, setIsScanning] = useState(false);
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -53,7 +52,6 @@ export default function BookingDetailModal({ isOpen, onClose, booking, onEditRdv
     };
 
     useEffect(() => { setMounted(true); }, []);
-    useEffect(() => { const r = getUserRole() as any; if (r === "CLIENT") setRole("CLIENT"); else setRole("PRESTATAIRE"); }, []);
 
     useEffect(() => {
         setCurrentTab("QR Code");
@@ -95,9 +93,10 @@ export default function BookingDetailModal({ isOpen, onClose, booking, onEditRdv
     if (!booking || !mounted) return null;
 
     const status = statusConfig[booking.status];
-    const canEdit = role === "CLIENT" && (booking.status === "PENDING" || booking.status === "ACCEPTED");
 
-    // Rôle réel de l'utilisateur sur CETTE réservation (pilote les boutons d'action)
+    // Rôle réel de l'utilisateur sur CETTE réservation (et non le rôle global du compte).
+    // Indispensable pour qu'un PRESTATAIRE qui réserve chez un autre prestataire soit traité
+    // comme le CLIENT de cette réservation (bon QR code, bons boutons, mêmes droits).
     const currentUserId = getUserId();
     const isBookingClient = booking.clientId === currentUserId;
     const isBookingProvider =
@@ -105,6 +104,7 @@ export default function BookingDetailModal({ isOpen, onClose, booking, onEditRdv
         booking.service?.userId === currentUserId ||
         booking.annonce?.userId === currentUserId;
 
+    const canEdit = isBookingClient && (booking.status === "PENDING" || booking.status === "ACCEPTED");
     const canReport = booking.status === BookingStatus.ACCEPTED || booking.status === BookingStatus.IN_PROGRESS;
 
     const formatPhoneForWhatsApp = (phone: string) => { return phone.replace(/[^\d]/g, ""); };
@@ -231,10 +231,10 @@ export default function BookingDetailModal({ isOpen, onClose, booking, onEditRdv
 
                                                         <div className="flex flex-col items-center mb-5">
                                                             <div className="bg-white p-3 rounded-xl border border-neutral-200">
-                                                                <QRCodeSVG value={role === "CLIENT" ? booking.userQrCode || "" : booking.prestaQrCode || ""} size={130} level="H" includeMargin={false} className="rounded-sm" />
+                                                                <QRCodeSVG value={isBookingClient ? booking.userQrCode || "" : booking.prestaQrCode || ""} size={130} level="H" includeMargin={false} className="rounded-sm" />
                                                             </div>
                                                             <p className="text-xs text-neutral-400 mt-3 text-center max-w-[260px] leading-relaxed">
-                                                                {role === "CLIENT"
+                                                                {isBookingClient
                                                                     ? t("akwaba.details.booking.scan_instruction_client")
                                                                     : t("akwaba.details.booking.scan_instruction_provider")}
                                                             </p>

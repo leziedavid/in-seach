@@ -875,6 +875,8 @@
             "subtitle": "Gérez l'ensemble de vos rendez-vous et leur statut en un coup d'œil.",
             "rdv_received": "RDV Reçus",
             "rdv_placed": "RDV Passés",
+            "scope_received": "Reçues",
+            "scope_placed": "Mes réservations",
             "no_rdv": "Aucun rendez-vous {{type}} pour vos {{itemType}}",
             "received": "reçu",
             "placed": "passé",

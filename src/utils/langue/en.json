@@ -875,6 +875,8 @@
             "subtitle": "Manage all your appointments and their status at a glance.",
             "rdv_received": "Received RDV",
             "rdv_placed": "Placed RDV",
+            "scope_received": "Received",
+            "scope_placed": "My bookings",
             "no_rdv": "No {{type}} appointment for your {{itemType}}",
             "received": "received",
             "placed": "placed",

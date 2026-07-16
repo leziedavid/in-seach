@@ -39,6 +39,7 @@ import GasRefillRequest from '@/components/gas-delivery/sections/GasRefillReques
 import GasProviderDashboard from '@/components/gas-delivery/sections/GasProviderDashboard';
 import UnifiedHistory from '@/components/history/UnifiedHistory';
 import { useTranslation } from '@/utils/langue/hooks';
+import { Icon } from '@iconify/react';
 
 
 export default function Page() {
@@ -102,6 +103,12 @@ export default function Page() {
     // Initial tab logic based on role
     const [activeTab, setActiveTab] = useState<TabType>('Paramètres'); // Neutral default
 
+    // Portée des réservations pour un PRESTATAIRE :
+    // - 'received' : réservations reçues sur ses propres services/annonces (rôle fournisseur)
+    // - 'placed'   : réservations qu'il a lui-même effectuées chez d'autres (rôle client)
+    // Un CLIENT ne voit que ses réservations placées (comportement inchangé).
+    const [bookingScope, setBookingScope] = useState<'received' | 'placed'>('received');
+
     // Effect to set initial tab once role is known
     useEffect(() => {
         if (userRole) {
@@ -128,8 +135,10 @@ export default function Page() {
     const [commandesOrigin, setCommandesOrigin] = useState<'store' | null>(null);
 
     // React Query for global data
+    // bookingScope fait partie de la clé pour relire la liste à chaque changement
+    // d'onglet Reçues/Mes réservations (données toujours à jour).
     const { data: response, isLoading, refetch } = useQuery({
-        queryKey: ['my-space', activeTab, page, limit],
+        queryKey: ['my-space', activeTab, page, limit, bookingScope],
         queryFn: () => getMySpace({ activeTab, page, limit }),
         // queryFn: () => getAllSearch({ activeTab, page, limit }),
     });
@@ -139,6 +148,17 @@ export default function Page() {
     // Mapping data per tab
     const tabData = useMemo(() => {
         if (!data) return { items: [] as (Service | Annonce | Booking)[], total: 0, totalPages: 0 };
+
+        // Sélectionne le bon groupe de réservations selon le rôle et la portée choisie.
+        // CLIENT → toujours "placées". PRESTATAIRE/ADMIN → "reçues" par défaut, "placées" si basculé.
+        const bookingGroup = (userRole !== Role.CLIENT && bookingScope === 'received')
+            ? data.bookingsReceived
+            : data.bookingsPlaced;
+        const bookingItems = {
+            items: bookingGroup?.data || [],
+            total: bookingGroup?.total || 0,
+            totalPages: bookingGroup?.totalPages || 0,
+        };
 
         switch (activeTab) {
             // case 'Calendrier':
@@ -156,11 +176,7 @@ export default function Page() {
                 };
 
             case 'Rendez-vous':
-                return {
-                    items: userRole === Role.CLIENT ? data.bookingsPlaced?.data || [] : data.bookingsReceived?.data || [],
-                    total: userRole === Role.CLIENT ? data.bookingsPlaced?.total || 0 : data.bookingsReceived?.total || 0,
-                    totalPages: userRole === Role.CLIENT ? data.bookingsPlaced?.totalPages || 0 : data.bookingsReceived?.totalPages || 0
-                };
+                return bookingItems;
 
             case 'Annonces':
                 // For now, Annonces and Bookings are not paginated on backend API, so we calculate totalPages manually if needed
@@ -171,22 +187,14 @@ export default function Page() {
                 };
 
             case "Rendez-vous-annonces":
-                return {
-                    items: userRole === Role.CLIENT ? data.bookingsPlaced?.data || [] : data.bookingsReceived?.data || [],
-                    total: userRole === Role.CLIENT ? data.bookingsPlaced?.total || 0 : data.bookingsReceived?.total || 0,
-                    totalPages: userRole === Role.CLIENT ? data.bookingsPlaced?.totalPages || 0 : data.bookingsReceived?.totalPages || 0
-                };
+                return bookingItems;
             case "Historique-rdv":
-                return {
-                    items: userRole === Role.CLIENT ? data.bookingsPlaced?.data || [] : data.bookingsReceived?.data || [],
-                    total: userRole === Role.CLIENT ? data.bookingsPlaced?.total || 0 : data.bookingsReceived?.total || 0,
-                    totalPages: userRole === Role.CLIENT ? data.bookingsPlaced?.totalPages || 0 : data.bookingsReceived?.totalPages || 0
-                };
+                return bookingItems;
 
             default:
                 return { items: [], total: 0, totalPages: 0 };
         }
-    }, [data, activeTab, limit]);
+    }, [data, activeTab, limit, userRole, bookingScope]);
 
     if (!isMounted) {
         return <div className="min-h-screen bg-background" />;
@@ -219,6 +227,29 @@ export default function Page() {
         router.push('/login');
     };
 
+    // Sélecteur Reçues / Mes réservations — affiché uniquement pour un PRESTATAIRE,
+    // qui peut être à la fois fournisseur (réservations reçues) et client (réservations placées).
+    const renderBookingScopeToggle = () => {
+        if (userRole !== Role.PRESTATAIRE) return null;
+        const switchScope = (scope: 'received' | 'placed') => {
+            if (scope === bookingScope) return;
+            setBookingScope(scope);
+            setPage(1);
+        };
+        return (
+            <div className="flex bg-muted/30 p-1 rounded-xl border border-border w-fit mb-4">
+                <button onClick={() => switchScope('received')} className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${bookingScope === 'received' ? 'bg-background text-primary shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
+                    <Icon icon="solar:download-square-bold-duotone" className="w-4 h-4" />
+                    {t("akwaba.bookings.scope_received")}
+                </button>
+                <button onClick={() => switchScope('placed')} className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${bookingScope === 'placed' ? 'bg-background text-primary shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
+                    <Icon icon="solar:upload-square-bold-duotone" className="w-4 h-4" />
+                    {t("akwaba.bookings.scope_placed")}
+                </button>
+            </div>
+        );
+    };
+
     // Component Mapping for Content
     const renderContent = () => {
         switch (activeTab) {
@@ -238,15 +269,24 @@ export default function Page() {
                 );
             case 'Rendez-vous':
                 return (
-                    <AccountBookings type="active" data={tabData.items as Booking[]} page={page} limit={limit} total={tabData.total} totalPages={tabData.totalPages} loading={isLoading} onPageChange={setPage} onSuccess={() => { void refetch(); }} />
+                    <>
+                        {renderBookingScopeToggle()}
+                        <AccountBookings type="active" data={tabData.items as Booking[]} page={page} limit={limit} total={tabData.total} totalPages={tabData.totalPages} loading={isLoading} onPageChange={setPage} onSuccess={() => { void refetch(); }} />
+                    </>
                 );
             case 'Rendez-vous-annonces':
                 return (
-                    <AnnoncesBookings type="active" data={tabData.items as Booking[]} page={page} limit={limit} total={tabData.total} totalPages={tabData.totalPages} loading={isLoading} onPageChange={setPage} onSuccess={() => { void refetch(); }} />
+                    <>
+                        {renderBookingScopeToggle()}
+                        <AnnoncesBookings type="active" data={tabData.items as Booking[]} page={page} limit={limit} total={tabData.total} totalPages={tabData.totalPages} loading={isLoading} onPageChange={setPage} onSuccess={() => { void refetch(); }} />
+                    </>
                 );
             case 'Historique-rdv':
                 return (
-                    <HistoriqueRdv type="history" data={tabData.items as Booking[]} page={page} limit={limit} total={tabData.total} totalPages={tabData.totalPages} loading={isLoading} onPageChange={setPage} onSuccess={() => { void refetch(); }} />
+                    <>
+                        {renderBookingScopeToggle()}
+                        <HistoriqueRdv type="history" data={tabData.items as Booking[]} page={page} limit={limit} total={tabData.total} totalPages={tabData.totalPages} loading={isLoading} onPageChange={setPage} onSuccess={() => { void refetch(); }} />
+                    </>
                 );
             case 'Historique-commandes':
                 return <HistoriqueCommandes />;
