@@ -496,6 +496,12 @@
             "confirm_purge_auto": "Are you sure you want to perform an auto purge (logs older than 48h)?",
             "confirm_purge_range": "Are you sure you want to purge logs from {start} to {end} ?"
         },
+        "backup": {
+            "title": "Image Export",
+            "error_load": "Error loading folders",
+            "success_download": "Backup generated, downloading",
+            "error_download": "Error generating backup"
+        },
         "location_logs": {
             "title": "Location Logs",
             "subtitle": "Real-time tracking of user positions.",

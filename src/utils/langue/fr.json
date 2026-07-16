@@ -496,6 +496,12 @@
             "confirm_purge_auto": "Voulez-vous vraiment effectuer une purge automatique (logs de plus de 48h) ?",
             "confirm_purge_range": "Voulez-vous vraiment purger les logs du {start} au {end} ?"
         },
+        "backup": {
+            "title": "Exportation des images",
+            "error_load": "Erreur lors du chargement des dossiers",
+            "success_download": "Sauvegarde générée, téléchargement en cours",
+            "error_download": "Erreur lors de la génération de la sauvegarde"
+        },
         "location_logs": {
             "title": "Logs de Position",
             "subtitle": "Suivi en temps réel des positions des utilisateurs.",

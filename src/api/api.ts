@@ -1244,6 +1244,23 @@ export const getAdminLogFiles = async (): Promise<BaseResponse<string[]>> => {
 };
 
 /* =======================================================
+   ADMIN - BACKUP API
+======================================================= */
+export const getAdminBackupFolders = async (): Promise<BaseResponse<{ name: string; fileCount: number }[]>> => {
+    const response = await secureFetch(`${getBaseUrl()}/admin/backup/folders`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
+export const backupAdminFolder = async (folder: string): Promise<BaseResponse<{ zipUrl: string }>> => {
+    const response = await secureFetch(`${getBaseUrl()}/admin/backup/${encodeURIComponent(folder)}`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
+/* =======================================================
    CHAT API
 ======================================================= */
 
