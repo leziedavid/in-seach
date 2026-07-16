@@ -11,6 +11,8 @@ import ReceiptModal, { ReceiptData } from "@/components/shared/ReceiptModal";
 import { getMyBookings } from "@/api/api";
 import { useNotification } from "@/components/notifications/NotificationProvider";
 import BookingModal from "@/components/bookings/modals/BookingModal";
+import AnnonceBookingModal from "@/components/bookings/modals/AnnonceBookingModal";
+import { isReservationAnnonce } from "@/utils/annonceBooking";
 import { SectionHeader } from "@/components/shared/SectionHeader";
 
 interface HistoriqueRdvProps {
@@ -245,18 +247,32 @@ export default function HistoriqueRdv({ data: propData, page: propPage, limit: p
 
                         {/* Booking Edit Modal */}
                         {selectedBooking && (
-                            <BookingModal
-                                isOpen={isEditModalOpen}
-                                onClose={() => {
-                                    setIsEditModalOpen(false);
-                                    setSelectedBooking(null);
-                                    fetchBookings(); // Refresh list after edit
-                                }}
-                                mode="edit"
-                                booking={selectedBooking}
-                                item={(selectedBooking.service || selectedBooking.annonce) as any}
-                                type={(selectedBooking.bookingType || (selectedBooking.service ? 'SERVICE' : 'ANNONCE')) as 'SERVICE' | 'ANNONCE'}
-                            />
+                            (selectedBooking.annonce && isReservationAnnonce(selectedBooking.annonce)) ? (
+                                <AnnonceBookingModal
+                                    isOpen={isEditModalOpen}
+                                    onClose={() => {
+                                        setIsEditModalOpen(false);
+                                        setSelectedBooking(null);
+                                        fetchBookings(); // Refresh list after edit
+                                    }}
+                                    mode="edit"
+                                    booking={selectedBooking}
+                                    item={selectedBooking.annonce as any}
+                                />
+                            ) : (
+                                <BookingModal
+                                    isOpen={isEditModalOpen}
+                                    onClose={() => {
+                                        setIsEditModalOpen(false);
+                                        setSelectedBooking(null);
+                                        fetchBookings(); // Refresh list after edit
+                                    }}
+                                    mode="edit"
+                                    booking={selectedBooking}
+                                    item={(selectedBooking.service || selectedBooking.annonce) as any}
+                                    type={(selectedBooking.bookingType || (selectedBooking.service ? 'SERVICE' : 'ANNONCE')) as 'SERVICE' | 'ANNONCE'}
+                                />
+                            )
                         )}
 
                         {/* Receipt Modal */}

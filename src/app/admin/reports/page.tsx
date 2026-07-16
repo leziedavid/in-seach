@@ -63,6 +63,7 @@ const ENTITY_TYPE_LABELS: Record<string, string> = {
     PRODUCT: 'Produit',
     LOGISTIC_SERVICE: 'Logistique',
     EASY_DELIVERY: 'Livraison',
+    BOOKING: 'Réservation',
 };
 
 const ACTION_OPTIONS: { value: ReportAction; label: string }[] = [

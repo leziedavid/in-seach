@@ -2,21 +2,23 @@
 
 import { useEffect, useState } from "react";
 import { Booking, BookingStatus, BookingsCalendar } from "@/types/interface";
-import { getMyBookings, updateBookingStatus } from "@/api/api";
+import { getMyBookings } from "@/api/api";
 import { Icon } from "@iconify/react";
 import { Button } from "@/components/ui/button";
 import AccountBookingRowSkeleton from "@/components/bookings/ui/AccountBookingRowSkeleton";
 import { TablePagination } from "@/components/ui/table/Pagination";
 import BookingDetail from "@/components/bookings/sections/BookingDetail";
 import BookingModal from "@/components/bookings/modals/BookingModal";
-import { useNotification } from "@/components/notifications/NotificationProvider";
+import AnnonceBookingModal from "@/components/bookings/modals/AnnonceBookingModal";
+import { isReservationAnnonce } from "@/utils/annonceBooking";
 import { getUserId, getUserRole } from "@/lib/auth";
 import { Role } from "@/types/interface";
 import { useRealTimeUpdate } from "@/hooks/useRealTimeUpdate";
 import { SectionHeader } from "@/components/shared/SectionHeader";
 import { useTranslation } from "@/utils/langue/hooks";
-import { useSubscriptionCheck } from "@/hooks/useSubscriptionCheck";
-import ConfirmAction, { ConfirmVariant } from "@/components/ui/ConfirmAction";
+import { useBookingStatusAction } from "@/hooks/useBookingStatusAction";
+import ConfirmAction from "@/components/ui/ConfirmAction";
+import ReportButton from "@/components/shared/ReportButton";
 
 interface BookingsPageProps {
     data?: Booking[];
@@ -65,43 +67,14 @@ export default function BookingsPage({
     const bookings = propData ?? (activeTab === 'recues' ? bookingsReceived : bookingsPlaced);
     const totalPages = propTotalPages ?? (activeTab === 'recues' ? receivedTotalPages : placedTotalPages);
     const total = propTotal ?? (bookings.length > 0 ? totalPages * limit : 0);
-    const { showNotification } = useNotification();
-    const { checkFeatureAccess, loading: subscriptionLoading } = useSubscriptionCheck();
 
-    // ── Confirmation dialog state ─────────────────────────────────
-    const [confirmState, setConfirmState] = useState<{
-        isOpen: boolean;
-        bookingId: string;
-        newStatus: BookingStatus;
-        requiresSubscription: boolean;
-        title: string;
-        message: string;
-        confirmLabel: string;
-        variant: ConfirmVariant;
-        icon: string;
-    }>({
-        isOpen: false, bookingId: "", newStatus: BookingStatus.CANCELLED,
-        requiresSubscription: false, title: "", message: "",
-        confirmLabel: "Confirmer", variant: "info", icon: "",
+    // ── Changement de statut (hook partagé avec BookingDetail) ─────
+    const { confirmState, isConfirming, subscriptionLoading, requestAction, closeConfirm, execute } = useBookingStatusAction({
+        onChanged: () => {
+            if (propData) onSuccess?.();
+            fetchBookings();
+        },
     });
-    const [isConfirming, setIsConfirming] = useState(false);
-
-    const openConfirm = (
-        bookingId: string,
-        newStatus: BookingStatus,
-        requiresSubscription: boolean,
-        cfg: { title: string; message: string; confirmLabel: string; variant: ConfirmVariant; icon: string }
-    ) => setConfirmState({ isOpen: true, bookingId, newStatus, requiresSubscription, ...cfg });
-
-    const closeConfirm = () => setConfirmState(s => ({ ...s, isOpen: false }));
-
-    const executeStatusChange = async () => {
-        if (isConfirming || !confirmState.isOpen || !confirmState.bookingId) return;
-        setIsConfirming(true);
-        await handleChangeStatus(confirmState.bookingId, confirmState.newStatus, confirmState.requiresSubscription);
-        setIsConfirming(false);
-        closeConfirm();
-    };
 
     // 🔄 SYNCHRONISATION TEMPS RÉEL
     useRealTimeUpdate('Booking', () => {
@@ -132,30 +105,6 @@ export default function BookingsPage({
             fetchBookings();
         }
     }, [page, propData]);
-
-    /* ================= STATUS ================= */
-    const handleChangeStatus = async (bookingId: string, newStatus: BookingStatus, requiresSubscription = false) => {
-        if (requiresSubscription) {
-            const canProceed = await checkFeatureAccess();
-            if (!canProceed) return;
-        }
-
-        try {
-            const response = await updateBookingStatus(bookingId, newStatus);
-
-            if (response.statusCode === 200 || response.statusCode === 201) {
-                showNotification(t("akwaba.bookings.success_update"), "success");
-                if (propData) {
-                    onSuccess?.();
-                }
-                fetchBookings();
-            } else {
-                showNotification(response.message || t("akwaba.bookings.error_update"), "error");
-            }
-        } catch (error: any) {
-            showNotification(error.message || "Erreur de connexion", "error");
-        }
-    };
 
     /* ================= COLORS ================= */
     const getStatusStyle = (status: BookingStatus) => {
@@ -292,7 +241,7 @@ export default function BookingsPage({
                                                 <div className="flex items-center gap-2">
                                                     {(booking.status === BookingStatus.PENDING || booking.status === BookingStatus.ACCEPTED) && (
                                                         <Button size="sm" variant="destructive" className="h-8 px-3 text-[10px] font-black flex items-center gap-1.5"
-                                                            onClick={(e) => { e.stopPropagation(); openConfirm(booking.id, BookingStatus.CANCELLED, false, { title: "Annuler le rendez-vous", message: "Êtes-vous sûr de vouloir annuler ce rendez-vous ? Cette action ne peut pas être défaite.", confirmLabel: "Oui, annuler", variant: "danger", icon: "solar:close-circle-bold-duotone" }); }}>
+                                                            onClick={(e) => { e.stopPropagation(); requestAction(booking.id, 'cancel'); }}>
                                                             <Icon icon="solar:close-circle-bold" className="w-4 h-4" />
                                                             <span className="hidden sm:inline">{t("akwaba.bookings.actions.cancel")}</span>
                                                         </Button>
@@ -305,25 +254,32 @@ export default function BookingsPage({
                                                 <div className="flex items-center gap-2">
                                                     {booking.status === BookingStatus.PENDING && (
                                                         <Button size="sm" disabled={subscriptionLoading} className="h-8 px-3 text-[10px] font-black bg-blue-600 hover:bg-blue-700 flex items-center gap-1.5"
-                                                            onClick={(e) => { e.stopPropagation(); openConfirm(booking.id, BookingStatus.ACCEPTED, true, { title: "Accepter le rendez-vous", message: "Confirmez-vous l'acceptation de ce rendez-vous ? Le client sera notifié.", confirmLabel: "Oui, accepter", variant: "info", icon: "solar:check-circle-bold-duotone" }); }}>
+                                                            onClick={(e) => { e.stopPropagation(); requestAction(booking.id, 'validate'); }}>
                                                             {subscriptionLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:check-circle-bold" className="w-4 h-4" />}
                                                             <span className="hidden sm:inline">{t("akwaba.bookings.actions.accept")}</span>
                                                         </Button>
                                                     )}
                                                     {booking.status === BookingStatus.ACCEPTED && (
                                                         <Button size="sm" disabled={subscriptionLoading} className="h-8 px-3 text-[10px] font-black bg-indigo-600 hover:bg-indigo-700 flex items-center gap-1.5"
-                                                            onClick={(e) => { e.stopPropagation(); openConfirm(booking.id, BookingStatus.IN_PROGRESS, true, { title: "Démarrer le rendez-vous", message: "Confirmez-vous le démarrage de cette prestation ? Le client sera informé.", confirmLabel: "Oui, démarrer", variant: "indigo", icon: "solar:play-bold-duotone" }); }}>
+                                                            onClick={(e) => { e.stopPropagation(); requestAction(booking.id, 'start'); }}>
                                                             {subscriptionLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:play-bold" className="w-4 h-4" />}
                                                             <span className="hidden sm:inline">{t("akwaba.bookings.actions.start")}</span>
                                                         </Button>
                                                     )}
                                                     {booking.status === BookingStatus.IN_PROGRESS && (
                                                         <Button size="sm" disabled={subscriptionLoading} className="h-8 px-3 text-[10px] font-black bg-green-600 hover:bg-green-700 flex items-center gap-1.5"
-                                                            onClick={(e) => { e.stopPropagation(); openConfirm(booking.id, BookingStatus.COMPLETED, true, { title: "Terminer la prestation", message: "Confirmez-vous la fin de cette prestation ? Le client sera notifié de la complétion.", confirmLabel: "Oui, terminer", variant: "success", icon: "solar:check-read-bold-duotone" }); }}>
+                                                            onClick={(e) => { e.stopPropagation(); requestAction(booking.id, 'finish'); }}>
                                                             {subscriptionLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:check-read-bold" className="w-4 h-4" />}
                                                             <span className="hidden sm:inline">{t("akwaba.bookings.actions.finish")}</span>
                                                         </Button>
                                                     )}
+                                                </div>
+                                            )}
+
+                                            {/* Signalement — pendant l'exécution de la prestation */}
+                                            {(booking.status === BookingStatus.ACCEPTED || booking.status === BookingStatus.IN_PROGRESS) && (
+                                                <div onClick={(e) => e.stopPropagation()}>
+                                                    <ReportButton entityType="BOOKING" entityId={booking.id} />
                                                 </div>
                                             )}
                                         </div>
@@ -351,18 +307,32 @@ export default function BookingsPage({
 
                         {/* Booking Edit Modal */}
                         {selectedService && (
-                            <BookingModal
-                                isOpen={isEditModalOpen}
-                                onClose={() => {
-                                    setIsEditModalOpen(false);
-                                    setSelectedService(null);
-                                    fetchBookings(); // Refresh list after edit
-                                }}
-                                mode="edit"
-                                booking={selectedService}
-                                item={(selectedService.service || selectedService.annonce) as any}
-                                type={(selectedService.bookingType || (selectedService.service ? 'SERVICE' : 'ANNONCE')) as 'SERVICE' | 'ANNONCE'}
-                            />
+                            (selectedService.annonce && isReservationAnnonce(selectedService.annonce)) ? (
+                                <AnnonceBookingModal
+                                    isOpen={isEditModalOpen}
+                                    onClose={() => {
+                                        setIsEditModalOpen(false);
+                                        setSelectedService(null);
+                                        fetchBookings(); // Refresh list after edit
+                                    }}
+                                    mode="edit"
+                                    booking={selectedService}
+                                    item={selectedService.annonce as any}
+                                />
+                            ) : (
+                                <BookingModal
+                                    isOpen={isEditModalOpen}
+                                    onClose={() => {
+                                        setIsEditModalOpen(false);
+                                        setSelectedService(null);
+                                        fetchBookings(); // Refresh list after edit
+                                    }}
+                                    mode="edit"
+                                    booking={selectedService}
+                                    item={(selectedService.service || selectedService.annonce) as any}
+                                    type={(selectedService.bookingType || (selectedService.service ? 'SERVICE' : 'ANNONCE')) as 'SERVICE' | 'ANNONCE'}
+                                />
+                            )
                         )}
                     </>
 
@@ -373,7 +343,7 @@ export default function BookingsPage({
             <ConfirmAction
                 isOpen={confirmState.isOpen}
                 onClose={closeConfirm}
-                onConfirm={executeStatusChange}
+                onConfirm={execute}
                 title={confirmState.title}
                 message={confirmState.message}
                 confirmLabel={confirmState.confirmLabel}

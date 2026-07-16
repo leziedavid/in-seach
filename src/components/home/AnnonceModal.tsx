@@ -9,6 +9,8 @@ import { Annonce } from "@/types/interface";
 import { createPortal } from "react-dom";
 import { useNotification } from "@/components/notifications/NotificationProvider";
 import BookingModal from "@/components/bookings/modals/BookingModal";
+import AnnonceBookingModal from "@/components/bookings/modals/AnnonceBookingModal";
+import { isReservationAnnonce } from "@/utils/annonceBooking";
 import TextDisplayBox from "./TextDisplayBox";
 import { useTranslation } from "@/utils/langue/hooks";
 import ReportButton from "@/components/shared/ReportButton";
@@ -339,12 +341,20 @@ export default function AnnonceModal({ isOpen, onClose, annonce }: AnnonceModalP
                 )}
             </AnimatePresence>
 
-            <BookingModal
-                isOpen={isBookingModalOpen}
-                onClose={() => setIsBookingModalOpen(false)}
-                item={annonce}
-                type="ANNONCE"
-            />
+            {isReservationAnnonce(annonce) ? (
+                <AnnonceBookingModal
+                    isOpen={isBookingModalOpen}
+                    onClose={() => setIsBookingModalOpen(false)}
+                    item={annonce}
+                />
+            ) : (
+                <BookingModal
+                    isOpen={isBookingModalOpen}
+                    onClose={() => setIsBookingModalOpen(false)}
+                    item={annonce}
+                    type="ANNONCE"
+                />
+            )}
         </>,
         document.body
     );

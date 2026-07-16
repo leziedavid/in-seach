@@ -13,6 +13,8 @@ import ReportButton from "@/components/shared/ReportButton";
 import { Share } from "@/components/shared/Share";
 import TextDisplayBox from "@/components/home/TextDisplayBox";
 import BookingModal from "@/components/bookings/modals/BookingModal";
+import AnnonceBookingModal from "@/components/bookings/modals/AnnonceBookingModal";
+import { isReservationAnnonce } from "@/utils/annonceBooking";
 
 const annonceStatusConfig: Record<AnnonceStatus, { label: string; color: string }> = {
     [AnnonceStatus.ACTIVE]: { label: "Active", color: "bg-emerald-500/10 text-emerald-600" },
@@ -629,12 +631,20 @@ export default function AnnonceDetailPage() {
                 storeLogo={annonce.user?.avatar}
             />
             {isBookingOpen && (
-                <BookingModal
-                    isOpen={isBookingOpen}
-                    onClose={() => setIsBookingOpen(false)}
-                    item={annonce}
-                    type="ANNONCE"
-                />
+                isReservationAnnonce(annonce) ? (
+                    <AnnonceBookingModal
+                        isOpen={isBookingOpen}
+                        onClose={() => setIsBookingOpen(false)}
+                        item={annonce}
+                    />
+                ) : (
+                    <BookingModal
+                        isOpen={isBookingOpen}
+                        onClose={() => setIsBookingOpen(false)}
+                        item={annonce}
+                        type="ANNONCE"
+                    />
+                )
             )}
         </>
     );

@@ -425,6 +425,30 @@ export const updateBooking = async (id: string, data: any): Promise<BaseResponse
     return await response.json();
 };
 
+// Check annonce availability (résidence meublée / hôtel / véhicule)
+export interface AvailabilityResult {
+    available: boolean;
+    mode: 'NONE' | 'DAY' | 'SLOT';
+    message?: string;
+    nextAvailableDate?: string;
+    nextAvailableTime?: string;
+}
+
+export const checkAnnonceAvailability = async (
+    annonceId: string,
+    scheduledDate: string,
+    scheduledTime: string,
+    excludeBookingId?: string,
+): Promise<BaseResponse<AvailabilityResult>> => {
+    const query = new URLSearchParams({ annonceId, scheduledDate, scheduledTime });
+    if (excludeBookingId) query.append('excludeBookingId', excludeBookingId);
+
+    const response = await secureFetch(`${getBaseUrl()}/bookings/availability?${query.toString()}`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
 // Calendar
 export const getBookingsCalendar = async (params?: { year?: number; month?: number }): Promise<BaseResponse<BookingsCalendar[]>> => {
     const query = new URLSearchParams();
@@ -2631,7 +2655,7 @@ export const toggleSliderActive = async (id: string, value: boolean): Promise<Ba
 ======================================================= */
 
 export interface CreateReportDto {
-    entityType: 'USER' | 'SERVICE' | 'ANNONCE' | 'PRODUCT' | 'LOGISTIC_SERVICE' | 'EASY_DELIVERY';
+    entityType: 'USER' | 'SERVICE' | 'ANNONCE' | 'PRODUCT' | 'LOGISTIC_SERVICE' | 'EASY_DELIVERY' | 'BOOKING';
     entityId: string;
     reason: 'SPAM' | 'INAPPROPRIATE_CONTENT' | 'FAKE_PROFILE' | 'FRAUD' | 'VIOLENCE' | 'HARASSMENT' | 'COPYRIGHT' | 'OTHER';
     description?: string;

@@ -9,7 +9,7 @@ import { useNotification } from "@/components/notifications/NotificationProvider
 import { isAuthenticated } from "@/lib/auth";
 
 interface ReportButtonProps {
-    entityType: 'USER' | 'SERVICE' | 'ANNONCE' | 'PRODUCT' | 'LOGISTIC_SERVICE' | 'EASY_DELIVERY';
+    entityType: 'USER' | 'SERVICE' | 'ANNONCE' | 'PRODUCT' | 'LOGISTIC_SERVICE' | 'EASY_DELIVERY' | 'BOOKING';
     entityId: string;
     className?: string;
 }

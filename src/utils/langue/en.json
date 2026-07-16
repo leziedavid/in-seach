@@ -891,7 +891,7 @@
                 "paid": "PAID"
             },
             "actions": {
-                "accept": "Accept",
+                "accept": "Validate",
                 "start": "Start",
                 "finish": "Finish",
                 "cancel": "Cancel"
@@ -909,6 +909,24 @@
                 "rdv_note": "Scheduled",
                 "night_info_title": "Info 0h-6h",
                 "night_info_desc": "Night interventions may be subject to adjustments."
+            },
+            "intervention_form_annonce": {
+                "title": "Booking type",
+                "subtitle": "Choose your mode",
+                "today_badge": "Direct",
+                "rdv_badge": "Scheduled",
+                "today_title": "Today",
+                "today_desc": "Immediate booking",
+                "today_note": "Right now",
+                "rdv_title": "By appointment",
+                "rdv_desc": "According to your availability",
+                "rdv_note": "Pick a date and time"
+            },
+            "availability": {
+                "checking": "Checking availability…",
+                "available": "Slot available",
+                "unavailable": "Unavailable for this slot",
+                "auto_selected": "We selected the next available slot for you."
             },
             "success_update": "Status updated successfully",
             "error_update": "Error during update"
@@ -931,6 +949,8 @@
                 "scan_instruction_client": "Present this code to the provider to confirm the start of the service.",
                 "scan_instruction_provider": "Scan the client's QR code to validate their presence.",
                 "scan_button": "Scan Code",
+                "qr_locked_title": "Awaiting validation",
+                "qr_locked_desc": "The QR Code will be available once the owner validates your booking.",
                 "tabs": {
                     "validation": "Validation",
                     "details": "Details",

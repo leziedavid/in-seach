@@ -891,7 +891,7 @@
                 "paid": "PAYÉ"
             },
             "actions": {
-                "accept": "Accepter",
+                "accept": "Valider",
                 "start": "Démarrer",
                 "finish": "Terminer",
                 "cancel": "Annuler"
@@ -911,6 +911,24 @@
                 "rdv_note": "Planifié",
                 "night_info_title": "Infos 0h-6h",
                 "night_info_desc": "Les interventions de nuit peuvent être sujettes à des ajustements."
+            },
+            "intervention_form_annonce": {
+                "title": "Type de réservation",
+                "subtitle": "Choisissez votre mode",
+                "today_badge": "Direct",
+                "rdv_badge": "Planifié",
+                "today_title": "Aujourd'hui",
+                "today_desc": "Réservation immédiate",
+                "today_note": "Dès maintenant",
+                "rdv_title": "Sur rendez-vous",
+                "rdv_desc": "Selon vos disponibilités",
+                "rdv_note": "Date et heure au choix"
+            },
+            "availability": {
+                "checking": "Vérification de la disponibilité…",
+                "available": "Créneau disponible",
+                "unavailable": "Indisponible pour ce créneau",
+                "auto_selected": "Nous avons sélectionné la prochaine disponibilité pour vous."
             }
         },
         "details": {
@@ -931,6 +949,8 @@
                 "scan_instruction_client": "Présentez ce code au prestataire pour confirmer le démarrage de la prestation.",
                 "scan_instruction_provider": "Scannez le code QR du client pour valider sa présence.",
                 "scan_button": "Scanner le Code",
+                "qr_locked_title": "En attente de validation",
+                "qr_locked_desc": "Le QR Code sera disponible dès que le propriétaire aura validé votre réservation.",
                 "tabs": {
                     "validation": "Validation",
                     "details": "Détails",

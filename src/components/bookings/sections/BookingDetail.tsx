@@ -6,7 +6,7 @@ import { Icon } from "@iconify/react";
 import Image from "next/image";
 import { Booking, BookingStatus, BookingsCalendar } from "@/types/interface";
 import { QRCodeSVG } from "qrcode.react";
-import { getUserRole } from "@/lib/auth";
+import { getUserRole, getUserId } from "@/lib/auth";
 import jsQR from "jsqr";
 import { scanBookingQr } from "@/lib/api";
 import { toast } from "sonner";
@@ -14,6 +14,10 @@ import { createPortal } from "react-dom";
 import { useTranslation } from "@/utils/langue/hooks";
 import { hasValidPrice } from "@/utils/price";
 import { Modal } from "@/components/ui/MotionModal";
+import { Button } from "@/components/ui/button";
+import ConfirmAction from "@/components/ui/ConfirmAction";
+import ReportButton from "@/components/shared/ReportButton";
+import { useBookingStatusAction } from "@/hooks/useBookingStatusAction";
 
 
 interface BookingDetailProps {
@@ -34,6 +38,10 @@ export default function BookingDetailModal({ isOpen, onClose, booking, onEditRdv
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const streamRef = useRef<MediaStream | null>(null);
+
+    const { confirmState, isConfirming, subscriptionLoading, requestAction, closeConfirm, execute } = useBookingStatusAction({
+        onChanged: () => onClose(),
+    });
 
     const statusConfig: Record<BookingStatus, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
         PENDING: { label: t("akwaba.bookings.status.pending"), color: "text-amber-600", bg: "bg-amber-500/10", icon: <Icon icon="solar:refresh-bold-duotone" className="animate-spin" width={16} /> },
@@ -89,6 +97,16 @@ export default function BookingDetailModal({ isOpen, onClose, booking, onEditRdv
     const status = statusConfig[booking.status];
     const canEdit = role === "CLIENT" && (booking.status === "PENDING" || booking.status === "ACCEPTED");
 
+    // Rôle réel de l'utilisateur sur CETTE réservation (pilote les boutons d'action)
+    const currentUserId = getUserId();
+    const isBookingClient = booking.clientId === currentUserId;
+    const isBookingProvider =
+        booking.providerId === currentUserId ||
+        booking.service?.userId === currentUserId ||
+        booking.annonce?.userId === currentUserId;
+
+    const canReport = booking.status === BookingStatus.ACCEPTED || booking.status === BookingStatus.IN_PROGRESS;
+
     const formatPhoneForWhatsApp = (phone: string) => { return phone.replace(/[^\d]/g, ""); };
 
     const getTargetInfo = () => {
@@ -123,7 +141,7 @@ export default function BookingDetailModal({ isOpen, onClose, booking, onEditRdv
 
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title={booking.service?.title || t("akwaba.details.booking.title")}>
+        <Modal isOpen={isOpen} onClose={onClose} title={booking.service?.title || booking.annonce?.title || t("akwaba.details.booking.title")}>
             <div className="flex flex-col bg-neutral-50 dark:bg-neutral-950 min-h-full">
 
                 {/* Sticky header: profile + tabs */}
@@ -178,18 +196,30 @@ export default function BookingDetailModal({ isOpen, onClose, booking, onEditRdv
                             transition={{ duration: 0.3 }}
                         >
 
-                                            {currentTab === "QR Code" && (
+                                            {currentTab === "QR Code" && booking.status === BookingStatus.PENDING && (
+                                                <div className="space-y-4 flex flex-col items-center pb-8 pt-4">
+                                                    <div className="w-full max-w-[360px] bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 shadow-sm p-8 flex flex-col items-center text-center">
+                                                        <div className="w-16 h-16 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500 mb-4">
+                                                            <Icon icon="solar:lock-keyhole-bold-duotone" width={32} />
+                                                        </div>
+                                                        <p className="text-base font-semibold text-neutral-900 dark:text-neutral-50 mb-1">{t("akwaba.details.booking.qr_locked_title")}</p>
+                                                        <p className="text-sm text-neutral-500 max-w-[280px] leading-relaxed">{t("akwaba.details.booking.qr_locked_desc")}</p>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {currentTab === "QR Code" && booking.status !== BookingStatus.PENDING && (
                                                 <div className="space-y-4 flex flex-col items-center pb-4">
                                                     {/* Receipt header card - mirrors invoice summary */}
                                                     <div className="w-full max-w-[360px] bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 shadow-sm p-6">
                                                         <p className="text-sm text-neutral-500">{t("akwaba.details.booking.digital_pass")}</p>
                                                         <div className="flex items-baseline gap-1 mt-1 mb-1">
                                                             {(() => {
-                                                                const effectivePrice = booking.price || booking.service?.price;
+                                                                const effectivePrice = booking.price || booking.service?.price || booking.annonce?.price;
                                                                 return hasValidPrice(effectivePrice) ? (
                                                                     <span className="text-[2rem] font-bold text-neutral-900 dark:text-neutral-50 leading-none">{effectivePrice.toLocaleString()} XOF</span>
                                                                 ) : (
-                                                                    <span className="text-[2rem] font-bold text-neutral-900 dark:text-neutral-50 leading-none truncate">{booking.service?.title || "SÉANCE"}</span>
+                                                                    <span className="text-[2rem] font-bold text-neutral-900 dark:text-neutral-50 leading-none truncate">{booking.service?.title || booking.annonce?.title || "SÉANCE"}</span>
                                                                 );
                                                             })()}
                                                         </div>
@@ -246,11 +276,11 @@ export default function BookingDetailModal({ isOpen, onClose, booking, onEditRdv
 
                                                         <div className="flex items-start justify-between">
                                                             <div className="min-w-0 pr-4">
-                                                                <p className="text-sm font-medium text-neutral-900 dark:text-neutral-50 truncate">{booking.service?.title || "SÉANCE"}</p>
+                                                                <p className="text-sm font-medium text-neutral-900 dark:text-neutral-50 truncate">{booking.service?.title || booking.annonce?.title || "SÉANCE"}</p>
                                                                 <p className="text-sm text-neutral-400 mt-0.5">Qty 1</p>
                                                             </div>
                                                             {(() => {
-                                                                const effectivePrice = booking.price || booking.service?.price;
+                                                                const effectivePrice = booking.price || booking.service?.price || booking.annonce?.price;
                                                                 return hasValidPrice(effectivePrice) && (
                                                                     <span className="text-sm font-medium text-neutral-900 dark:text-neutral-50 shrink-0">{effectivePrice.toLocaleString()} XOF</span>
                                                                 );
@@ -260,7 +290,7 @@ export default function BookingDetailModal({ isOpen, onClose, booking, onEditRdv
                                                         <div className="border-t border-neutral-100 dark:border-neutral-800 my-4" />
 
                                                         {(() => {
-                                                            const effectivePrice = booking.price || booking.service?.price;
+                                                            const effectivePrice = booking.price || booking.service?.price || booking.annonce?.price;
                                                             if (!hasValidPrice(effectivePrice)) return null;
                                                             return (
                                                                 <>
@@ -366,28 +396,82 @@ export default function BookingDetailModal({ isOpen, onClose, booking, onEditRdv
                 </div>
 
                 {/* Persistent Bottom Footer */}
-                <div className="sticky bottom-0 px-6 py-4 bg-card border-t border-border flex items-center justify-between gap-6">
-                    <div className="flex flex-col">
+                <div className="sticky bottom-0 px-6 py-4 bg-card border-t border-border flex items-center justify-between gap-4">
+                    <div className="flex flex-col min-w-0">
                         {(() => {
-                            const effectivePrice = booking.price || booking.service?.price;
+                            const effectivePrice = booking.price || booking.service?.price || booking.annonce?.price;
                             return hasValidPrice(effectivePrice) && (
                                 <div className="flex items-baseline gap-1">
                                     <span className="text-xl font-bold text-foreground">{effectivePrice.toLocaleString()} XOF</span>
                                 </div>
                             );
                         })()}
-                        <p className="text-[11px] text-foreground/40 mt-0.5">{t("akwaba.details.booking.labels.confirmed_availability")}</p>
+                        {canReport ? (
+                            <div className="mt-0.5"><ReportButton entityType="BOOKING" entityId={booking.id} /></div>
+                        ) : (
+                            <p className="text-[11px] text-foreground/40 mt-0.5">{t("akwaba.details.booking.labels.confirmed_availability")}</p>
+                        )}
                     </div>
 
-                    {canEdit && booking.status === BookingStatus.PENDING ? (
-                        <button onClick={() => { if (onEditRdv) { onEditRdv(booking); onClose(); } }} className="flex-1 max-w-[200px] py-3 bg-primary text-white rounded-xl font-semibold text-sm active:scale-95 transition-all hover:bg-primary/90"> {t("akwaba.details.booking.labels.edit")} </button>
-                    ) : (
-                        <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold ${status.bg} ${status.color}`}>
-                            {status.label}
-                        </span>
-                    )}
+                    <div className="flex items-center gap-2 shrink-0">
+                        {/* Actions client */}
+                        {isBookingClient && (booking.status === BookingStatus.PENDING || booking.status === BookingStatus.ACCEPTED) && (
+                            <Button size="sm" variant="destructive" className="h-9 px-3 text-xs font-black flex items-center gap-1.5"
+                                onClick={() => requestAction(booking.id, 'cancel')}>
+                                <Icon icon="solar:close-circle-bold" className="w-4 h-4" />
+                                <span className="hidden sm:inline">{t("akwaba.bookings.actions.cancel")}</span>
+                            </Button>
+                        )}
+
+                        {/* Actions prestataire */}
+                        {isBookingProvider && booking.status === BookingStatus.PENDING && (
+                            <Button size="sm" disabled={subscriptionLoading} className="h-9 px-3 text-xs font-black bg-blue-600 hover:bg-blue-700 flex items-center gap-1.5"
+                                onClick={() => requestAction(booking.id, 'validate')}>
+                                {subscriptionLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:check-circle-bold" className="w-4 h-4" />}
+                                <span className="hidden sm:inline">{t("akwaba.bookings.actions.accept")}</span>
+                            </Button>
+                        )}
+                        {isBookingProvider && booking.status === BookingStatus.ACCEPTED && (
+                            <Button size="sm" disabled={subscriptionLoading} className="h-9 px-3 text-xs font-black bg-indigo-600 hover:bg-indigo-700 flex items-center gap-1.5"
+                                onClick={() => requestAction(booking.id, 'start')}>
+                                {subscriptionLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:play-bold" className="w-4 h-4" />}
+                                <span className="hidden sm:inline">{t("akwaba.bookings.actions.start")}</span>
+                            </Button>
+                        )}
+                        {isBookingProvider && booking.status === BookingStatus.IN_PROGRESS && (
+                            <Button size="sm" disabled={subscriptionLoading} className="h-9 px-3 text-xs font-black bg-green-600 hover:bg-green-700 flex items-center gap-1.5"
+                                onClick={() => requestAction(booking.id, 'finish')}>
+                                {subscriptionLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:check-read-bold" className="w-4 h-4" />}
+                                <span className="hidden sm:inline">{t("akwaba.bookings.actions.finish")}</span>
+                            </Button>
+                        )}
+
+                        {/* Édition (client, avant validation) */}
+                        {canEdit && booking.status === BookingStatus.PENDING && (
+                            <button onClick={() => { if (onEditRdv) { onEditRdv(booking); onClose(); } }} className="h-9 px-4 bg-primary text-white rounded-xl font-semibold text-xs active:scale-95 transition-all hover:bg-primary/90"> {t("akwaba.details.booking.labels.edit")} </button>
+                        )}
+
+                        {/* Badge de statut si aucune action disponible */}
+                        {!isBookingClient && !isBookingProvider && (
+                            <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold ${status.bg} ${status.color}`}>
+                                {status.label}
+                            </span>
+                        )}
+                    </div>
                 </div>
             </div>
+
+            <ConfirmAction
+                isOpen={confirmState.isOpen}
+                onClose={closeConfirm}
+                onConfirm={execute}
+                title={confirmState.title}
+                message={confirmState.message}
+                confirmLabel={confirmState.confirmLabel}
+                variant={confirmState.variant}
+                icon={confirmState.icon}
+                isLoading={isConfirming}
+            />
             {/* Camera Scanner Modal */}
             {mounted && createPortal(
                 <AnimatePresence>
