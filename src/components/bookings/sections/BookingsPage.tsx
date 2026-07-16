@@ -127,7 +127,7 @@ export default function BookingsPage({
 
     const getMobileHint = (booking: Booking, isClient: boolean, isProvider: boolean): { text: string; color: string } | null => {
         if (isClient) {
-            if (booking.status === BookingStatus.PENDING || booking.status === BookingStatus.ACCEPTED)
+            if (booking.status === BookingStatus.PENDING)
                 return { text: "Cliquez sur 🔴 pour annuler", color: "text-red-500" };
         }
         if (isProvider) {
@@ -239,7 +239,7 @@ export default function BookingsPage({
                                             {/* Status specific actions */}
                                             {isBookingClient && (
                                                 <div className="flex items-center gap-2">
-                                                    {(booking.status === BookingStatus.PENDING || booking.status === BookingStatus.ACCEPTED) && (
+                                                    {booking.status === BookingStatus.PENDING && (
                                                         <Button size="sm" variant="destructive" className="h-8 px-3 text-[10px] font-black flex items-center gap-1.5"
                                                             onClick={(e) => { e.stopPropagation(); requestAction(booking.id, 'cancel'); }}>
                                                             <Icon icon="solar:close-circle-bold" className="w-4 h-4" />

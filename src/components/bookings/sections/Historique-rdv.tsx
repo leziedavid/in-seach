@@ -14,6 +14,7 @@ import BookingModal from "@/components/bookings/modals/BookingModal";
 import AnnonceBookingModal from "@/components/bookings/modals/AnnonceBookingModal";
 import { isReservationAnnonce } from "@/utils/annonceBooking";
 import { SectionHeader } from "@/components/shared/SectionHeader";
+import { useRealTimeUpdate } from "@/hooks/useRealTimeUpdate";
 
 interface HistoriqueRdvProps {
     type: 'history';
@@ -79,6 +80,12 @@ export default function HistoriqueRdv({ data: propData, page: propPage, limit: p
             fetchBookings();
         }
     }, [page, propData]);
+
+    // 🔄 SYNCHRONISATION TEMPS RÉEL (absente jusqu'ici : l'historique ne se
+    // rafraîchissait jamais tout seul après un changement de statut ailleurs).
+    useRealTimeUpdate('Booking', () => {
+        if (!propData) fetchBookings();
+    });
 
     const handleViewDetail = (booking: Booking) => {
         setSelectedBooking(booking);

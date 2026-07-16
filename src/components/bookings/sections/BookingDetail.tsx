@@ -9,6 +9,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { getUserId } from "@/lib/auth";
 import jsQR from "jsqr";
 import { scanBookingQr } from "@/lib/api";
+import { getBookingById } from "@/api/api";
 import { toast } from "sonner";
 import { createPortal } from "react-dom";
 import { useTranslation } from "@/utils/langue/hooks";
@@ -18,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import ConfirmAction from "@/components/ui/ConfirmAction";
 import ReportButton from "@/components/shared/ReportButton";
 import { useBookingStatusAction } from "@/hooks/useBookingStatusAction";
+import { useRealTimeUpdate } from "@/hooks/useRealTimeUpdate";
 
 
 interface BookingDetailProps {
@@ -27,7 +29,7 @@ interface BookingDetailProps {
     onEditRdv?: (booking: Booking | BookingsCalendar) => void;
 }
 
-export default function BookingDetailModal({ isOpen, onClose, booking, onEditRdv }: BookingDetailProps) {
+export default function BookingDetailModal({ isOpen, onClose, booking: initialBooking, onEditRdv }: BookingDetailProps) {
     const { t, language } = useTranslation();
     const [mounted, setMounted] = useState(false);
     const [currentTab, setCurrentTab] = useState("QR Code");
@@ -37,6 +39,24 @@ export default function BookingDetailModal({ isOpen, onClose, booking, onEditRdv
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const streamRef = useRef<MediaStream | null>(null);
+
+    // Copie locale toujours à jour du booking affiché : synchronisée avec la prop à
+    // chaque nouvelle sélection, et rafraîchie en direct (scan QR, événements temps
+    // réel) sans dépendre d'un refetch de la liste parente.
+    const [liveBooking, setLiveBooking] = useState<Booking | BookingsCalendar | null>(initialBooking);
+    const [scanFeedback, setScanFeedback] = useState<"provider" | "client" | null>(null);
+
+    useEffect(() => {
+        setLiveBooking(initialBooking);
+        setScanFeedback(null);
+    }, [initialBooking]);
+
+    useRealTimeUpdate('Booking', (data: any) => {
+        if (!liveBooking || data?.entityId !== liveBooking.id) return;
+        getBookingById(liveBooking.id)
+            .then((res) => { if (res.statusCode === 200 && res.data) setLiveBooking(res.data); })
+            .catch(() => { /* on garde le dernier état connu */ });
+    });
 
     const { confirmState, isConfirming, subscriptionLoading, requestAction, closeConfirm, execute } = useBookingStatusAction({
         onChanged: () => onClose(),
@@ -84,14 +104,33 @@ export default function BookingDetailModal({ isOpen, onClose, booking, onEditRdv
     const handleScanSuccess = async (qrData: string) => {
         if (isScanning) return;
         setIsScanning(true);
-        try { await scanBookingQr(qrData); toast.success("Validé !"); setIsCameraOpen(false); }
-        catch { toast.error("Erreur scan"); } finally { setIsScanning(false); }
+        try {
+            const res: any = await scanBookingQr(qrData);
+            const updated = res?.data;
+            if (updated) {
+                setLiveBooking(updated);
+                if (updated.status === "IN_PROGRESS") {
+                    setScanFeedback("provider");
+                    toast.success(t("akwaba.details.booking.scan_success_provider"));
+                } else if (updated.status === "COMPLETED") {
+                    setScanFeedback("client");
+                    toast.success(t("akwaba.details.booking.scan_success_client"));
+                } else {
+                    toast.success(t("akwaba.details.booking.scan_success_generic"));
+                }
+            } else {
+                toast.success(t("akwaba.details.booking.scan_success_generic"));
+            }
+            setIsCameraOpen(false);
+        } catch { toast.error("Erreur scan"); } finally { setIsScanning(false); }
     };
 
     useEffect(() => { if (isCameraOpen) requestAnimationFrame(scanQRCode); }, [isCameraOpen]);
 
-    if (!booking || !mounted) return null;
+    if (!liveBooking || !mounted) return null;
 
+    // Le reste du composant utilise `booking` — toujours la version la plus à jour.
+    const booking = liveBooking;
     const status = statusConfig[booking.status];
 
     // Rôle réel de l'utilisateur sur CETTE réservation (et non le rôle global du compte).
@@ -208,8 +247,19 @@ export default function BookingDetailModal({ isOpen, onClose, booking, onEditRdv
                                                 </div>
                                             )}
 
-                                            {currentTab === "QR Code" && booking.status !== BookingStatus.PENDING && (
+                                            {currentTab === "QR Code" && (booking.status === BookingStatus.ACCEPTED || booking.status === BookingStatus.IN_PROGRESS) && (
                                                 <div className="space-y-4 flex flex-col items-center pb-4">
+                                                    {/* Bandeau de confirmation après un scan réussi dans cette session */}
+                                                    {scanFeedback === "provider" && (
+                                                        <div className="w-full max-w-[360px] p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl flex items-start gap-3">
+                                                            <Icon icon="solar:check-circle-bold-duotone" className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                                                            <div>
+                                                                <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">{t("akwaba.details.booking.scan_success_provider")}</p>
+                                                                <p className="text-xs text-emerald-600/80 dark:text-emerald-400/70 mt-1">{t("akwaba.details.booking.scan_next_step_client")}</p>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
                                                     {/* Receipt header card - mirrors invoice summary */}
                                                     <div className="w-full max-w-[360px] bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 shadow-sm p-6">
                                                         <p className="text-sm text-neutral-500">{t("akwaba.details.booking.digital_pass")}</p>
@@ -234,9 +284,13 @@ export default function BookingDetailModal({ isOpen, onClose, booking, onEditRdv
                                                                 <QRCodeSVG value={isBookingClient ? booking.userQrCode || "" : booking.prestaQrCode || ""} size={130} level="H" includeMargin={false} className="rounded-sm" />
                                                             </div>
                                                             <p className="text-xs text-neutral-400 mt-3 text-center max-w-[260px] leading-relaxed">
-                                                                {isBookingClient
-                                                                    ? t("akwaba.details.booking.scan_instruction_client")
-                                                                    : t("akwaba.details.booking.scan_instruction_provider")}
+                                                                {booking.status === BookingStatus.IN_PROGRESS
+                                                                    ? (isBookingClient
+                                                                        ? t("akwaba.details.booking.scan_instruction_client_step2")
+                                                                        : t("akwaba.details.booking.scan_instruction_provider_step2"))
+                                                                    : (isBookingClient
+                                                                        ? t("akwaba.details.booking.scan_instruction_client")
+                                                                        : t("akwaba.details.booking.scan_instruction_provider"))}
                                                             </p>
                                                         </div>
 
@@ -260,6 +314,22 @@ export default function BookingDetailModal({ isOpen, onClose, booking, onEditRdv
                                                         <Icon icon="solar:scanner-bold-duotone" width={20} />
                                                         {t("akwaba.details.booking.scan_button")}
                                                     </button>
+                                                </div>
+                                            )}
+
+                                            {currentTab === "QR Code" && (booking.status === BookingStatus.COMPLETED || booking.status === BookingStatus.CANCELLED) && (
+                                                <div className="space-y-4 flex flex-col items-center pb-8 pt-4">
+                                                    <div className="w-full max-w-[360px] bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 shadow-sm p-8 flex flex-col items-center text-center">
+                                                        <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${booking.status === BookingStatus.COMPLETED ? "bg-emerald-500/10 text-emerald-500" : "bg-red-500/10 text-red-500"}`}>
+                                                            <Icon icon={booking.status === BookingStatus.COMPLETED ? "solar:check-circle-bold-duotone" : "solar:close-circle-bold-duotone"} width={32} />
+                                                        </div>
+                                                        <p className="text-base font-semibold text-neutral-900 dark:text-neutral-50 mb-1">
+                                                            {booking.status === BookingStatus.COMPLETED ? t("akwaba.details.booking.qr_completed_title") : t("akwaba.details.booking.qr_cancelled_title")}
+                                                        </p>
+                                                        <p className="text-sm text-neutral-500 max-w-[280px] leading-relaxed">
+                                                            {booking.status === BookingStatus.COMPLETED ? t("akwaba.details.booking.qr_completed_desc") : t("akwaba.details.booking.qr_cancelled_desc")}
+                                                        </p>
+                                                    </div>
                                                 </div>
                                             )}
 
@@ -414,8 +484,8 @@ export default function BookingDetailModal({ isOpen, onClose, booking, onEditRdv
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0">
-                        {/* Actions client */}
-                        {isBookingClient && (booking.status === BookingStatus.PENDING || booking.status === BookingStatus.ACCEPTED) && (
+                        {/* Actions client — annulation possible uniquement avant validation */}
+                        {isBookingClient && booking.status === BookingStatus.PENDING && (
                             <Button size="sm" variant="destructive" className="h-9 px-3 text-xs font-black flex items-center gap-1.5"
                                 onClick={() => requestAction(booking.id, 'cancel')}>
                                 <Icon icon="solar:close-circle-bold" className="w-4 h-4" />
@@ -451,8 +521,8 @@ export default function BookingDetailModal({ isOpen, onClose, booking, onEditRdv
                             <button onClick={() => { if (onEditRdv) { onEditRdv(booking); onClose(); } }} className="h-9 px-4 bg-primary text-white rounded-xl font-semibold text-xs active:scale-95 transition-all hover:bg-primary/90"> {t("akwaba.details.booking.labels.edit")} </button>
                         )}
 
-                        {/* Badge de statut si aucune action disponible */}
-                        {!isBookingClient && !isBookingProvider && (
+                        {/* Badge de statut si aucune action disponible, ou processus terminé/annulé */}
+                        {((!isBookingClient && !isBookingProvider) || booking.status === BookingStatus.COMPLETED || booking.status === BookingStatus.CANCELLED) && (
                             <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold ${status.bg} ${status.color}`}>
                                 {status.label}
                             </span>

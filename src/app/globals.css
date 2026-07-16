@@ -143,6 +143,16 @@
     @apply border-border outline-ring/50;
   }
 
+  /* Empêche le rebond natif (iOS) et le pull-to-refresh natif du navigateur
+     (Chrome Android) de "voler" le geste avant notre usePullToRefresh — sans
+     ça, tirer au-delà du haut de la page recharge toute l'app au lieu de
+     déclencher notre refresh ciblé (particulièrement visible en PWA
+     standalone, sans chrome navigateur pour amortir le geste). Le scroll
+     normal n'est pas affecté : seul le comportement au-delà des bornes l'est. */
+  html, body {
+    overscroll-behavior-y: contain;
+  }
+
   body {
     @apply bg-background text-foreground;
     @apply bg-background text-foreground;

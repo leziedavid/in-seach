@@ -109,6 +109,13 @@ export default function Page() {
     // Un CLIENT ne voit que ses réservations placées (comportement inchangé).
     const [bookingScope, setBookingScope] = useState<'received' | 'placed'>('received');
 
+    // Remonte en haut de page à chaque changement d'onglet (Sidebar) — sans ça, la
+    // position de scroll du contenu précédent (ex: bas d'une liste paginée) persiste
+    // et l'utilisateur arrive au milieu du nouveau contenu.
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+    }, [activeTab]);
+
     // Effect to set initial tab once role is known
     useEffect(() => {
         if (userRole) {

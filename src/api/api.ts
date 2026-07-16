@@ -407,6 +407,14 @@ export const createBooking = async (data: any): Promise<BaseResponse<any>> => {
     return await response.json();
 };
 
+// Get a single booking with full details (même niveau que les listes)
+export const getBookingById = async (id: string): Promise<BaseResponse<Booking>> => {
+    const response = await secureFetch(`${getBaseUrl()}/bookings/${id}`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
 // Update booking status
 export const updateBookingStatus = async (id: string, status: string): Promise<BaseResponse<any>> => {
     const response = await secureFetch(`${getBaseUrl()}/bookings/${id}/status`, {

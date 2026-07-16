@@ -10,15 +10,13 @@ export function isPWAStandalone(): boolean {
 
 export function usePWA() {
     const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-    const [isInstalled, setIsInstalled] = useState(false);
+    // Initialisation paresseuse : évalué dès le premier rendu (pas seulement après montage),
+    // pour qu'un consumer comme usePullToRefresh({ enabled: isInstalled }) soit correct
+    // immédiatement au lieu d'attendre un cycle de useEffect.
+    const [isInstalled, setIsInstalled] = useState(() => isPWAStandalone());
     const [platform, setPlatform] = useState<"ios" | "android" | "desktop">("desktop");
 
     useEffect(() => {
-        // Detect if already installed
-        if (isPWAStandalone()) {
-            setIsInstalled(true);
-        }
-
         // Detect Platform
         const userAgent = window.navigator.userAgent.toLowerCase();
         if (/iphone|ipad|ipod/.test(userAgent)) {
