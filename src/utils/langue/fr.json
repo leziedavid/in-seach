@@ -665,6 +665,15 @@
             "role_logistician": "Logisticien",
             "role_deliverer": "Livreur",
             "role_gas_provider": "Fournisseur de gaz",
+            "role_modal": {
+                "title": "Quel type de compte souhaitez-vous créer ?",
+                "subtitle": "Choisissez le type de compte qui correspond à votre activité.",
+                "desc_particular": "Achetez et réservez des services facilement.",
+                "desc_professional": "Proposez vos services et vendez vos produits.",
+                "desc_logistician": "Gérez le transport et la logistique de marchandises.",
+                "desc_deliverer": "Effectuez des livraisons pour vos clients.",
+                "desc_gas_provider": "Vendez et livrez des bouteilles de gaz."
+            },
             "email_label": "Email",
             "phone_label": "Numéro de téléphone",
             "fullname_label": "Nom & Prénom (optionnel)",

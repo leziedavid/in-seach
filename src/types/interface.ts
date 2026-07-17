@@ -29,7 +29,8 @@ export enum Role {
     ENTREPRISE = 'ENTREPRISE',
     CHAUFFEUR = 'CHAUFFEUR',
     LIVREUR = 'LIVREUR',
-    GAZIER = 'GAZIER'
+    GAZIER = 'GAZIER',
+    MARKETING = 'MARKETING'
 }
 
 export enum TransportType {
@@ -711,6 +712,7 @@ export interface AdminQueryParams {
     endDate?: string;
     status?: string;
     role?: Role;
+    roleNotIn?: string;
 }
 
 export interface AdminUserUpdateDto {

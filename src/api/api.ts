@@ -3138,3 +3138,116 @@ export const getMyActivityHistory = async (params: { type: ActivityHistoryType; 
     });
     return await response.json();
 };
+
+/* ─── Marketing / Call Center ────────────────────────────────────────────────── */
+
+export const marketingGetOverview = async (period: AnalyticsPeriod): Promise<BaseResponse<any>> => {
+    const r = await secureFetch(`${getBaseUrl()}/marketing/kpi/overview?period=${period}`);
+    return r.json();
+};
+
+export const marketingGetModuleBreakdown = async (period: AnalyticsPeriod): Promise<BaseResponse<any>> => {
+    const r = await secureFetch(`${getBaseUrl()}/marketing/kpi/module-breakdown?period=${period}`);
+    return r.json();
+};
+
+export const marketingGetTrend = async (period: AnalyticsPeriod): Promise<BaseResponse<any>> => {
+    const r = await secureFetch(`${getBaseUrl()}/marketing/kpi/trend?period=${period}`);
+    return r.json();
+};
+
+export interface MarketingCallQuery {
+    statut?: string;
+    priorite?: string;
+    module?: string;
+    search?: string;
+    clientId?: string;
+    page?: number;
+    limit?: number;
+}
+
+export const marketingGetCalls = async (query: MarketingCallQuery = {}): Promise<BaseResponse<any>> => {
+    const qs = toQueryString(query as Record<string, any>);
+    const r = await secureFetch(`${getBaseUrl()}/marketing/calls${qs ? `?${qs}` : ''}`);
+    return r.json();
+};
+
+export const marketingGetCall = async (id: string): Promise<BaseResponse<any>> => {
+    const r = await secureFetch(`${getBaseUrl()}/marketing/calls/${id}`);
+    return r.json();
+};
+
+export const marketingCreateCall = async (data: Record<string, any>): Promise<BaseResponse<any>> => {
+    const r = await secureFetch(`${getBaseUrl()}/marketing/calls`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+    });
+    return r.json();
+};
+
+export const marketingUpdateCall = async (id: string, data: Record<string, any>): Promise<BaseResponse<any>> => {
+    const r = await secureFetch(`${getBaseUrl()}/marketing/calls/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+    });
+    return r.json();
+};
+
+export const buildMarketingExportUrl = (format: 'csv' | 'xlsx', query: MarketingCallQuery = {}): string => {
+    const qs = toQueryString({ ...query, format } as Record<string, any>);
+    return `${getBaseUrl()}/marketing/calls/export?${qs}`;
+};
+
+export const marketingGetCampaigns = async (): Promise<BaseResponse<any[]>> => {
+    const r = await secureFetch(`${getBaseUrl()}/marketing/campaigns`);
+    return r.json();
+};
+
+export const marketingLaunchCampaign = async (actionKey: string, payload?: { title?: string; body?: string }): Promise<BaseResponse<any>> => {
+    const r = await secureFetch(`${getBaseUrl()}/marketing/campaigns/${actionKey}/launch`, {
+        method: 'POST',
+        body: JSON.stringify(payload ?? {}),
+    });
+    return r.json();
+};
+
+export const adminSearchUserByPhone = async (phone: string): Promise<BaseResponse<User | null>> => {
+    const r = await secureFetch(`${getBaseUrl()}/admin/users/search?phone=${encodeURIComponent(phone)}`);
+    return r.json();
+};
+
+export interface MarketingMessageTemplate {
+    id: string;
+    title: string;
+    body: string;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export const marketingGetMessageTemplates = async (): Promise<BaseResponse<MarketingMessageTemplate[]>> => {
+    const r = await secureFetch(`${getBaseUrl()}/marketing/message-templates`);
+    return r.json();
+};
+
+export const marketingCreateMessageTemplate = async (data: { title: string; body: string }): Promise<BaseResponse<MarketingMessageTemplate>> => {
+    const r = await secureFetch(`${getBaseUrl()}/marketing/message-templates`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+    });
+    return r.json();
+};
+
+export const marketingUpdateMessageTemplate = async (id: string, data: { title?: string; body?: string }): Promise<BaseResponse<MarketingMessageTemplate>> => {
+    const r = await secureFetch(`${getBaseUrl()}/marketing/message-templates/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+    });
+    return r.json();
+};
+
+export const marketingArchiveMessageTemplate = async (id: string): Promise<BaseResponse<MarketingMessageTemplate>> => {
+    const r = await secureFetch(`${getBaseUrl()}/marketing/message-templates/${id}/archive`, {
+        method: 'POST',
+    });
+    return r.json();
+};

@@ -6,7 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
 import QrCodeLogo from "./QrCodeLogo";
-import { getUserId, getUserName, isAuthenticated } from "@/lib/auth";
+import { getUserId, getUserName, isAuthenticated, getUserSpaceRoute } from "@/lib/auth";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { getConversationsCount } from "@/api/api";
 import { useSocket } from "@/components/providers/SocketProvider";
@@ -45,7 +45,10 @@ export default function Header() {
             router.push("/login?callbackUrl=" + path);
             return false;
         }
-        router.push(path);
+        // "/akwaba" est l'espace personnel générique : selon le rôle, on redirige plutôt
+        // vers l'espace dédié (ADMIN -> /admin, MARKETING -> /suivi_marketing).
+        const target = path === "/akwaba" ? getUserSpaceRoute() : path;
+        router.push(target);
         return true;
     };
 
@@ -225,149 +228,137 @@ export default function Header() {
             </div>
 
             <header className={`fixed left-4 z-[100] bottom-4 ${isMenuOpen ? "w-[92%]" : "w-fit"} max-w-[800px] md:top-6 md:bottom-auto md:left-1/2 md:-translate-x-1/2 md:w-fit md:px-6 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-lg border border-white/40 dark:border-white/10 rounded-full shadow-lg px-2 py-2 flex items-center justify-start gap-1 md:gap-4 transition-all duration-500 ease-in-out will-change-transform ${hideOnScroll ? "translate-y-32 opacity-0 pointer-events-none" : "translate-y-0 opacity-100"} md:translate-y-0 md:opacity-100 md:pointer-events-auto`}>
-            {/* User Section - Desktop: avatar+nom inchangés | Mobile: bouton Menu (photo/nom déplacés en haut) */}
-            <div className="flex items-center gap-1 md:gap-4 shrink-0">
-                {/* Desktop uniquement : avatar identique à avant */}
-                <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="hidden md:flex relative group transition-transform active:scale-95" >
-                    <div className="w-9 h-9 bg-primary/20 rounded-full flex items-center justify-center overflow-hidden relative border-2 border-primary/10 group-hover:border-primary/30 transition-all shrink-0">
-                        {images.map((img, index) => (
-                            <Image
-                                key={img}
-                                src={img}
-                                alt="Avatar"
-                                width={48}
-                                height={48}
-                                priority={index === 0}
-                                unoptimized
-                                onClick={() => handleProtectedNavigation("/akwaba")}
-                                className={`object-cover w-full h-full absolute top-0 left-0 transition-opacity duration-500 ease-in-out cursor-pointer ${index === currentImageIndex ? "opacity-100" : "opacity-0"}`} />
-                        ))}
+                {/* User Section - Desktop: avatar+nom inchangés | Mobile: bouton Menu (photo/nom déplacés en haut) */}
+                <div className="flex items-center gap-1 md:gap-4 shrink-0">
+                    {/* Desktop uniquement : avatar identique à avant */}
+                    <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="hidden md:flex relative group transition-transform active:scale-95" >
+                        <div className="w-9 h-9 bg-primary/20 rounded-full flex items-center justify-center overflow-hidden relative border-2 border-primary/10 group-hover:border-primary/30 transition-all shrink-0">
+                            {images.map((img, index) => (
+                                <Image key={img} src={img} alt="Avatar" width={48} height={48} priority={index === 0} unoptimized onClick={() => handleProtectedNavigation("/akwaba")} className={`object-cover w-full h-full absolute top-0 left-0 transition-opacity duration-500 ease-in-out cursor-pointer ${index === currentImageIndex ? "opacity-100" : "opacity-0"}`} />
+                            ))}
+                        </div>
+                    </button>
+
+                    {/* Mobile uniquement : bouton Menu — prend exactement l'ancien emplacement de l'avatar */}
+                    <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden relative flex items-center justify-center w-12 h-12 bg-primary/20 rounded-full border-2 border-primary/10 active:scale-95 transition-transform shrink-0" aria-label={isMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}>
+                        <motion.div animate={{ rotate: isMenuOpen ? 180 : 0 }} transition={{ duration: 0.35, ease: "easeInOut" }}>
+                            <Icon icon={isMenuOpen ? "solar:close-circle-bold-duotone" : "solar:hamburger-menu-bold-duotone"} className="w-6 h-6 text-primary" />
+                        </motion.div>
+                    </button>
+
+                    <div className="hidden md:block shrink-0 ml-1">
+                        <p className="text-[10px] text-muted-foreground dark:text-zinc-400 leading-tight">
+                            Salut, 👋
+                        </p>
+                        <p className="font-bold text-foreground dark:text-white text-xs">
+                            {userName ? (userName.length > 12 ? userName.substring(0, 10) + '..' : userName) : "EXPLORE"}
+                        </p>
                     </div>
-                </button>
 
-                {/* Mobile uniquement : bouton Menu — prend exactement l'ancien emplacement de l'avatar */}
-                <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden relative flex items-center justify-center w-12 h-12 bg-primary/20 rounded-full border-2 border-primary/10 active:scale-95 transition-transform shrink-0" aria-label={isMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}>
-                    <motion.div
-                        animate={{ rotate: isMenuOpen ? 180 : 0 }}
-                        transition={{ duration: 0.35, ease: "easeInOut" }}
-                    >
-                        <Icon icon={isMenuOpen ? "solar:close-circle-bold-duotone" : "solar:hamburger-menu-bold-duotone"} className="w-6 h-6 text-primary" />
-                    </motion.div>
-                </button>
-
-                <div className="hidden md:block shrink-0 ml-1">
-                    <p className="text-[10px] text-muted-foreground dark:text-zinc-400 leading-tight">
-                        Salut, 👋
-                    </p>
-                    <p className="font-bold text-foreground dark:text-white text-xs">
-                        {userName ? (userName.length > 12 ? userName.substring(0, 10) + '..' : userName) : "EXPLORE"}
-                    </p>
                 </div>
+                {/* Content Wrapper for Animation */}
+                <AnimatePresence mode="wait">
+                    {mounted && (isMenuOpen || isDesktop) && (
+                        <motion.div
+                            key="menu-content"
+                            initial={{ opacity: 0, x: -20, width: 0 }}
+                            animate={{
+                                opacity: 1,
+                                x: 0,
+                                width: "auto",
+                                transition: {
+                                    type: "spring",
+                                    stiffness: 300,
+                                    damping: 30,
+                                    staggerChildren: 0.05
+                                }
+                            }}
+                            exit={{ opacity: 0, x: -20, width: 0 }}
+                            className="flex items-center justify-start md:justify-start w-full md:w-auto gap-4 md:gap-4 overflow-hidden"  >
+                            {/* Navigation Tabs */}
+                            <nav className="flex items-center gap-3 md:gap-4">
+                                {NAVIGATION_TABS.map((tab) => {
+                                    const active = isTabActive(tab.path);
+                                    const isProtected = protectedPaths.includes(tab.path);
 
-            </div>
-            {/* Content Wrapper for Animation */}
-            <AnimatePresence mode="wait">
-                {mounted && (isMenuOpen || isDesktop) && (
-                    <motion.div
-                        key="menu-content"
-                        initial={{ opacity: 0, x: -20, width: 0 }}
-                        animate={{
-                            opacity: 1,
-                            x: 0,
-                            width: "auto",
-                            transition: {
-                                type: "spring",
-                                stiffness: 300,
-                                damping: 30,
-                                staggerChildren: 0.05
-                            }
-                        }}
-                        exit={{ opacity: 0, x: -20, width: 0 }}
-                        className="flex items-center justify-start md:justify-start w-full md:w-auto gap-4 md:gap-4 overflow-hidden"  >
-                        {/* Navigation Tabs */}
-                        <nav className="flex items-center gap-3 md:gap-4">
-                            {NAVIGATION_TABS.map((tab) => {
-                                const active = isTabActive(tab.path);
-                                const isProtected = protectedPaths.includes(tab.path);
+                                    const commonClasses = `flex items-center gap-2 text-xs font-black transition-all px-2.5 py-1.5 rounded-full ${active ? "text-primary-foreground bg-primary shadow-md shadow-primary/20" : "text-muted-foreground hover:text-foreground dark:text-zinc-400 dark:hover:text-white hover:bg-muted/50"}`;
 
-                                const commonClasses = `flex items-center gap-2 text-xs font-black transition-all px-2.5 py-1.5 rounded-full ${active ? "text-primary-foreground bg-primary shadow-md shadow-primary/20" : "text-muted-foreground hover:text-foreground dark:text-zinc-400 dark:hover:text-white hover:bg-muted/50"}`;
+                                    if (isProtected) {
+                                        return (
+                                            <button key={tab.key} onClick={() => handleProtectedNavigation(tab.path)} className={commonClasses} title={tab.label} >
+                                                <Icon icon={tab.icon} className="w-7 h-7 md:w-5 md:h-5" />
+                                                <span className="hidden sm:inline">{tab.label}</span>
+                                            </button>
+                                        );
+                                    }
 
-                                if (isProtected) {
                                     return (
-                                        <button key={tab.key} onClick={() => handleProtectedNavigation(tab.path)} className={commonClasses} title={tab.label} >
+                                        <Link key={tab.key} href={tab.path} className={commonClasses} title={tab.label} >
                                             <Icon icon={tab.icon} className="w-7 h-7 md:w-5 md:h-5" />
                                             <span className="hidden sm:inline">{tab.label}</span>
-                                        </button>
+                                        </Link>
                                     );
-                                }
+                                })}
+                            </nav>
 
-                                return (
-                                    <Link key={tab.key} href={tab.path} className={commonClasses} title={tab.label} >
-                                        <Icon icon={tab.icon} className="w-7 h-7 md:w-5 md:h-5" />
-                                        <span className="hidden sm:inline">{tab.label}</span>
-                                    </Link>
-                                );
-                            })}
-                        </nav>
+                            <div className="w-px h-6 bg-border/40 shrink-0 hidden md:block" />
 
-                        <div className="w-px h-6 bg-border/40 shrink-0 hidden md:block" />
+                            {/* Actions Section */}
+                            <div className="flex items-center gap-3 md:gap-4 ml-2 md:ml-0">
+                                {/* Panier — desktop uniquement ici (déplacé en haut sur mobile, voir la rangée d'icônes mobile) */}
+                                <button onClick={() => setIsCartModalOpen(true)} className="relative hidden md:flex bg-primary p-2 rounded-full transition hover:scale-110 active:scale-95 items-center justify-center hover:rotate-6" >
+                                    <Icon icon="solar:cart-bold" className="text-white w-5 h-5 md:w-5 md:h-5" />
+                                    {totalItems > 0 && (
+                                        <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-1.5 py-0.5 text-[8px] font-black text-white bg-red-500 rounded-full border-2 border-white dark:border-zinc-900">
+                                            {totalItems}
+                                        </span>
+                                    )}
+                                </button>
 
-                        {/* Actions Section */}
-                        <div className="flex items-center gap-3 md:gap-4 ml-2 md:ml-0">
-                            {/* Panier — desktop uniquement ici (déplacé en haut sur mobile, voir la rangée d'icônes mobile) */}
-                            <button onClick={() => setIsCartModalOpen(true)} className="relative hidden md:flex bg-primary p-2 rounded-full transition hover:scale-110 active:scale-95 items-center justify-center hover:rotate-6" >
-                                <Icon icon="solar:cart-bold" className="text-white w-5 h-5 md:w-5 md:h-5" />
-                                {totalItems > 0 && (
-                                    <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-1.5 py-0.5 text-[8px] font-black text-white bg-red-500 rounded-full border-2 border-white dark:border-zinc-900">
-                                        {totalItems}
-                                    </span>
-                                )}
-                            </button>
+                                {/* Guide — mobile uniquement, remplace l'ancien accès "Nos solutions" à cet emplacement. */}
+                                <Link href="/guide" title="Guide" className="relative md:hidden bg-primary p-2 rounded-full transition hover:scale-110 active:scale-95 flex items-center justify-center">
+                                    <Icon icon="solar:book-bookmark-bold-duotone" className="text-white w-5 h-5" />
+                                </Link>
 
-                            {/* Guide — mobile uniquement, remplace l'ancien accès "Nos solutions" à cet emplacement. */}
-                            <Link href="/guide" title="Guide" className="relative md:hidden bg-primary p-2 rounded-full transition hover:scale-110 active:scale-95 flex items-center justify-center">
-                                <Icon icon="solar:book-bookmark-bold-duotone" className="text-white w-5 h-5" />
-                            </Link>
+                                <span className="hidden md:block">
+                                    <QrCodeLogo user={userId} />
+                                </span>
 
-                            <span className="hidden md:block">
-                                <QrCodeLogo user={userId} />
-                            </span>
+                                <button onClick={() => handleProtectedNavigation("/chat-ia")} className="relative bg-primary p-2 rounded-full transition hover:scale-110 active:scale-95 flex items-center justify-center hover:-rotate-6">
+                                    <Icon icon="solar:chat-round-dots-bold-duotone" className="text-white w-5 h-5 md:w-5 md:h-5" />
+                                    {unreadMessages > 0 && (
+                                        <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-1.5 py-0.5 text-[8px] font-black text-white bg-red-500 rounded-full border-2 border-white dark:border-zinc-900">  {unreadMessages}  </span>
+                                    )}
+                                </button>
 
-                            <button onClick={() => handleProtectedNavigation("/chat-ia")} className="relative bg-primary p-2 rounded-full transition hover:scale-110 active:scale-95 flex items-center justify-center hover:-rotate-6">
-                                <Icon icon="solar:chat-round-dots-bold-duotone" className="text-white w-5 h-5 md:w-5 md:h-5" />
-                                {unreadMessages > 0 && (
-                                    <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-1.5 py-0.5 text-[8px] font-black text-white bg-red-500 rounded-full border-2 border-white dark:border-zinc-900">  {unreadMessages}  </span>
-                                )}
-                            </button>
+                                <Link href="/shop-sellers" className="relative bg-primary p-2 rounded-full transition hover:scale-110 active:scale-95 flex items-center justify-center">
+                                    <Icon icon="solar:shop-2-bold-duotone" className="text-white w-5 h-5" />
+                                </Link>
 
-                            <Link href="/shop-sellers" className="relative bg-primary p-2 rounded-full transition hover:scale-110 active:scale-95 flex items-center justify-center">
-                                <Icon icon="solar:shop-2-bold-duotone" className="text-white w-5 h-5" />
-                            </Link>
+                                <Link href="/guide" title="Guide" className="relative hidden md:flex bg-primary p-2 rounded-full transition hover:scale-110 active:scale-95 items-center justify-center">
+                                    <Icon icon="solar:book-bookmark-bold-duotone" className="text-white w-5 h-5" />
+                                </Link>
 
-                            <Link href="/guide" title="Guide" className="relative hidden md:flex bg-primary p-2 rounded-full transition hover:scale-110 active:scale-95 items-center justify-center">
-                                <Icon icon="solar:book-bookmark-bold-duotone" className="text-white w-5 h-5" />
-                            </Link>
+                                <div className="hidden md:block">
+                                    <ThemeToggle />
+                                </div>
+                                <div className="hidden md:block">
+                                    <LanguageToggle />
+                                </div>
+                                {/* Notifications Web Push — seul ajout visuel côté desktop */}
+                                <div className="hidden md:block">
+                                    <NotificationBell />
+                                </div>
 
-                            <div className="hidden md:block">
-                                <ThemeToggle />
+                                {/* Compte utilisateur — toujours en dernière position, web comme mobile */}
+                                <button onClick={() => handleProtectedNavigation("/akwaba")} className="relative bg-primary p-2 rounded-full transition hover:scale-110 active:scale-95 flex items-center justify-center">
+                                    <Icon icon="solar:user-bold" className="text-white w-5 h-5 md:w-5 md:h-5" />
+                                </button>
                             </div>
-                            <div className="hidden md:block">
-                                <LanguageToggle />
-                            </div>
-                            {/* Notifications Web Push — seul ajout visuel côté desktop */}
-                            <div className="hidden md:block">
-                                <NotificationBell />
-                            </div>
-
-                            {/* Compte utilisateur — toujours en dernière position, web comme mobile */}
-                            <button onClick={() => handleProtectedNavigation("/akwaba")} className="relative bg-primary p-2 rounded-full transition hover:scale-110 active:scale-95 flex items-center justify-center">
-                                <Icon icon="solar:user-bold" className="text-white w-5 h-5 md:w-5 md:h-5" />
-                            </button>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-            <CartDetailModal isOpen={isCartModalOpen} onClose={() => setIsCartModalOpen(false)} />
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+                <CartDetailModal isOpen={isCartModalOpen} onClose={() => setIsCartModalOpen(false)} />
             </header>
         </>
     );

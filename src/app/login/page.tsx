@@ -11,6 +11,7 @@ import { useUserLocation } from '@/utils/location';
 import { upsertLocationLog } from '@/api/api';
 import { useTranslation } from '@/utils/langue/hooks';
 import { AccountRecoveryModal } from '@/components/auth/AccountRecoveryModal';
+import { RoleSelectionModal } from '@/components/auth/RoleSelectionModal';
 import { InputPhone } from '@/components/ui/InputPhone';
 import { useBiometrics } from '@/hooks/useBiometrics';
 
@@ -52,6 +53,7 @@ export default function LoginPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [isRecoveryModalOpen, setIsRecoveryModalOpen] = useState(false);
+    const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
 
     const inputsRef = useRef<HTMLInputElement[]>([]);
 
@@ -106,6 +108,8 @@ export default function LoginPage() {
                     router.push('/akwaba');
                 } else if (res.data.role === Role.GAZIER) {
                     router.push('/akwaba');
+                } else if (res.data.role === Role.MARKETING) {
+                    router.push('/suivi_marketing');
                 } else {
                     router.push('/');
                 }
@@ -257,9 +261,9 @@ export default function LoginPage() {
                         </Link>
                         <p className="text-sm text-muted-foreground flex items-center justify-center gap-1 flex-wrap min-h-[35px] px-2">
                             {t("auth.login.no_account")}
-                            <Link href="/register" className="text-primary font-bold hover:underline">
+                            <button type="button" onClick={() => setIsRoleModalOpen(true)} className="text-primary font-bold hover:underline">
                                 {t("auth.login.register_link")}
-                            </Link>
+                            </button>
                         </p>
                         <Link href="/forgot-password" className="text-primary font-bold hover:underline inline-flex items-center gap-1.5 min-h-[35px] px-2 text-sm">
                             <Icon icon="solar:lock-keyhole-bold-duotone" width={14} />
@@ -292,6 +296,7 @@ export default function LoginPage() {
                 </form>
 
                 <AccountRecoveryModal isOpen={isRecoveryModalOpen} onClose={() => setIsRecoveryModalOpen(false)} />
+                <RoleSelectionModal isOpen={isRoleModalOpen} onClose={() => setIsRoleModalOpen(false)} />
 
             </div>
         </div>

@@ -76,6 +76,23 @@ export const getUserRole = (): string | null => {
     return null;
 };
 
+/**
+ * Détermine l'espace personnel à ouvrir selon le rôle : ADMIN -> /admin,
+ * MARKETING -> /suivi_marketing, tous les autres rôles -> /akwaba.
+ * Centralise ce mapping pour éviter de le redupliquer à chaque bouton "Mon compte".
+ */
+export const getUserSpaceRoute = (role?: string | null): string => {
+    const r = role ?? getUserRole();
+    switch (r) {
+        case 'ADMIN':
+            return '/admin';
+        case 'MARKETING':
+            return '/suivi_marketing';
+        default:
+            return '/akwaba';
+    }
+};
+
 export const getUserId = (): string | null => {
     if (typeof window === 'undefined') return null;
     const token = getToken();

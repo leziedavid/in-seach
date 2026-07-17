@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { Icon } from '@iconify/react';
 import { register } from '@/api/api';
@@ -9,6 +9,8 @@ import { useRouter } from 'next/navigation';
 import { z } from 'zod';
 import { Switch } from '@/components/ui/switch';
 import { InputPhone } from '@/components/ui/InputPhone';
+import { storage } from '@/lib/storage';
+import { REGISTER_ROLE_OPTIONS, PENDING_ROLE_STORAGE_KEY, type RegisterRole } from '@/lib/registerRoleOptions';
 
 
 import { useTranslation } from '@/utils/langue/hooks';
@@ -30,7 +32,7 @@ export default function RegisterPage() {
     });
     const router = useRouter();
 
-    const [role, setRole] = useState<'CLIENT' | 'PRESTATAIRE' | 'LOGISTICIAN' | 'LIVREUR' | 'GAZIER'>('CLIENT');
+    const [role, setRole] = useState<RegisterRole>('CLIENT');
     const [email, setEmail] = useState('');
     const [indicatif, setIndicatif] = useState('+225');
     const [phone, setPhone] = useState('');
@@ -43,6 +45,16 @@ export default function RegisterPage() {
     const [acceptedTerms, setAcceptedTerms] = useState(true);
 
     const inputsRef = useRef<HTMLInputElement[]>([]);
+
+    // Présélection du type de compte choisi depuis la modale de /login (voir RoleSelectionModal).
+    // Le sélecteur reste entièrement modifiable — ceci ne fait que changer la valeur initiale.
+    useEffect(() => {
+        const pending = storage.get<RegisterRole>(PENDING_ROLE_STORAGE_KEY);
+        if (pending && REGISTER_ROLE_OPTIONS.some((opt) => opt.value === pending)) {
+            setRole(pending);
+        }
+        storage.remove(PENDING_ROLE_STORAGE_KEY);
+    }, []);
 
     const password = '@' + otp.join(''); // OTP envoyé avec @
 

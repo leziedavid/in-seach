@@ -665,6 +665,15 @@
             "role_logistician": "Logistician",
             "role_deliverer": "Deliverer",
             "role_gas_provider": "Gas Provider",
+            "role_modal": {
+                "title": "What type of account would you like to create?",
+                "subtitle": "Choose the account type that matches your activity.",
+                "desc_particular": "Buy and book services easily.",
+                "desc_professional": "Offer your services and sell your products.",
+                "desc_logistician": "Manage freight transport and logistics.",
+                "desc_deliverer": "Make deliveries for your clients.",
+                "desc_gas_provider": "Sell and deliver gas bottles."
+            },
             "email_label": "Email",
             "phone_label": "Phone number",
             "fullname_label": "Full Name (optional)",
