@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from '@/utils/langue/hooks';
 import { storage } from '@/lib/storage';
 import { REGISTER_ROLE_OPTIONS, PENDING_ROLE_STORAGE_KEY, PENDING_ROLE_TTL_SEC, type RegisterRole } from '@/lib/registerRoleOptions';
+import { RoleStatusBadge } from '@/components/auth/RoleStatusBadge';
 
 interface RoleSelectionModalProps {
     isOpen: boolean;
@@ -16,7 +17,8 @@ export function RoleSelectionModal({ isOpen, onClose }: RoleSelectionModalProps)
     const { t } = useTranslation();
     const router = useRouter();
 
-    const handleSelect = (role: RegisterRole) => {
+    const handleSelect = (role: RegisterRole, active: boolean) => {
+        if (!active) return;
         storage.set(PENDING_ROLE_STORAGE_KEY, role, PENDING_ROLE_TTL_SEC);
         onClose();
         router.push('/register');
@@ -74,10 +76,17 @@ export function RoleSelectionModal({ isOpen, onClose }: RoleSelectionModalProps)
                                     <button
                                         key={opt.value}
                                         type="button"
-                                        onClick={() => handleSelect(opt.value)}
-                                        className="p-4 rounded-2xl border-2 border-[#EEF1F4] bg-[#F2EFE7]/50 hover:border-primary hover:bg-primary/10 transition-all flex flex-col items-center gap-2 text-center active:scale-[0.97]"
+                                        disabled={!opt.active}
+                                        onClick={() => handleSelect(opt.value, opt.active)}
+                                        className={`relative p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 text-center ${opt.active
+                                                ? 'border-[#EEF1F4] bg-[#F2EFE7]/50 hover:border-primary hover:bg-primary/10 active:scale-[0.97] cursor-pointer'
+                                                : 'border-[#EEF1F4]/60 bg-[#F2EFE7]/20 opacity-60 grayscale cursor-not-allowed'
+                                            }`}
                                     >
-                                        <Icon icon={opt.icon} className="text-primary" width={26} />
+                                        <div className="absolute top-2 right-2">
+                                            <RoleStatusBadge active={opt.active} />
+                                        </div>
+                                        <Icon icon={opt.icon} className="text-primary mt-3" width={26} />
                                         <span className="text-xs font-bold uppercase text-[#0F2944]">{t(opt.labelKey)}</span>
                                         <span className="text-[10px] text-[#1F3A5F]/80 leading-snug">{t(opt.descKey)}</span>
                                     </button>
