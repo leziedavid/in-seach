@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { getMySpace, upsertLocationLog } from '@/api/api';
 import { useUserLocation } from '@/utils/location';
+import { useRealTimeUpdate } from '@/hooks/useRealTimeUpdate';
 import AccountServicesList from '@/components/profile/AccountServicesList';
 import AccountAnnonces from '@/components/profile/AccountAnnonces';
 import AccountBookings from '@/components/profile/AccountBookings';
@@ -151,6 +152,13 @@ export default function Page() {
     });
 
     const data = response?.data;
+
+    // Invalide le cache "my-space" dès qu'une réservation change de statut (validation,
+    // scan, terminaison, annulation...), où que l'action ait été effectuée — sinon les
+    // onglets Rendez-vous/Rendez-vous-annonces/Historique-rdv (alimentés par cette seule
+    // requête, staleTime 5 min) restent bloqués sur l'ancien statut jusqu'à expiration du
+    // cache. Même pattern déjà utilisé par AccountAnnonces.tsx / AccountServicesList.tsx.
+    useRealTimeUpdate('Booking', () => { void refetch(); });
 
     // Mapping data per tab
     const tabData = useMemo(() => {

@@ -107,6 +107,7 @@ const MOBILE_GROUPS = [
 ];
 
 export default function Sidebar({ activeTab, onTabChange, user, onLogout }: SidebarProps) {
+
     const { t } = useTranslation();
     const { addNotification } = useNotification();
     const { permission, subscribe, unsubscribe, isNotificationsEnabled, isPushSupported, lastError } = useNotifications();
@@ -294,26 +295,11 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
                     {/* Actions rapides */}
                     {!isLoading && (
                         <div className="flex items-center justify-center gap-6 px-2 pb-4">
-                            {menu.some(i => i.key === 'Historique') && renderQuickAction(
-                                "solar:clock-circle-bold-duotone",
-                                t("akwaba.sidebar.history"),
-                                () => onTabChange('Historique'),
-                                "history-desktop",
-                                'desktop'
+                            {menu.some(i => i.key === 'Historique') && renderQuickAction("solar:clock-circle-bold-duotone", t("akwaba.sidebar.history"), () => onTabChange('Historique'), "history-desktop", 'desktop'
                             )}
-                            {renderQuickAction(
-                                "solar:headphones-round-bold-duotone",
-                                t("akwaba.sidebar.assistance"),
-                                handleOpenAssistance,
-                                "assistance-desktop",
-                                'desktop'
+                            {renderQuickAction("solar:headphones-round-bold-duotone", t("akwaba.sidebar.assistance"), handleOpenAssistance, "assistance-desktop", 'desktop'
                             )}
-                            {menu.some(i => i.key === 'Paramètres') && renderQuickAction(
-                                "solar:settings-bold-duotone",
-                                t("akwaba.sidebar.settings"),
-                                () => onTabChange('Paramètres'),
-                                "settings-desktop",
-                                'desktop'
+                            {menu.some(i => i.key === 'Paramètres') && renderQuickAction("solar:settings-bold-duotone", t("akwaba.sidebar.settings"), () => onTabChange('Paramètres'), "settings-desktop", 'desktop'
                             )}
                         </div>
                     )}
@@ -449,23 +435,11 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
                             {/* ── Actions rapides style app mobile native ── */}
                             {!isLoading && (
                                 <div className="flex items-center justify-center gap-8 px-6 pb-5">
-                                    {menu.some(i => i.key === 'Historique') && renderQuickAction(
-                                        "solar:clock-circle-bold-duotone",
-                                        t("akwaba.sidebar.history"),
-                                        () => { onTabChange('Historique'); setOpen(false); },
-                                        "history"
+                                    {menu.some(i => i.key === 'Historique') && renderQuickAction("solar:clock-circle-bold-duotone", t("akwaba.sidebar.history"), () => { onTabChange('Historique'); setOpen(false); }, "history"
                                     )}
-                                    {renderQuickAction(
-                                        "solar:headphones-round-bold-duotone",
-                                        t("akwaba.sidebar.assistance"),
-                                        handleOpenAssistance,
-                                        "assistance"
+                                    {renderQuickAction("solar:headphones-round-bold-duotone", t("akwaba.sidebar.assistance"), handleOpenAssistance, "assistance"
                                     )}
-                                    {menu.some(i => i.key === 'Paramètres') && renderQuickAction(
-                                        "solar:settings-bold-duotone",
-                                        t("akwaba.sidebar.settings"),
-                                        () => { onTabChange('Paramètres'); setOpen(false); },
-                                        "settings"
+                                    {menu.some(i => i.key === 'Paramètres') && renderQuickAction("solar:settings-bold-duotone", t("akwaba.sidebar.settings"), () => { onTabChange('Paramètres'); setOpen(false); }, "settings"
                                     )}
                                 </div>
                             )}
