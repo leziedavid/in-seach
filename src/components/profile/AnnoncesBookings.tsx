@@ -13,9 +13,10 @@ interface AnnoncesBookingsProps {
     loading?: boolean;
     onPageChange?: (page: number) => void;
     onSuccess?: () => void;
+    scope?: 'recues' | 'passees';
 }
 
-export default function AnnoncesBookings({ type, data, page, limit, total, totalPages, loading, onPageChange, onSuccess }: AnnoncesBookingsProps) {
+export default function AnnoncesBookings({ type, data, page, limit, total, totalPages, loading, onPageChange, onSuccess, scope }: AnnoncesBookingsProps) {
 
     return (
         <div>
@@ -29,6 +30,7 @@ export default function AnnoncesBookings({ type, data, page, limit, total, total
                 onPageChange={onPageChange}
                 onSuccess={onSuccess}
                 bookingType="ANNONCE"
+                scope={scope}
             />
         </div>
     );

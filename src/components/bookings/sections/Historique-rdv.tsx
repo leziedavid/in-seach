@@ -26,11 +26,15 @@ interface HistoriqueRdvProps {
     loading: boolean;
     onPageChange: (page: number) => void;
     onSuccess?: () => void;
+    /** Portée effective en mode contrôlé — reflète le sélecteur Reçues/Mes réservations
+     * du parent (akwaba/page.tsx) ; l'état interne ci-dessous ne sert qu'en mode autonome. */
+    scope?: 'recues' | 'passees';
 }
 
-export default function HistoriqueRdv({ data: propData, page: propPage, limit: propLimit = 6, total: propTotal, totalPages: propTotalPages, loading: propLoading, onPageChange, onSuccess: _onSuccess }: HistoriqueRdvProps) {
+export default function HistoriqueRdv({ data: propData, page: propPage, limit: propLimit = 6, total: propTotal, totalPages: propTotalPages, loading: propLoading, onPageChange, onSuccess: _onSuccess, scope: propScope }: HistoriqueRdvProps) {
 
-    const [activeTab, setActiveTab] = useState<'recues' | 'passees'>('recues');
+    const [internalActiveTab, setActiveTab] = useState<'recues' | 'passees'>('recues');
+    const activeTab = propData ? (propScope ?? internalActiveTab) : internalActiveTab;
     const [bookingsReceived, setBookingsReceived] = useState<Booking[]>([]);
     const [bookingsPlaced, setBookingsPlaced] = useState<Booking[]>([]);
     const [receivedTotalPages, setReceivedTotalPages] = useState(0);

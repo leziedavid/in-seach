@@ -30,6 +30,10 @@ interface BookingsPageProps {
     onPageChange?: (page: number) => void;
     onSuccess?: () => void;
     bookingType?: 'SERVICE' | 'ANNONCE';
+    /** Portée effective en mode contrôlé (propData) — reflète le sélecteur Reçues/Mes
+     * réservations du parent (akwaba/page.tsx), puisque le toggle interne ci-dessous est
+     * alors masqué et son propre état ne reflète jamais le bon onglet. */
+    scope?: 'recues' | 'passees';
 }
 
 export default function BookingsPage({
@@ -41,7 +45,8 @@ export default function BookingsPage({
     loading: propLoading,
     onPageChange,
     onSuccess,
-    bookingType }: BookingsPageProps) {
+    bookingType,
+    scope: propScope }: BookingsPageProps) {
     const { t } = useTranslation();
 
     const [internalPage, setInternalPage] = useState(1);
@@ -49,7 +54,9 @@ export default function BookingsPage({
     const limit = propLimit;
     const setPage = onPageChange ?? setInternalPage;
 
-    const [activeTab, setActiveTab] = useState<'recues' | 'passees'>('recues');
+    const [internalActiveTab, setActiveTab] = useState<'recues' | 'passees'>('recues');
+    // En mode contrôlé, la vérité vient du parent (propScope) ; sinon, l'état interne.
+    const activeTab = propData ? (propScope ?? internalActiveTab) : internalActiveTab;
     const [bookingsReceived, setBookingsReceived] = useState<Booking[]>([]);
     const [bookingsPlaced, setBookingsPlaced] = useState<Booking[]>([]);
     const [receivedTotalPages, setReceivedTotalPages] = useState(0);

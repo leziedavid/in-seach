@@ -286,21 +286,21 @@ export default function Page() {
                 return (
                     <>
                         {renderBookingScopeToggle()}
-                        <AccountBookings type="active" data={tabData.items as Booking[]} page={page} limit={limit} total={tabData.total} totalPages={tabData.totalPages} loading={isLoading} onPageChange={setPage} onSuccess={() => { void refetch(); }} />
+                        <AccountBookings type="active" data={tabData.items as Booking[]} page={page} limit={limit} total={tabData.total} totalPages={tabData.totalPages} loading={isLoading} onPageChange={setPage} onSuccess={() => { void refetch(); }} scope={bookingScope === 'received' ? 'recues' : 'passees'} />
                     </>
                 );
             case 'Rendez-vous-annonces':
                 return (
                     <>
                         {renderBookingScopeToggle()}
-                        <AnnoncesBookings type="active" data={tabData.items as Booking[]} page={page} limit={limit} total={tabData.total} totalPages={tabData.totalPages} loading={isLoading} onPageChange={setPage} onSuccess={() => { void refetch(); }} />
+                        <AnnoncesBookings type="active" data={tabData.items as Booking[]} page={page} limit={limit} total={tabData.total} totalPages={tabData.totalPages} loading={isLoading} onPageChange={setPage} onSuccess={() => { void refetch(); }} scope={bookingScope === 'received' ? 'recues' : 'passees'} />
                     </>
                 );
             case 'Historique-rdv':
                 return (
                     <>
                         {renderBookingScopeToggle()}
-                        <HistoriqueRdv type="history" data={tabData.items as Booking[]} page={page} limit={limit} total={tabData.total} totalPages={tabData.totalPages} loading={isLoading} onPageChange={setPage} onSuccess={() => { void refetch(); }} />
+                        <HistoriqueRdv type="history" data={tabData.items as Booking[]} page={page} limit={limit} total={tabData.total} totalPages={tabData.totalPages} loading={isLoading} onPageChange={setPage} onSuccess={() => { void refetch(); }} scope={bookingScope === 'received' ? 'recues' : 'passees'} />
                     </>
                 );
             case 'Historique-commandes':
