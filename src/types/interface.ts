@@ -30,7 +30,8 @@ export enum Role {
     CHAUFFEUR = 'CHAUFFEUR',
     LIVREUR = 'LIVREUR',
     GAZIER = 'GAZIER',
-    MARKETING = 'MARKETING'
+    MARKETING = 'MARKETING',
+    GARAGISTE_VENTE_PIECE_AUTO = 'GARAGISTE_VENTE_PIECE_AUTO'
 }
 
 export enum TransportType {
@@ -956,6 +957,66 @@ export interface GasAdminOverview {
 export interface GasProviderAdminRow extends GasProvider {
     user?: Pick<User, 'id' | 'fullName' | 'phone' | 'email' | 'indicatif' | 'isSuspended'>;
     _count?: { bottles: number; deliveries: number };
+}
+
+// ─── Annuaire des Garages ───────────────────────────────────────────────────
+
+export interface GarageHoraires {
+    day: string;
+    openTime?: string;
+    closeTime?: string;
+    closed: boolean;
+}
+
+export interface Garage {
+    id: string;
+    userId: string;
+    nom: string;
+    slogan?: string;
+    description?: string;
+    logo?: string;
+    coverPhoto?: string;
+    images: string[];
+    telephone: string;
+    telephoneSecondaire?: string;
+    whatsapp?: string;
+    email?: string;
+    pays?: string;
+    ville?: string;
+    commune?: string;
+    quartier?: string;
+    adresseComplete?: string;
+    latitude?: number;
+    longitude?: number;
+    horaires?: GarageHoraires[];
+    servicesProposes?: string;
+    isPremium: boolean;
+    isAgence: boolean;
+    actif: boolean;
+    catalogueCount?: number;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface GaragePieceCatalogue {
+    id: string;
+    garageId: string;
+    garage?: Garage;
+    nom: string;
+    prix: number;
+    photo?: string;
+    description?: string;
+    marquePiece?: string;
+    fabricant?: string;
+    anneeCompatible?: string;
+    vehicleTypeId?: string;
+    vehicleType?: { id: string; name: string };
+    marqueVehicule?: string;
+    modele?: string;
+    referenceConstructeur?: string;
+    disponible: boolean;
+    createdAt: string;
+    updatedAt: string;
 }
 
 export enum FloteType {

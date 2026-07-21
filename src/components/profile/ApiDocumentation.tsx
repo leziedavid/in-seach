@@ -94,6 +94,26 @@ export default function ApiDocumentation() {
         { method: 'GET', url: '/open-api/delivery-tracking?trackingCode=XXX', description: t('api.endpoints.descriptions.track_delivery'), noPagination: true },
       ],
     },
+    {
+      category: t('api.endpoints.categories.gas_delivery'),
+      endpoints: [
+        { method: 'GET', url: '/open-api/gas-provider', description: t('api.endpoints.descriptions.get_gas_provider'), noPagination: true },
+        { method: 'GET', url: '/open-api/gas-bottles', description: t('api.endpoints.descriptions.get_gas_bottles') },
+      ],
+    },
+    {
+      category: t('api.endpoints.categories.garage'),
+      endpoints: [
+        { method: 'GET', url: '/open-api/garages', description: t('api.endpoints.descriptions.get_garages'), noPagination: true },
+        { method: 'GET', url: '/open-api/garage-pieces?garageId=XXX', description: t('api.endpoints.descriptions.get_garage_pieces'), noPagination: true },
+      ],
+    },
+    {
+      category: t('api.endpoints.categories.easy_delivery'),
+      endpoints: [
+        { method: 'GET', url: '/open-api/easy-delivery', description: t('api.endpoints.descriptions.get_easy_delivery'), noPagination: true },
+      ],
+    },
   ];
 
   const [activeTab, setActiveTab] = useState<'docs' | 'stats'>('docs');

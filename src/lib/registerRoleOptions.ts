@@ -9,7 +9,7 @@
 
 import type { TKey } from '@/utils/langue';
 
-export type RegisterRole = 'CLIENT' | 'PRESTATAIRE' | 'LOGISTICIAN' | 'LIVREUR' | 'GAZIER';
+export type RegisterRole = 'CLIENT' | 'PRESTATAIRE' | 'LOGISTICIAN' | 'LIVREUR' | 'GAZIER' | 'GARAGISTE_VENTE_PIECE_AUTO';
 
 export interface RegisterRoleOption {
     value: RegisterRole;
@@ -26,6 +26,7 @@ export const REGISTER_ROLE_OPTIONS: RegisterRoleOption[] = [
     { value: 'LOGISTICIAN', icon: 'solar:case-minimalistic-bold-duotone', labelKey: 'auth.register.role_logistician', descKey: 'auth.register.role_modal.desc_logistician', active: false },
     { value: 'LIVREUR', icon: 'solar:case-minimalistic-bold-duotone', labelKey: 'auth.register.role_deliverer', descKey: 'auth.register.role_modal.desc_deliverer', active: false },
     { value: 'GAZIER', icon: 'solar:fire-bold-duotone', labelKey: 'auth.register.role_gas_provider', descKey: 'auth.register.role_modal.desc_gas_provider', active: true },
+    { value: 'GARAGISTE_VENTE_PIECE_AUTO', icon: 'solar:garage-bold-duotone', labelKey: 'auth.register.role_garagiste', descKey: 'auth.register.role_modal.desc_garagiste', active: true },
 ];
 
 /** Clé localStorage (via le wrapper `storage` à TTL) pour la présélection temporaire. */

@@ -38,6 +38,7 @@ import MyLivesList from '@/components/lives/MyLivesList';
 import RetoursSAV from '@/components/returns/sections/RetoursSAV';
 import GasRefillRequest from '@/components/gas-delivery/sections/GasRefillRequest';
 import GasProviderDashboard from '@/components/gas-delivery/sections/GasProviderDashboard';
+import GarageManagement from '@/components/garage/sections/GarageManagement';
 import UnifiedHistory from '@/components/history/UnifiedHistory';
 import { useTranslation } from '@/utils/langue/hooks';
 import { Icon } from '@iconify/react';
@@ -339,6 +340,8 @@ export default function Page() {
                 return <GasRefillRequest />;
             case 'Mes-bouteilles-gaz':
                 return <GasProviderDashboard />;
+            case 'Mon-Garage':
+                return <GarageManagement />;
             case 'Historique':
                 return <UnifiedHistory />;
             default:

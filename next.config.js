@@ -5,6 +5,8 @@ const isProd = process.env.NODE_ENV === "production";
 
 const nextConfig = {
 
+  allowedDevOrigins: ["192.168.4.35"],
+
   // Required by Dockerfile - it copies .next/standalone, which only exists
   // with this output mode.
   output: "standalone",

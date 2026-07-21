@@ -127,7 +127,13 @@
                 "label": "Gas",
                 "title": "Home Gas Refill Delivery",
                 "description": "Find a gas provider near you and get your gas bottle delivered with ease."
-            }
+            },
+            "garage": {
+                "label": "Garages",
+                "title": "Garage Directory",
+                "description": "Find a general mechanics garage near you, browse its auto parts catalogue and contact it directly."
+            },
+            "scroll_hint": "Swipe to see more services"
         },
         "image_search": {
             "title": "AI Image Search",
@@ -665,6 +671,7 @@
             "role_logistician": "Logistician",
             "role_deliverer": "Deliverer",
             "role_gas_provider": "Gas Provider",
+            "role_garagiste": "Garage Owner",
             "role_modal": {
                 "title": "What type of account would you like to create?",
                 "subtitle": "Choose the account type that matches your activity.",
@@ -672,7 +679,8 @@
                 "desc_professional": "Offer your services and sell your products.",
                 "desc_logistician": "Manage freight transport and logistics.",
                 "desc_deliverer": "Make deliveries for your clients.",
-                "desc_gas_provider": "Sell and deliver gas bottles."
+                "desc_gas_provider": "Sell and deliver gas bottles.",
+                "desc_garagiste": "List your garage and its auto parts catalogue."
             },
             "email_label": "Email",
             "phone_label": "Phone number",
@@ -725,6 +733,7 @@
             "deliverer_space": "My Deliverer Space",
             "gas_refill": "Gas Refill",
             "my_gas_bottles": "My Gas Space",
+            "my_garages": "My Garage",
             "total_gains": "Total Earnings",
             "logout": "Logout",
             "my_account": "My account",
@@ -738,6 +747,7 @@
                 "chauffeur": "Driver",
                 "livreur": "EasyDelivery Deliverer",
                 "gazier": "Gas Provider",
+                "garagiste": "Garage Owner",
                 "client": "Client"
             },
             "my_lives": "My Lives"
@@ -1335,7 +1345,10 @@
                 "orders": "Orders",
                 "bookings": "Bookings",
                 "annonces": "Ads",
-                "logistics": "Logistics"
+                "logistics": "Logistics",
+                "gas_delivery": "Gas Delivery",
+                "garage": "Auto Garages",
+                "easy_delivery": "Express Delivery"
             },
             "descriptions": {
                 "get_services": "Get your services list.",
@@ -1349,6 +1362,11 @@
                 "get_quotes": "Get your quotes (sent and received).",
                 "get_deliveries": "Get your deliveries.",
                 "get_fleet": "Get your fleet list (vehicles, trucks, etc.).",
+                "get_gas_provider": "Get your gas provider profile.",
+                "get_gas_bottles": "Get your gas bottles list.",
+                "get_garages": "Get your garages list.",
+                "get_garage_pieces": "Get one of your garages' parts catalogue (requires garageId parameter).",
+                "get_easy_delivery": "Get your driver profile (express delivery).",
                 "track_delivery": "Track a specific delivery."
             }
         }

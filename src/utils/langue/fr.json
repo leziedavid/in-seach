@@ -127,7 +127,13 @@
                 "label": "Gaz",
                 "title": "Recharge de Gaz à Domicile",
                 "description": "Trouvez un prestataire de gaz près de chez vous et faites-vous livrer votre bouteille en toute simplicité."
-            }
+            },
+            "garage": {
+                "label": "Garages",
+                "title": "Annuaire des Garages",
+                "description": "Trouvez un garage de mécanique générale près de chez vous, consultez son catalogue de pièces auto et contactez-le directement."
+            },
+            "scroll_hint": "Glissez pour voir plus de services"
         },
         "image_search": {
             "title": "Recherche par image IA",
@@ -665,6 +671,7 @@
             "role_logistician": "Logisticien",
             "role_deliverer": "Livreur",
             "role_gas_provider": "Fournisseur de gaz",
+            "role_garagiste": "Garagiste",
             "role_modal": {
                 "title": "Quel type de compte souhaitez-vous créer ?",
                 "subtitle": "Choisissez le type de compte qui correspond à votre activité.",
@@ -672,7 +679,8 @@
                 "desc_professional": "Proposez vos services et vendez vos produits.",
                 "desc_logistician": "Gérez le transport et la logistique de marchandises.",
                 "desc_deliverer": "Effectuez des livraisons pour vos clients.",
-                "desc_gas_provider": "Vendez et livrez des bouteilles de gaz."
+                "desc_gas_provider": "Vendez et livrez des bouteilles de gaz.",
+                "desc_garagiste": "Référencez votre garage et son catalogue de pièces auto."
             },
             "email_label": "Email",
             "phone_label": "Numéro de téléphone",
@@ -725,6 +733,7 @@
             "deliverer_space": "Mon Espace Livreur",
             "gas_refill": "Recharge de gaz",
             "my_gas_bottles": "Mon espace gaz",
+            "my_garages": "Mon Garage",
             "total_gains": "Total Gains",
             "logout": "Déconnexion",
             "my_account": "Mon compte",
@@ -738,6 +747,7 @@
                 "chauffeur": "Chauffeur",
                 "livreur": "Livreur EasyDelivery",
                 "gazier": "Fournisseur de gaz",
+                "garagiste": "Garagiste",
                 "client": "Client"
             },
             "my_lives": "Mes Lives"
@@ -1335,7 +1345,10 @@
                 "orders": "Commandes",
                 "bookings": "Réservations",
                 "annonces": "Annonces",
-                "logistics": "Logistique"
+                "logistics": "Logistique",
+                "gas_delivery": "Recharge de gaz",
+                "garage": "Garages auto",
+                "easy_delivery": "Livraison rapide"
             },
             "descriptions": {
                 "get_services": "Récupérer la liste de vos services.",
@@ -1349,7 +1362,12 @@
                 "get_quotes": "Récupérer vos devis (envoyés et reçus).",
                 "get_deliveries": "Récupérer vos livraisons.",
                 "get_fleet": "Récupérer la liste de vos engins (véhicules, camions, etc.).",
-                "track_delivery": "Suivre une livraison spécifique."
+                "track_delivery": "Suivre une livraison spécifique.",
+                "get_gas_provider": "Récupérer votre profil de prestataire de gaz.",
+                "get_gas_bottles": "Récupérer la liste de vos bouteilles de gaz.",
+                "get_garages": "Récupérer la liste de vos garages.",
+                "get_garage_pieces": "Récupérer le catalogue de pièces d'un de vos garages (paramètre garageId requis).",
+                "get_easy_delivery": "Récupérer votre profil de livreur (livraison rapide)."
             }
         }
     }

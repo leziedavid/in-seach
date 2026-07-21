@@ -23,7 +23,7 @@ export default function RegisterPage() {
         email: z.string().email(),
         indicatif: z.string().optional(),
         phone: z.string().min(8),
-        role: z.enum(['CLIENT', 'PRESTATAIRE', 'LOGISTICIAN', 'LIVREUR', 'GAZIER']),
+        role: z.enum(['CLIENT', 'PRESTATAIRE', 'LOGISTICIAN', 'LIVREUR', 'GAZIER', 'GARAGISTE_VENTE_PIECE_AUTO']),
         password: z.string().min(5),
         fullName: z.string().optional(),
         company: z.string().optional(),
@@ -94,7 +94,7 @@ export default function RegisterPage() {
                 password,
                 role,
                 fullName: fullname || undefined,
-                company: (role === 'PRESTATAIRE' || role === 'LOGISTICIAN' || role === 'LIVREUR' || role === 'GAZIER') && company ? company : undefined,
+                company: (role === 'PRESTATAIRE' || role === 'LOGISTICIAN' || role === 'LIVREUR' || role === 'GAZIER' || role === 'GARAGISTE_VENTE_PIECE_AUTO') && company ? company : undefined,
                 acceptedTerms,
             };
 
@@ -174,6 +174,12 @@ export default function RegisterPage() {
                         <span className={`text-xs font-bold uppercase ${role === 'GAZIER' ? 'text-primary' : 'text-gray-500'}`}>{t("auth.register.role_gas_provider")}</span>
                     </div>
 
+                    <div onClick={() => setRole('GARAGISTE_VENTE_PIECE_AUTO')} className={`relative p-4 rounded-2xl border-2 cursor-pointer transition-all flex flex-col items-center gap-2 ${role === 'GARAGISTE_VENTE_PIECE_AUTO' ? 'border-primary bg-primary/20' : 'border-gray-200 bg-gray-50 hover:bg-gray-100'}`} >
+                        <div className="absolute top-2 right-2"><RoleStatusBadge active /></div>
+                        <Icon icon="solar:garage-bold-duotone" className={`mt-3 ${role === 'GARAGISTE_VENTE_PIECE_AUTO' ? 'text-primary' : 'text-gray-400'}`} width={24} />
+                        <span className={`text-xs font-bold uppercase ${role === 'GARAGISTE_VENTE_PIECE_AUTO' ? 'text-primary' : 'text-gray-500'}`}>{t("auth.register.role_garagiste")}</span>
+                    </div>
+
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-5">
@@ -236,7 +242,7 @@ export default function RegisterPage() {
                     </div>
 
                     {/* Optional Company if PRESTATAIRE */}
-                    {(role === 'PRESTATAIRE' || role === 'LOGISTICIAN' || role === 'GAZIER') && (
+                    {(role === 'PRESTATAIRE' || role === 'LOGISTICIAN' || role === 'GAZIER' || role === 'GARAGISTE_VENTE_PIECE_AUTO') && (
                         <div className="space-y-2">
                             <label className="text-[11px] sm:text-xs font-black text-gray-600">{t("auth.register.company_label")}</label>
                             <div className="relative">

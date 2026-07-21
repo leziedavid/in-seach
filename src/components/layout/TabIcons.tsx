@@ -46,6 +46,13 @@ export function GazIcon({ active, className }: IconProps) {
     )
 }
 
+// Pour "Garage" : annuaire des garages / mécanique générale
+export function CarRepairIcon({ active, className }: IconProps) {
+    return (
+        <Icon icon="mdi:car-wrench" className={`${defaultSizeClasses} ${className}`} style={{ color: strokeColor(active) }} />
+    )
+}
+
 // Anciens exports pour compatibilité au cas où
 export const HistoryIcon = OpportunitiesIcon;
 export const AccountIcon = BoutiqueIcon;

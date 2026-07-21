@@ -1,5 +1,5 @@
 import { getCookie } from '@/lib/cookies';
-import { BaseResponse, Category, Pagination, ReverseGeocodeData, Role, Service, MySpaceResponse, Annonce, BookingsCalendar, Product, CategoryProd, Order, AdminQueryParams, AdminUserUpdateDto, AdminProductUpdateDto, AdminServiceUpdateDto, AdminAnnonceUpdateDto, AdminSubscriptionPlanDto, User, AdminLog, SubscriptionPlan, PlanEntity, AdminUserSubscription, Subscription, OrdersGroupedResponse, SubOrder, BookingsGroupedResponse, LogisticService, Quote, Delivery, DeliveryTracking, QuoteStatus, DeliveryStatus, TransportType, LocationLog, CategorieAnnonce, TypeAnnonce, LogisticsClient, Video, StoreUserInfo, StoreStats, ServiceStats, AnnonceStats, LiveStats, LogisticProvider, LogisticStats, GasProvider, GasBottle, GasBottleFormat, GasDelivery, GasDeliveryStatus, GasProviderStats, Booking, GasAdminOverview, GasProviderAdminRow, EasyDelivery, HistoryDelivery, EasyDeliveryStatus, DriverStats, SubCategoryProd, Slider, Live, LiveFeedResponse, LiveListResponse, LiveStatus, LiveEntityType, Boost, BoostPricing, BoostEntityType, BoostPaymentMethod, WebPushNotifActiveResponse, WebPushNotifStatus, WebPushNotifAdminListResponse, NotificationSubscriptionListResponse, PushNotificationPayload, SendPushResult } from '@/types/interface';
+import { BaseResponse, Category, Pagination, ReverseGeocodeData, Role, Service, MySpaceResponse, Annonce, BookingsCalendar, Product, CategoryProd, Order, AdminQueryParams, AdminUserUpdateDto, AdminProductUpdateDto, AdminServiceUpdateDto, AdminAnnonceUpdateDto, AdminSubscriptionPlanDto, User, AdminLog, SubscriptionPlan, PlanEntity, AdminUserSubscription, Subscription, OrdersGroupedResponse, SubOrder, BookingsGroupedResponse, LogisticService, Quote, Delivery, DeliveryTracking, QuoteStatus, DeliveryStatus, TransportType, LocationLog, CategorieAnnonce, TypeAnnonce, LogisticsClient, Video, StoreUserInfo, StoreStats, ServiceStats, AnnonceStats, LiveStats, LogisticProvider, LogisticStats, GasProvider, GasBottle, GasBottleFormat, GasDelivery, GasDeliveryStatus, GasProviderStats, Booking, GasAdminOverview, GasProviderAdminRow, Garage, GaragePieceCatalogue, EasyDelivery, HistoryDelivery, EasyDeliveryStatus, DriverStats, SubCategoryProd, Slider, Live, LiveFeedResponse, LiveListResponse, LiveStatus, LiveEntityType, Boost, BoostPricing, BoostEntityType, BoostPaymentMethod, WebPushNotifActiveResponse, WebPushNotifStatus, WebPushNotifAdminListResponse, NotificationSubscriptionListResponse, PushNotificationPayload, SendPushResult } from '@/types/interface';
 
 export const getBaseUrl = (): string => {
     return process.env.NEXT_PUBLIC_API_URL || 'https://api.djamko.com/api/v1';
@@ -2271,6 +2271,84 @@ export const adminSetGasProviderAvailability = async (id: string, isAvailable: b
     const response = await secureFetch(`${getBaseUrl()}/gas-delivery/admin/providers/${id}/availability`, {
         method: 'PATCH',
         body: JSON.stringify({ isAvailable }),
+    });
+    return await response.json();
+};
+
+/* =======================================================
+   GARAGE API (Annuaire des Garages)
+======================================================= */
+
+// --- Recherche & fiche publiques ---
+export const getPublicGarages = async (params: { page?: number; limit?: number; query?: string; lat?: number; lng?: number; radiusKm?: number }): Promise<BaseResponse<Pagination<Garage> & { isFallback?: boolean }>> => {
+    const response = await fetch(`${getBaseUrl()}/garages?${toQueryString(params)}`);
+    return await response.json();
+};
+
+export const getGarageById = async (id: string): Promise<BaseResponse<Garage>> => {
+    const response = await fetch(`${getBaseUrl()}/garages/${id}`);
+    return await response.json();
+};
+
+export const getGaragePieces = async (garageId: string): Promise<BaseResponse<GaragePieceCatalogue[]>> => {
+    const response = await fetch(`${getBaseUrl()}/garages/${garageId}/pieces`);
+    return await response.json();
+};
+
+// --- Mes garages (propriétaire) ---
+export const getMyGarages = async (): Promise<BaseResponse<Garage[]>> => {
+    const response = await secureFetch(`${getBaseUrl()}/garages/my`, { method: 'GET' });
+    return await response.json();
+};
+
+export const createGarage = async (formData: FormData): Promise<BaseResponse<Garage>> => {
+    const response = await secureFetch(`${getBaseUrl()}/garages`, {
+        method: 'POST',
+        body: formData,
+    });
+    return await response.json();
+};
+
+export const updateGarage = async (id: string, formData: FormData): Promise<BaseResponse<Garage>> => {
+    const response = await secureFetch(`${getBaseUrl()}/garages/${id}`, {
+        method: 'PATCH',
+        body: formData,
+    });
+    return await response.json();
+};
+
+export const deleteGarage = async (id: string): Promise<BaseResponse<boolean>> => {
+    const response = await secureFetch(`${getBaseUrl()}/garages/${id}`, {
+        method: 'DELETE',
+    });
+    return await response.json();
+};
+
+// --- Catalogue de pièces d'un garage (propriétaire) ---
+export const getMyGaragePieces = async (garageId: string): Promise<BaseResponse<GaragePieceCatalogue[]>> => {
+    const response = await secureFetch(`${getBaseUrl()}/garages/${garageId}/pieces/my`, { method: 'GET' });
+    return await response.json();
+};
+
+export const createGaragePiece = async (garageId: string, formData: FormData): Promise<BaseResponse<GaragePieceCatalogue>> => {
+    const response = await secureFetch(`${getBaseUrl()}/garages/${garageId}/pieces`, {
+        method: 'POST',
+        body: formData,
+    });
+    return await response.json();
+};
+
+export const updateGaragePiece = async (id: string, formData: FormData): Promise<BaseResponse<GaragePieceCatalogue>> => {
+    const response = await secureFetch(`${getBaseUrl()}/garages/pieces/${id}`, {
+        method: 'PATCH',
+        body: formData,
+    });
+    return await response.json();
+};
+
+export const deleteGaragePiece = async (id: string): Promise<BaseResponse<boolean>> => {
+    const response = await secureFetch(`${getBaseUrl()}/garages/pieces/${id}`, {
+        method: 'DELETE',
     });
     return await response.json();
 };

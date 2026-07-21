@@ -24,6 +24,7 @@ const TOC = [
     { id: "annonces", label: "Les annonces" },
     { id: "logistique", label: "Service logistique" },
     { id: "gaz", label: "Recharge de gaz" },
+    { id: "garage", label: "Garages auto" },
     { id: "installation", label: "Installer l'application" },
     { id: "faq", label: "Questions fréquentes" },
 ];
@@ -49,7 +50,7 @@ export default function GuidePage() {
                     </h1>
 
                     <p className="text-foreground/90 text-base md:text-xl font-bold leading-relaxed max-w-3xl mx-auto mb-5">
-                        Djamko est une super-application qui réunit en un seul endroit tout ce dont particuliers, prestataires et entreprises ont besoin au quotidien : achat et vente en boutique en ligne, réservation de services à la demande, publication d'annonces, recharge de gaz à domicile, livraison express, logistique nationale et internationale, et lives shopping pour vendre en direct.
+                        Djamko est une super-application qui réunit en un seul endroit tout ce dont particuliers, prestataires et entreprises ont besoin au quotidien : achat et vente en boutique en ligne, réservation de services à la demande, publication d'annonces, recharge de gaz à domicile, annuaire de garages automobiles, livraison express, logistique nationale et internationale, et lives shopping pour vendre en direct.
                     </p>
 
                     <div className="flex flex-wrap items-center justify-center gap-2 mb-6">
@@ -58,6 +59,7 @@ export default function GuidePage() {
                             { icon: "solar:hand-stars-bold-duotone", label: "Services à la demande" },
                             { icon: "solar:megaphone-bold-duotone", label: "Annonces" },
                             { icon: "mdi:propane-tank", label: "Recharge de gaz" },
+                            { icon: "mdi:car-wrench", label: "Garages auto" },
                             { icon: "solar:delivery-bold-duotone", label: "Livraison express" },
                             { icon: "solar:ship-bold-duotone", label: "Logistique" },
                             { icon: "solar:play-circle-bold-duotone", label: "Lives shopping" },
@@ -294,6 +296,25 @@ export default function GuidePage() {
                     tip="Passez toujours votre commande depuis l'application plutôt que par appel ou WhatsApp direct : c'est la seule façon de bénéficier du suivi et des garanties de Djamko en cas de litige."
                 />
 
+                <GuideSection
+                    id="garage"
+                    eyebrow="13 — Garages auto"
+                    title="À propos de l'annuaire des garages"
+                    description="L'onglet « Garages » recense les garages de mécanique générale de Côte d'Ivoire : trouvez le plus proche de vous, consultez son catalogue de pièces avant de vous déplacer, puis contactez-le directement."
+                    icon="mdi:car-wrench"
+                    accentIcon="solar:map-point-bold-duotone"
+                    tone="orange"
+                    reverse
+                    steps={[
+                        { title: "Trouver un garage", description: "Recherchez par nom ou autorisez la géolocalisation pour voir en priorité les garages les plus proches de vous." },
+                        { title: "Consulter la fiche du garage", description: "Photos, adresse, horaires, téléphone et position sur la carte : toutes les informations pour se déplacer en toute confiance." },
+                        { title: "Parcourir le catalogue de pièces", description: "Consultez les pièces auto disponibles (marque, référence, prix indicatif) avant de vous rendre sur place — le catalogue est uniquement informatif, aucun achat ne se fait en ligne." },
+                        { title: "Contacter ou s'y rendre", description: "Appelez ou écrivez sur WhatsApp directement depuis la fiche, ou lancez l'itinéraire pour être guidé jusqu'au garage." },
+                    ]}
+                    info="Si aucun garage n'est trouvé à proximité, l'application affiche automatiquement les garages les plus proches disponibles."
+                    tip="Vous êtes garagiste ? Créez votre compte avec le profil « Garagiste », puis ajoutez vos implantations (une ou plusieurs) et leur catalogue de pièces depuis « Mon Garage » dans votre espace personnel."
+                />
+
             </div>
 
             {/* ── Installation de l'application ── */}
@@ -301,7 +322,7 @@ export default function GuidePage() {
                 <div className="max-w-5xl mx-auto px-6">
                     <section id="installation" className="scroll-mt-28">
                         <div className="text-center max-w-2xl mx-auto mb-10">
-                            <p className="text-[11px] font-black text-primary uppercase tracking-[0.2em] mb-2">13 — Installation</p>
+                            <p className="text-[11px] font-black text-primary uppercase tracking-[0.2em] mb-2">14 — Installation</p>
                             <h2 className="text-2xl md:text-3xl font-black text-foreground tracking-tight mb-4">
                                 Installer l'application Djamko
                             </h2>

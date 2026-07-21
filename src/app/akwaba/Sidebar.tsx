@@ -40,6 +40,7 @@ export type TabType =
     | "Retours-SAV"
     | "Recharge-gaz"
     | "Mes-bouteilles-gaz"
+    | "Mon-Garage"
     | "Historique";
 
 export interface TabConfig {
@@ -79,6 +80,9 @@ export const TABS_CONFIG: TabConfig[] = [
     { labelKey: 'akwaba.sidebar.gas_refill', icon: "solar:fire-bold-duotone", key: 'Recharge-gaz', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ENTREPRISE, Role.ADMIN] },
     { labelKey: 'akwaba.sidebar.my_gas_bottles', icon: "solar:box-bold-duotone", key: 'Mes-bouteilles-gaz', roles: [Role.GAZIER, Role.ADMIN] },
 
+    // Annuaire des garages — mécanique générale
+    { labelKey: 'akwaba.sidebar.my_garages', icon: "solar:garage-bold-duotone", key: 'Mon-Garage', roles: [Role.GARAGISTE_VENTE_PIECE_AUTO, Role.ADMIN] },
+
     // Historique unifié (commandes, réservations, livraisons de gaz) — accessible via l'action rapide "Historique"
     { labelKey: 'akwaba.sidebar.history', icon: "solar:clock-circle-bold-duotone", key: 'Historique', roles: [Role.CLIENT, Role.GAZIER, Role.PRESTATAIRE, Role.ADMIN, Role.ENTREPRISE, Role.CHAUFFEUR] },
 ];
@@ -99,7 +103,7 @@ const LOGISTICS_KEYS: TabType[] = [
 // Groupes pour la vue mobile style Yango
 const MOBILE_GROUPS = [
     { keys: ['Overview', 'Calendrier'] },
-    { keys: ['Recharge-gaz', 'Mes-bouteilles-gaz'] },
+    { keys: ['Recharge-gaz', 'Mes-bouteilles-gaz', 'Mon-Garage'] },
     { keys: ['Services', 'Annonces', 'Boutique', 'Mes-lives', 'Commandes', 'Historique-commandes', 'Retours-SAV'] },
     { keys: ['Rendez-vous', 'Rendez-vous-annonces', 'Historique-rdv'] },
     { keys: ['Mes-devis', 'Mes-livraisons', 'Mes-services-logistiques', 'Devis-recus', 'Livraisons', 'Livraisons-chauffeur', 'Ma-flotte', 'Livreur-dashboard'] },
@@ -132,7 +136,8 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
         userRole === Role.ENTREPRISE ? t("akwaba.sidebar.roles.entreprise") :
             userRole === Role.CHAUFFEUR ? t("akwaba.sidebar.roles.chauffeur") :
                 userRole === Role.LIVREUR ? t("akwaba.sidebar.roles.livreur") :
-                    userRole === Role.GAZIER ? t("akwaba.sidebar.roles.gazier") : t("akwaba.sidebar.roles.client");
+                    userRole === Role.GAZIER ? t("akwaba.sidebar.roles.gazier") :
+                        userRole === Role.GARAGISTE_VENTE_PIECE_AUTO ? t("akwaba.sidebar.roles.garagiste") : t("akwaba.sidebar.roles.client");
 
     // ── Assistance — ouvre WhatsApp avec un message prédéfini vers l'admin ──
     const handleOpenAssistance = () => {
