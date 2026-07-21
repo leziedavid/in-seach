@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import { Icon } from "@iconify/react";
-import Image from "next/image";
 import { getProductCategories } from "@/api/api";
 import { Select2 } from "@/components/ui/Select2";
+import ImageUploadGrid from "@/components/ui/ImageUploadGrid";
 import dynamic from 'next/dynamic';
 const RichTextEditor = dynamic(() => import("@/components/ui/editor"), { ssr: false, loading: () => <div className="min-h-[200px] border rounded-lg animate-pulse bg-muted" /> });
 import { Product, CategoryProd, ProductCondition, productConditionLabels, SubCategoryProd } from "@/types/interface";
@@ -83,10 +83,7 @@ export default function FormsProduit({
         }
     }, [initialData]);
 
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = Array.from(e.target.files || []);
-        if (!files.length) return;
-        if (imagePreviews.length + files.length > 3) return;
+    const handleAddImages = (files: File[]) => {
         setImages(prev => [...prev, ...files]);
         files.forEach(file => {
             const reader = new FileReader();
@@ -141,39 +138,14 @@ export default function FormsProduit({
             <div className="px-4 space-y-5">
 
                 {/* Images */}
-                <div className="bg-card rounded-xl border border-border p-4">
-                    <div className="flex items-center justify-between mb-3">
-                        <h3 className="text-sm font-black flex items-center gap-2">
-                            <Icon icon="solar:gallery-bold-duotone" className="w-5 h-5 text-primary" />
-                            Photos du produit
-                        </h3>
-                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{imagePreviews.length}/3</span>
-                    </div>
-                    <div className="flex flex-wrap gap-3">
-                        {imagePreviews.map((src, i) => (
-                            <div key={i} className="relative w-20 h-20 rounded-xl overflow-hidden border border-border">
-                                <Image
-                                    src={src}
-                                    alt={`preview-${i}`}
-                                    fill
-                                    className="object-cover"
-                                    unoptimized />
-                                <button
-                                    type="button"
-                                    onClick={() => removeImage(i)}
-                                    className="absolute top-0.5 right-0.5 bg-black/60 text-white rounded-full p-0.5"
-                                >
-                                    <Icon icon="solar:close-circle-bold" className="w-4 h-4" />
-                                </button>
-                            </div>
-                        ))}
-                        <label className={`w-20 h-20 rounded-xl border-2 border-dashed flex flex-col items-center justify-center transition-colors bg-muted ${imagePreviews.length >= 3 ? 'opacity-50 cursor-not-allowed border-border' : 'border-border hover:border-primary cursor-pointer'}`}>
-                            <Icon icon="solar:upload-bold-duotone" className="w-6 h-6 text-muted-foreground" />
-                            <span className="text-[10px] text-muted-foreground font-black mt-1">AJOUTER</span>
-                            <input type="file" accept="image/*" multiple onChange={handleImageChange} disabled={imagePreviews.length >= 3} className="hidden" />
-                        </label>
-                    </div>
-                </div>
+                <ImageUploadGrid
+                    title="Photos du produit"
+                    icon="solar:gallery-bold-duotone"
+                    max={3}
+                    previews={imagePreviews}
+                    onAdd={handleAddImages}
+                    onRemove={removeImage}
+                />
 
                 {/* 1. Catégorisation & État */}
                 <div className="bg-card rounded-2xl border border-border p-6 shadow-sm space-y-4">

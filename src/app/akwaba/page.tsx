@@ -125,6 +125,10 @@ export default function Page() {
                 setActiveTab('Livreur-dashboard');
             } else if (userRole === Role.CHAUFFEUR) {
                 setActiveTab('Mes-livraisons');
+            } else if (userRole === Role.GAZIER) {
+                setActiveTab('Mes-bouteilles-gaz');
+            } else if (userRole === Role.GARAGISTE_VENTE_PIECE_AUTO) {
+                setActiveTab('Mon-Garage');
             } else {
                 setActiveTab('Overview');
             }

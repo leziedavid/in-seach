@@ -18,6 +18,25 @@ import { Select2 } from "@/components/ui/Select2";
 import CreateButton from "@/components/ui/CreateButton";
 import ConfirmAction, { ConfirmVariant } from "@/components/ui/ConfirmAction";
 import { useNotification } from "@/components/notifications/NotificationProvider";
+import { InputPhone, countries } from "@/components/ui/InputPhone";
+import ImageUploadGrid from "@/components/ui/ImageUploadGrid";
+
+// Même style d'input que FormsProduit.tsx, pour une cohérence totale entre les formulaires.
+const inputClass = "w-full px-4 py-2.5 rounded-xl border border-border bg-muted/30 text-sm outline-none focus:border-primary transition-all font-medium";
+const labelClass = "text-xs font-bold text-muted-foreground uppercase tracking-wider";
+
+/** Sépare un numéro stocké en base ("+225 0712345678") en indicatif + numéro local, pour InputPhone. */
+function splitPhone(raw: string): { indicatif: string; phone: string } {
+    if (!raw) return { indicatif: "+225", phone: "" };
+    const match = [...countries].sort((a, b) => b.code.length - a.code.length).find(c => raw.startsWith(c.code));
+    if (match) return { indicatif: match.code, phone: raw.slice(match.code.length).trim() };
+    return { indicatif: "+225", phone: raw };
+}
+
+/** Recombine indicatif + numéro local en une seule chaîne pour l'API (champ texte libre côté backend). */
+function combinePhone(indicatif: string, phone: string): string {
+    return phone.trim() ? `${indicatif} ${phone.trim()}` : "";
+}
 
 const UserMap = dynamic(() => import("@/components/ui/Maps"), {
     ssr: false,
@@ -33,32 +52,44 @@ const defaultHoraires = (): GarageHoraires[] => DAYS.map(day => ({ day, openTime
 
 interface GarageFormState {
     nom: string; slogan: string; description: string;
-    telephone: string; telephoneSecondaire: string; whatsapp: string; email: string;
+    telIndicatif: string; telPhone: string;
+    tel2Indicatif: string; tel2Phone: string;
+    waIndicatif: string; waPhone: string;
+    email: string;
     pays: string; ville: string; commune: string; quartier: string; adresseComplete: string;
     servicesProposes: string; isAgence: boolean; actif: boolean;
     horaires: GarageHoraires[];
-    logoFile: File | null; coverFile: File | null; newImages: File[]; existingImages: string[];
+    logoFiles: File[]; logoPreviews: string[];
+    coverFiles: File[]; coverPreviews: string[];
+    newImages: File[]; imagePreviews: string[];
 }
 
 const emptyGarageForm = (): GarageFormState => ({
     nom: "", slogan: "", description: "",
-    telephone: "", telephoneSecondaire: "", whatsapp: "", email: "",
+    telIndicatif: "+225", telPhone: "",
+    tel2Indicatif: "+225", tel2Phone: "",
+    waIndicatif: "+225", waPhone: "",
+    email: "",
     pays: "Côte d'Ivoire", ville: "", commune: "", quartier: "", adresseComplete: "",
     servicesProposes: "", isAgence: false, actif: true,
     horaires: defaultHoraires(),
-    logoFile: null, coverFile: null, newImages: [], existingImages: [],
+    logoFiles: [], logoPreviews: [],
+    coverFiles: [], coverPreviews: [],
+    newImages: [], imagePreviews: [],
 });
 
 interface PieceFormState {
     nom: string; prix: string; description: string; marquePiece: string; fabricant: string;
     anneeCompatible: string; vehicleTypeId: string | null; marqueVehicule: string; modele: string;
-    referenceConstructeur: string; disponible: boolean; photoFile: File | null;
+    referenceConstructeur: string; disponible: boolean;
+    photoFiles: File[]; photoPreviews: string[];
 }
 
 const emptyPieceForm = (): PieceFormState => ({
     nom: "", prix: "", description: "", marquePiece: "", fabricant: "",
     anneeCompatible: "", vehicleTypeId: null, marqueVehicule: "", modele: "",
-    referenceConstructeur: "", disponible: true, photoFile: null,
+    referenceConstructeur: "", disponible: true,
+    photoFiles: [], photoPreviews: [],
 });
 
 export default function GarageManagement() {
@@ -135,19 +166,59 @@ export default function GarageManagement() {
 
     const openEditGarage = (garage: Garage) => {
         setEditingGarage(garage);
+        const tel = splitPhone(garage.telephone);
+        const tel2 = splitPhone(garage.telephoneSecondaire || "");
+        const wa = splitPhone(garage.whatsapp || "");
         setGarageForm({
             nom: garage.nom, slogan: garage.slogan || "", description: garage.description || "",
-            telephone: garage.telephone, telephoneSecondaire: garage.telephoneSecondaire || "",
-            whatsapp: garage.whatsapp || "", email: garage.email || "",
+            telIndicatif: tel.indicatif, telPhone: tel.phone,
+            tel2Indicatif: tel2.indicatif, tel2Phone: tel2.phone,
+            waIndicatif: wa.indicatif, waPhone: wa.phone,
+            email: garage.email || "",
             pays: garage.pays || "Côte d'Ivoire", ville: garage.ville || "", commune: garage.commune || "",
             quartier: garage.quartier || "", adresseComplete: garage.adresseComplete || "",
             servicesProposes: garage.servicesProposes || "", isAgence: garage.isAgence, actif: garage.actif,
             horaires: garage.horaires && garage.horaires.length ? garage.horaires : defaultHoraires(),
-            logoFile: null, coverFile: null, newImages: [], existingImages: garage.images || [],
+            logoFiles: [], logoPreviews: garage.logo ? [garage.logo] : [],
+            coverFiles: [], coverPreviews: garage.coverPhoto ? [garage.coverPhoto] : [],
+            newImages: [], imagePreviews: garage.images || [],
         });
         setCoords(garage.latitude != null && garage.longitude != null ? { lat: garage.latitude, lng: garage.longitude } : null);
         setIsGarageModalOpen(true);
     };
+
+    // ── Images du garage : ajout (avec aperçu FileReader) et suppression, même logique que FormsProduit.tsx ──
+    const addLogo = (files: File[]) => {
+        setGarageForm(f => ({ ...f, logoFiles: [...f.logoFiles, ...files] }));
+        const reader = new FileReader();
+        reader.onload = ev => setGarageForm(f => ({ ...f, logoPreviews: [...f.logoPreviews, ev.target?.result as string] }));
+        reader.readAsDataURL(files[0]);
+    };
+    const removeLogo = (index: number) => setGarageForm(f => ({
+        ...f, logoFiles: f.logoFiles.filter((_, i) => i !== index), logoPreviews: f.logoPreviews.filter((_, i) => i !== index),
+    }));
+
+    const addCover = (files: File[]) => {
+        setGarageForm(f => ({ ...f, coverFiles: [...f.coverFiles, ...files] }));
+        const reader = new FileReader();
+        reader.onload = ev => setGarageForm(f => ({ ...f, coverPreviews: [...f.coverPreviews, ev.target?.result as string] }));
+        reader.readAsDataURL(files[0]);
+    };
+    const removeCover = (index: number) => setGarageForm(f => ({
+        ...f, coverFiles: f.coverFiles.filter((_, i) => i !== index), coverPreviews: f.coverPreviews.filter((_, i) => i !== index),
+    }));
+
+    const addGalleryImages = (files: File[]) => {
+        setGarageForm(f => ({ ...f, newImages: [...f.newImages, ...files] }));
+        files.forEach(file => {
+            const reader = new FileReader();
+            reader.onload = ev => setGarageForm(f => ({ ...f, imagePreviews: [...f.imagePreviews, ev.target?.result as string] }));
+            reader.readAsDataURL(file);
+        });
+    };
+    const removeGalleryImage = (index: number) => setGarageForm(f => ({
+        ...f, newImages: f.newImages.filter((_, i) => i !== index), imagePreviews: f.imagePreviews.filter((_, i) => i !== index),
+    }));
 
     const handleLocateGarage = async () => {
         setLocating(true);
@@ -166,7 +237,7 @@ export default function GarageManagement() {
     };
 
     const handleSaveGarage = async () => {
-        if (!garageForm.nom.trim() || !garageForm.telephone.trim()) {
+        if (!garageForm.nom.trim() || !garageForm.telPhone.trim()) {
             addNotification("Le nom et le téléphone du garage sont requis", "error");
             return;
         }
@@ -174,11 +245,13 @@ export default function GarageManagement() {
         try {
             const fd = new FormData();
             fd.append("nom", garageForm.nom);
-            fd.append("telephone", garageForm.telephone);
+            fd.append("telephone", combinePhone(garageForm.telIndicatif, garageForm.telPhone));
             if (garageForm.slogan) fd.append("slogan", garageForm.slogan);
             if (garageForm.description) fd.append("description", garageForm.description);
-            if (garageForm.telephoneSecondaire) fd.append("telephoneSecondaire", garageForm.telephoneSecondaire);
-            if (garageForm.whatsapp) fd.append("whatsapp", garageForm.whatsapp);
+            const tel2 = combinePhone(garageForm.tel2Indicatif, garageForm.tel2Phone);
+            if (tel2) fd.append("telephoneSecondaire", tel2);
+            const wa = combinePhone(garageForm.waIndicatif, garageForm.waPhone);
+            if (wa) fd.append("whatsapp", wa);
             if (garageForm.email) fd.append("email", garageForm.email);
             if (garageForm.pays) fd.append("pays", garageForm.pays);
             if (garageForm.ville) fd.append("ville", garageForm.ville);
@@ -190,10 +263,13 @@ export default function GarageManagement() {
             fd.append("horaires", JSON.stringify(garageForm.horaires));
             fd.append("isAgence", String(garageForm.isAgence));
             fd.append("actif", String(garageForm.actif));
-            if (garageForm.logoFile) fd.append("logo", garageForm.logoFile);
-            if (garageForm.coverFile) fd.append("cover", garageForm.coverFile);
+            if (garageForm.logoFiles[0]) fd.append("logo", garageForm.logoFiles[0]);
+            if (garageForm.coverFiles[0]) fd.append("cover", garageForm.coverFiles[0]);
             garageForm.newImages.forEach(file => fd.append("images", file));
-            if (editingGarage) garageForm.existingImages.forEach(url => fd.append("existingImages", url));
+            if (editingGarage) {
+                const keptExisting = garageForm.imagePreviews.filter(p => (editingGarage.images || []).includes(p));
+                keptExisting.forEach(url => fd.append("existingImages", url));
+            }
 
             const res = editingGarage ? await updateGarage(editingGarage.id, fd) : await createGarage(fd);
             if (res.statusCode === 200 || res.statusCode === 201) {
@@ -237,10 +313,21 @@ export default function GarageManagement() {
             marquePiece: piece.marquePiece || "", fabricant: piece.fabricant || "",
             anneeCompatible: piece.anneeCompatible || "", vehicleTypeId: piece.vehicleTypeId || null,
             marqueVehicule: piece.marqueVehicule || "", modele: piece.modele || "",
-            referenceConstructeur: piece.referenceConstructeur || "", disponible: piece.disponible, photoFile: null,
+            referenceConstructeur: piece.referenceConstructeur || "", disponible: piece.disponible,
+            photoFiles: [], photoPreviews: piece.photo ? [piece.photo] : [],
         });
         setIsPieceModalOpen(true);
     };
+
+    const addPiecePhoto = (files: File[]) => {
+        setPieceForm(f => ({ ...f, photoFiles: [...f.photoFiles, ...files] }));
+        const reader = new FileReader();
+        reader.onload = ev => setPieceForm(f => ({ ...f, photoPreviews: [...f.photoPreviews, ev.target?.result as string] }));
+        reader.readAsDataURL(files[0]);
+    };
+    const removePiecePhoto = (index: number) => setPieceForm(f => ({
+        ...f, photoFiles: f.photoFiles.filter((_, i) => i !== index), photoPreviews: f.photoPreviews.filter((_, i) => i !== index),
+    }));
 
     const handleSavePiece = async () => {
         if (!selectedGarage) return;
@@ -262,7 +349,7 @@ export default function GarageManagement() {
             if (pieceForm.modele) fd.append("modele", pieceForm.modele);
             if (pieceForm.referenceConstructeur) fd.append("referenceConstructeur", pieceForm.referenceConstructeur);
             fd.append("disponible", String(pieceForm.disponible));
-            if (pieceForm.photoFile) fd.append("files", pieceForm.photoFile);
+            if (pieceForm.photoFiles[0]) fd.append("files", pieceForm.photoFiles[0]);
 
             const res = editingPiece ? await updateGaragePiece(editingPiece.id, fd) : await createGaragePiece(selectedGarage.id, fd);
             if (res.statusCode === 200 || res.statusCode === 201) {
@@ -386,11 +473,15 @@ export default function GarageManagement() {
                     isOpen={isGarageModalOpen} onClose={() => setIsGarageModalOpen(false)} editing={!!editingGarage}
                     form={garageForm} setForm={setGarageForm} coords={coords} locating={locating}
                     onLocate={handleLocateGarage} onSave={handleSaveGarage} saving={savingGarage}
+                    onAddLogo={addLogo} onRemoveLogo={removeLogo}
+                    onAddCover={addCover} onRemoveCover={removeCover}
+                    onAddGalleryImages={addGalleryImages} onRemoveGalleryImage={removeGalleryImage}
                 />
                 <PieceFormModal
                     isOpen={isPieceModalOpen} onClose={() => setIsPieceModalOpen(false)} editing={!!editingPiece}
                     form={pieceForm} setForm={setPieceForm} vehicleTypes={vehicleTypes}
                     onSave={handleSavePiece} saving={savingPiece}
+                    onAddPhoto={addPiecePhoto} onRemovePhoto={removePiecePhoto}
                 />
                 <ConfirmAction isOpen={confirmState.isOpen} onClose={closeConfirm} onConfirm={() => { confirmState.action?.(); closeConfirm(); }} title={confirmState.title} message={confirmState.message} confirmLabel={confirmState.confirmLabel} variant={confirmState.variant} icon={confirmState.icon} />
             </div>
@@ -437,6 +528,9 @@ export default function GarageManagement() {
                 isOpen={isGarageModalOpen} onClose={() => setIsGarageModalOpen(false)} editing={!!editingGarage}
                 form={garageForm} setForm={setGarageForm} coords={coords} locating={locating}
                 onLocate={handleLocateGarage} onSave={handleSaveGarage} saving={savingGarage}
+                onAddLogo={addLogo} onRemoveLogo={removeLogo}
+                onAddCover={addCover} onRemoveCover={removeCover}
+                onAddGalleryImages={addGalleryImages} onRemoveGalleryImage={removeGalleryImage}
             />
         </div>
     );
@@ -444,15 +538,18 @@ export default function GarageManagement() {
 
 // ─── Modal formulaire garage ────────────────────────────────────────────────
 
-function GarageFormModal({ isOpen, onClose, editing, form, setForm, coords, locating, onLocate, onSave, saving }: {
+function GarageFormModal({
+    isOpen, onClose, editing, form, setForm, coords, locating, onLocate, onSave, saving,
+    onAddLogo, onRemoveLogo, onAddCover, onRemoveCover, onAddGalleryImages, onRemoveGalleryImage,
+}: {
     isOpen: boolean; onClose: () => void; editing: boolean;
     form: GarageFormState; setForm: React.Dispatch<React.SetStateAction<GarageFormState>>;
     coords: { lat: number; lng: number } | null; locating: boolean;
     onLocate: () => void; onSave: () => void; saving: boolean;
+    onAddLogo: (files: File[]) => void; onRemoveLogo: (index: number) => void;
+    onAddCover: (files: File[]) => void; onRemoveCover: (index: number) => void;
+    onAddGalleryImages: (files: File[]) => void; onRemoveGalleryImage: (index: number) => void;
 }) {
-    const inputClass = "w-full bg-muted/50 border border-border rounded-2xl py-3 px-4 text-sm font-bold focus:border-primary outline-none transition-all";
-    const labelClass = "text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1";
-
     const updateHoraire = (index: number, patch: Partial<GarageHoraires>) => {
         setForm(f => ({ ...f, horaires: f.horaires.map((h, i) => i === index ? { ...h, ...patch } : h) }));
     };
@@ -478,25 +575,30 @@ function GarageFormModal({ isOpen, onClose, editing, form, setForm, coords, loca
                     <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} rows={3} className={`${inputClass} resize-none`} />
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1.5">
-                        <label className={labelClass}>Téléphone principal</label>
-                        <input type="text" value={form.telephone} onChange={e => setForm(f => ({ ...f, telephone: e.target.value }))} className={inputClass} />
-                    </div>
-                    <div className="space-y-1.5">
-                        <label className={labelClass}>Téléphone secondaire</label>
-                        <input type="text" value={form.telephoneSecondaire} onChange={e => setForm(f => ({ ...f, telephoneSecondaire: e.target.value }))} className={inputClass} />
-                    </div>
+                <div className="space-y-1.5">
+                    <label className={labelClass}>Téléphone principal</label>
+                    <InputPhone
+                        indicatif={form.telIndicatif} phone={form.telPhone}
+                        onPhoneChange={v => setForm(f => ({ ...f, telIndicatif: v.indicatif, telPhone: v.phone }))}
+                    />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1.5">
-                        <label className={labelClass}>WhatsApp</label>
-                        <input type="text" value={form.whatsapp} onChange={e => setForm(f => ({ ...f, whatsapp: e.target.value }))} className={inputClass} />
-                    </div>
-                    <div className="space-y-1.5">
-                        <label className={labelClass}>Email</label>
-                        <input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} className={inputClass} />
-                    </div>
+                <div className="space-y-1.5">
+                    <label className={labelClass}>Téléphone secondaire (optionnel)</label>
+                    <InputPhone
+                        indicatif={form.tel2Indicatif} phone={form.tel2Phone}
+                        onPhoneChange={v => setForm(f => ({ ...f, tel2Indicatif: v.indicatif, tel2Phone: v.phone }))}
+                    />
+                </div>
+                <div className="space-y-1.5">
+                    <label className={labelClass}>WhatsApp (optionnel)</label>
+                    <InputPhone
+                        indicatif={form.waIndicatif} phone={form.waPhone}
+                        onPhoneChange={v => setForm(f => ({ ...f, waIndicatif: v.indicatif, waPhone: v.phone }))}
+                    />
+                </div>
+                <div className="space-y-1.5">
+                    <label className={labelClass}>Email</label>
+                    <input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} className={inputClass} />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
@@ -565,30 +667,9 @@ function GarageFormModal({ isOpen, onClose, editing, form, setForm, coords, loca
                     <input type="text" value={form.servicesProposes} onChange={e => setForm(f => ({ ...f, servicesProposes: e.target.value }))} placeholder="Ex: Vidange, diagnostic électronique, carrosserie..." className={inputClass} />
                 </div>
 
-                <div className="space-y-1.5">
-                    <label className={labelClass}>Logo</label>
-                    <input type="file" accept="image/*" onChange={e => setForm(f => ({ ...f, logoFile: e.target.files?.[0] || null }))} className="text-xs" />
-                </div>
-                <div className="space-y-1.5">
-                    <label className={labelClass}>Photo de couverture</label>
-                    <input type="file" accept="image/*" onChange={e => setForm(f => ({ ...f, coverFile: e.target.files?.[0] || null }))} className="text-xs" />
-                </div>
-                <div className="space-y-1.5">
-                    <label className={labelClass}>Galerie de photos</label>
-                    <input type="file" accept="image/*" multiple onChange={e => setForm(f => ({ ...f, newImages: Array.from(e.target.files || []) }))} className="text-xs" />
-                    {form.existingImages.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mt-2">
-                            {form.existingImages.map(url => (
-                                <div key={url} className="relative w-14 h-14 rounded-lg overflow-hidden group">
-                                    <img src={url} alt="" className="w-full h-full object-cover" />
-                                    <button type="button" onClick={() => setForm(f => ({ ...f, existingImages: f.existingImages.filter(u => u !== url) }))} className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                                        <Icon icon="solar:close-circle-bold" className="w-5 h-5 text-white" />
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
+                <ImageUploadGrid title="Logo" icon="solar:garage-bold-duotone" max={1} previews={form.logoPreviews} onAdd={onAddLogo} onRemove={onRemoveLogo} />
+                <ImageUploadGrid title="Photo de couverture" icon="solar:gallery-wide-bold-duotone" max={1} previews={form.coverPreviews} onAdd={onAddCover} onRemove={onRemoveCover} />
+                <ImageUploadGrid title="Galerie de photos" icon="solar:gallery-bold-duotone" max={3} previews={form.imagePreviews} onAdd={onAddGalleryImages} onRemove={onRemoveGalleryImage} />
 
                 <div className="flex items-center justify-between bg-muted/30 rounded-2xl p-4">
                     <p className="text-sm font-bold text-foreground">Agence (implantation secondaire)</p>
@@ -613,15 +694,13 @@ function GarageFormModal({ isOpen, onClose, editing, form, setForm, coords, loca
 
 // ─── Modal formulaire pièce de catalogue ────────────────────────────────────
 
-function PieceFormModal({ isOpen, onClose, editing, form, setForm, vehicleTypes, onSave, saving }: {
+function PieceFormModal({ isOpen, onClose, editing, form, setForm, vehicleTypes, onSave, saving, onAddPhoto, onRemovePhoto }: {
     isOpen: boolean; onClose: () => void; editing: boolean;
     form: PieceFormState; setForm: React.Dispatch<React.SetStateAction<PieceFormState>>;
     vehicleTypes: { id: string; name: string }[];
     onSave: () => void; saving: boolean;
+    onAddPhoto: (files: File[]) => void; onRemovePhoto: (index: number) => void;
 }) {
-    const inputClass = "w-full bg-muted/50 border border-border rounded-2xl py-3 px-4 text-sm font-bold focus:border-primary outline-none transition-all";
-    const labelClass = "text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1";
-
     return (
         <Modal isOpen={isOpen} onClose={onClose}>
             <div className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
@@ -691,10 +770,7 @@ function PieceFormModal({ isOpen, onClose, editing, form, setForm, vehicleTypes,
                     </div>
                 </div>
 
-                <div className="space-y-1.5">
-                    <label className={labelClass}>Photo (optionnel)</label>
-                    <input type="file" accept="image/*" onChange={e => setForm(f => ({ ...f, photoFile: e.target.files?.[0] || null }))} className="text-xs" />
-                </div>
+                <ImageUploadGrid title="Photo (optionnel)" icon="solar:widget-4-bold-duotone" max={1} previews={form.photoPreviews} onAdd={onAddPhoto} onRemove={onRemovePhoto} />
 
                 <div className="flex items-center justify-between bg-muted/30 rounded-2xl p-4">
                     <p className="text-sm font-bold text-foreground">Disponible</p>
