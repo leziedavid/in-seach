@@ -135,6 +135,9 @@
             },
             "scroll_hint": "Swipe to see more services"
         },
+        "promo": {
+            "badge_new": "New!"
+        },
         "image_search": {
             "title": "AI Image Search",
             "choose_image": "Choose an image",

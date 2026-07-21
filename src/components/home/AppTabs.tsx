@@ -10,6 +10,7 @@ import SearchServies from "@/components/services/sections/SearchServies"
 import LogisticProvider from "@/components/logistics/sections/LogisticProvider"
 import SearchGaz from "@/components/gas-delivery/sections/SearchGaz"
 import SearchGarage from "@/components/garage/sections/SearchGarage"
+import TabPromoBanner, { TabPromo } from "@/components/home/TabPromoBanner"
 import { useTranslation } from "@/utils/langue/hooks"
 
 export default function AppTabs() {
@@ -20,70 +21,90 @@ export default function AppTabs() {
             id: "search",
             label: "",
             Icon: SearchIcon,
-            info: {
-                title: t("home.tabs.expertise.title"),
-                description: t("home.tabs.expertise.description")
-            }
         },
         {
             id: "annonces",
             label: t("home.tabs.opportunities.label"),
             Icon: OpportunitiesIcon,
-            info: {
-                title: t("home.tabs.opportunities.title"),
-                description: t("home.tabs.opportunities.description")
-            }
         },
         {
             id: "boutique",
             label: t("home.tabs.boutique.label"),
             Icon: BoutiqueIcon,
-            info: {
-                title: t("home.tabs.boutique.title"),
-                description: t("home.tabs.boutique.description")
-            }
         },
         // {
         //     id: "logistics",
         //     label: t("home.tabs.logistics.label"),
         //     Icon: LogisticsIcon,
-        //     info: {
-        //         title: t("home.tabs.logistics.title"),
-        //         description: t("home.tabs.logistics.description")
-        //     }
         // },
         {
             id: "gaz",
             label: t("home.tabs.gaz.label"),
             Icon: GazIcon,
-            info: {
-                title: t("home.tabs.gaz.title"),
-                description: t("home.tabs.gaz.description")
-            }
         },
         {
             id: "garage",
             label: t("home.tabs.garage.label"),
             Icon: CarRepairIcon,
-            info: {
-                title: t("home.tabs.garage.title"),
-                description: t("home.tabs.garage.description")
-            }
+        },
+    ]
+
+    // Un message promo par onglet, totalement indépendant des autres (id, actif/inactif,
+    // fermeture propre — voir TabPromoBanner.tsx / useDismissiblePromo.ts). Ajouter un futur
+    // onglet = ajouter une entrée ici, aucune autre logique à toucher.
+    const promos: TabPromo[] = [
+        {
+            tabId: "search",
+            active: true,
+            badge: t("home.promo.badge_new"),
+            icon: "solar:bolt-bold-duotone",
+            tone: "primary",
+            title: t("home.tabs.expertise.title"),
+            description: t("home.tabs.expertise.description"),
+        },
+        {
+            tabId: "annonces",
+            active: true,
+            badge: t("home.promo.badge_new"),
+            icon: "solar:megaphone-bold-duotone",
+            tone: "amber",
+            title: t("home.tabs.opportunities.title"),
+            description: t("home.tabs.opportunities.description"),
+        },
+        {
+            tabId: "boutique",
+            active: true,
+            badge: t("home.promo.badge_new"),
+            icon: "solar:bag-heart-bold-duotone",
+            tone: "emerald",
+            title: t("home.tabs.boutique.title"),
+            description: t("home.tabs.boutique.description"),
+        },
+        {
+            tabId: "gaz",
+            active: true,
+            badge: t("home.promo.badge_new"),
+            icon: "mdi:propane-tank",
+            tone: "fuchsia",
+            title: t("home.tabs.gaz.title"),
+            description: t("home.tabs.gaz.description"),
+        },
+        {
+            tabId: "garage",
+            active: true,
+            badge: t("home.promo.badge_new"),
+            icon: "mdi:car-wrench",
+            tone: "orange",
+            title: t("home.tabs.garage.title"),
+            description: t("home.tabs.garage.description"),
         },
     ]
 
     const [active, setActive] = useState("search")
-    const [showInfo, setShowInfo] = useState(true)
+    const activePromo = promos.find(p => p.tabId === active)
     const [hasOverflow, setHasOverflow] = useState(false)
     const scrollContainerRef = useRef<HTMLDivElement>(null)
     const activeTabRef = useRef<HTMLButtonElement>(null)
-
-    useEffect(() => {
-        const isInfoClosed = localStorage.getItem("infoClosed") === "true"
-        if (isInfoClosed) {
-            setShowInfo(false)
-        }
-    }, [])
 
     // "search" est l'onglet par défaut : quand on revient en arrière (page restaurée depuis le
     // cache du navigateur), on retombe toujours dessus plutôt que de garder l'onglet précédent.
@@ -113,10 +134,6 @@ export default function AppTabs() {
     const handleTabClick = (id: string) => {
         if (active !== id) {
             setActive(id)
-            const isInfoClosed = localStorage.getItem("infoClosed") === "true"
-            if (!isInfoClosed) {
-                setShowInfo(true)
-            }
         }
     }
 
@@ -144,19 +161,21 @@ export default function AppTabs() {
                 </motion.div>
             )}
 
-            {/* TABS RESPONSIVE AVEC SCROLL + CENTRÉ — au-delà de ~4 icônes, la largeur plafonnée force le scroll horizontal.
-                Pas de "w-fit mx-auto" dans ce cas : sur un contenu qui déborde, les navigateurs appliquent une marge
-                négative automatique pour "centrer" le débordement, ce qui décale tout vers la gauche dès le premier
-                rendu (le tout premier onglet "search" se retrouve hors-champ). On centre uniquement quand ça tient. */}
+            {/* TABS RESPONSIVE AVEC SCROLL + CENTRÉ — au-delà de 4 icônes, chaque onglet prend exactement
+                25% de largeur (basis-1/4), donc 4 tiennent toujours pile dans le conteneur et le 5ᵉ
+                (et suivants) nécessite un scroll — comportement déterministe, ne dépend plus d'un
+                calcul en pixels. Pas de "w-fit mx-auto" dans ce cas : sur un contenu qui déborde, les
+                navigateurs appliquent une marge négative automatique pour "centrer" le débordement, ce
+                qui décale tout vers la gauche dès le premier rendu. On centre uniquement quand ça tient. */}
             <div ref={scrollContainerRef} className="w-full max-w-[300px] sm:max-w-[360px] md:max-w-[400px] mx-auto overflow-x-auto scroll-smooth scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" style={{ WebkitOverflowScrolling: "touch" }}>
-                <div className={`flex gap-4 sm:gap-6 px-3 py-2 ${tabs.length > 4 ? "" : "w-fit mx-auto"}`}>
+                <div className={`flex px-3 py-2 ${tabs.length > 4 ? "w-full" : "w-fit mx-auto gap-4 sm:gap-6"}`}>
 
                     {tabs.map((tab) => {
                         const isActive = active === tab.id
                         const IconComponent = tab.Icon
 
                         return (
-                            <button key={tab.id} ref={isActive ? activeTabRef : null} onClick={() => handleTabClick(tab.id)} onMouseEnter={() => handleTabClick(tab.id)} className="relative flex flex-col items-center shrink-0 group py-2" >
+                            <button key={tab.id} ref={isActive ? activeTabRef : null} onClick={() => handleTabClick(tab.id)} className={`relative flex flex-col items-center shrink-0 group py-2 ${tabs.length > 4 ? "basis-1/4 min-w-0" : ""}`} >
                                 {/* Active Indicator (Sliding Background) */}
                                 {isActive && (
                                     <motion.div layoutId="activeTabBackground" className="absolute inset-0 bg-primary/5 rounded-3xl z-0" transition={{ type: "spring", bounce: 0.2, duration: 0.6 }} />
@@ -167,8 +186,10 @@ export default function AppTabs() {
                                     <IconComponent active={isActive} />
                                 </div>
 
-                                {/* Label - Optionnel, caché sur mobile si vide */}
-                                <span className={`text-[10px] sm:text-xs mt-3 whitespace-nowrap transition-colors duration-300 font-black uppercase tracking-tighter ${tab.id === "search" ? "hidden sm:block" : ""} ${isActive ? "text-primary" : "text-zinc-600 dark:text-zinc-400 group-hover:text-primary"} `}  >
+                                {/* Label - Optionnel, caché sur mobile si vide. max-w-full + truncate : au-delà de
+                                    4 onglets, chaque bouton fait exactement 25% de largeur (basis-1/4) — un libellé
+                                    plus long que ça ne doit pas repousser l'icône ni déborder sur le voisin. */}
+                                <span className={`text-[10px] sm:text-xs mt-3 max-w-full truncate transition-colors duration-300 font-black uppercase tracking-tighter ${tab.id === "search" ? "hidden sm:block" : ""} ${isActive ? "text-primary" : "text-zinc-600 dark:text-zinc-400 group-hover:text-primary"} `}  >
                                     {tab.label || t("home.tabs.expertise.label")}
                                 </span>
                             </button>
@@ -192,12 +213,8 @@ export default function AppTabs() {
             )}
 
 
-            {/* INFO COMPONENT */}
-            {/* <Info isOpen={showInfo}
-                onClose={() => { setShowInfo(false); localStorage.setItem("infoClosed", "true") }}
-                title={tabs.find(t => t.id === active)?.info.title || ""}
-                description={tabs.find(t => t.id === active)?.info.description || ""}
-            /> */}
+            {/* Message promo de l'onglet actif */}
+            {activePromo && <TabPromoBanner key={activePromo.tabId} promo={activePromo} />}
 
 
             {/* CONTENT */}

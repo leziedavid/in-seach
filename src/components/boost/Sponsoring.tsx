@@ -7,6 +7,7 @@ import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
 import { Boost, BoostEntityType, BoostedEntitySummary } from "@/types/interface";
 import { getActiveBoosts, recordBoostClick } from "@/api/boost-api";
+import { useDismissiblePromo } from "@/hooks/useDismissiblePromo";
 
 // ── Routing ──────────────────────────────────────────────────────────────────
 const ENTITY_ROUTES: Partial<Record<BoostEntityType, string>> = {
@@ -33,6 +34,8 @@ const BADGE_LABELS: Record<string, string> = {
 
 const LIMIT = 10;
 const AUTO_SLIDE_MS = 5000;
+// Durée de masquage après fermeture — facilement ajustable (demandé : 5 à 10 min).
+const SPONSORING_DISMISS_TTL_MINUTES = 10;
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
@@ -105,7 +108,9 @@ export default function Sponsoring() {
     const [totalPages, setTotalPages] = useState(1);
     const [loading, setLoading] = useState(true);
     const [loadingNext, setLoadingNext] = useState(false);
-    const [dismissed, setDismissed] = useState(false);
+    // Option 2, TTL court : c'est une pub, elle doit revenir vite après fermeture — 10 min
+    // (contre 24h pour les bannières promo de AppTabs.tsx), même hook/mécanisme sinon.
+    const { dismissed, dismiss } = useDismissiblePromo("sponsoring", { ttlHours: SPONSORING_DISMISS_TTL_MINUTES / 60 });
 
     const fetchingRef = useRef(false);
     const dragDirectionRef = useRef<"left" | "right" | null>(null);
@@ -140,9 +145,9 @@ export default function Sponsoring() {
 
     useEffect(() => { fetchPage(1); }, [fetchPage]);
 
-    // Rouvre et randomise à chaque changement de page
+    // Randomise le boost affiché à chaque changement de page (le masquage 24h, lui,
+    // persiste across les navigations — on ne le réinitialise plus ici).
     useEffect(() => {
-        setDismissed(false);
         if (boosts.length > 0) {
             dragDirectionRef.current = null;
             const next = pickRandom(boosts.length, lastShownIndexRef.current);
@@ -252,7 +257,7 @@ export default function Sponsoring() {
                                                 )}
                                                 <span className="text-[9px] text-zinc-500 dark:text-white/40 font-medium">Sponsorisée</span>
                                             </div>
-                                            <button onClick={() => setDismissed(true)} className="w-6 h-6 rounded-full bg-black/8 hover:bg-black/15 dark:bg-white/15 dark:hover:bg-white/25 flex items-center justify-center transition shrink-0 focus:outline-none" aria-label="Fermer"><Icon icon="solar:close-circle-bold-duotone" className="w-3.5 h-3.5 text-zinc-600 dark:text-white/80" /></button>
+                                            <button onClick={dismiss} className="w-6 h-6 rounded-full bg-black/8 hover:bg-black/15 dark:bg-white/15 dark:hover:bg-white/25 flex items-center justify-center transition shrink-0 focus:outline-none" aria-label="Fermer"><Icon icon="solar:close-circle-bold-duotone" className="w-3.5 h-3.5 text-zinc-600 dark:text-white/80" /></button>
                                         </div>
 
                                         {/* Title - cliquable */}
