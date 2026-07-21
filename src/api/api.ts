@@ -655,7 +655,7 @@ export const getForSelectRealEstateOptions = async (): Promise<BaseResponse<any>
 };
 
 export const getForSelectVehicleTypes = async (): Promise<BaseResponse<any[]>> => {
-    const response = await fetch(`${getBaseUrl()}/vehicle-type/select`);
+    const response = await fetch(`${getBaseUrl()}/vehicle-types/select`);
     return await response.json();
 };
 
