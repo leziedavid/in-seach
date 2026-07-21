@@ -144,9 +144,12 @@ export default function AppTabs() {
                 </motion.div>
             )}
 
-            {/* TABS RESPONSIVE AVEC SCROLL + CENTRÉ — au-delà de ~4 icônes, la largeur plafonnée force le scroll horizontal */}
+            {/* TABS RESPONSIVE AVEC SCROLL + CENTRÉ — au-delà de ~4 icônes, la largeur plafonnée force le scroll horizontal.
+                Pas de "w-fit mx-auto" dans ce cas : sur un contenu qui déborde, les navigateurs appliquent une marge
+                négative automatique pour "centrer" le débordement, ce qui décale tout vers la gauche dès le premier
+                rendu (le tout premier onglet "search" se retrouve hors-champ). On centre uniquement quand ça tient. */}
             <div ref={scrollContainerRef} className="w-full max-w-[300px] sm:max-w-[360px] md:max-w-[400px] mx-auto overflow-x-auto scroll-smooth scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" style={{ WebkitOverflowScrolling: "touch" }}>
-                <div className="flex w-fit mx-auto gap-4 sm:gap-6 px-3 py-2">
+                <div className={`flex gap-4 sm:gap-6 px-3 py-2 ${tabs.length > 4 ? "" : "w-fit mx-auto"}`}>
 
                     {tabs.map((tab) => {
                         const isActive = active === tab.id
