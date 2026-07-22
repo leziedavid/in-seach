@@ -34,6 +34,35 @@ export enum Role {
     GARAGISTE_VENTE_PIECE_AUTO = 'GARAGISTE_VENTE_PIECE_AUTO'
 }
 
+// RBAC dynamique (Role / Authorization / Policy) — voir backend/src/rbac
+export interface MyAccess {
+    roles: string[];
+    policies: string[];
+}
+
+export interface AuthorizationNode {
+    id: string;
+    code: string;
+    name: string;
+    icon: string | null;
+    description: string | null;
+    category: string | null;
+    frontendRoute: string | null;
+    backendRoute: string | null;
+    order: number;
+    policies: string[];
+    children: AuthorizationNode[];
+}
+
+export interface DynamicRole {
+    id: string;
+    code: string;
+    name: string;
+    description: string | null;
+    isSystem: boolean;
+    order: number;
+}
+
 export enum TransportType {
     MARITIME = 'MARITIME',
     AERIEN = 'AERIEN',
@@ -133,6 +162,10 @@ export interface User {
     cni?: string;
     cniUrl?: string; // Standardized field
     role: Role;
+    // Rôles/policies dynamiques (RBAC) — renvoyés par /auth/me et /auth/my-space,
+    // vides ([]) pour les profils tiers embarqués ailleurs (ex. service.user, order.user).
+    roles?: string[];
+    policies?: string[];
     isPremium: boolean;
     credits: number;
     acceptedTerms: boolean;
@@ -719,7 +752,8 @@ export interface AdminQueryParams {
 export interface AdminUserUpdateDto {
     fullName?: string;
     phone?: string;
-    role?: Role;
+    // string (pas l'enum Role) : le rôle vient désormais dynamiquement du RBAC backend (GET /roles).
+    role?: string;
     isPremium?: boolean;
     credits?: number;
 }

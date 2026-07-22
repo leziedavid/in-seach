@@ -1,33 +1,35 @@
 /**
- * Types de compte proposés à l'inscription publique (hors ADMIN/MARKETING,
- * créés uniquement depuis le backoffice admin).
+ * Constantes de présentation pour le sélecteur de rôle proposé à l'inscription
+ * publique (/register et RoleSelectionModal depuis /login).
  *
- * Reflète exactement les valeurs acceptées par le sélecteur de rôle de
- * src/app/register/page.tsx — source unique pour la modale de présélection
- * de rôle affichée depuis /login.
+ * La LISTE des rôles proposés, leur ordre et leur disponibilité (actif vs
+ * "bientôt disponible") viennent exclusivement du backend RBAC — voir
+ * `getPublicRegisterRoles()` dans `src/api/api.ts` (GET /auth/register-roles)
+ * et le hook `useRegisterRoles()`. Ce fichier ne contient plus qu'un lookup
+ * i18n par code de rôle (le backend ne stocke le nom/la description qu'en
+ * français — voir Authorization.name pour le même compromis déjà fait sur les
+ * menus dynamiques) : si un rôle public existe côté backend sans entrée ici,
+ * son name/description backend sert de repli, sans casser l'affichage.
  */
 
 import type { TKey } from '@/utils/langue';
 
-export type RegisterRole = 'CLIENT' | 'PRESTATAIRE' | 'LOGISTICIAN' | 'LIVREUR' | 'GAZIER' | 'GARAGISTE_VENTE_PIECE_AUTO';
-
-export interface RegisterRoleOption {
-    value: RegisterRole;
-    icon: string;
+export interface RoleI18nKeys {
     labelKey: TKey;
     descKey: TKey;
-    /** false = rôle affiché mais grisé/non sélectionnable (ouverture prévue plus tard). */
-    active: boolean;
 }
 
-export const REGISTER_ROLE_OPTIONS: RegisterRoleOption[] = [
-    { value: 'CLIENT', icon: 'solar:user-bold-duotone', labelKey: 'auth.register.role_particular', descKey: 'auth.register.role_modal.desc_particular', active: true },
-    { value: 'PRESTATAIRE', icon: 'solar:case-minimalistic-bold-duotone', labelKey: 'auth.register.role_professional', descKey: 'auth.register.role_modal.desc_professional', active: true },
-    { value: 'LOGISTICIAN', icon: 'solar:case-minimalistic-bold-duotone', labelKey: 'auth.register.role_logistician', descKey: 'auth.register.role_modal.desc_logistician', active: false },
-    { value: 'LIVREUR', icon: 'solar:case-minimalistic-bold-duotone', labelKey: 'auth.register.role_deliverer', descKey: 'auth.register.role_modal.desc_deliverer', active: false },
-    { value: 'GAZIER', icon: 'solar:fire-bold-duotone', labelKey: 'auth.register.role_gas_provider', descKey: 'auth.register.role_modal.desc_gas_provider', active: true },
-    { value: 'GARAGISTE_VENTE_PIECE_AUTO', icon: 'solar:garage-bold-duotone', labelKey: 'auth.register.role_garagiste', descKey: 'auth.register.role_modal.desc_garagiste', active: true },
-];
+export const ROLE_I18N_KEYS: Record<string, RoleI18nKeys> = {
+    CLIENT: { labelKey: 'auth.register.role_particular', descKey: 'auth.register.role_modal.desc_particular' },
+    PRESTATAIRE: { labelKey: 'auth.register.role_professional', descKey: 'auth.register.role_modal.desc_professional' },
+    ENTREPRISE: { labelKey: 'auth.register.role_logistician', descKey: 'auth.register.role_modal.desc_logistician' },
+    LIVREUR: { labelKey: 'auth.register.role_deliverer', descKey: 'auth.register.role_modal.desc_deliverer' },
+    GAZIER: { labelKey: 'auth.register.role_gas_provider', descKey: 'auth.register.role_modal.desc_gas_provider' },
+    GARAGISTE_VENTE_PIECE_AUTO: { labelKey: 'auth.register.role_garagiste', descKey: 'auth.register.role_modal.desc_garagiste' },
+};
+
+/** Rôles dont le champ "société" (company) doit être proposé lors de l'inscription. */
+export const ROLES_WITH_COMPANY_FIELD = new Set(['PRESTATAIRE', 'ENTREPRISE', 'GAZIER', 'GARAGISTE_VENTE_PIECE_AUTO']);
 
 /** Clé localStorage (via le wrapper `storage` à TTL) pour la présélection temporaire. */
 export const PENDING_ROLE_STORAGE_KEY = 'pendingRegisterRole';

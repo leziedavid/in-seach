@@ -5,9 +5,9 @@ import { Icon } from "@iconify/react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Role } from "@/types/interface";
 import { Select2 } from "@/components/ui/Select2";
 import { InputPhone } from "@/components/ui/InputPhone";
+import { useSystemRoles } from "@/hooks/useSystemRoles";
 
 // Mêmes règles que registerSchema (src/app/register/page.tsx), qui correspondent au RegisterDto
 // backend (email valide, téléphone >= 8, mot de passe >= 5) — réutilisées à l'identique, y compris
@@ -17,7 +17,7 @@ const createUserSchema = z.object({
     email: z.string().email("Email invalide"),
     indicatif: z.string().optional(),
     phone: z.string().min(8, "Numéro de téléphone invalide"),
-    role: z.nativeEnum(Role),
+    role: z.string().min(1, "Rôle requis"),
     password: z.string().min(5, "Le mot de passe doit contenir au moins 5 caractères"),
     fullName: z.string().optional(),
     company: z.string().optional(),
@@ -31,23 +31,19 @@ interface FormsUserCreateProps {
     onClose: () => void;
 }
 
-const ROLE_OPTIONS = [
-    { id: Role.CLIENT, label: "Client" },
-    { id: Role.PRESTATAIRE, label: "Prestataire" },
-    { id: Role.ENTREPRISE, label: "Entreprise" },
-    { id: Role.CHAUFFEUR, label: "Chauffeur" },
-    { id: Role.LIVREUR, label: "Livreur" },
-    { id: Role.ADMIN, label: "Admin" },
-];
+// Rôles dont le champ "société" doit être proposé — comportement identique à avant
+// (PRESTATAIRE, ENTREPRISE), simplement dérivé dynamiquement plutôt que codé en dur.
+const ROLES_WITH_COMPANY_FIELD = new Set(['PRESTATAIRE', 'ENTREPRISE']);
 
 export default function FormsUserCreate({ onSubmit, isSubmitting, onClose }: FormsUserCreateProps) {
+    const { roles: ROLE_OPTIONS } = useSystemRoles();
     const { register, handleSubmit, control, watch, setValue, formState: { errors } } = useForm<CreateUserFormData>({
         resolver: zodResolver(createUserSchema),
-        defaultValues: { indicatif: "+225", role: Role.CLIENT, password: "" },
+        defaultValues: { indicatif: "+225", role: "CLIENT", password: "" },
     });
 
     const role = watch("role");
-    const showCompany = role === Role.PRESTATAIRE || role === Role.ENTREPRISE;
+    const showCompany = ROLES_WITH_COMPANY_FIELD.has(role);
 
     // Mot de passe en OTP à 4 chiffres, préfixé de "@" — identique à register/page.tsx
     // (const password = '@' + otp.join('')), pour produire exactement le même format de mot

@@ -5,14 +5,16 @@ import { Icon } from "@iconify/react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Role, User, AdminUserUpdateDto } from "@/types/interface";
+import { User, AdminUserUpdateDto } from "@/types/interface";
 import { Select2 } from "@/components/ui/Select2";
 import { useTranslation } from "@/utils/langue/hooks";
+import { useSystemRoles } from "@/hooks/useSystemRoles";
+import type { TKey } from "@/utils/langue";
 
 const userSchema = (t: any) => z.object({
     fullName: z.string().min(2, t("akwaba.forms.annonce.errors.title_min")).optional(),
     phone: z.string().optional(),
-    role: z.nativeEnum(Role),
+    role: z.string().min(1),
     isPremium: z.boolean(),
     credits: z.number().int().min(0, "Les crédits ne peuvent pas être négatifs"),
 });
@@ -26,16 +28,25 @@ interface FormsUserProps {
     onClose: () => void;
 }
 
+// Traductions existantes pour les rôles déjà proposés avant la refonte RBAC —
+// repli sur le nom (français) renvoyé par le backend pour tout autre rôle
+// système (LIVREUR, GAZIER, MARKETING, GARAGISTE_VENTE_PIECE_AUTO, ...).
+const ROLE_LABEL_KEYS: Record<string, TKey> = {
+    CLIENT: "akwaba.forms.user.roles.client",
+    PRESTATAIRE: "akwaba.forms.user.roles.provider",
+    ADMIN: "akwaba.forms.user.roles.admin",
+    ENTREPRISE: "akwaba.forms.user.roles.company",
+    CHAUFFEUR: "akwaba.forms.user.roles.driver",
+};
+
 export default function FormsUser({ initialData, onSubmit, isSubmitting, onClose }: FormsUserProps) {
     const { t } = useTranslation();
+    const { roles: systemRoles } = useSystemRoles();
 
-    const ROLE_OPTIONS = [
-        { id: Role.CLIENT, label: t("akwaba.forms.user.roles.client") },
-        { id: Role.PRESTATAIRE, label: t("akwaba.forms.user.roles.provider") },
-        { id: Role.ADMIN, label: t("akwaba.forms.user.roles.admin") },
-        { id: Role.ENTREPRISE, label: t("akwaba.forms.user.roles.company") },
-        { id: Role.CHAUFFEUR, label: t("akwaba.forms.user.roles.driver") },
-    ];
+    const ROLE_OPTIONS = systemRoles.map((r) => ({
+        id: r.id,
+        label: ROLE_LABEL_KEYS[r.id] ? t(ROLE_LABEL_KEYS[r.id]) : r.label,
+    }));
 
     const { register, handleSubmit, control, formState: { errors } } = useForm<UserFormData>({
         resolver: zodResolver(userSchema(t)),

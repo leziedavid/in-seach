@@ -7,6 +7,9 @@ import { Icon } from '@iconify/react';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from "@/utils/langue/hooks";
+import { isAuthenticated, getUserName, getUserSpaceRoute } from '@/lib/auth';
+import { useAuthStore } from '@/store/authStore';
+import { AuthorizationNode } from '@/types/interface';
 
 /* ─────────────────────────────────────────────────────────────
    Types
@@ -18,71 +21,30 @@ interface MenuItem {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   Menu groupé — même structure que MOBILE_GROUPS dans Sidebar.tsx
+   Menu groupé — construit dynamiquement à partir des Authorization RBAC
+   (préfixes ADMIN_ / MARKETING_, voir backend/prisma/seed-rbac.ts) déjà
+   filtrées côté serveur selon les policies de l'utilisateur connecté.
+   Remplace l'ancien MENU_GROUPS codé en dur.
 ───────────────────────────────────────────────────────────── */
-const MENU_GROUPS: { title?: string; items: MenuItem[] }[] = [
-    {
-        items: [
-            { label: 'Vue globale',   icon: 'solar:widget-5-bold-duotone',           href: '/admin' },
-        ],
-    },
-    {
-        title: 'Utilisateurs & Contenu',
-        items: [
-            { label: 'Utilisateurs',  icon: 'solar:users-group-rounded-bold-duotone', href: '/admin/users' },
-            { label: 'Produits',      icon: 'solar:bag-heart-bold-duotone',           href: '/admin/products' },
-            { label: 'Boutiques',     icon: 'solar:shop-2-bold-duotone',              href: '/admin/stores' },
-            { label: 'Services',      icon: 'solar:hand-stars-bold-duotone',          href: '/admin/services' },
-            { label: 'Annonces',      icon: 'solar:lightbulb-bolt-bold-duotone',      href: '/admin/annonces' },
-            { label: 'Vidéos',        icon: 'solar:video-library-bold-duotone',       href: '/admin/videos' },
-            { label: 'Lives',         icon: 'solar:play-circle-bold-duotone',         href: '/admin/lives' },
-        ],
-    },
-    {
-        title: 'Monétisation',
-        items: [
-            { label: 'Abonnements',   icon: 'solar:wallet-money-bold-duotone',        href: '/admin/subscriptions' },
-            { label: 'Boosts',        icon: 'solar:rocket-bold-duotone',              href: '/admin/boosts' },
-        ],
-    },
-    {
-        title: 'Logistique',
-        items: [
-            { label: 'Easy Delivery', icon: 'solar:delivery-bold-duotone',            href: '/admin/easy-delivery' },
-            { label: 'Logistique',    icon: 'solar:ship-bold-duotone',               href: '/admin/logistics' },
-            { label: 'Recharge de gaz', icon: 'mdi:propane-tank',                    href: '/admin/gas-delivery' },
-        ],
-    },
-    {
-        title: 'Apparence',
-        items: [
-            { label: 'Sliders',       icon: 'solar:gallery-bold-duotone',             href: '/admin/sliders' },
-        ],
-    },
-    {
-        title: 'Intelligence Artificielle',
-        items: [
-            { label: 'AI Tools',      icon: 'solar:magic-stick-3-bold-duotone',        href: '/admin/ai' },
-        ],
-    },
-    {
-        title: 'Analytics',
-        items: [
-            { label: 'KPI & Analytics', icon: 'solar:chart-2-bold-duotone',           href: '/admin/kpi' },
-        ],
-    },
-    {
-        title: 'Système',
-        items: [
-            { label: 'Paramètres',    icon: 'solar:settings-bold-duotone',            href: '/admin/settings' },
-            { label: 'Logs position', icon: 'solar:map-point-wave-bold-duotone',      href: '/admin/location-logs' },
-            { label: 'Logs système',  icon: 'solar:code-square-bold-duotone',         href: '/admin/logs' },
-            { label: 'Signalements',  icon: 'solar:flag-bold-duotone',                href: '/admin/reports' },
-            { label: 'WebPush',       icon: 'solar:bell-bing-bold-duotone',           href: '/admin/webpush' },
-            { label: 'Sauvegarde',    icon: 'solar:folder-with-files-bold-duotone',   href: '/admin/backup' },
-        ],
-    },
-];
+const ADMIN_MENU_PREFIXES = ['ADMIN_', 'MARKETING_'];
+
+function buildMenuGroups(authorizations: AuthorizationNode[]): { title?: string; items: MenuItem[] }[] {
+    const relevant = authorizations.filter(a => ADMIN_MENU_PREFIXES.some(p => a.code.startsWith(p)));
+    const byCategory = new Map<string, MenuItem[]>();
+    for (const a of relevant) {
+        const cat = a.category || 'Autres';
+        if (!byCategory.has(cat)) byCategory.set(cat, []);
+        byCategory.get(cat)!.push({
+            label: a.name,
+            icon: a.icon || 'solar:widget-5-bold-duotone',
+            href: a.frontendRoute || '/admin',
+        });
+    }
+    return Array.from(byCategory.entries()).map(([category, items]) => ({
+        title: category === 'Tableau de bord' ? undefined : category,
+        items,
+    }));
+}
 
 /* ─────────────────────────────────────────────────────────────
    renderMobileRow — copie exacte du style Sidebar.tsx akwaba
@@ -114,12 +76,10 @@ function MenuItem({
 /* ─────────────────────────────────────────────────────────────
    Contenu sidebar — partagé desktop + mobile (identique Sidebar.tsx)
 ───────────────────────────────────────────────────────────── */
-function SidebarContent({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
-    const router = useRouter();
-
+function SidebarContent({ pathname, menuGroups, onNavigate }: { pathname: string; menuGroups: { title?: string; items: MenuItem[] }[]; onNavigate?: () => void }) {
     return (
         <div className="flex-1 px-3 pb-4 space-y-2 overflow-y-auto scrollbar-hide [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-            {MENU_GROUPS.map((group, gi) => {
+            {menuGroups.map((group, gi) => {
                 if (group.title) {
                     return (
                         <div key={gi}>
@@ -168,15 +128,51 @@ function SidebarContent({ pathname, onNavigate }: { pathname: string; onNavigate
 ───────────────────────────────────────────────────────────── */
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
+    const router = useRouter();
     const [open, setOpen] = React.useState(false);
     const [isMounted, setIsMounted] = React.useState(false);
+    const [authChecked, setAuthChecked] = React.useState(false);
+
+    const authorizations = useAuthStore(s => s.authorizations);
+    const roles = useAuthStore(s => s.roles);
+    const hydrated = useAuthStore(s => s.hydrated);
+    const hydrate = useAuthStore(s => s.hydrate);
 
     React.useEffect(() => {
         setIsMounted(true);
     }, []);
 
-    const allItems = MENU_GROUPS.flatMap(g => g.items);
+    // Garde d'accès /admin/* — auparavant absente (n'importe quel utilisateur pouvait
+    // atteindre cet écran côté client). Redirige les non-connectés vers /login et les
+    // utilisateurs sans rôle dynamique ADMIN vers leur espace habituel.
+    React.useEffect(() => {
+        if (!isAuthenticated()) {
+            router.replace('/login?callbackUrl=/admin');
+            return;
+        }
+        hydrate();
+    }, [hydrate, router]);
+
+    React.useEffect(() => {
+        if (!hydrated) return;
+        if (!roles.includes('ADMIN')) {
+            router.replace(getUserSpaceRoute());
+            return;
+        }
+        setAuthChecked(true);
+    }, [hydrated, roles, router]);
+
+    const menuGroups = React.useMemo(() => buildMenuGroups(authorizations), [authorizations]);
+    const allItems = menuGroups.flatMap(g => g.items);
     const currentLabel = allItems.find(item => item.href === pathname)?.label ?? 'Administration';
+
+    if (!authChecked) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-background">
+                <Icon icon="svg-spinners:ring-resize" width={32} className="text-primary" />
+            </div>
+        );
+    }
 
     const today = new Date();
     const dateStr = today.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -197,15 +193,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         </div>
                         <div className="mt-2 text-center">
                             <div className="flex items-center justify-center gap-1">
-                                <span className="text-sm font-black text-foreground">Admin Hub</span>
+                                <span className="text-sm font-black text-foreground">{getUserName() || 'Administrateur'}</span>
                                 <Icon icon="solar:arrow-right-bold-duotone" className="w-3.5 h-3.5 text-primary" />
                             </div>
-                            <p className="text-xs text-muted-foreground">Super Admin</p>
+                            <p className="text-xs text-muted-foreground">Administrateur</p>
                         </div>
                     </div>
 
                     {/* Menu */}
-                    <SidebarContent pathname={pathname} />
+                    <SidebarContent pathname={pathname} menuGroups={menuGroups} />
                 </div>
             </aside>
 
@@ -288,16 +284,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                 </div>
                                 <div className="mt-2 text-center">
                                     <div className="flex items-center justify-center gap-1">
-                                        <span className="text-sm font-black text-foreground">Admin Hub</span>
+                                        <span className="text-sm font-black text-foreground">{getUserName() || 'Administrateur'}</span>
                                         <Icon icon="solar:arrow-right-bold-duotone" className="w-3.5 h-3.5 text-primary" />
                                     </div>
-                                    <p className="text-xs text-muted-foreground">Super Admin</p>
+                                    <p className="text-xs text-muted-foreground">Administrateur</p>
                                 </div>
                             </div>
 
                             {/* Menu */}
                             <div className="flex-1 px-4 pb-4 space-y-2">
-                                <SidebarContent pathname={pathname} onNavigate={() => setOpen(false)} />
+                                <SidebarContent pathname={pathname} menuGroups={menuGroups} onNavigate={() => setOpen(false)} />
                             </div>
                         </motion.div>
                     </>

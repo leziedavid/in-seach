@@ -5,16 +5,17 @@ import { Icon } from "@iconify/react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { LogisticsClient, Role } from "@/types/interface";
+import { LogisticsClient } from "@/types/interface";
 import { createCompanyClient, updateCompanyClient } from "@/api/api";
 import { useNotification } from "@/components/notifications/NotificationProvider";
 import { Select2 } from "@/components/ui/Select2";
+import { useSystemRoles } from "@/hooks/useSystemRoles";
 
 const clientSchema = z.object({
     email: z.string().email("Email invalide").optional().or(z.literal("")),
     phone: z.string().min(8, "Le numéro de téléphone doit faire au moins 8 chiffres"),
     fullName: z.string().min(3, "Le nom complet est requis"),
-    role: z.nativeEnum(Role),
+    role: z.string().min(1),
     companyName: z.string().optional(),
     password: z.string().min(4, "Le mot de passe doit faire au moins 4 chiffres").optional(),
 });
@@ -28,17 +29,21 @@ interface ClientFormModalProps {
     onSuccess: () => void;
 }
 
-const ROLE_OPTIONS = [
-    { value: Role.CLIENT, label: 'CLIENT' },
-    { value: Role.ENTREPRISE, label: 'ENTREPRISE' },
-    { value: Role.CHAUFFEUR, label: 'CHAUFFEUR' },
-];
+// Types de compte pertinents dans le contexte d'un client logistique — sous-ensemble
+// du catalogue de rôles dynamique (les libellés/id restent fournis par le backend RBAC,
+// seul ce filtre de codes reste local, propre au métier de cet écran).
+const LOGISTICS_CLIENT_ROLE_CODES = new Set(['CLIENT', 'ENTREPRISE', 'CHAUFFEUR']);
 
 export default function ClientFormModal({ client, isOpen, onClose, onSuccess }: ClientFormModalProps) {
+    const { roles: systemRoles } = useSystemRoles();
+    const ROLE_OPTIONS = systemRoles
+        .filter((r) => LOGISTICS_CLIENT_ROLE_CODES.has(r.id))
+        .map((r) => ({ value: r.id, label: r.label.toUpperCase() }));
+
     const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<ClientFormData>({
         resolver: zodResolver(clientSchema),
         defaultValues: {
-            role: Role.CLIENT,
+            role: 'CLIENT',
         }
     });
 
@@ -59,7 +64,7 @@ export default function ClientFormModal({ client, isOpen, onClose, onSuccess }: 
             setValue("email", "");
             setValue("phone", "");
             setValue("fullName", "");
-            setValue("role", Role.CLIENT);
+            setValue("role", "CLIENT");
             setValue("companyName", "");
             setOtp(Array(4).fill(''));
         }
@@ -161,12 +166,12 @@ export default function ClientFormModal({ client, isOpen, onClose, onSuccess }: 
                                 labelExtractor={(o) => o.label}
                                 valueExtractor={(o) => o.value}
                                 selectedItem={watch("role")}
-                                onSelectionChange={(val) => setValue("role", val as Role)}
+                                onSelectionChange={(val) => setValue("role", val as string)}
                                 placeholder="Choisir le rôle..."
                             />
                         </div>
 
-                        {watch("role") === Role.ENTREPRISE && (
+                        {watch("role") === "ENTREPRISE" && (
                             <div className="space-y-1 animate-in slide-in-from-top-2">
                                 <label className="text-[10px] font-black text-muted-foreground uppercase ml-1">Nom de l'entreprise</label>
                                 <input {...register("companyName")} className="w-full h-12 px-4 rounded-xl border border-border bg-muted/30 outline-none focus:border-primary transition-all font-bold text-sm" placeholder="Ex: Ivoire Logistique" />

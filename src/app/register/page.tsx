@@ -10,7 +10,8 @@ import { z } from 'zod';
 import { Switch } from '@/components/ui/switch';
 import { InputPhone } from '@/components/ui/InputPhone';
 import { storage } from '@/lib/storage';
-import { REGISTER_ROLE_OPTIONS, PENDING_ROLE_STORAGE_KEY, type RegisterRole } from '@/lib/registerRoleOptions';
+import { PENDING_ROLE_STORAGE_KEY, ROLES_WITH_COMPANY_FIELD } from '@/lib/registerRoleOptions';
+import { useRegisterRoles, roleLabel, roleDesc } from '@/hooks/useRegisterRoles';
 import { RoleStatusBadge } from '@/components/auth/RoleStatusBadge';
 
 
@@ -18,12 +19,13 @@ import { useTranslation } from '@/utils/langue/hooks';
 
 export default function RegisterPage() {
     const { t, tRich } = useTranslation();
+    const { roles: roleOptions } = useRegisterRoles();
 
     const registerSchema = z.object({
         email: z.string().email(),
         indicatif: z.string().optional(),
         phone: z.string().min(8),
-        role: z.enum(['CLIENT', 'PRESTATAIRE', 'LOGISTICIAN', 'LIVREUR', 'GAZIER', 'GARAGISTE_VENTE_PIECE_AUTO']),
+        role: z.string().min(1),
         password: z.string().min(5),
         fullName: z.string().optional(),
         company: z.string().optional(),
@@ -33,11 +35,11 @@ export default function RegisterPage() {
     });
     const router = useRouter();
 
-    // Source unique de vérité (src/lib/registerRoleOptions.ts) : passer `active` à true
-    // là-bas suffit à dégriser le rôle ici comme dans RoleSelectionModal.
-    const isRoleActive = (r: RegisterRole) => REGISTER_ROLE_OPTIONS.find((opt) => opt.value === r)?.active ?? true;
+    // Source unique de vérité : le catalogue de rôles renvoyé par le backend
+    // (voir useRegisterRoles) — plus aucune liste codée en dur ici.
+    const isRoleActive = (r: string) => roleOptions.find((opt) => opt.value === r)?.active ?? true;
 
-    const [role, setRole] = useState<RegisterRole>('CLIENT');
+    const [role, setRole] = useState<string>('CLIENT');
     const [email, setEmail] = useState('');
     const [indicatif, setIndicatif] = useState('+225');
     const [phone, setPhone] = useState('');
@@ -53,13 +55,15 @@ export default function RegisterPage() {
 
     // Présélection du type de compte choisi depuis la modale de /login (voir RoleSelectionModal).
     // Le sélecteur reste entièrement modifiable — ceci ne fait que changer la valeur initiale.
+    // Dépend de roleOptions (chargé de manière asynchrone) pour valider la présélection.
     useEffect(() => {
-        const pending = storage.get<RegisterRole>(PENDING_ROLE_STORAGE_KEY);
-        if (pending && REGISTER_ROLE_OPTIONS.some((opt) => opt.value === pending && opt.active)) {
+        if (roleOptions.length === 0) return;
+        const pending = storage.get<string>(PENDING_ROLE_STORAGE_KEY);
+        if (pending && roleOptions.some((opt) => opt.value === pending && opt.active)) {
             setRole(pending);
         }
         storage.remove(PENDING_ROLE_STORAGE_KEY);
-    }, []);
+    }, [roleOptions]);
 
     const password = '@' + otp.join(''); // OTP envoyé avec @
 
@@ -94,7 +98,7 @@ export default function RegisterPage() {
                 password,
                 role,
                 fullName: fullname || undefined,
-                company: (role === 'PRESTATAIRE' || role === 'LOGISTICIAN' || role === 'LIVREUR' || role === 'GAZIER' || role === 'GARAGISTE_VENTE_PIECE_AUTO') && company ? company : undefined,
+                company: ROLES_WITH_COMPANY_FIELD.has(role) && company ? company : undefined,
                 acceptedTerms,
             };
 
@@ -139,47 +143,24 @@ export default function RegisterPage() {
                     </p>
                 </div>
                 <div className="grid grid-cols-2 gap-4 mb-6">
-
-                    <div onClick={() => setRole('CLIENT')} className={`relative p-4 rounded-2xl border-2 cursor-pointer transition-all flex flex-col items-center gap-2 ${role === 'CLIENT' ? 'border-primary bg-primary/20' : 'border-gray-200 bg-gray-50 hover:bg-gray-100'}`} >
-                        <div className="absolute top-2 right-2"><RoleStatusBadge active /></div>
-                        <Icon icon="solar:user-bold-duotone" className={`mt-3 ${role === 'CLIENT' ? 'text-primary' : 'text-gray-400'}`} width={24} />
-                        <span className={`text-xs font-bold uppercase ${role === 'CLIENT' ? 'text-primary' : 'text-gray-500'}`}>{t("auth.register.role_particular")}</span>
-                    </div>
-
-                    <div onClick={() => setRole('PRESTATAIRE')} className={`relative p-4 rounded-2xl border-2 cursor-pointer transition-all flex flex-col items-center gap-2 ${role === 'PRESTATAIRE' ? 'border-primary bg-primary/20' : 'border-gray-200 bg-gray-50 hover:bg-gray-100'}`} >
-                        <div className="absolute top-2 right-2"><RoleStatusBadge active /></div>
-                        <Icon icon="solar:case-minimalistic-bold-duotone" className={`mt-3 ${role === 'PRESTATAIRE' ? 'text-primary' : 'text-gray-400'}`} width={24} />
-                        <span className={`text-xs font-bold uppercase ${role === 'PRESTATAIRE' ? 'text-primary' : 'text-gray-500'}`}>{t("auth.register.role_professional")}</span>
-                    </div>
-
-                    <div onClick={() => isRoleActive('LOGISTICIAN') && setRole('LOGISTICIAN')}
-                        className={`relative p-4 rounded-2xl border-2 flex flex-col items-center gap-2 transition-all ${isRoleActive('LOGISTICIAN') ? `cursor-pointer ${role === 'LOGISTICIAN' ? 'border-primary bg-primary/20' : 'border-gray-200 bg-gray-50 hover:bg-gray-100'}` : 'border-gray-200 bg-gray-50 opacity-60 grayscale cursor-not-allowed'}`}
-                        title={isRoleActive('LOGISTICIAN') ? undefined : 'Bientôt disponible'} >
-                        <div className="absolute top-2 right-2"><RoleStatusBadge active={isRoleActive('LOGISTICIAN')} /></div>
-                        <Icon icon="solar:case-minimalistic-bold-duotone" className={`mt-3 ${role === 'LOGISTICIAN' && isRoleActive('LOGISTICIAN') ? 'text-primary' : 'text-gray-400'}`} width={24} />
-                        <span className={`text-xs font-bold uppercase ${role === 'LOGISTICIAN' && isRoleActive('LOGISTICIAN') ? 'text-primary' : 'text-gray-500'}`}>{t("auth.register.role_logistician")}</span>
-                    </div>
-
-                    <div onClick={() => isRoleActive('LIVREUR') && setRole('LIVREUR')}
-                        className={`relative p-4 rounded-2xl border-2 flex flex-col items-center gap-2 transition-all ${isRoleActive('LIVREUR') ? `cursor-pointer ${role === 'LIVREUR' ? 'border-primary bg-primary/20' : 'border-gray-200 bg-gray-50 hover:bg-gray-100'}` : 'border-gray-200 bg-gray-50 opacity-60 grayscale cursor-not-allowed'}`}
-                        title={isRoleActive('LIVREUR') ? undefined : 'Bientôt disponible'} >
-                        <div className="absolute top-2 right-2"><RoleStatusBadge active={isRoleActive('LIVREUR')} /></div>
-                        <Icon icon="solar:case-minimalistic-bold-duotone" className={`mt-3 ${role === 'LIVREUR' && isRoleActive('LIVREUR') ? 'text-primary' : 'text-gray-400'}`} width={24} />
-                        <span className={`text-xs font-bold uppercase ${role === 'LIVREUR' && isRoleActive('LIVREUR') ? 'text-primary' : 'text-gray-500'}`}>{t("auth.register.role_deliverer")}</span>
-                    </div>
-
-                    <div onClick={() => setRole('GAZIER')} className={`relative p-4 rounded-2xl border-2 cursor-pointer transition-all flex flex-col items-center gap-2 ${role === 'GAZIER' ? 'border-primary bg-primary/20' : 'border-gray-200 bg-gray-50 hover:bg-gray-100'}`} >
-                        <div className="absolute top-2 right-2"><RoleStatusBadge active /></div>
-                        <Icon icon="solar:fire-bold-duotone" className={`mt-3 ${role === 'GAZIER' ? 'text-primary' : 'text-gray-400'}`} width={24} />
-                        <span className={`text-xs font-bold uppercase ${role === 'GAZIER' ? 'text-primary' : 'text-gray-500'}`}>{t("auth.register.role_gas_provider")}</span>
-                    </div>
-
-                    <div onClick={() => setRole('GARAGISTE_VENTE_PIECE_AUTO')} className={`relative p-4 rounded-2xl border-2 cursor-pointer transition-all flex flex-col items-center gap-2 ${role === 'GARAGISTE_VENTE_PIECE_AUTO' ? 'border-primary bg-primary/20' : 'border-gray-200 bg-gray-50 hover:bg-gray-100'}`} >
-                        <div className="absolute top-2 right-2"><RoleStatusBadge active /></div>
-                        <Icon icon="solar:garage-bold-duotone" className={`mt-3 ${role === 'GARAGISTE_VENTE_PIECE_AUTO' ? 'text-primary' : 'text-gray-400'}`} width={24} />
-                        <span className={`text-xs font-bold uppercase ${role === 'GARAGISTE_VENTE_PIECE_AUTO' ? 'text-primary' : 'text-gray-500'}`}>{t("auth.register.role_garagiste")}</span>
-                    </div>
-
+                    {roleOptions.map((opt) => {
+                        const isSelected = role === opt.value && opt.active;
+                        return (
+                            <div
+                                key={opt.value}
+                                onClick={() => opt.active && setRole(opt.value)}
+                                title={opt.active ? undefined : 'Bientôt disponible'}
+                                className={`relative p-4 rounded-2xl border-2 flex flex-col items-center gap-2 transition-all ${opt.active
+                                        ? `cursor-pointer ${isSelected ? 'border-primary bg-primary/20' : 'border-gray-200 bg-gray-50 hover:bg-gray-100'}`
+                                        : 'border-gray-200 bg-gray-50 opacity-60 grayscale cursor-not-allowed'
+                                    }`}
+                            >
+                                <div className="absolute top-2 right-2"><RoleStatusBadge active={opt.active} /></div>
+                                <Icon icon={opt.icon} className={`mt-3 ${isSelected ? 'text-primary' : 'text-gray-400'}`} width={24} />
+                                <span className={`text-xs font-bold uppercase ${isSelected ? 'text-primary' : 'text-gray-500'}`}>{roleLabel(opt, t)}</span>
+                            </div>
+                        );
+                    })}
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-5">
@@ -242,7 +223,7 @@ export default function RegisterPage() {
                     </div>
 
                     {/* Optional Company if PRESTATAIRE */}
-                    {(role === 'PRESTATAIRE' || role === 'LOGISTICIAN' || role === 'GAZIER' || role === 'GARAGISTE_VENTE_PIECE_AUTO') && (
+                    {ROLES_WITH_COMPANY_FIELD.has(role) && (
                         <div className="space-y-2">
                             <label className="text-[11px] sm:text-xs font-black text-gray-600">{t("auth.register.company_label")}</label>
                             <div className="relative">

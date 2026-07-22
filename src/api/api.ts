@@ -1,5 +1,5 @@
 import { getCookie } from '@/lib/cookies';
-import { BaseResponse, Category, Pagination, ReverseGeocodeData, Role, Service, MySpaceResponse, Annonce, BookingsCalendar, Product, CategoryProd, Order, AdminQueryParams, AdminUserUpdateDto, AdminProductUpdateDto, AdminServiceUpdateDto, AdminAnnonceUpdateDto, AdminSubscriptionPlanDto, User, AdminLog, SubscriptionPlan, PlanEntity, AdminUserSubscription, Subscription, OrdersGroupedResponse, SubOrder, BookingsGroupedResponse, LogisticService, Quote, Delivery, DeliveryTracking, QuoteStatus, DeliveryStatus, TransportType, LocationLog, CategorieAnnonce, TypeAnnonce, LogisticsClient, Video, StoreUserInfo, StoreStats, ServiceStats, AnnonceStats, LiveStats, LogisticProvider, LogisticStats, GasProvider, GasBottle, GasBottleFormat, GasDelivery, GasDeliveryStatus, GasProviderStats, Booking, GasAdminOverview, GasProviderAdminRow, Garage, GaragePieceCatalogue, EasyDelivery, HistoryDelivery, EasyDeliveryStatus, DriverStats, SubCategoryProd, Slider, Live, LiveFeedResponse, LiveListResponse, LiveStatus, LiveEntityType, Boost, BoostPricing, BoostEntityType, BoostPaymentMethod, WebPushNotifActiveResponse, WebPushNotifStatus, WebPushNotifAdminListResponse, NotificationSubscriptionListResponse, PushNotificationPayload, SendPushResult } from '@/types/interface';
+import { BaseResponse, Category, Pagination, ReverseGeocodeData, Role, Service, MySpaceResponse, Annonce, BookingsCalendar, Product, CategoryProd, Order, AdminQueryParams, AdminUserUpdateDto, AdminProductUpdateDto, AdminServiceUpdateDto, AdminAnnonceUpdateDto, AdminSubscriptionPlanDto, User, AdminLog, SubscriptionPlan, PlanEntity, AdminUserSubscription, Subscription, OrdersGroupedResponse, SubOrder, BookingsGroupedResponse, LogisticService, Quote, Delivery, DeliveryTracking, QuoteStatus, DeliveryStatus, TransportType, LocationLog, CategorieAnnonce, TypeAnnonce, LogisticsClient, Video, StoreUserInfo, StoreStats, ServiceStats, AnnonceStats, LiveStats, LogisticProvider, LogisticStats, GasProvider, GasBottle, GasBottleFormat, GasDelivery, GasDeliveryStatus, GasProviderStats, Booking, GasAdminOverview, GasProviderAdminRow, Garage, GaragePieceCatalogue, EasyDelivery, HistoryDelivery, EasyDeliveryStatus, DriverStats, SubCategoryProd, Slider, Live, LiveFeedResponse, LiveListResponse, LiveStatus, LiveEntityType, Boost, BoostPricing, BoostEntityType, BoostPaymentMethod, WebPushNotifActiveResponse, WebPushNotifStatus, WebPushNotifAdminListResponse, NotificationSubscriptionListResponse, PushNotificationPayload, SendPushResult, MyAccess, AuthorizationNode } from '@/types/interface';
 
 export const getBaseUrl = (): string => {
     return process.env.NEXT_PUBLIC_API_URL || 'https://api.djamko.com/api/v1';
@@ -108,6 +108,22 @@ export const register = async (data: any): Promise<BaseResponse<any>> => {
     return await response.json();
 };
 
+// Catalogue public (non authentifié) des rôles ouverts à l'auto-inscription — pilote
+// dynamiquement /register et RoleSelectionModal (source unique : RBAC backend).
+export interface PublicRegisterRole {
+    code: string;
+    name: string;
+    description: string | null;
+    icon: string | null;
+    isPublicActive: boolean;
+    order: number;
+}
+
+export const getPublicRegisterRoles = async (): Promise<BaseResponse<PublicRegisterRole[]>> => {
+    const response = await fetch(`${getBaseUrl()}/auth/register-roles`);
+    return await response.json();
+};
+
 export const login = async (identifier: string, password: string): Promise<BaseResponse<any>> => {
     const response = await fetch(`${getBaseUrl()}/auth/login`, {
         method: 'POST',
@@ -187,6 +203,135 @@ export const getAllSearch = async (params: any): Promise<BaseResponse<MySpaceRes
 export const getOverview = async (): Promise<BaseResponse<any>> => {
     const response = await secureFetch(`${getBaseUrl()}/auth/overview`, {
         method: 'GET',
+    });
+    return await response.json();
+};
+
+
+// =====================
+// RBAC (Role / Authorization / Policy dynamiques)
+// =====================
+
+export const getMyRoles = async (): Promise<BaseResponse<MyAccess>> => {
+    const response = await secureFetch(`${getBaseUrl()}/auth/me/roles`, { method: 'GET' });
+    return await response.json();
+};
+
+export const getMyAuthorizations = async (): Promise<BaseResponse<AuthorizationNode[]>> => {
+    const response = await secureFetch(`${getBaseUrl()}/authorizations/my`, { method: 'GET' });
+    return await response.json();
+};
+
+export const getAuthorizationsTree = async (): Promise<BaseResponse<AuthorizationNode[]>> => {
+    const response = await secureFetch(`${getBaseUrl()}/authorizations/tree`, { method: 'GET' });
+    return await response.json();
+};
+
+export const getAuthorizations = async (params: any = {}): Promise<BaseResponse<Pagination<any>>> => {
+    const response = await secureFetch(`${getBaseUrl()}/authorizations?${toQueryString(params)}`, { method: 'GET' });
+    return await response.json();
+};
+
+export const createAuthorization = async (data: any): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/authorizations`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const updateAuthorization = async (id: string, data: any): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/authorizations/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const deleteAuthorization = async (id: string): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/authorizations/${id}`, { method: 'DELETE' });
+    return await response.json();
+};
+
+export const getRoles = async (params: any = {}): Promise<BaseResponse<Pagination<any>>> => {
+    const response = await secureFetch(`${getBaseUrl()}/roles?${toQueryString(params)}`, { method: 'GET' });
+    return await response.json();
+};
+
+export const getRole = async (id: string): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/roles/${id}`, { method: 'GET' });
+    return await response.json();
+};
+
+export const createRole = async (data: any): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/roles`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const updateRole = async (id: string, data: any): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/roles/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const deleteRole = async (id: string): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/roles/${id}`, { method: 'DELETE' });
+    return await response.json();
+};
+
+export const assignPoliciesToRole = async (roleId: string, policyIds: string[]): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/roles/${roleId}/policies`, {
+        method: 'POST',
+        body: JSON.stringify({ policyIds }),
+    });
+    return await response.json();
+};
+
+export const getRoleUsers = async (roleId: string): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/roles/${roleId}/users`, { method: 'GET' });
+    return await response.json();
+};
+
+export const getPolicies = async (params: any = {}): Promise<BaseResponse<Pagination<any>>> => {
+    const response = await secureFetch(`${getBaseUrl()}/policies?${toQueryString(params)}`, { method: 'GET' });
+    return await response.json();
+};
+
+export const createPolicy = async (data: any): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/policies`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const updatePolicy = async (id: string, data: any): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/policies/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const deletePolicy = async (id: string): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/policies/${id}`, { method: 'DELETE' });
+    return await response.json();
+};
+
+export const getUserDynamicRoles = async (userId: string): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/users/${userId}/roles`, { method: 'GET' });
+    return await response.json();
+};
+
+export const assignRolesToUser = async (userId: string, roleIds: string[]): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/users/${userId}/roles`, {
+        method: 'POST',
+        body: JSON.stringify({ roleIds }),
     });
     return await response.json();
 };
@@ -1001,7 +1146,7 @@ export const createUserAdmin = async (data: {
     indicatif?: string;
     phone: string;
     password: string;
-    role?: Role;
+    role?: string;
     fullName?: string;
     company?: string;
 }): Promise<BaseResponse<any>> => {

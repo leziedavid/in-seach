@@ -3,11 +3,12 @@
 import React from "react";
 import { Icon } from "@iconify/react";
 import Image from "next/image";
-import { Role } from "@/types/interface";
+import { Role, AuthorizationNode } from "@/types/interface";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "@/utils/langue/hooks";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useNotification } from "@/components/notifications/NotificationProvider";
+import { useAuthStore } from "@/store/authStore";
 
 // Numéro WhatsApp de l'assistance Djamko (indicatif +225 conservé avec le 0 initial,
 // conforme au plan de numérotation ivoirien en vigueur)
@@ -43,50 +44,6 @@ export type TabType =
     | "Mon-Garage"
     | "Historique";
 
-export interface TabConfig {
-    key: TabType;
-    labelKey: string;
-    icon: string;
-    roles: Role[];
-    subtitle?: string;
-}
-
-export const TABS_CONFIG: TabConfig[] = [
-    { labelKey: 'akwaba.sidebar.overview', icon: "solar:graph-bold-duotone", key: 'Overview', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ADMIN, Role.ENTREPRISE] },
-    { labelKey: 'akwaba.sidebar.calendar', icon: "solar:calendar-date-bold-duotone", key: 'Calendrier', roles: [Role.PRESTATAIRE, Role.ADMIN, Role.CLIENT] },
-    { labelKey: 'akwaba.sidebar.services', icon: "solar:box-bold-duotone", key: 'Services', roles: [Role.PRESTATAIRE, Role.ADMIN] },
-    { labelKey: 'akwaba.sidebar.annonces', icon: "solar:eye-bold-duotone", key: 'Annonces', roles: [Role.PRESTATAIRE, Role.ADMIN] },
-    { labelKey: 'akwaba.sidebar.my_lives', icon: "solar:play-circle-bold-duotone", key: 'Mes-lives', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ADMIN, Role.ENTREPRISE] },
-    { labelKey: 'akwaba.sidebar.rd_services', icon: "solar:clipboard-list-bold-duotone", key: 'Rendez-vous', roles: [Role.CLIENT, Role.GAZIER, Role.GARAGISTE_VENTE_PIECE_AUTO, Role.PRESTATAIRE, Role.ADMIN, Role.ENTREPRISE, Role.CHAUFFEUR] },
-    { labelKey: 'akwaba.sidebar.rd_annonces', icon: "solar:clipboard-check-bold-duotone", key: 'Rendez-vous-annonces', roles: [Role.CLIENT, Role.GAZIER, Role.GARAGISTE_VENTE_PIECE_AUTO, Role.PRESTATAIRE, Role.ADMIN, Role.ENTREPRISE, Role.CHAUFFEUR] },
-    { labelKey: 'akwaba.sidebar.history_rdv', icon: "solar:history-bold-duotone", key: 'Historique-rdv', roles: [Role.CLIENT, Role.GAZIER, Role.GARAGISTE_VENTE_PIECE_AUTO, Role.PRESTATAIRE, Role.ADMIN, Role.ENTREPRISE, Role.CHAUFFEUR] },
-    { labelKey: 'akwaba.sidebar.store', icon: "solar:shop-bold-duotone", key: 'Boutique', roles: [Role.CLIENT, Role.ADMIN, Role.PRESTATAIRE, Role.ENTREPRISE] },
-    { labelKey: 'akwaba.sidebar.orders', icon: "solar:cart-large-bold-duotone", key: 'Commandes', roles: [Role.CLIENT, Role.GAZIER, Role.GARAGISTE_VENTE_PIECE_AUTO, Role.ADMIN, Role.PRESTATAIRE, Role.ENTREPRISE, Role.CHAUFFEUR] },
-    { labelKey: 'akwaba.sidebar.history_orders', icon: "solar:history-bold-duotone", key: 'Historique-commandes', roles: [Role.CLIENT, Role.GAZIER, Role.GARAGISTE_VENTE_PIECE_AUTO, Role.ADMIN, Role.PRESTATAIRE, Role.ENTREPRISE, Role.CHAUFFEUR] },
-    { labelKey: 'akwaba.sidebar.returns_sav', icon: "solar:refresh-back-bold-duotone", key: 'Retours-SAV', roles: [Role.CLIENT, Role.GAZIER, Role.GARAGISTE_VENTE_PIECE_AUTO, Role.PRESTATAIRE, Role.ENTREPRISE, Role.ADMIN] },
-    { labelKey: 'akwaba.sidebar.my_quotes', icon: "solar:chat-round-money-bold-duotone", key: 'Mes-devis', roles: [Role.CLIENT, Role.ADMIN] },
-    { labelKey: 'akwaba.sidebar.my_deliveries', icon: "solar:map-point-wave-bold-duotone", key: 'Mes-livraisons', roles: [Role.CLIENT, Role.ADMIN] },
-    { labelKey: 'akwaba.sidebar.my_logistics_services', icon: "solar:box-bold-duotone", key: 'Mes-services-logistiques', roles: [Role.ENTREPRISE, Role.ADMIN] },
-    { labelKey: 'akwaba.sidebar.received_quotes', icon: "solar:chat-round-money-bold-duotone", key: 'Devis-recus', roles: [Role.ENTREPRISE, Role.ADMIN] },
-    { labelKey: 'akwaba.sidebar.deliveries', icon: "solar:delivery-bold-duotone", key: 'Livraisons', roles: [Role.ENTREPRISE, Role.ADMIN] },
-    { labelKey: 'akwaba.sidebar.driver_deliveries', icon: "solar:delivery-bold-duotone", key: 'Livraisons-chauffeur', roles: [Role.CHAUFFEUR] },
-    { labelKey: 'akwaba.sidebar.my_fleet', icon: "solar:bus-bold-duotone", key: 'Ma-flotte', roles: [Role.ENTREPRISE, Role.ADMIN] },
-    { labelKey: 'akwaba.sidebar.pricing', icon: "solar:bill-list-bold-duotone", key: 'Tarifs', roles: [Role.ENTREPRISE, Role.ADMIN, Role.PRESTATAIRE, Role.CLIENT, Role.GAZIER] },
-    // { labelKey: 'akwaba.sidebar.api_doc', icon: "solar:document-bold-duotone", key: 'Documentation-API', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ADMIN, Role.ENTREPRISE] },
-    { labelKey: 'akwaba.sidebar.settings', icon: "solar:settings-bold-duotone", key: 'Paramètres', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ADMIN, Role.ENTREPRISE, Role.CHAUFFEUR, Role.LIVREUR, Role.GAZIER] },
-    { labelKey: 'akwaba.sidebar.deliverer_space', icon: "solar:delivery-bold-duotone", key: 'Livreur-dashboard', roles: [Role.LIVREUR, Role.ADMIN] },
-
-    // Recharge de gaz à domicile
-    { labelKey: 'akwaba.sidebar.gas_refill', icon: "solar:fire-bold-duotone", key: 'Recharge-gaz', roles: [Role.CLIENT, Role.PRESTATAIRE, Role.ENTREPRISE, Role.ADMIN] },
-    { labelKey: 'akwaba.sidebar.my_gas_bottles', icon: "solar:box-bold-duotone", key: 'Mes-bouteilles-gaz', roles: [Role.GAZIER, Role.ADMIN] },
-
-    // Annuaire des garages — mécanique générale
-    { labelKey: 'akwaba.sidebar.my_garages', icon: "solar:garage-bold-duotone", key: 'Mon-Garage', roles: [Role.GARAGISTE_VENTE_PIECE_AUTO, Role.ADMIN] },
-
-    // Historique unifié (commandes, réservations, livraisons de gaz) — accessible via l'action rapide "Historique"
-    { labelKey: 'akwaba.sidebar.history', icon: "solar:clock-circle-bold-duotone", key: 'Historique', roles: [Role.CLIENT, Role.GAZIER, Role.PRESTATAIRE, Role.ADMIN, Role.ENTREPRISE, Role.CHAUFFEUR] },
-];
-
 interface SidebarProps {
     activeTab: TabType;
     onTabChange: (tab: TabType) => void;
@@ -94,21 +51,19 @@ interface SidebarProps {
     onLogout: () => void;
 }
 
-const LOGISTICS_KEYS: TabType[] = [
-    'Services-logistiques', 'Mes-devis', 'Mes-livraisons',
-    'Mes-services-logistiques', 'Devis-recus', 'Livraisons',
-    'Livraisons-chauffeur', 'Ma-flotte', 'Livreur-dashboard',
-];
+// Le menu est piloté par les Authorization dynamiques (RBAC, voir /authorizations/my),
+// filtrées côté serveur selon les policies de l'utilisateur — plus aucun rôle codé en dur ici.
+// Seules les entrées "AKWABA_*" (voir backend/prisma/seed-rbac.ts) concernent ce menu ; le
+// tab historique (TabType) reste piloté par page.tsx via le paramètre `tab` de frontendRoute.
+const AKWABA_PREFIX = 'AKWABA_';
 
-// Groupes pour la vue mobile style Yango
-const MOBILE_GROUPS = [
-    { keys: ['Overview', 'Calendrier'] },
-    { keys: ['Recharge-gaz', 'Mes-bouteilles-gaz', 'Mon-Garage'] },
-    { keys: ['Services', 'Annonces', 'Boutique', 'Mes-lives', 'Commandes', 'Historique-commandes', 'Retours-SAV'] },
-    { keys: ['Rendez-vous', 'Rendez-vous-annonces', 'Historique-rdv'] },
-    { keys: ['Mes-devis', 'Mes-livraisons', 'Mes-services-logistiques', 'Devis-recus', 'Livraisons', 'Livraisons-chauffeur', 'Ma-flotte', 'Livreur-dashboard'] },
-    { keys: ['Tarifs', 'Documentation-API', 'Paramètres'] },
-];
+function extractTabFromRoute(frontendRoute: string | null): TabType | null {
+    if (!frontendRoute) return null;
+    const qIndex = frontendRoute.indexOf('?');
+    if (qIndex === -1) return null;
+    const tab = new URLSearchParams(frontendRoute.slice(qIndex + 1)).get('tab');
+    return (tab as TabType) || null;
+}
 
 export default function Sidebar({ activeTab, onTabChange, user, onLogout }: SidebarProps) {
 
@@ -117,20 +72,34 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
     const { permission, subscribe, unsubscribe, isNotificationsEnabled, isPushSupported, lastError } = useNotifications();
     const userRole = user?.role as Role;
 
-    const baseMenu = TABS_CONFIG.filter(item => item.roles.includes(userRole));
+    const authorizations = useAuthStore(s => s.authorizations);
+    const hydrated = useAuthStore(s => s.hydrated);
+    const hydrate = useAuthStore(s => s.hydrate);
 
-    const menu = React.useMemo(() => {
-        if (userRole === Role.CHAUFFEUR || userRole === Role.ENTREPRISE || userRole === Role.LIVREUR) {
-            const logisticsItems = baseMenu.filter(item => LOGISTICS_KEYS.includes(item.key));
-            const otherItems = baseMenu.filter(item => !LOGISTICS_KEYS.includes(item.key));
+    React.useEffect(() => {
+        if (user) hydrate();
+    }, [user, hydrate]);
 
-            return [...logisticsItems, ...otherItems];
+    // Menu Akwaba = les Authorization dynamiques préfixées AKWABA_ que le backend a déjà
+    // filtrées selon les policies de l'utilisateur (voir GET /authorizations/my), regroupées
+    // par catégorie (remplace les anciens groupes MOBILE_GROUPS codés en dur).
+    const menu = React.useMemo(
+        () => authorizations.filter(a => a.code.startsWith(AKWABA_PREFIX)),
+        [authorizations],
+    );
+
+    const menuGroups = React.useMemo(() => {
+        const byCategory = new Map<string, AuthorizationNode[]>();
+        for (const item of menu) {
+            const cat = item.category || 'Autres';
+            if (!byCategory.has(cat)) byCategory.set(cat, []);
+            byCategory.get(cat)!.push(item);
         }
-        return baseMenu;
-    }, [baseMenu, userRole]);
+        return Array.from(byCategory.values());
+    }, [menu]);
 
     const [open, setOpen] = React.useState(false);
-    const isLoading = !user;
+    const isLoading = !user || !hydrated;
 
     const roleLabel = userRole === Role.PRESTATAIRE ? t("akwaba.sidebar.roles.prestataire") :
         userRole === Role.ENTREPRISE ? t("akwaba.sidebar.roles.entreprise") :
@@ -165,32 +134,22 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
         }
     };
 
-    // ── Desktop menu item ──
-    const renderMenuItem = (item: TabConfig) => {
-        const isActive = activeTab === item.key;
-        return (
-            <button key={item.key} onClick={() => { onTabChange(item.key); setOpen(false); }} className={`w-full flex items-center gap-3 p-3 rounded-xl text-sm transition-all duration-300 ${isActive ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-[1.02]" : "hover:bg-muted text-muted-foreground hover:text-foreground dark:text-zinc-400 dark:hover:text-white"}`}>
-                <Icon icon={item.icon} width={18} />
-                {t(item.labelKey as any)}
-            </button>
-        );
-    };
-
     // ── Ligne de menu style Yango — variant "desktop" = icônes légèrement réduites pour ne pas déborder ──
-    const renderMobileRow = (item: TabConfig, isLast: boolean, variant: 'mobile' | 'desktop' = 'mobile') => {
-        const isActive = activeTab === item.key;
+    const renderMobileRow = (item: AuthorizationNode, isLast: boolean, variant: 'mobile' | 'desktop' = 'mobile') => {
+        const tab = extractTabFromRoute(item.frontendRoute);
+        const isActive = !!tab && activeTab === tab;
         const circleSize = variant === 'desktop' ? 'w-8 h-8' : 'w-9 h-9';
         const iconWidth = variant === 'desktop' ? 16 : 19;
         return (
-            <button key={item.key} onClick={() => { onTabChange(item.key); setOpen(false); }} className="w-full flex items-center gap-3 px-3 py-2.5 active:bg-muted/60 transition-colors">
+            <button key={item.code} onClick={() => { if (tab) onTabChange(tab); setOpen(false); }} className="w-full flex items-center gap-3 px-3 py-2.5 active:bg-muted/60 transition-colors">
                 {/* Icône dans un cercle */}
-                <div className={`${circleSize} rounded-full flex items-center justify-center shrink-0 ${isActive ? 'bg-primary/15' : 'bg-muted'}`}> <Icon icon={item.icon} width={iconWidth} className={isActive ? 'text-primary' : 'text-foreground/70'} />
+                <div className={`${circleSize} rounded-full flex items-center justify-center shrink-0 ${isActive ? 'bg-primary/15' : 'bg-muted'}`}> <Icon icon={item.icon || 'solar:widget-5-bold-duotone'} width={iconWidth} className={isActive ? 'text-primary' : 'text-foreground/70'} />
                 </div>
 
                 {/* Label */}
                 <div className="flex-1 text-left min-w-0">
                     <p className={`text-sm font-semibold truncate ${isActive ? 'text-primary' : 'text-foreground'}`}>
-                        {t(item.labelKey as any)}
+                        {item.name}
                     </p>
                 </div>
 
@@ -247,7 +206,7 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
         </div>
     );
 
-    const skeletonCount = userRole ? TABS_CONFIG.filter(item => item.roles.includes(userRole)).length : 6;
+    const skeletonCount = menu.length || 6;
 
     return (
         <>
@@ -300,11 +259,11 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
                     {/* Actions rapides */}
                     {!isLoading && (
                         <div className="flex items-center justify-center gap-6 px-2 pb-4">
-                            {menu.some(i => i.key === 'Historique') && renderQuickAction("solar:clock-circle-bold-duotone", t("akwaba.sidebar.history"), () => onTabChange('Historique'), "history-desktop", 'desktop'
+                            {menu.some(i => i.code === 'AKWABA_HISTORIQUE') && renderQuickAction("solar:clock-circle-bold-duotone", t("akwaba.sidebar.history"), () => onTabChange('Historique'), "history-desktop", 'desktop'
                             )}
                             {renderQuickAction("solar:headphones-round-bold-duotone", t("akwaba.sidebar.assistance"), handleOpenAssistance, "assistance-desktop", 'desktop'
                             )}
-                            {menu.some(i => i.key === 'Paramètres') && renderQuickAction("solar:settings-bold-duotone", t("akwaba.sidebar.settings"), () => onTabChange('Paramètres'), "settings-desktop", 'desktop'
+                            {menu.some(i => i.code === 'AKWABA_PARAMETRES') && renderQuickAction("solar:settings-bold-duotone", t("akwaba.sidebar.settings"), () => onTabChange('Paramètres'), "settings-desktop", 'desktop'
                             )}
                         </div>
                     )}
@@ -322,13 +281,11 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
                             <MenuSkeleton count={skeletonCount} />
                         ) : (
                             <>
-                                {MOBILE_GROUPS.map((group, gi) => {
-                                    const groupItems = menu.filter(item => group.keys.includes(item.key));
-                                    if (groupItems.length === 0) return null;
+                                {menuGroups.map((groupItems, gi) => {
                                     return (
                                         <div key={gi} className="bg-muted/40 dark:bg-zinc-800/40 rounded-2xl overflow-hidden border border-border/40">
                                             {groupItems.map((item, idx) => (
-                                                <React.Fragment key={item.key}>
+                                                <React.Fragment key={item.code}>
                                                     {renderMobileRow(item, idx === groupItems.length - 1, 'desktop')}
                                                     {idx < groupItems.length - 1 && (
                                                         <div className="h-px bg-border/40 mx-4" />
@@ -440,11 +397,11 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
                             {/* ── Actions rapides style app mobile native ── */}
                             {!isLoading && (
                                 <div className="flex items-center justify-center gap-8 px-6 pb-5">
-                                    {menu.some(i => i.key === 'Historique') && renderQuickAction("solar:clock-circle-bold-duotone", t("akwaba.sidebar.history"), () => { onTabChange('Historique'); setOpen(false); }, "history"
+                                    {menu.some(i => i.code === 'AKWABA_HISTORIQUE') && renderQuickAction("solar:clock-circle-bold-duotone", t("akwaba.sidebar.history"), () => { onTabChange('Historique'); setOpen(false); }, "history"
                                     )}
                                     {renderQuickAction("solar:headphones-round-bold-duotone", t("akwaba.sidebar.assistance"), handleOpenAssistance, "assistance"
                                     )}
-                                    {menu.some(i => i.key === 'Paramètres') && renderQuickAction("solar:settings-bold-duotone", t("akwaba.sidebar.settings"), () => { onTabChange('Paramètres'); setOpen(false); }, "settings"
+                                    {menu.some(i => i.code === 'AKWABA_PARAMETRES') && renderQuickAction("solar:settings-bold-duotone", t("akwaba.sidebar.settings"), () => { onTabChange('Paramètres'); setOpen(false); }, "settings"
                                     )}
                                 </div>
                             )}
@@ -462,13 +419,11 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
                                     <MenuSkeleton count={skeletonCount} />
                                 ) : (
                                     <>
-                                        {MOBILE_GROUPS.map((group, gi) => {
-                                            const groupItems = menu.filter(item => group.keys.includes(item.key));
-                                            if (groupItems.length === 0) return null;
+                                        {menuGroups.map((groupItems, gi) => {
                                             return (
                                                 <div key={gi} className="bg-muted/40 dark:bg-zinc-800/40 rounded-2xl overflow-hidden border border-border/40">
                                                     {groupItems.map((item, idx) => (
-                                                        <React.Fragment key={item.key}>
+                                                        <React.Fragment key={item.code}>
                                                             {renderMobileRow(item, idx === groupItems.length - 1)}
                                                             {idx < groupItems.length - 1 && (
                                                                 <div className="h-px bg-border/40 mx-4" />

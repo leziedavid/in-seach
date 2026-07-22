@@ -5,7 +5,8 @@ import { Icon } from '@iconify/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from '@/utils/langue/hooks';
 import { storage } from '@/lib/storage';
-import { REGISTER_ROLE_OPTIONS, PENDING_ROLE_STORAGE_KEY, PENDING_ROLE_TTL_SEC, type RegisterRole } from '@/lib/registerRoleOptions';
+import { PENDING_ROLE_STORAGE_KEY, PENDING_ROLE_TTL_SEC } from '@/lib/registerRoleOptions';
+import { useRegisterRoles, roleLabel, roleDesc } from '@/hooks/useRegisterRoles';
 import { RoleStatusBadge } from '@/components/auth/RoleStatusBadge';
 
 interface RoleSelectionModalProps {
@@ -16,8 +17,9 @@ interface RoleSelectionModalProps {
 export function RoleSelectionModal({ isOpen, onClose }: RoleSelectionModalProps) {
     const { t } = useTranslation();
     const router = useRouter();
+    const { roles } = useRegisterRoles();
 
-    const handleSelect = (role: RegisterRole, active: boolean) => {
+    const handleSelect = (role: string, active: boolean) => {
         if (!active) return;
         storage.set(PENDING_ROLE_STORAGE_KEY, role, PENDING_ROLE_TTL_SEC);
         onClose();
@@ -72,7 +74,7 @@ export function RoleSelectionModal({ isOpen, onClose }: RoleSelectionModalProps)
                             </p>
 
                             <div className="w-full grid grid-cols-2 gap-3">
-                                {REGISTER_ROLE_OPTIONS.map((opt) => (
+                                {roles.map((opt) => (
                                     <button
                                         key={opt.value}
                                         type="button"
@@ -87,8 +89,8 @@ export function RoleSelectionModal({ isOpen, onClose }: RoleSelectionModalProps)
                                             <RoleStatusBadge active={opt.active} />
                                         </div>
                                         <Icon icon={opt.icon} className="text-primary mt-3" width={26} />
-                                        <span className="text-xs font-bold uppercase text-[#0F2944]">{t(opt.labelKey)}</span>
-                                        <span className="text-[10px] text-[#1F3A5F]/80 leading-snug">{t(opt.descKey)}</span>
+                                        <span className="text-xs font-bold uppercase text-[#0F2944]">{roleLabel(opt, t)}</span>
+                                        <span className="text-[10px] text-[#1F3A5F]/80 leading-snug">{roleDesc(opt, t)}</span>
                                     </button>
                                 ))}
                             </div>
