@@ -16,6 +16,8 @@ import { Share } from "@/components/shared/Share";
 import TextDisplayBox from "@/components/home/TextDisplayBox";
 import Link from "next/link";
 import { createStoreSlug } from "@/utils/storeSlug";
+import { isSensitiveProduct } from "@/utils/sensitiveProduct";
+import SensitiveMedia from "@/components/shared/SensitiveMedia";
 
 interface ProductDetailModalProps {
     isOpen: boolean;
@@ -32,6 +34,7 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
     const [storeInfo, setStoreInfo] = useState<StoreUserInfo | null>(null);
     const [freshProduct, setFreshProduct] = useState<Product | null>(null);
     const [isShareOpen, setIsShareOpen] = useState(false);
+    const [isRevealed, setIsRevealed] = useState(false);
     const touchStartX = useRef<number>(0);
 
     const { addToCart } = useCart();
@@ -72,6 +75,7 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
             setFreshProduct(null);
             setAchatType('UNITE');
             setCurrentImageIndex(0);
+            setIsRevealed(false);
             fetchFreshProduct(product.id);
         }
         if (!isOpen) setFreshProduct(null);
@@ -83,6 +87,9 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
     }, [isOpen, displayProduct?.user?.storeName, fetchPublicStoreData]);
 
     if (!displayProduct || !mounted) return null;
+
+    const isSensitive = isSensitiveProduct(displayProduct);
+    const toggleRevealed = () => setIsRevealed(r => !r);
 
     // ── Navigation images ────────────────────────────────────────────────
     const nextImage = (e?: React.MouseEvent) => {
@@ -163,13 +170,25 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                             className="object-cover blur-3xl opacity-30 scale-110"
                             alt=""
                             aria-hidden />
-                        <Image
-                            src={imagesList[currentImageIndex]}
-                            fill
-                            unoptimized
-                            className="object-contain z-10 p-3 cursor-zoom-in"
-                            alt={`${displayProduct.name} - ${currentImageIndex + 1}`}
-                            onClick={() => setLightboxOpen(true)} />
+                        {isSensitive ? (
+                            <SensitiveMedia revealed={isRevealed} onToggle={toggleRevealed} variant="full">
+                                <Image
+                                    src={imagesList[currentImageIndex]}
+                                    fill
+                                    unoptimized
+                                    className="object-contain z-10 p-3 cursor-zoom-in"
+                                    alt={`${displayProduct.name} - ${currentImageIndex + 1}`}
+                                    onClick={() => setLightboxOpen(true)} />
+                            </SensitiveMedia>
+                        ) : (
+                            <Image
+                                src={imagesList[currentImageIndex]}
+                                fill
+                                unoptimized
+                                className="object-contain z-10 p-3 cursor-zoom-in"
+                                alt={`${displayProduct.name} - ${currentImageIndex + 1}`}
+                                onClick={() => setLightboxOpen(true)} />
+                        )}
                     </motion.div>
                 ) : (
                     <div className="absolute inset-0 flex items-center justify-center text-muted-foreground/20">
@@ -376,13 +395,25 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                                                             className="object-cover blur-3xl opacity-30 scale-110"
                                                             alt=""
                                                             aria-hidden />
-                                                        <Image
-                                                            src={imagesList[currentImageIndex]}
-                                                            fill
-                                                            unoptimized
-                                                            className="object-contain z-10 p-4 cursor-zoom-in"
-                                                            alt={displayProduct.name}
-                                                            onClick={() => setLightboxOpen(true)} />
+                                                        {isSensitive ? (
+                                                            <SensitiveMedia revealed={isRevealed} onToggle={toggleRevealed} variant="full">
+                                                                <Image
+                                                                    src={imagesList[currentImageIndex]}
+                                                                    fill
+                                                                    unoptimized
+                                                                    className="object-contain z-10 p-4 cursor-zoom-in"
+                                                                    alt={displayProduct.name}
+                                                                    onClick={() => setLightboxOpen(true)} />
+                                                            </SensitiveMedia>
+                                                        ) : (
+                                                            <Image
+                                                                src={imagesList[currentImageIndex]}
+                                                                fill
+                                                                unoptimized
+                                                                className="object-contain z-10 p-4 cursor-zoom-in"
+                                                                alt={displayProduct.name}
+                                                                onClick={() => setLightboxOpen(true)} />
+                                                        )}
                                                     </motion.div>
                                                 ) : (
                                                     <div className="absolute inset-0 flex items-center justify-center text-muted-foreground/20">
@@ -410,12 +441,23 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                                                 {imagesList.slice(0, 6).map((img, idx) => (
                                                     <button key={idx} onClick={() => setCurrentImageIndex(idx)}
                                                         className={`w-12 h-12 rounded-lg overflow-hidden border-2 transition-all shrink-0 relative ${currentImageIndex === idx ? "border-primary scale-105" : "border-transparent opacity-60 hover:opacity-100"}`}>
-                                                        <Image
-                                                            src={img}
-                                                            fill
-                                                            unoptimized
-                                                            className="object-cover"
-                                                            alt="" />
+                                                        {isSensitive ? (
+                                                            <SensitiveMedia revealed={isRevealed} onToggle={toggleRevealed} variant="static">
+                                                                <Image
+                                                                    src={img}
+                                                                    fill
+                                                                    unoptimized
+                                                                    className="object-cover"
+                                                                    alt="" />
+                                                            </SensitiveMedia>
+                                                        ) : (
+                                                            <Image
+                                                                src={img}
+                                                                fill
+                                                                unoptimized
+                                                                className="object-cover"
+                                                                alt="" />
+                                                        )}
                                                     </button>
                                                 ))}
                                             </div>
@@ -587,12 +629,23 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                                 <motion.div key={currentImageIndex} initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }}
                                     onClick={e => e.stopPropagation()}
                                     className="relative w-full h-full max-w-3xl max-h-[90vh] mx-4">
-                                    <Image
-                                        src={imagesList[currentImageIndex]}
-                                        fill
-                                        unoptimized
-                                        className="object-contain"
-                                        alt={displayProduct.name} />
+                                    {isSensitive ? (
+                                        <SensitiveMedia revealed={isRevealed} onToggle={toggleRevealed} variant="full">
+                                            <Image
+                                                src={imagesList[currentImageIndex]}
+                                                fill
+                                                unoptimized
+                                                className="object-contain"
+                                                alt={displayProduct.name} />
+                                        </SensitiveMedia>
+                                    ) : (
+                                        <Image
+                                            src={imagesList[currentImageIndex]}
+                                            fill
+                                            unoptimized
+                                            className="object-contain"
+                                            alt={displayProduct.name} />
+                                    )}
                                 </motion.div>
                                 {imagesList.length > 1 && (
                                     <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">

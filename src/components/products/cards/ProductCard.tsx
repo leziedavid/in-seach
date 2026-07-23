@@ -13,6 +13,8 @@ import { Share } from "@/components/shared/Share"
 import LiveButtonInline from "@/components/lives/LiveButtonInline"
 import BoostEntityModal from "@/components/boost/modals/BoostEntityModal"
 import { FEATURES } from "@/config/features"
+import { isSensitiveProduct } from "@/utils/sensitiveProduct"
+import SensitiveMedia from "@/components/shared/SensitiveMedia"
 
 
 // [PERF] memo : évite le re-render des cartes produit quand le parent se re-rend
@@ -33,8 +35,12 @@ const ProductCard = memo(function ProductCard({ product, onEdit, onDelete, onSta
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isShareOpen, setIsShareOpen] = useState(false);
     const [isBoostOpen, setIsBoostOpen] = useState(false);
+    const [isRevealed, setIsRevealed] = useState(false);
     const { addToCart } = useCart();
     const { addNotification } = useNotification();
+
+    // Floutage réservé à l'affichage public (pas dans le tableau de gestion vendeur)
+    const isSensitive = isSensitiveProduct(product) && !onEdit && !onDelete;
 
     const handleShare = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -78,7 +84,16 @@ const ProductCard = memo(function ProductCard({ product, onEdit, onDelete, onSta
             <div onClick={() => setIsModalOpen(true)} className={`group rounded-xl transition-all duration-300 cursor-pointer overflow-hidden ${viewMode === 'grid' ? "p-0 md:p-4 flex flex-col md:items-center text-left md:text-center" : "p-2 md:p-4 flex flex-row items-center gap-4 text-left"}`}>
 
                 <div className={`relative shrink-0 overflow-hidden rounded-lg md:rounded-2xl ${isList ? 'w-24 h-24 md:w-32 md:h-32' : 'w-full aspect-square mb-2 md:mb-3'}`}>
-                    <Image src={product.imageUrl || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=2099&auto=format&fit=crop'} alt={product.name} fill unoptimized className="object-cover group-hover:scale-110 transition-transform duration-500" />
+                    {(() => {
+                        const productImage = (
+                            <Image src={product.imageUrl || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=2099&auto=format&fit=crop'} alt={product.name} fill unoptimized className="object-cover group-hover:scale-110 transition-transform duration-500" />
+                        );
+                        return isSensitive ? (
+                            <SensitiveMedia revealed={isRevealed} onToggle={() => setIsRevealed(r => !r)} variant="compact">
+                                {productImage}
+                            </SensitiveMedia>
+                        ) : productImage;
+                    })()}
                     <div className="absolute top-1 left-1 md:top-2 md:left-2 bg-black/70 md:bg-background/95 backdrop-blur-sm px-1.5 py-0.5 md:px-2 md:py-0.5 rounded-full text-[8px] md:text-[9px] font-black text-white md:text-foreground uppercase tracking-tighter">
                         {product.category?.name || 'Produit'}
                     </div>

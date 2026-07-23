@@ -174,41 +174,85 @@ export default function SearchGarage() {
                         skeletonCount={3}
                         gridClassName={viewMode === 'grid' ? "grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-6" : "grid grid-cols-1 gap-4"}
                         renderItem={(garage: Garage) => (
-                            <div key={garage.id} onClick={() => withAuth(() => setSelectedGarage(garage))} className={`group rounded-xl transition-all duration-300 cursor-pointer bg-card border border-border/40 hover:border-primary/30 overflow-hidden ${viewMode === 'grid' ? "p-3 md:p-4 flex flex-col items-center text-center" : "p-3 md:p-4 flex flex-row items-center gap-4 text-left"}`}>
-                                {/* Logo / icône garage */}
-                                <div className={`relative shrink-0 rounded-2xl bg-primary/10 flex items-center justify-center overflow-hidden ${viewMode === 'grid' ? "w-16 h-16 mb-3" : "w-16 h-16 md:w-20 md:h-20"}`}>
-                                    {garage.logo ? (
-                                        <img src={garage.logo} alt={garage.nom} className="w-full h-full object-cover" />
-                                    ) : (
-                                        <Icon icon="solar:garage-bold-duotone" className="w-8 h-8 text-primary" />
-                                    )}
-                                    <span className={`absolute -top-1 -right-1 w-4 h-4 rounded-full border-2 border-card ${garage.actif ? "bg-emerald-500" : "bg-red-500"}`} />
-                                </div>
-                                {/* Contenu */}
-                                <div className={`flex flex-col flex-1 min-w-0 ${viewMode === 'grid' ? "w-full items-center" : ""}`}>
-                                    <h3 className="font-black text-foreground mb-1 group-hover:text-primary transition-colors leading-tight truncate text-sm md:text-base w-full">
-                                        {garage.nom}
-                                    </h3>
-                                    <span className={`text-[9px] md:text-[10px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full mb-2 ${garage.actif ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-red-500/10 text-red-600 dark:text-red-400"}`}>
-                                        {garage.actif ? "Ouvert" : "Fermé"}
-                                    </span>
-                                    {(garage.commune || garage.ville) && (
-                                        <p className={`text-[10px] md:text-xs text-muted-foreground truncate w-full flex items-center gap-1 ${viewMode === 'grid' ? "justify-center" : ""}`}>
-                                            <Icon icon="solar:map-point-bold-duotone" className="w-3 h-3 shrink-0" />
-                                            <span className="truncate">{[garage.commune, garage.ville].filter(Boolean).join(", ")}</span>
+                            viewMode === 'list' ? (
+                                <div key={garage.id} onClick={() => withAuth(() => setSelectedGarage(garage))}
+                                    className="group flex items-start gap-4 p-4 rounded-xl cursor-pointer bg-muted/20 border border-border/30 hover:border-primary/30 hover:bg-muted/30 transition-all">
+                                    <div className="relative shrink-0 w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden ring-1 ring-border/40">
+                                        {garage.logo ? (
+                                            <img src={garage.logo} alt={garage.nom} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <Icon icon="solar:garage-bold-duotone" className="w-7 h-7 text-primary" />
+                                        )}
+                                        <span className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-card ${garage.actif ? "bg-emerald-500" : "bg-red-500"}`} />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2 mb-0.5">
+                                            <span className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden">
+                                                {garage.logo ? (
+                                                    <img src={garage.logo} alt="" className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <Icon icon="solar:garage-bold-duotone" className="w-3 h-3 text-primary" />
+                                                )}
+                                            </span>
+                                            <span className="text-sm font-bold text-foreground truncate">{garage.nom}</span>
+                                        </div>
+                                        {(garage.commune || garage.ville) && (
+                                            <p className="text-xs text-muted-foreground/70 truncate mb-1.5 ml-7">
+                                                {[garage.commune, garage.ville].filter(Boolean).join(", ")}
+                                            </p>
+                                        )}
+                                        <h3 className="text-base md:text-lg font-black leading-snug mb-1 group-hover:text-primary transition-colors">
+                                            <span className="text-primary">Garage</span> <span className="text-foreground">{garage.nom}</span>
+                                        </h3>
+                                        <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
+                                            {garage.actif ? "Ouvert et disponible pour vos réparations." : "Actuellement fermé."}
+                                            {typeof garage.catalogueCount === "number" ? ` ${garage.catalogueCount} pièce${garage.catalogueCount > 1 ? "s" : ""} au catalogue.` : ""}
                                         </p>
-                                    )}
-                                    {typeof garage.catalogueCount === "number" && (
-                                        <p className="text-[10px] md:text-xs text-muted-foreground mt-1">
-                                            {garage.catalogueCount} pièce{garage.catalogueCount > 1 ? "s" : ""} au catalogue
-                                        </p>
-                                    )}
-                                    <button className={`mt-3 flex items-center gap-1.5 bg-secondary text-white rounded-full font-black hover:bg-primary transition-all active:scale-90 shadow-sm px-3 py-1.5 text-[10px] md:text-xs ${viewMode === 'list' ? "self-start" : ""}`}>
-                                        <span className="whitespace-nowrap">Voir le garage</span>
-                                        <Icon icon="solar:check-circle-bold-duotone" className="w-3.5 h-3.5" />
-                                    </button>
+                                        {typeof garage.catalogueCount === "number" && (
+                                            <p className="text-xl font-black text-foreground">
+                                                {garage.catalogueCount} <span className="text-sm font-bold text-muted-foreground">pièce{garage.catalogueCount > 1 ? "s" : ""}</span>
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
+                            ) : (
+                                <div key={garage.id} onClick={() => withAuth(() => setSelectedGarage(garage))} className="group rounded-2xl transition-all duration-300 cursor-pointer bg-muted/20 border border-border/30 hover:border-primary/30 hover:bg-muted/30 overflow-hidden p-3 md:p-4 flex flex-col items-center text-center">
+                                    {/* Logo / icône garage */}
+                                    <div className="relative shrink-0 rounded-2xl bg-primary/10 flex items-center justify-center overflow-hidden w-16 h-16 mb-3 ring-1 ring-border/40">
+                                        {garage.logo ? (
+                                            <img src={garage.logo} alt={garage.nom} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <Icon icon="solar:garage-bold-duotone" className="w-8 h-8 text-primary" />
+                                        )}
+                                        <span className={`absolute -top-1 -right-1 w-4 h-4 rounded-full border-2 border-card ${garage.actif ? "bg-emerald-500" : "bg-red-500"}`} />
+                                    </div>
+                                    {/* Contenu */}
+                                    <div className="flex flex-col flex-1 min-w-0 w-full items-center">
+                                        <span className="text-[9px] md:text-[10px] font-bold text-primary uppercase tracking-wide mb-0.5">Garage</span>
+                                        <h3 className="font-black text-foreground mb-1 group-hover:text-primary transition-colors leading-tight truncate text-sm md:text-base w-full">
+                                            {garage.nom}
+                                        </h3>
+                                        <span className={`text-[9px] md:text-[10px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full mb-2 ${garage.actif ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-red-500/10 text-red-600 dark:text-red-400"}`}>
+                                            {garage.actif ? "Ouvert" : "Fermé"}
+                                        </span>
+                                        {(garage.commune || garage.ville) && (
+                                            <p className="text-[10px] md:text-xs text-muted-foreground truncate w-full flex items-center gap-1 justify-center">
+                                                <Icon icon="solar:map-point-bold-duotone" className="w-3 h-3 shrink-0" />
+                                                <span className="truncate">{[garage.commune, garage.ville].filter(Boolean).join(", ")}</span>
+                                            </p>
+                                        )}
+                                        {typeof garage.catalogueCount === "number" && (
+                                            <p className="text-[10px] md:text-xs text-muted-foreground mt-1">
+                                                {garage.catalogueCount} pièce{garage.catalogueCount > 1 ? "s" : ""} au catalogue
+                                            </p>
+                                        )}
+                                        <button className="mt-3 flex items-center gap-1.5 bg-secondary text-white rounded-full font-black hover:bg-primary transition-all active:scale-90 shadow-sm px-3 py-1.5 text-[10px] md:text-xs">
+                                            <span className="whitespace-nowrap">Voir le garage</span>
+                                            <Icon icon="solar:check-circle-bold-duotone" className="w-3.5 h-3.5" />
+                                        </button>
+                                    </div>
+                                </div>
+                            )
                         )}
                         className="w-full"
                     />

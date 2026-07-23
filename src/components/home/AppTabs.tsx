@@ -152,11 +152,8 @@ export default function AppTabs() {
 
             {/* Petite flèche indiquant qu'on peut glisser, visible seulement si ça dépasse */}
             {hasOverflow && (
-                <motion.div
-                    animate={{ x: [0, 5, 0] }}
-                    transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
-                    className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary mb-1"
-                >
+                <motion.div animate={{ x: [0, 5, 0] }} transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+                    className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary mb-1" >
                     <Icon icon="solar:round-double-alt-arrow-right-bold-duotone" width={14} height={14} />
                 </motion.div>
             )}
