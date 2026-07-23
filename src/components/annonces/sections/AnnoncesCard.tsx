@@ -23,6 +23,7 @@ import { LiveEntityType } from "@/types/interface"
 import BoostEntityModal from "@/components/boost/modals/BoostEntityModal"
 import { FEATURES } from "@/config/features"
 import { hasValidPrice } from "@/utils/price"
+import { Share } from "@/components/shared/Share"
 
 interface AnnoncesCardProps {
     data?: Annonce[];
@@ -45,6 +46,7 @@ export default function AnnoncesCard({
     onPageChange,
     onSuccess
 }: AnnoncesCardProps) {
+
     const { t } = useTranslation();
     const [internalPage, setInternalPage] = useState(1)
     const page = propPage ?? internalPage;
@@ -63,6 +65,7 @@ export default function AnnoncesCard({
     const [viewMode, setViewMode] = useState<ViewMode>("grid")
     const [isLiveModalOpen, setIsLiveModalOpen] = useState(false)
     const [liveAnnonce, setLiveAnnonce] = useState<Annonce | null>(null)
+    const [isShareOpen, setIsShareOpen] = useState(false);
 
     // Boost Modal State
     const [isBoostOpen, setIsBoostOpen] = useState(false)
@@ -73,6 +76,13 @@ export default function AnnoncesCard({
     const total = propTotal ?? internalListes.length;
     const totalPages = propTotalPages ?? Math.ceil(total / limit);
     const { showNotification } = useNotification();
+
+    const handleShare = (e: React.MouseEvent, annonce: Annonce) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsShareOpen(true);
+        setSelectedAnnonce(annonce);
+    };
 
     const fetchAnnonces = async () => {
         if (propData) return;
@@ -228,9 +238,7 @@ export default function AnnoncesCard({
                         <div className="flex flex-col md:flex-row w-full md:w-auto gap-2 md:gap-4">
 
                             <div className="w-full md:min-w-[240px]">
-                                <CreateButton
-                                    label={t("akwaba.annonces.publish_button")}
-                                    loading={checkLoading}
+                                <CreateButton label={t("akwaba.annonces.publish_button")} loading={checkLoading}
                                     onClick={async () => {
                                         const canCreate = await checkEligibility('Annonce');
                                         if (canCreate) {
@@ -243,22 +251,14 @@ export default function AnnoncesCard({
                             </div>
 
                             <div className="w-full md:min-w-[200px]">
-                                <CreateButton
-                                    label="Créer un Live"
-                                    icon="solar:play-circle-bold-duotone"
-                                    onClick={() => { setLiveAnnonce(null); setIsLiveModalOpen(true); }}
-                                />
+                                <CreateButton label="Créer un Live" icon="solar:play-circle-bold-duotone" onClick={() => { setLiveAnnonce(null); setIsLiveModalOpen(true); }} />
                             </div>
                         </div>
 
                     </div>
                 </div>
 
-                <SectionHeader
-                    title={t("akwaba.annonces.publish_title")}
-                    subtitle={t("akwaba.annonces.publish_subtitle")}
-                    className="mb-8"
-                />
+                <SectionHeader title={t("akwaba.annonces.publish_title")} subtitle={t("akwaba.annonces.publish_subtitle")} className="mb-8" />
 
                 <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-2">
                     <div className="flex items-center justify-between w-full px-2 md:px-0 mb-6 border-b border-border pb-4">
@@ -281,12 +281,7 @@ export default function AnnoncesCard({
                                 {paginatedData.map((annonce: Annonce) => (
                                     <div key={annonce.id} className={`group rounded-xl transition-all duration-300 bg-card border border-border/40 hover:border-primary/30 overflow-hidden ${viewMode === 'grid' ? "p-0 md:p-4 flex flex-col md:items-center text-left md:text-center" : "p-2 md:p-4 flex flex-row items-center gap-4 text-left"}`}>
                                         <div className={`relative overflow-hidden rounded-lg md:rounded-2xl shrink-0 ${viewMode === 'grid' ? "w-full aspect-square mb-1.5" : "w-24 h-24 md:w-32 md:h-32"}`}>
-                                            <Image
-                                                src={(annonce.images?.[0] && annonce.images?.[0] !== "") ? annonce.images[0] : (annonce.imageUrls?.[0] && annonce.imageUrls?.[0] !== "") ? annonce.imageUrls[0] : 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop'}
-                                                alt={annonce.title}
-                                                fill
-                                                unoptimized
-                                                className="object-cover group-hover:scale-110 transition-transform duration-500" />
+                                            <Image src={(annonce.images?.[0] && annonce.images?.[0] !== "") ? annonce.images[0] : (annonce.imageUrls?.[0] && annonce.imageUrls?.[0] !== "") ? annonce.imageUrls[0] : 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop'} alt={annonce.title} fill unoptimized className="object-cover group-hover:scale-110 transition-transform duration-500" />
                                             <div className={`absolute bg-background/80 backdrop-blur-sm px-2 py-0.5 rounded-full text-[9px] font-black text-foreground shadow-sm uppercase ${viewMode === 'grid' ? "top-2 left-2" : "top-1 left-1"}`}>
                                                 {annonce.categorie?.label || 'Annonce'}
                                             </div>
@@ -324,12 +319,14 @@ export default function AnnoncesCard({
                                                 <button onClick={() => handleAction("edit", annonce)} className="p-1.5 rounded-lg hover:bg-muted transition">
                                                     <Icon icon="solar:pen-new-square-bold-duotone" className="w-4 h-4" />
                                                 </button>
-                                                <button onClick={() => handleAction("duplicate", annonce)} className="p-1.5 rounded-lg hover:bg-muted transition">
-                                                    <Icon icon="solar:copy-bold-duotone" className="w-4 h-4" />
-                                                </button>
                                                 <button onClick={() => handleAction("delete", annonce)} className="p-1.5 rounded-lg hover:bg-destructive/10 text-destructive transition">
                                                     <Icon icon="solar:trash-bin-trash-bold-duotone" className="w-4 h-4" />
                                                 </button>
+
+                                                <button onClick={(e) => handleShare(e, annonce)} className="p-1.5 hover:bg-muted rounded-lg text-muted-foreground transition-colors">
+                                                    <Icon icon="solar:share-bold-duotone" className="w-4 h-4" />
+                                                </button>
+
                                             </div>
                                         </div>
                                     </div>
@@ -345,6 +342,8 @@ export default function AnnoncesCard({
                     </div>
                 )}
             </div>
+
+
             <Modal isOpen={isOpen} onClose={() => { setIsOpen(false); setIsEditing(false) }}>
                 <FormsAnnonce
                     initialData={selectedAnnonce ? mapAnnonceToFormData(selectedAnnonce) : undefined}
@@ -355,16 +354,17 @@ export default function AnnoncesCard({
                     onClose={() => setIsOpen(false)}
                 />
             </Modal>
-            {/* DELETE CONFIRMATION */}
-            <Delete
-                isOpen={isDeleteModalOpen}
-                onClose={() => {
-                    setIsDeleteModalOpen(false)
-                    setAnnonceToDelete(null)
-                }}
-                onConfirm={handleDeleteConfirm}
-                isDeleting={isDeleting}
+
+            <Share isOpen={isShareOpen} onClose={() => setIsShareOpen(false)} url={`${process.env.NEXT_PUBLIC_BASE_URL}/annonce/${selectedAnnonce?.id || ""}`} title={selectedAnnonce?.title || ''}
+                description={selectedAnnonce?.description || undefined}
+                image={selectedAnnonce?.images?.[0] || undefined}
+                price={selectedAnnonce?.price || selectedAnnonce?.price}
+                storeName={selectedAnnonce?.user?.storeName || ''}
+                storeLogo={selectedAnnonce?.user?.storeLogo || selectedAnnonce?.user?.avatar}
             />
+
+            {/* DELETE CONFIRMATION */}
+            <Delete isOpen={isDeleteModalOpen} onClose={() => { setIsDeleteModalOpen(false); setAnnonceToDelete(null); }} onConfirm={handleDeleteConfirm} isDeleting={isDeleting} />
             {/* LIVE FORM MODAL */}
             <LiveFormModal
                 isOpen={isLiveModalOpen}

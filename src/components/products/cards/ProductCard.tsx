@@ -14,15 +14,6 @@ import LiveButtonInline from "@/components/lives/LiveButtonInline"
 import BoostEntityModal from "@/components/boost/modals/BoostEntityModal"
 import { FEATURES } from "@/config/features"
 
-const slugify = (text: string) => {
-    return text
-        .toString()
-        .toLowerCase()
-        .trim()
-        .replace(/\s+/g, '-')     // Replace spaces with -
-        .replace(/[^\w-]+/g, '')  // Remove all non-word chars
-        .replace(/--+/g, '-');    // Replace multiple - with single -
-}
 
 // [PERF] memo : évite le re-render des cartes produit quand le parent se re-rend
 // sans que ce produit spécifique ait changé (critique dans les listes infinies)
@@ -87,12 +78,7 @@ const ProductCard = memo(function ProductCard({ product, onEdit, onDelete, onSta
             <div onClick={() => setIsModalOpen(true)} className={`group rounded-xl transition-all duration-300 cursor-pointer overflow-hidden ${viewMode === 'grid' ? "p-0 md:p-4 flex flex-col md:items-center text-left md:text-center" : "p-2 md:p-4 flex flex-row items-center gap-4 text-left"}`}>
 
                 <div className={`relative shrink-0 overflow-hidden rounded-lg md:rounded-2xl ${isList ? 'w-24 h-24 md:w-32 md:h-32' : 'w-full aspect-square mb-2 md:mb-3'}`}>
-                    <Image
-                        src={product.imageUrl || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=2099&auto=format&fit=crop'}
-                        alt={product.name}
-                        fill
-                        unoptimized
-                        className="object-cover group-hover:scale-110 transition-transform duration-500" />
+                    <Image src={product.imageUrl || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=2099&auto=format&fit=crop'} alt={product.name} fill unoptimized className="object-cover group-hover:scale-110 transition-transform duration-500" />
                     <div className="absolute top-1 left-1 md:top-2 md:left-2 bg-black/70 md:bg-background/95 backdrop-blur-sm px-1.5 py-0.5 md:px-2 md:py-0.5 rounded-full text-[8px] md:text-[9px] font-black text-white md:text-foreground uppercase tracking-tighter">
                         {product.category?.name || 'Produit'}
                     </div>
@@ -106,17 +92,10 @@ const ProductCard = memo(function ProductCard({ product, onEdit, onDelete, onSta
                     )}
                     {/* Badge LIVE flottant — visible uniquement en mode gestion */}
                     {onCreateLive && !product.discountPercent && (
-                        <LiveButtonInline
-                            onClick={e => { e.stopPropagation(); onCreateLive(product); }}
-                            title="Créer un Live pour ce produit"
-                        />
+                        <LiveButtonInline onClick={e => { e.stopPropagation(); onCreateLive(product); }} title="Créer un Live pour ce produit" />
                     )}
                     {onCreateLive && product.discountPercent && (
-                        <LiveButtonInline
-                            onClick={e => { e.stopPropagation(); onCreateLive(product); }}
-                            title="Créer un Live pour ce produit"
-                            className="absolute bottom-2 right-2"
-                        />
+                        <LiveButtonInline onClick={e => { e.stopPropagation(); onCreateLive(product); }} title="Créer un Live pour ce produit" className="absolute bottom-2 right-2" />
                     )}
                 </div>
 
@@ -187,12 +166,8 @@ const ProductCard = memo(function ProductCard({ product, onEdit, onDelete, onSta
                 <BoostEntityModal isOpen={isBoostOpen} onClose={() => setIsBoostOpen(false)} entityType="PRODUCT" entityId={product.id} entityName={product.name} />
             )}
             <Delete isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} onConfirm={confirmDelete} isDeleting={false} />
-            <Share
-                isOpen={isShareOpen}
-                onClose={() => setIsShareOpen(false)}
-                // url={`${process.env.NEXT_PUBLIC_BASE_URL}/shop/${slugify(storeNames || '')}`}
-                url={`${process.env.NEXT_PUBLIC_BASE_URL}/produit/${product.id || ""}`}
-                title={product.name}
+
+            <Share isOpen={isShareOpen} onClose={() => setIsShareOpen(false)} url={`${process.env.NEXT_PUBLIC_BASE_URL}/produit/${product.id || ""}`} title={product.name}
                 description={product.description || undefined}
                 image={product.imageUrl || undefined}
                 price={product.pricePromo || product.price}

@@ -199,9 +199,7 @@ export default function ProductDetailPage() {
         );
     }
 
-    const displayPrice = achatType === 'GROS' && product.prixVenteGros
-        ? product.prixVenteGros
-        : product.pricePromo ?? product.price;
+    const displayPrice = achatType === 'GROS' && product.prixVenteGros ? product.prixVenteGros : product.pricePromo ?? product.price;
     const originalPrice = achatType === 'GROS' ? null : (product.pricePromo ? product.price : null);
     const discount = achatType !== 'GROS' ? product.discountPercent : null;
 
@@ -221,9 +219,7 @@ export default function ProductDetailPage() {
                 )}
             </AnimatePresence>
             {discount && (
-                <div className="absolute top-3 left-14 z-20 bg-red-500 text-white text-xs font-black px-2.5 py-1 rounded-lg shadow md:left-3">
-                    -{discount}%
-                </div>
+                <div className="absolute top-3 left-14 z-20 bg-red-500 text-white text-xs font-black px-2.5 py-1 rounded-lg shadow md:left-3">  -{discount}%   </div>
             )}
             {imagesList.length > 1 && (
                 <>
@@ -347,6 +343,7 @@ export default function ProductDetailPage() {
 
     return (
         <>
+
             {/* ══════════════════════ MOBILE (full-screen) ══════════════════════ */}
             <div className="md:hidden flex flex-col min-h-dvh bg-[#FBFAF6] dark:bg-zinc-900 text-[#0F2944] dark:text-white">
                 {/* Header mobile : boutons uniquement, pas de titre */}
@@ -389,12 +386,7 @@ export default function ProductDetailPage() {
                             <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-2xl border border-border/50">
                                 <div className="w-11 h-11 rounded-full bg-primary/10 relative overflow-hidden shrink-0 ring-2 ring-primary/10">
                                     {storeInfo?.storeLogo ? (
-                                        <Image
-                                            src={storeInfo.storeLogo}
-                                            alt=""
-                                            fill
-                                            className="object-cover"
-                                            unoptimized />
+                                        <Image src={storeInfo.storeLogo} alt="" fill className="object-cover" unoptimized />
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center">
                                             <Icon icon="solar:shop-bold-duotone" className="w-6 h-6 text-primary" />
@@ -411,8 +403,7 @@ export default function ProductDetailPage() {
                             </div>
                         </Link>
                     )}
-                    <button onClick={handleNegotiate} disabled={isNegotiating}
-                        className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-muted hover:bg-accent border border-border font-black text-sm transition active:scale-95">
+                    <button onClick={handleNegotiate} disabled={isNegotiating} className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-muted hover:bg-accent border border-border font-black text-sm transition active:scale-95">
                         {isNegotiating ? <Icon icon="line-md:loading-twotone-loop" width={18} /> : <Icon icon="solar:chat-round-dots-bold-duotone" width={18} className="text-primary" />}
                         Contacter le vendeur
                     </button>
@@ -438,6 +429,7 @@ export default function ProductDetailPage() {
                     </button>
                 </div>
             </div>
+
             {/* ══════════════════════ DESKTOP (centré, card) ══════════════════════ */}
             <div className="hidden md:block w-full max-w-4xl mx-auto px-4 py-6">
                 <div className="bg-card overflow-hidden">
@@ -467,20 +459,8 @@ export default function ProductDetailPage() {
                                 <AnimatePresence mode="wait">
                                     {imagesList.length > 0 ? (
                                         <motion.div key={currentImageIndex} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} className="absolute inset-0">
-                                            <Image
-                                                src={imagesList[currentImageIndex]}
-                                                fill
-                                                unoptimized
-                                                className="object-cover blur-3xl opacity-30 scale-110"
-                                                alt=""
-                                                aria-hidden />
-                                            <Image
-                                                src={imagesList[currentImageIndex]}
-                                                fill
-                                                unoptimized
-                                                className="object-contain z-10 p-4 cursor-zoom-in"
-                                                alt={product.name}
-                                                onClick={() => setLightboxOpen(true)} />
+                                            <Image src={imagesList[currentImageIndex]} fill unoptimized className="object-cover blur-3xl opacity-30 scale-110" alt="" aria-hidden />
+                                            <Image src={imagesList[currentImageIndex]} fill unoptimized className="object-contain z-10 p-4 cursor-zoom-in" alt={product.name} onClick={() => setLightboxOpen(true)} />
                                         </motion.div>
                                     ) : (
                                         <div className="absolute inset-0 flex items-center justify-center text-muted-foreground/20">
@@ -507,12 +487,7 @@ export default function ProductDetailPage() {
                                     {imagesList.slice(0, 6).map((img, idx) => (
                                         <button key={idx} onClick={() => setCurrentImageIndex(idx)}
                                             className={`w-12 h-12 rounded-lg overflow-hidden border-2 transition-all shrink-0 relative ${currentImageIndex === idx ? "border-primary scale-105" : "border-transparent opacity-60 hover:opacity-100"}`}>
-                                            <Image
-                                                src={img}
-                                                fill
-                                                unoptimized
-                                                className="object-cover"
-                                                alt="" />
+                                            <Image src={img} fill unoptimized className="object-cover" alt="" />
                                         </button>
                                     ))}
                                 </div>
@@ -587,6 +562,7 @@ export default function ProductDetailPage() {
                     </motion.div>
                 )}
             </AnimatePresence>
+
             <Share
                 isOpen={isShareOpen}
                 onClose={() => setIsShareOpen(false)}

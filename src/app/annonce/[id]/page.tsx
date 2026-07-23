@@ -45,11 +45,24 @@ export default function AnnonceDetailPage() {
     const { addNotification } = useNotification();
     const router = useRouter();
 
-    const resolveImages = (a: Annonce | null) => {
+    const resolveImages = (a: Annonce | null): string[] => {
         if (!a) return [];
-        if (a.files && a.files.length > 0) return a.files.map(f => f.fileUrl).filter(Boolean);
-        if (a.imageUrls && a.imageUrls.length > 0) return a.imageUrls;
-        if (a.images && a.images.length > 0) return a.images;
+
+        // files peut être string[] ou { fileUrl: string }[]
+        if (Array.isArray(a.files) && a.files.length > 0) {
+            return a.files.map((f: any) => typeof f === "string" ? f : f?.fileUrl).filter(Boolean);
+        }
+
+        // ancien format
+        if (Array.isArray(a.imageUrls) && a.imageUrls.length > 0) {
+            return a.imageUrls.filter(Boolean);
+        }
+
+        // images peut aussi être string[] ou { url: string }[]
+        if (Array.isArray(a.images) && a.images.length > 0) {
+            return a.images.map((img: any) => typeof img === "string" ? img : img?.url || img?.imageUrl || img?.fileUrl).filter(Boolean);
+        }
+
         return [];
     };
 
@@ -203,26 +216,18 @@ export default function AnnonceDetailPage() {
 
     const statusCfg = annonceStatusConfig[annonce.status] || { label: annonce.status, color: "bg-muted text-muted-foreground" };
 
+    const isVehicule = annonce.categorie?.slug?.includes('vehicule') || annonce.categorie?.label?.toLowerCase().includes('auto');
+    const isImmo = annonce.categorie?.slug?.includes('immobilier') || annonce.categorie?.label?.toLowerCase().includes('immo');
+    const isBookingType = isImmo || annonce.type?.label?.toLowerCase().includes('location');
+
     // ── IMAGE CAROUSEL ──────────────────────────────────────────────────
     const ImageCarousel = ({ className = "" }: { className?: string }) => (
         <div className={`relative overflow-hidden bg-muted/20 ${className}`} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
             <AnimatePresence mode="wait">
                 {imagesList.length > 0 ? (
                     <motion.div key={currentImageIndex} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} className="absolute inset-0">
-                        <Image
-                            src={imagesList[currentImageIndex]}
-                            fill
-                            unoptimized
-                            className="object-cover blur-3xl opacity-30 scale-110"
-                            alt=""
-                            aria-hidden />
-                        <Image
-                            src={imagesList[currentImageIndex]}
-                            fill
-                            unoptimized
-                            className="object-contain z-10 p-3 cursor-zoom-in"
-                            alt={`${annonce.title} - ${currentImageIndex + 1}`}
-                            onClick={() => setLightboxOpen(true)} />
+                        <Image src={imagesList[currentImageIndex]} fill unoptimized className="object-cover blur-3xl opacity-30 scale-110" alt="" aria-hidden />
+                        <Image src={imagesList[currentImageIndex]} fill unoptimized className="object-contain z-10 p-3 cursor-zoom-in" alt={`${annonce.title} - ${currentImageIndex + 1}`} onClick={() => setLightboxOpen(true)} />
                     </motion.div>
                 ) : (
                     <div className="absolute inset-0 flex items-center justify-center text-muted-foreground/20">
@@ -254,12 +259,7 @@ export default function AnnonceDetailPage() {
             <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary relative overflow-hidden shrink-0 ring-2 ring-primary/20">
                     {annonce.user?.avatar ? (
-                        <Image
-                            src={annonce.user.avatar}
-                            alt={annonce.user.fullName || "Annonceur"}
-                            fill
-                            className="object-cover"
-                            unoptimized />
+                        <Image src={annonce.user.avatar} alt={annonce.user.fullName || "Annonceur"} fill className="object-cover" unoptimized />
                     ) : (
                         <Icon icon="solar:user-bold-duotone" className="w-7 h-7 text-primary" />
                     )}
@@ -287,6 +287,29 @@ export default function AnnonceDetailPage() {
     // ── SPECS ─────────────────────────────────────────────────────────────
     const Specs = () => (
         <div className="grid grid-cols-2 gap-2">
+            {isVehicule ? (
+                <>
+                    <div className="p-3 bg-muted/50 rounded-xl">
+                        <p className="text-[10px] font-black uppercase text-muted-foreground mb-0.5">Modèle</p>
+                        <p className="text-xs font-black truncate">{annonce.technicalSheets?.find(s => s.key === "Modèle")?.value || "N/A"}</p>
+                    </div>
+                    <div className="p-3 bg-muted/50 rounded-xl">
+                        <p className="text-[10px] font-black uppercase text-muted-foreground mb-0.5">Énergie</p>
+                        <p className="text-xs font-black truncate">{annonce.technicalSheets?.find(s => s.key === "Carburant")?.value || "N/A"}</p>
+                    </div>
+                </>
+            ) : isImmo && (
+                <>
+                    <div className="p-3 bg-muted/50 rounded-xl">
+                        <p className="text-[10px] font-black uppercase text-muted-foreground mb-0.5">Surface</p>
+                        <p className="text-xs font-black truncate">{annonce.technicalSheets?.find(s => s.key.includes("Surface"))?.value || "N/A"} m²</p>
+                    </div>
+                    <div className="p-3 bg-muted/50 rounded-xl">
+                        <p className="text-[10px] font-black uppercase text-muted-foreground mb-0.5">Chambres</p>
+                        <p className="text-xs font-black truncate">{annonce.technicalSheets?.find(s => s.key.includes("chambre"))?.value || "N/A"}</p>
+                    </div>
+                </>
+            )}
             {annonce.type && (
                 <div className="p-3 bg-muted/50 rounded-xl">
                     <p className="text-[10px] font-black uppercase text-muted-foreground mb-0.5">Type</p>
@@ -351,7 +374,8 @@ export default function AnnonceDetailPage() {
                     </div>
                 </div>
             )}
-            {annonce.equipments && annonce.equipments.length > 0 && (
+
+            {isImmo && annonce.equipments && annonce.equipments.length > 0 && (
                 <div>
                     <p className="text-xs font-black uppercase text-muted-foreground mb-2">Équipements</p>
                     <div className="grid grid-cols-2 gap-1.5">
@@ -364,6 +388,7 @@ export default function AnnonceDetailPage() {
                     </div>
                 </div>
             )}
+
             {annonce.technicalSheets && annonce.technicalSheets.length > 0 && (
                 <div>
                     <p className="text-xs font-black uppercase text-muted-foreground mb-2">Fiche technique</p>
@@ -392,20 +417,23 @@ export default function AnnonceDetailPage() {
     const ActionFooter = ({ className = "" }: { className?: string }) => (
         <div className={`flex gap-3 ${className}`}>
             <button onClick={handleContact} disabled={isContacting}
-                className="py-3 px-5 bg-muted hover:bg-accent text-card-foreground rounded-2xl font-black text-sm active:scale-95 transition-all flex items-center gap-2 border border-border shrink-0">
+                className={`py-3 px-5 bg-muted hover:bg-accent text-card-foreground rounded-2xl font-black text-sm active:scale-95 transition-all flex items-center justify-center gap-2 border border-border shrink-0 ${isBookingType ? "" : "flex-1"}`}>
                 {isContacting ? <Icon icon="line-md:loading-twotone-loop" width={18} /> : <Icon icon="solar:chat-round-dots-bold-duotone" width={18} className="text-primary" />}
-                <span className="hidden md:inline">Contacter</span>
+                <span className={isBookingType ? "hidden md:inline" : ""}>Contacter</span>
             </button>
-            <button onClick={handleDemande}
-                className="flex-1 py-3 px-5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl font-black text-sm active:scale-95 transition-all shadow-lg flex items-center justify-center gap-2">
-                <Icon icon="solar:document-add-bold-duotone" width={18} />
-                Faire une demande
-            </button>
+            {isBookingType && (
+                <button onClick={handleDemande}
+                    className="flex-1 py-3 px-5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl font-black text-sm active:scale-95 transition-all shadow-lg flex items-center justify-center gap-2">
+                    <Icon icon="solar:document-add-bold-duotone" width={18} />
+                    Faire une demande
+                </button>
+            )}
         </div>
     );
 
     return (
         <>
+
             {/* ══════════════════════ MOBILE ══════════════════════ */}
             <div className="md:hidden flex flex-col min-h-dvh bg-[#FBFAF6] dark:bg-zinc-900 text-[#0F2944] dark:text-white">
                 <div className="sticky top-0 z-50 h-14 flex items-center justify-between px-4 bg-[#FBFAF6]/95 dark:bg-zinc-900/95 backdrop-blur-md border-b border-[#EEF1F4] dark:border-zinc-800">
@@ -465,13 +493,23 @@ export default function AnnonceDetailPage() {
                 </div>
 
                 <div className="fixed bottom-0 left-0 right-0 z-50 px-4 py-3 bg-[#FBFAF6]/95 dark:bg-zinc-900/95 backdrop-blur-md border-t border-[#EEF1F4] dark:border-zinc-800">
-                    <button onClick={handleDemande}
-                        className="w-full py-3.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl font-black text-sm active:scale-95 transition-all shadow-lg flex items-center justify-center gap-2">
-                        <Icon icon="solar:document-add-bold-duotone" width={18} />
-                        Faire une demande
-                    </button>
+                    {isBookingType ? (
+                        <button onClick={handleDemande}
+                            className="w-full py-3.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl font-black text-sm active:scale-95 transition-all shadow-lg flex items-center justify-center gap-2">
+                            <Icon icon="solar:document-add-bold-duotone" width={18} />
+                            Faire une demande
+                        </button>
+                    ) : (
+                        <button onClick={handleContact} disabled={isContacting}
+                            className="w-full py-3.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl font-black text-sm active:scale-95 transition-all shadow-lg flex items-center justify-center gap-2">
+                            {isContacting ? <Icon icon="line-md:loading-twotone-loop" width={18} /> : <Icon icon="solar:chat-round-dots-bold-duotone" width={18} />}
+                            Contacter le vendeur
+                        </button>
+                    )}
                 </div>
             </div>
+
+
             {/* ══════════════════════ DESKTOP ══════════════════════ */}
             <div className="hidden md:block w-full max-w-4xl mx-auto px-4 py-6">
                 <div className="bg-card overflow-hidden">
@@ -495,20 +533,8 @@ export default function AnnonceDetailPage() {
                                 <AnimatePresence mode="wait">
                                     {imagesList.length > 0 ? (
                                         <motion.div key={currentImageIndex} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} className="absolute inset-0">
-                                            <Image
-                                                src={imagesList[currentImageIndex]}
-                                                fill
-                                                unoptimized
-                                                className="object-cover blur-3xl opacity-30 scale-110"
-                                                alt=""
-                                                aria-hidden />
-                                            <Image
-                                                src={imagesList[currentImageIndex]}
-                                                fill
-                                                unoptimized
-                                                className="object-contain z-10 p-4 cursor-zoom-in"
-                                                alt={annonce.title}
-                                                onClick={() => setLightboxOpen(true)} />
+                                            <Image src={imagesList[currentImageIndex]} fill unoptimized className="object-cover blur-3xl opacity-30 scale-110" alt="" aria-hidden />
+                                            <Image src={imagesList[currentImageIndex]} fill unoptimized className="object-contain z-10 p-4 cursor-zoom-in" alt={annonce.title} onClick={() => setLightboxOpen(true)} />
                                         </motion.div>
                                     ) : (
                                         <div className="absolute inset-0 flex items-center justify-center text-muted-foreground/20">
@@ -527,17 +553,15 @@ export default function AnnonceDetailPage() {
                                     </>
                                 )}
                             </div>
+
+                            {/* <pre className="">{JSON.stringify(annonce, null, 2)} ok </pre> */}
+
                             {imagesList.length > 1 && (
                                 <div className="flex gap-2 p-3 flex-wrap">
                                     {imagesList.slice(0, 6).map((img, idx) => (
                                         <button key={idx} onClick={() => setCurrentImageIndex(idx)}
                                             className={`w-12 h-12 rounded-lg overflow-hidden border-2 transition-all shrink-0 relative ${currentImageIndex === idx ? "border-primary scale-105" : "border-transparent opacity-60 hover:opacity-100"}`}>
-                                            <Image
-                                                src={img}
-                                                fill
-                                                unoptimized
-                                                className="object-cover"
-                                                alt="" />
+                                            <Image src={img} fill unoptimized className="object-cover" alt="" />
                                         </button>
                                     ))}
                                 </div>
@@ -584,8 +608,7 @@ export default function AnnonceDetailPage() {
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                         className="fixed inset-0 z-[1100] bg-black/95 flex items-center justify-center"
                         onClick={() => setLightboxOpen(false)}>
-                        <button onClick={e => { e.stopPropagation(); setLightboxOpen(false); }}
-                            className="absolute top-4 right-4 w-10 h-10 bg-white/10 rounded-full flex items-center justify-center text-white hover:bg-white/20 transition z-10">
+                        <button onClick={e => { e.stopPropagation(); setLightboxOpen(false); }} className="absolute top-4 right-4 w-10 h-10 bg-white/10 rounded-full flex items-center justify-center text-white hover:bg-white/20 transition z-10">
                             <Icon icon="solar:close-bold" width={20} />
                         </button>
                         {imagesList.length > 1 && (
@@ -601,24 +624,19 @@ export default function AnnonceDetailPage() {
                         <motion.div key={currentImageIndex} initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }}
                             onClick={e => e.stopPropagation()}
                             className="relative w-full h-full max-w-3xl max-h-[90vh] mx-4">
-                            <Image
-                                src={imagesList[currentImageIndex]}
-                                fill
-                                unoptimized
-                                className="object-contain"
-                                alt={annonce.title} />
+                            <Image src={imagesList[currentImageIndex]} fill unoptimized className="object-contain" alt={annonce.title} />
                         </motion.div>
                         {imagesList.length > 1 && (
                             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
                                 {imagesList.slice(0, 8).map((_, idx) => (
-                                    <button key={idx} onClick={e => { e.stopPropagation(); setCurrentImageIndex(idx); }}
-                                        className={`rounded-full transition-all ${currentImageIndex === idx ? "w-5 h-2 bg-white" : "w-2 h-2 bg-white/30"}`} />
+                                    <button key={idx} onClick={e => { e.stopPropagation(); setCurrentImageIndex(idx); }} className={`rounded-full transition-all ${currentImageIndex === idx ? "w-5 h-2 bg-white" : "w-2 h-2 bg-white/30"}`} />
                                 ))}
                             </div>
                         )}
                     </motion.div>
                 )}
             </AnimatePresence>
+
             <Share
                 isOpen={isShareOpen}
                 onClose={() => setIsShareOpen(false)}
@@ -632,18 +650,9 @@ export default function AnnonceDetailPage() {
             />
             {isBookingOpen && (
                 isReservationAnnonce(annonce) ? (
-                    <AnnonceBookingModal
-                        isOpen={isBookingOpen}
-                        onClose={() => setIsBookingOpen(false)}
-                        item={annonce}
-                    />
+                    <AnnonceBookingModal isOpen={isBookingOpen} onClose={() => setIsBookingOpen(false)} item={annonce} />
                 ) : (
-                    <BookingModal
-                        isOpen={isBookingOpen}
-                        onClose={() => setIsBookingOpen(false)}
-                        item={annonce}
-                        type="ANNONCE"
-                    />
+                    <BookingModal isOpen={isBookingOpen} onClose={() => setIsBookingOpen(false)} item={annonce} type="ANNONCE" />
                 )
             )}
         </>

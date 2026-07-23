@@ -44,11 +44,24 @@ export default function ServiceDetailPage() {
     const { addNotification } = useNotification();
     const router = useRouter();
 
-    const resolveImages = (s: Service | null) => {
-        if (!s) return [];
-        if (s.files && s.files.length > 0) return s.files.map(f => f.fileUrl).filter(Boolean);
-        if (s.imageUrls && s.imageUrls.length > 0) return s.imageUrls;
-        if (s.images && s.images.length > 0) return s.images;
+    const resolveImages = (a: Service | null): string[] => {
+        if (!a) return [];
+
+        // files peut être string[] ou { fileUrl: string }[]
+        if (Array.isArray(a.files) && a.files.length > 0) {
+            return a.files.map((f: any) => typeof f === "string" ? f : f?.fileUrl).filter(Boolean);
+        }
+
+        // ancien format
+        if (Array.isArray(a.imageUrls) && a.imageUrls.length > 0) {
+            return a.imageUrls.filter(Boolean);
+        }
+
+        // images peut aussi être string[] ou { url: string }[]
+        if (Array.isArray(a.images) && a.images.length > 0) {
+            return a.images.map((img: any) => typeof img === "string" ? img : img?.url || img?.imageUrl || img?.fileUrl).filter(Boolean);
+        }
+
         return [];
     };
 
@@ -209,20 +222,8 @@ export default function ServiceDetailPage() {
             <AnimatePresence mode="wait">
                 {imagesList.length > 0 ? (
                     <motion.div key={currentImageIndex} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} className="absolute inset-0">
-                        <Image
-                            src={imagesList[currentImageIndex]}
-                            fill
-                            unoptimized
-                            className="object-cover blur-3xl opacity-30 scale-110"
-                            alt=""
-                            aria-hidden />
-                        <Image
-                            src={imagesList[currentImageIndex]}
-                            fill
-                            unoptimized
-                            className="object-contain z-10 p-3 cursor-zoom-in"
-                            alt={`${service.title} - ${currentImageIndex + 1}`}
-                            onClick={() => setLightboxOpen(true)} />
+                        <Image src={imagesList[currentImageIndex]} fill unoptimized className="object-cover blur-3xl opacity-30 scale-110" alt="" aria-hidden />
+                        <Image src={imagesList[currentImageIndex]} fill unoptimized className="object-contain z-10 p-3 cursor-zoom-in" alt={`${service.title} - ${currentImageIndex + 1}`} onClick={() => setLightboxOpen(true)} />
                     </motion.div>
                 ) : (
                     <div className="absolute inset-0 flex items-center justify-center text-muted-foreground/20">
@@ -254,12 +255,7 @@ export default function ServiceDetailPage() {
             <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary relative overflow-hidden shrink-0 ring-2 ring-primary/20">
                     {service.user?.avatar ? (
-                        <Image
-                            src={service.user.avatar}
-                            alt={service.user.fullName || "Prestataire"}
-                            fill
-                            className="object-cover"
-                            unoptimized />
+                        <Image src={service.user.avatar} alt={service.user.fullName || "Prestataire"} fill className="object-cover" unoptimized />
                     ) : (
                         <Icon icon="solar:user-bold-duotone" className="w-7 h-7 text-primary" />
                     )}
@@ -423,20 +419,8 @@ export default function ServiceDetailPage() {
                                 <AnimatePresence mode="wait">
                                     {imagesList.length > 0 ? (
                                         <motion.div key={currentImageIndex} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} className="absolute inset-0">
-                                            <Image
-                                                src={imagesList[currentImageIndex]}
-                                                fill
-                                                unoptimized
-                                                className="object-cover blur-3xl opacity-30 scale-110"
-                                                alt=""
-                                                aria-hidden />
-                                            <Image
-                                                src={imagesList[currentImageIndex]}
-                                                fill
-                                                unoptimized
-                                                className="object-contain z-10 p-4 cursor-zoom-in"
-                                                alt={service.title}
-                                                onClick={() => setLightboxOpen(true)} />
+                                            <Image src={imagesList[currentImageIndex]} fill unoptimized className="object-cover blur-3xl opacity-30 scale-110" alt="" aria-hidden />
+                                            <Image src={imagesList[currentImageIndex]} fill unoptimized className="object-contain z-10 p-4 cursor-zoom-in" alt={service.title} onClick={() => setLightboxOpen(true)} />
                                         </motion.div>
                                     ) : (
                                         <div className="absolute inset-0 flex items-center justify-center text-muted-foreground/20">
@@ -460,12 +444,7 @@ export default function ServiceDetailPage() {
                                     {imagesList.slice(0, 6).map((img, idx) => (
                                         <button key={idx} onClick={() => setCurrentImageIndex(idx)}
                                             className={`w-12 h-12 rounded-lg overflow-hidden border-2 transition-all shrink-0 relative ${currentImageIndex === idx ? "border-primary scale-105" : "border-transparent opacity-60 hover:opacity-100"}`}>
-                                            <Image
-                                                src={img}
-                                                fill
-                                                unoptimized
-                                                className="object-cover"
-                                                alt="" />
+                                            <Image src={img} fill unoptimized className="object-cover" alt="" />
                                         </button>
                                     ))}
                                 </div>
@@ -528,18 +507,12 @@ export default function ServiceDetailPage() {
                         <motion.div key={currentImageIndex} initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }}
                             onClick={e => e.stopPropagation()}
                             className="relative w-full h-full max-w-3xl max-h-[90vh] mx-4">
-                            <Image
-                                src={imagesList[currentImageIndex]}
-                                fill
-                                unoptimized
-                                className="object-contain"
-                                alt={service.title} />
+                            <Image src={imagesList[currentImageIndex]} fill unoptimized className="object-contain" alt={service.title} />
                         </motion.div>
                         {imagesList.length > 1 && (
                             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
                                 {imagesList.slice(0, 8).map((_, idx) => (
-                                    <button key={idx} onClick={e => { e.stopPropagation(); setCurrentImageIndex(idx); }}
-                                        className={`rounded-full transition-all ${currentImageIndex === idx ? "w-5 h-2 bg-white" : "w-2 h-2 bg-white/30"}`} />
+                                    <button key={idx} onClick={e => { e.stopPropagation(); setCurrentImageIndex(idx); }} className={`rounded-full transition-all ${currentImageIndex === idx ? "w-5 h-2 bg-white" : "w-2 h-2 bg-white/30"}`} />
                                 ))}
                             </div>
                         )}
@@ -557,8 +530,7 @@ export default function ServiceDetailPage() {
                 storeLogo={service.user?.avatar}
             />
             {isBookingOpen && (
-                <BookingModal
-                    isOpen={isBookingOpen}
+                <BookingModal isOpen={isBookingOpen}
                     onClose={() => setIsBookingOpen(false)}
                     item={service}
                     type="SERVICE"

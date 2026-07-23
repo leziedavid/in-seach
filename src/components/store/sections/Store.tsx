@@ -395,12 +395,7 @@ export default function Store({ onNavigateToOrders }: StoreProps) {
 
                     {storeInfo?.id && (<QRCodeSection storeInfo={storeInfo} activeSection={activeQuickAction} onToggle={toggleQuickAction} />)}
 
-                    <AccordionSection id="catalogue"
-                        title="Catalogue"
-                        subtitle="Gérez vos produits en ligne"
-                        icon="solar:widget-2-bold-duotone"
-                        activeSection={activeQuickAction}
-                        onToggle={toggleQuickAction} >
+                    <AccordionSection id="catalogue" title="Catalogue" subtitle="Gérez vos produits en ligne" icon="solar:widget-2-bold-duotone" activeSection={activeQuickAction} onToggle={toggleQuickAction} >
 
                         <ProductsManagementContent
                             loading={loading}
@@ -419,14 +414,7 @@ export default function Store({ onNavigateToOrders }: StoreProps) {
                         />
                     </AccordionSection>
 
-                    <AccordionSection
-                        id="boost"
-                        title="Booster mes produits"
-                        subtitle="Gagnez en visibilité auprès des clients"
-                        icon="solar:rocket-bold-duotone"
-                        activeSection={activeQuickAction}
-                        onToggle={toggleQuickAction}
-                    >
+                    <AccordionSection id="boost" title="Booster mes produits" subtitle="Gagnez en visibilité auprès des clients" icon="solar:rocket-bold-duotone" activeSection={activeQuickAction} onToggle={toggleQuickAction} >
                         <p className="text-xs text-muted-foreground mb-4">
                             Depuis le Catalogue, cliquez sur l&apos;icône <Icon icon="solar:rocket-bold-duotone" className="inline w-3.5 h-3.5 text-primary" /> d&apos;un produit pour le booster. Retrouvez ici tous vos produits boostés.
                         </p>
@@ -448,18 +436,8 @@ export default function Store({ onNavigateToOrders }: StoreProps) {
                         <Icon icon="solar:alt-arrow-right-bold-duotone" className="w-5 h-5 text-muted-foreground/40 shrink-0" />
                     </button>
 
-                    <AccordionSection
-                        id="partager"
-                        title="Partager ma boutique"
-                        subtitle="Invitez de nouveaux clients"
-                        icon="solar:share-bold-duotone"
-                        activeSection={activeQuickAction}
-                        onToggle={toggleQuickAction}
-                    >
-                        <SharePanel
-                            url={`${process.env.NEXT_PUBLIC_BASE_URL}/shop/${createStoreSlug(storeInfo?.storeName || '')}`}
-                            label={storeInfo?.storeName || "Ma Boutique"}
-                        />
+                    <AccordionSection id="partager" title="Partager ma boutique" subtitle="Invitez de nouveaux clients" icon="solar:share-bold-duotone" activeSection={activeQuickAction} onToggle={toggleQuickAction} >
+                        <SharePanel url={`${process.env.NEXT_PUBLIC_BASE_URL}/shop/${createStoreSlug(storeInfo?.storeName || '')}`} label={storeInfo?.storeName || "Ma Boutique"} />
                     </AccordionSection>
 
                 </div>
@@ -475,8 +453,7 @@ export default function Store({ onNavigateToOrders }: StoreProps) {
                 />
             </div>
 
-            <Share
-                isOpen={isShareOpen}
+            <Share isOpen={isShareOpen}
                 onClose={() => setIsShareOpen(false)}
                 url={`${process.env.NEXT_PUBLIC_BASE_URL}/shop/${createStoreSlug(storeInfo?.storeName || '')}`}
                 title={storeInfo?.storeName || ""}
@@ -523,12 +500,7 @@ export default function Store({ onNavigateToOrders }: StoreProps) {
                         <div className="relative group">
                             <div className="w-32 h-32 rounded-[2rem] bg-muted border-2 border-dashed border-border overflow-hidden flex items-center justify-center relative">
                                 {storeLogoPreview ? (
-                                    <Image
-                                        src={storeLogoPreview}
-                                        alt="Logo preview"
-                                        fill
-                                        className="object-cover"
-                                        unoptimized />
+                                    <Image src={storeLogoPreview} alt="Logo preview" fill className="object-cover" unoptimized />
                                 ) : (
                                     <Icon icon="solar:camera-bold-duotone" className="w-12 h-12 text-muted-foreground" />
                                 )}

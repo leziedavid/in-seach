@@ -22,6 +22,7 @@ import { LiveEntityType } from "@/types/interface"
 import BoostEntityModal from "@/components/boost/modals/BoostEntityModal"
 import { FEATURES } from "@/config/features"
 import { hasValidPrice } from "@/utils/price"
+import { Share } from "@/components/shared/Share"
 
 /* =====================================================
    PAGE
@@ -55,6 +56,8 @@ export default function ServicesCard({ data: propData, page: propPage, limit: pr
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
     const [serviceToDelete, setServiceToDelete] = useState<Service | null>(null)
     const [isDeleting, setIsDeleting] = useState(false)
+    // Share Modal State
+    const [isShareOpen, setIsShareOpen] = useState(false);
 
     // Live Modal State
     const [isLiveModalOpen, setIsLiveModalOpen] = useState(false)
@@ -73,6 +76,13 @@ export default function ServicesCard({ data: propData, page: propPage, limit: pr
     /* ===============================
         FETCH SERVICES (Only if not controlled)
     =============================== */
+    const handleShare = (e: React.MouseEvent, service: Service) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsShareOpen(true);
+        setSelectedService(service);
+    };
+
 
     const getAllServies = async () => {
         if (propData) return; // Skip if controlled
@@ -318,20 +328,13 @@ export default function ServicesCard({ data: propData, page: propPage, limit: pr
                                         <div key={service.id} className="group rounded-lg p-0 md:p-4 flex flex-col md:items-center text-left md:text-center transition-all w-full">
                                             {/* Image */}
                                             <div className="relative w-full aspect-square mb-1.5 overflow-hidden rounded-lg md:rounded-2xl">
-                                                <Image
-                                                    src={(service.images?.[0] && service.images?.[0] !== "") ? service.images[0] : (service.imageUrls?.[0] && service.imageUrls?.[0] !== "") ? service.imageUrls[0] : 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop'}
-                                                    alt={service.title}
-                                                    fill
-                                                    unoptimized
-                                                    className="object-cover group-hover:scale-110 transition-transform duration-500" />
+                                                <Image src={(service.images?.[0] && service.images?.[0] !== "") ? service.images[0] : (service.imageUrls?.[0] && service.imageUrls?.[0] !== "") ? service.imageUrls[0] : 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop'}
+                                                    alt={service.title} fill unoptimized className="object-cover group-hover:scale-110 transition-transform duration-500" />
                                                 <div className="absolute top-2 left-2 bg-background/80 backdrop-blur-sm px-2 py-0.5 rounded-full text-[9px] font-black text-foreground shadow-sm uppercase">
                                                     {service.category?.label || 'Expert'}
                                                 </div>
                                                 {/* Badge LIVE flottant — style TikTok */}
-                                                <LiveButtonInline
-                                                    onClick={e => { e.stopPropagation(); setLiveService(service); setIsLiveModalOpen(true); }}
-                                                    title="Créer un Live pour ce service"
-                                                />
+                                                <LiveButtonInline onClick={e => { e.stopPropagation(); setLiveService(service); setIsLiveModalOpen(true); }} title="Créer un Live pour ce service" />
                                             </div>
 
                                             {/* Contenu */}
@@ -347,16 +350,16 @@ export default function ServicesCard({ data: propData, page: propPage, limit: pr
 
                                                 <div className="flex items-center justify-between mb-2">
                                                     <div className="text-left">
-                                                    {hasValidPrice(service.price) && (
-                                                        <p className="text-secondary font-black text-sm md:text-sm whitespace-nowrap">
-                                                            {t("akwaba.services.price_fcfa", { price: service.price.toLocaleString() })}
-                                                        </p>
-                                                    )}
-                                                    {service.frais && (
-                                                        <p className="text-[9px] text-muted-foreground font-bold mt-1">
-                                                            {t("akwaba.services.est_price", { price: service.frais.toLocaleString() })}
-                                                        </p>
-                                                    )}
+                                                        {hasValidPrice(service.price) && (
+                                                            <p className="text-secondary font-black text-sm md:text-sm whitespace-nowrap">
+                                                                {t("akwaba.services.price_fcfa", { price: service.price.toLocaleString() })}
+                                                            </p>
+                                                        )}
+                                                        {service.frais && (
+                                                            <p className="text-[9px] text-muted-foreground font-bold mt-1">
+                                                                {t("akwaba.services.est_price", { price: service.frais.toLocaleString() })}
+                                                            </p>
+                                                        )}
                                                     </div>
                                                     {FEATURES.showBoostButton && (
                                                         <button onClick={e => { e.stopPropagation(); setBoostService(service); setIsBoostOpen(true); }} className="p-1.5 hover:bg-primary/10 rounded-lg text-primary transition-colors shrink-0" title="Booster ce service">
@@ -370,11 +373,11 @@ export default function ServicesCard({ data: propData, page: propPage, limit: pr
                                                     <button onClick={() => handleAction("edit", service)} className="p-1.5 rounded-lg hover:bg-muted transition">
                                                         <Icon icon="solar:pen-new-square-bold-duotone" className="w-4 h-4" />
                                                     </button>
-                                                    <button onClick={() => handleAction("duplicate", service)} className="p-1.5 rounded-lg hover:bg-muted transition">
-                                                        <Icon icon="solar:copy-bold-duotone" className="w-4 h-4" />
-                                                    </button>
                                                     <button onClick={() => handleAction("delete", service)} className="p-1.5 rounded-lg hover:bg-destructive/10 text-destructive transition">
                                                         <Icon icon="solar:trash-bin-trash-bold-duotone" className="w-4 h-4" />
+                                                    </button>
+                                                    <button onClick={(e) => handleShare(e, service)} className="p-1.5 hover:bg-muted rounded-lg text-muted-foreground transition-colors">
+                                                        <Icon icon="solar:share-bold-duotone" className="w-4 h-4" />
                                                     </button>
                                                 </div>
                                             </div>
@@ -394,6 +397,15 @@ export default function ServicesCard({ data: propData, page: propPage, limit: pr
                     <TablePagination page={page} limit={limit} total={total} totalPages={totalPages} onPageChange={setPage} />
                 </div>
             </div>
+            {/* SHARE MODAL */}
+
+            <Share isOpen={isShareOpen} onClose={() => setIsShareOpen(false)} url={`${process.env.NEXT_PUBLIC_BASE_URL}/service/${selectedService?.id || ""}`} title={selectedService?.title || ''}
+                description={selectedService?.description || undefined}
+                image={selectedService?.images?.[0] || undefined}
+                price={selectedService?.price || selectedService?.price}
+                storeName={selectedService?.user?.fullName}
+                storeLogo={selectedService?.user?.avatar}
+            />
             {/* MODAL */}
             <Modal isOpen={isOpen} onClose={() => { setIsOpen(false); setIsEditing(false) }} >
                 <FormsServices
@@ -408,10 +420,7 @@ export default function ServicesCard({ data: propData, page: propPage, limit: pr
             {/* DELETE CONFIRMATION */}
             <Delete
                 isOpen={isDeleteModalOpen}
-                onClose={() => {
-                    setIsDeleteModalOpen(false)
-                    setServiceToDelete(null)
-                }}
+                onClose={() => { setIsDeleteModalOpen(false); setServiceToDelete(null) }}
                 onConfirm={handleDeleteConfirm}
                 isDeleting={isDeleting}
             />
