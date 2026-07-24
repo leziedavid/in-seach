@@ -1,5 +1,5 @@
 import { getCookie } from '@/lib/cookies';
-import { BaseResponse, Category, Pagination, ReverseGeocodeData, Role, Service, MySpaceResponse, Annonce, BookingsCalendar, Product, CategoryProd, Order, AdminQueryParams, AdminUserUpdateDto, AdminProductUpdateDto, AdminServiceUpdateDto, AdminAnnonceUpdateDto, AdminSubscriptionPlanDto, User, AdminLog, SubscriptionPlan, PlanEntity, AdminUserSubscription, Subscription, OrdersGroupedResponse, SubOrder, BookingsGroupedResponse, LogisticService, Quote, Delivery, DeliveryTracking, QuoteStatus, DeliveryStatus, TransportType, LocationLog, CategorieAnnonce, TypeAnnonce, LogisticsClient, Video, StoreUserInfo, StoreStats, ServiceStats, AnnonceStats, LiveStats, LogisticProvider, LogisticStats, GasProvider, GasBottle, GasBottleFormat, GasDelivery, GasDeliveryStatus, GasProviderStats, Booking, GasAdminOverview, GasProviderAdminRow, Garage, GaragePieceCatalogue, EasyDelivery, HistoryDelivery, EasyDeliveryStatus, DriverStats, SubCategoryProd, Slider, Live, LiveFeedResponse, LiveListResponse, LiveStatus, LiveEntityType, Boost, BoostPricing, BoostEntityType, BoostPaymentMethod, WebPushNotifActiveResponse, WebPushNotifStatus, WebPushNotifAdminListResponse, NotificationSubscriptionListResponse, PushNotificationPayload, SendPushResult, MyAccess, AuthorizationNode } from '@/types/interface';
+import { BaseResponse, Category, Pagination, ReverseGeocodeData, Role, Service, MySpaceResponse, Annonce, BookingsCalendar, Product, CategoryProd, Order, AdminQueryParams, AdminUserUpdateDto, AdminProductUpdateDto, AdminServiceUpdateDto, AdminAnnonceUpdateDto, AdminSubscriptionPlanDto, User, AdminLog, SubscriptionPlan, PlanEntity, AdminUserSubscription, Subscription, OrdersGroupedResponse, SubOrder, BookingsGroupedResponse, LogisticService, Quote, Delivery, DeliveryTracking, QuoteStatus, DeliveryStatus, TransportType, LocationLog, CategorieAnnonce, TypeAnnonce, LogisticsClient, Video, StoreUserInfo, StoreStats, ServiceStats, AnnonceStats, LiveStats, LogisticProvider, LogisticStats, GasProvider, GasBottle, GasBottleFormat, GasDelivery, GasDeliveryStatus, GasProviderStats, Booking, GasAdminOverview, GasProviderAdminRow, Garage, GaragePieceCatalogue, EasyDelivery, HistoryDelivery, EasyDeliveryStatus, DriverStats, SubCategoryProd, Slider, Live, LiveFeedResponse, LiveListResponse, LiveStatus, LiveEntityType, Boost, BoostPricing, BoostEntityType, BoostPaymentMethod, WebPushNotifActiveResponse, WebPushNotifStatus, WebPushNotifAdminListResponse, NotificationSubscriptionListResponse, PushNotificationPayload, SendPushResult, MyAccess, AuthorizationNode, SupplierQuote, SupplierQuoteStatus } from '@/types/interface';
 
 export const getBaseUrl = (): string => {
     return process.env.NEXT_PUBLIC_API_URL || 'https://api.djamko.com/api/v1';
@@ -371,7 +371,7 @@ export const resolveStoreByUserId = async (sellerId: string): Promise<BaseRespon
     return await response.json();
 };
 
-export const getAllStores = async (params: { page?: number; limit?: number; storeName?: string } = {}): Promise<BaseResponse<Pagination<StoreUserInfo & { productCount: number }>>> => {
+export const getAllStores = async (params: { page?: number; limit?: number; storeName?: string; productType?: string } = {}): Promise<BaseResponse<Pagination<StoreUserInfo & { productCount: number }>>> => {
     const queryString = new URLSearchParams(Object.entries(params).filter(([, v]) => v !== undefined).map(([k, v]) => [k, String(v)])).toString();
     const response = await fetch(`${getBaseUrl()}/users/stores/all${queryString ? `?${queryString}` : ''}`, { method: 'GET' });
     return await response.json();
@@ -411,6 +411,38 @@ export const adminGetStoreOrders = async (storeName: string, params: { page?: nu
 /** Notifications WebPush d'une boutique (Admin) — rejouables via adminReplayWebPushNotif. */
 export const adminGetStoreNotifications = async (storeName: string, params: { page?: number; limit?: number; status?: WebPushNotifStatus } = {}): Promise<BaseResponse<WebPushNotifAdminListResponse>> => {
     const response = await secureFetch(`${getBaseUrl()}/admin/stores/${storeName}/notifications?${toQueryString(params)}`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
+/** Liste paginée des fournisseurs/grossistes (Admin) — réutilise UserService.getAllStores() via /admin/fournisseurs. */
+export const adminGetFournisseurs = async (params: { page?: number; limit?: number; storeName?: string } = {}): Promise<BaseResponse<Pagination<StoreUserInfo & { productCount: number }>>> => {
+    const response = await secureFetch(`${getBaseUrl()}/admin/fournisseurs?${toQueryString(params)}`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
+/** Produits B2B d'un fournisseur (Admin). */
+export const adminGetFournisseurProducts = async (storeName: string, params: { page?: number; limit?: number } = {}): Promise<BaseResponse<Pagination<Product>>> => {
+    const response = await secureFetch(`${getBaseUrl()}/admin/fournisseurs/${storeName}/products?${toQueryString(params)}`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
+/** Commandes d'un fournisseur (Admin). */
+export const adminGetFournisseurOrders = async (storeName: string, params: { page?: number; limit?: number } = {}): Promise<BaseResponse<Pagination<Order>>> => {
+    const response = await secureFetch(`${getBaseUrl()}/admin/fournisseurs/${storeName}/orders?${toQueryString(params)}`, {
+        method: 'GET',
+    });
+    return await response.json();
+};
+
+/** Demandes de devis reçues par un fournisseur (Admin). */
+export const adminGetFournisseurQuotes = async (storeName: string, params: { page?: number; limit?: number; status?: SupplierQuoteStatus } = {}): Promise<BaseResponse<Pagination<SupplierQuote>>> => {
+    const response = await secureFetch(`${getBaseUrl()}/admin/fournisseurs/${storeName}/quotes?${toQueryString(params)}`, {
         method: 'GET',
     });
     return await response.json();
@@ -1664,7 +1696,7 @@ export const reconnectUser = async (userId: string): Promise<BaseResponse<any>> 
    PRODUCTS & ORDERS API
 ======================================================= */
 
-export const getProducts = async (params: { page?: number; limit?: number; query?: string; categoryId?: string; subCategoryId?: string; storeName?: string; typeVente?: string; minPrice?: number; maxPrice?: number }): Promise<BaseResponse<Pagination<Product>>> => {
+export const getProducts = async (params: { page?: number; limit?: number; query?: string; categoryId?: string; subCategoryId?: string; storeName?: string; typeVente?: string; minPrice?: number; maxPrice?: number; productType?: string }): Promise<BaseResponse<Pagination<Product>>> => {
     const queryString = toQueryString(params);
     const response = await fetch(`${getBaseUrl()}/products?${queryString}`);
     return await response.json();
@@ -2194,6 +2226,65 @@ export const searchLocation = async (query: string, countryCode?: string): Promi
         url += `&countryCode=${countryCode}`;
     }
     const response = await fetch(url);
+    return await response.json();
+};
+
+// --- Supplier Quotes (B2B Fournisseurs) ---
+export const createSupplierQuote = async (data: {
+    productId: string;
+    quantity: number;
+    deliveryFullName: string;
+    deliveryPhone: string;
+    deliveryAddress: string;
+    deliveryCity: string;
+    deliveryDistrict?: string;
+    deliveryLandmark?: string;
+    deliveryInstructions?: string;
+    comment?: string;
+}): Promise<BaseResponse<SupplierQuote>> => {
+    const response = await secureFetch(`${getBaseUrl()}/supplier-quotes`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const getSupplierQuotesSent = async (params?: { status?: SupplierQuoteStatus; page?: number; limit?: number }): Promise<BaseResponse<Pagination<SupplierQuote>>> => {
+    const page = params?.page || 1;
+    const limit = params?.limit || 10;
+    let url = `${getBaseUrl()}/supplier-quotes/my/sent?page=${page}&limit=${limit}`;
+    if (params?.status) url += `&status=${params.status}`;
+    const response = await secureFetch(url, { method: 'GET' });
+    return await response.json();
+};
+
+export const getSupplierQuotesReceived = async (params?: { status?: SupplierQuoteStatus; page?: number; limit?: number }): Promise<BaseResponse<Pagination<SupplierQuote>>> => {
+    const page = params?.page || 1;
+    const limit = params?.limit || 10;
+    let url = `${getBaseUrl()}/supplier-quotes/my/received?page=${page}&limit=${limit}`;
+    if (params?.status) url += `&status=${params.status}`;
+    const response = await secureFetch(url, { method: 'GET' });
+    return await response.json();
+};
+
+export const getSupplierQuoteById = async (id: string): Promise<BaseResponse<SupplierQuote>> => {
+    const response = await secureFetch(`${getBaseUrl()}/supplier-quotes/${id}`, { method: 'GET' });
+    return await response.json();
+};
+
+export const updateSupplierQuote = async (id: string, data: { quantity?: number; unitPrice?: number; supplierComment?: string }): Promise<BaseResponse<SupplierQuote>> => {
+    const response = await secureFetch(`${getBaseUrl()}/supplier-quotes/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const updateSupplierQuoteStatus = async (id: string, status: SupplierQuoteStatus): Promise<BaseResponse<SupplierQuote>> => {
+    const response = await secureFetch(`${getBaseUrl()}/supplier-quotes/${id}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status }),
+    });
     return await response.json();
 };
 

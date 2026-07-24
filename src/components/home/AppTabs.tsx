@@ -5,11 +5,12 @@ import { motion } from "framer-motion"
 import { Icon } from "@iconify/react"
 import SearchAnnonces from "@/components/annonces/sections/SearchAnnonces"
 import Boutique from "@/components/store/sections/Boutique"
-import { OpportunitiesIcon, BoutiqueIcon, SearchIcon, LogisticsIcon, GazIcon, CarRepairIcon } from "@/components/layout/TabIcons"
+import { OpportunitiesIcon, BoutiqueIcon, SearchIcon, LogisticsIcon, GazIcon, CarRepairIcon, SupplierIcon } from "@/components/layout/TabIcons"
 import SearchServies from "@/components/services/sections/SearchServies"
 import LogisticProvider from "@/components/logistics/sections/LogisticProvider"
 import SearchGaz from "@/components/gas-delivery/sections/SearchGaz"
 import SearchGarage from "@/components/garage/sections/SearchGarage"
+import SearchFournisseurs from "@/components/fournisseur/sections/SearchFournisseurs"
 import TabPromoBanner, { TabPromo } from "@/components/home/TabPromoBanner"
 import { useTranslation } from "@/utils/langue/hooks"
 
@@ -46,6 +47,11 @@ export default function AppTabs() {
             id: "garage",
             label: t("home.tabs.garage.label"),
             Icon: CarRepairIcon,
+        },
+        {
+            id: "fournisseurs",
+            label: t("home.tabs.fournisseurs.label"),
+            Icon: SupplierIcon,
         },
     ]
 
@@ -97,6 +103,15 @@ export default function AppTabs() {
             tone: "orange",
             title: t("home.tabs.garage.title"),
             description: t("home.tabs.garage.description"),
+        },
+        {
+            tabId: "fournisseurs",
+            active: true,
+            badge: t("home.promo.badge_new"),
+            icon: "mdi:warehouse",
+            tone: "primary",
+            title: t("home.tabs.fournisseurs.title"),
+            description: t("home.tabs.fournisseurs.description"),
         },
     ]
 
@@ -249,6 +264,12 @@ export default function AppTabs() {
                 {active === "garage" && (
                     <div className="w-full flex flex-col items-center px-0 sm:px-0 stagger-item">
                         <SearchGarage />
+                    </div>
+                )}
+
+                {active === "fournisseurs" && (
+                    <div className="w-full flex flex-col items-center px-0 sm:px-0 stagger-item">
+                        <SearchFournisseurs />
                     </div>
                 )}
             </div>

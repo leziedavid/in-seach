@@ -18,6 +18,7 @@ import Link from "next/link";
 import { createStoreSlug } from "@/utils/storeSlug";
 import { isSensitiveProduct } from "@/utils/sensitiveProduct";
 import SensitiveMedia from "@/components/shared/SensitiveMedia";
+import SupplierQuoteRequestModal from "@/components/fournisseur/modals/SupplierQuoteRequestModal";
 
 interface ProductDetailModalProps {
     isOpen: boolean;
@@ -35,6 +36,7 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
     const [freshProduct, setFreshProduct] = useState<Product | null>(null);
     const [isShareOpen, setIsShareOpen] = useState(false);
     const [isRevealed, setIsRevealed] = useState(false);
+    const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
     const touchStartX = useRef<number>(0);
 
     const { addToCart } = useCart();
@@ -88,6 +90,7 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
 
     if (!displayProduct || !mounted) return null;
 
+    const isSupplierProduct = displayProduct.productType === 'SUPPLIER';
     const isSensitive = isSensitiveProduct(displayProduct);
     const toggleRevealed = () => setIsRevealed(r => !r);
 
@@ -587,19 +590,35 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                                         {isNegotiating ? <Icon icon="line-md:loading-twotone-loop" width={18} /> : <Icon icon="solar:chat-round-dots-bold-duotone" width={18} className="text-primary" />}
                                         Discuter
                                     </button>
-                                    <button onClick={handleAddToCart}
-                                        className="flex-1 py-3 px-5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl font-black text-sm active:scale-95 transition-all shadow-lg flex items-center justify-center gap-2">
-                                        <Icon icon="solar:cart-large-bold-duotone" width={18} />
-                                        Ajouter au panier
-                                    </button>
+                                    {isSupplierProduct ? (
+                                        <button onClick={() => setIsQuoteModalOpen(true)}
+                                            className="flex-1 py-3 px-5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl font-black text-sm active:scale-95 transition-all shadow-lg flex items-center justify-center gap-2">
+                                            <Icon icon="solar:delivery-bold-duotone" width={18} />
+                                            Je souhaite être livré
+                                        </button>
+                                    ) : (
+                                        <button onClick={handleAddToCart}
+                                            className="flex-1 py-3 px-5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl font-black text-sm active:scale-95 transition-all shadow-lg flex items-center justify-center gap-2">
+                                            <Icon icon="solar:cart-large-bold-duotone" width={18} />
+                                            Ajouter au panier
+                                        </button>
+                                    )}
                                 </div>
                                 {/* Mobile: 1 bouton */}
                                 <div className="flex md:hidden">
-                                    <button onClick={handleAddToCart}
-                                        className="flex-1 py-3.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl font-black text-sm active:scale-95 transition-all shadow-lg flex items-center justify-center gap-2">
-                                        <Icon icon="solar:cart-large-bold-duotone" width={18} />
-                                        Ajouter au panier
-                                    </button>
+                                    {isSupplierProduct ? (
+                                        <button onClick={() => setIsQuoteModalOpen(true)}
+                                            className="flex-1 py-3.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl font-black text-sm active:scale-95 transition-all shadow-lg flex items-center justify-center gap-2">
+                                            <Icon icon="solar:delivery-bold-duotone" width={18} />
+                                            Je souhaite être livré
+                                        </button>
+                                    ) : (
+                                        <button onClick={handleAddToCart}
+                                            className="flex-1 py-3.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl font-black text-sm active:scale-95 transition-all shadow-lg flex items-center justify-center gap-2">
+                                            <Icon icon="solar:cart-large-bold-duotone" width={18} />
+                                            Ajouter au panier
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         </motion.div>
@@ -676,5 +695,12 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
             storeLogo={displayProduct.user?.storeLogo || displayProduct.user?.avatar}
         />,
         document.body
+    ), isSupplierProduct && (
+        <SupplierQuoteRequestModal
+            key="supplier-quote-modal"
+            isOpen={isQuoteModalOpen}
+            onClose={() => setIsQuoteModalOpen(false)}
+            product={displayProduct}
+        />
     )];
 }

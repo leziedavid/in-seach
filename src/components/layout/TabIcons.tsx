@@ -53,6 +53,13 @@ export function CarRepairIcon({ active, className }: IconProps) {
     )
 }
 
+// Pour "Fournisseurs & Grossistes" : entrepôt / vente en gros B2B
+export function SupplierIcon({ active, className }: IconProps) {
+    return (
+        <Icon icon="mdi:warehouse" className={`${defaultSizeClasses} ${className}`} style={{ color: strokeColor(active) }} />
+    )
+}
+
 // Anciens exports pour compatibilité au cas où
 export const HistoryIcon = OpportunitiesIcon;
 export const AccountIcon = BoutiqueIcon;

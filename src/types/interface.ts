@@ -31,7 +31,8 @@ export enum Role {
     LIVREUR = 'LIVREUR',
     GAZIER = 'GAZIER',
     MARKETING = 'MARKETING',
-    GARAGISTE_VENTE_PIECE_AUTO = 'GARAGISTE_VENTE_PIECE_AUTO'
+    GARAGISTE_VENTE_PIECE_AUTO = 'GARAGISTE_VENTE_PIECE_AUTO',
+    FOURNISSEUR = 'FOURNISSEUR'
 }
 
 // RBAC dynamique (Role / Authorization / Policy) — voir backend/src/rbac
@@ -651,6 +652,8 @@ export interface Product {
     etat: ProductCondition
     typeVente?: 'UNITE' | 'GROS'
     prixVenteGros?: number | null
+    /** absent/null = produit marketplace classique. "SUPPLIER" = catalogue B2B Fournisseurs/Grossistes. */
+    productType?: 'SUPPLIER' | null
     imageUrl?: string | null
     imageUrls?: string[]
     images?: string[]
@@ -664,6 +667,37 @@ export interface Product {
     user?: Partial<User>
     createdAt: string
     updatedAt: string
+}
+
+export type SupplierQuoteStatus = 'PENDING' | 'VALIDATED' | 'REJECTED' | 'CANCELLED'
+
+/** Demande de devis B2B ("Je souhaite être livré") sur un produit Fournisseur (productType=SUPPLIER). */
+export interface SupplierQuote {
+    id: string
+    code: string
+    buyerId: string
+    supplierId: string
+    productId: string
+    quantity: number
+    unitPrice: number
+    totalAmount: number
+    achatType: 'UNITE' | 'GROS'
+    deliveryFullName: string
+    deliveryPhone: string
+    deliveryAddress: string
+    deliveryCity: string
+    deliveryDistrict?: string | null
+    deliveryLandmark?: string | null
+    deliveryInstructions?: string | null
+    comment?: string | null
+    supplierComment?: string | null
+    status: SupplierQuoteStatus
+    orderId?: string | null
+    createdAt: string
+    updatedAt: string
+    product?: Partial<Product>
+    buyer?: Partial<User>
+    supplier?: Partial<User>
 }
 
 export interface OrderItem {

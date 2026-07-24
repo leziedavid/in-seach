@@ -133,6 +133,11 @@
                 "title": "Annuaire des Garages",
                 "description": "Trouvez un garage de mécanique générale près de chez vous, consultez son catalogue de pièces auto et contactez-le directement."
             },
+            "fournisseurs": {
+                "label": "Fournisseurs",
+                "title": "Fournisseurs & Grossistes",
+                "description": "Trouvez des fournisseurs et grossistes B2B, consultez leur catalogue et demandez à être livré directement."
+            },
             "scroll_hint": "Glissez pour voir plus de services"
         },
         "promo": {

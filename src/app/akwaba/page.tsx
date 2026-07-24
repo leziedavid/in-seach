@@ -40,6 +40,8 @@ import GasRefillRequest from '@/components/gas-delivery/sections/GasRefillReques
 import GasProviderDashboard from '@/components/gas-delivery/sections/GasProviderDashboard';
 import GarageManagement from '@/components/garage/sections/GarageManagement';
 import UnifiedHistory from '@/components/history/UnifiedHistory';
+import FournisseurBoutique from '@/components/fournisseur/sections/FournisseurBoutique';
+import FournisseurQuotesList from '@/components/fournisseur/sections/FournisseurQuotesList';
 import { useTranslation } from '@/utils/langue/hooks';
 import { Icon } from '@iconify/react';
 
@@ -129,6 +131,8 @@ export default function Page() {
                 setActiveTab('Mes-bouteilles-gaz');
             } else if (userRole === Role.GARAGISTE_VENTE_PIECE_AUTO) {
                 setActiveTab('Mon-Garage');
+            } else if (userRole === Role.FOURNISSEUR) {
+                setActiveTab('Produits-fournisseur');
             } else {
                 setActiveTab('Overview');
             }
@@ -346,6 +350,10 @@ export default function Page() {
                 return <GasProviderDashboard />;
             case 'Mon-Garage':
                 return <GarageManagement />;
+            case 'Produits-fournisseur':
+                return <FournisseurBoutique onNavigateToOrders={handleNavigateFromStoreToOrders} />;
+            case 'Devis-fournisseur':
+                return <FournisseurQuotesList />;
             case 'Historique':
                 return <UnifiedHistory />;
             default:

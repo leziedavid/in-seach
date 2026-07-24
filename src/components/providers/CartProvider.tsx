@@ -50,6 +50,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, [cart]);
 
     const addToCart = useCallback((product: Product, quantity: number = 1, achatType: 'UNITE' | 'GROS' = 'UNITE') => {
+        if (product.productType === 'SUPPLIER') {
+            toast.error("Ce produit Fournisseur nécessite une demande de devis, il ne peut pas être ajouté au panier.");
+            return;
+        }
+
         const currentUserId = getUserId();
         if (currentUserId && product.userId === currentUserId) {
             toast.error("Vous ne pouvez pas acheter votre propre produit.");

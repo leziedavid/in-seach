@@ -165,6 +165,13 @@ const ProductCard = memo(function ProductCard({ product, onEdit, onDelete, onSta
                                 <Icon icon="solar:share-bold-duotone" className="w-4 h-4" />
                             </button>
                         </div>
+                    ) : product.productType === 'SUPPLIER' ? (
+                        <div className="flex justify-end w-full">
+                            <span className="flex items-center gap-1 md:gap-2 bg-primary/10 text-primary px-2 py-1 md:px-3 md:py-2 rounded-full text-[10px] md:text-xs font-black">
+                                <Icon icon="solar:delivery-bold-duotone" className="w-4 h-4" />
+                                <span className="whitespace-nowrap">Sur devis</span>
+                            </span>
+                        </div>
                     ) : (
                         <div className="flex justify-end w-full">
                             <button onClick={handleAddToCart} className="flex items-center gap-1 md:gap-2 bg-secondary text-white px-2 py-1 md:px-3 md:py-2 rounded-full text-[10px] md:text-xs font-black hover:bg-primary transition-all active:scale-90 shadow-sm">

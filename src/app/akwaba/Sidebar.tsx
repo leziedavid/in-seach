@@ -42,6 +42,8 @@ export type TabType =
     | "Recharge-gaz"
     | "Mes-bouteilles-gaz"
     | "Mon-Garage"
+    | "Produits-fournisseur"
+    | "Devis-fournisseur"
     | "Historique";
 
 interface SidebarProps {

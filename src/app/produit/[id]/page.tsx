@@ -17,6 +17,7 @@ import Link from "next/link";
 import { createStoreSlug } from "@/utils/storeSlug";
 import { isSensitiveProduct } from "@/utils/sensitiveProduct";
 import SensitiveMedia from "@/components/shared/SensitiveMedia";
+import SupplierQuoteRequestModal from "@/components/fournisseur/modals/SupplierQuoteRequestModal";
 
 export default function ProductDetailPage() {
     const params = useParams();
@@ -31,6 +32,7 @@ export default function ProductDetailPage() {
     const [isShareOpen, setIsShareOpen] = useState(false);
     const [storeInfo, setStoreInfo] = useState<StoreUserInfo | null>(null);
     const [isRevealed, setIsRevealed] = useState(false);
+    const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
     const touchStartX = useRef<number>(0);
 
     const { addToCart } = useCart();
@@ -202,6 +204,7 @@ export default function ProductDetailPage() {
         );
     }
 
+    const isSupplierProduct = product.productType === 'SUPPLIER';
     const isSensitive = isSensitiveProduct(product);
     const toggleRevealed = () => setIsRevealed(r => !r);
 
@@ -345,11 +348,19 @@ export default function ProductDetailPage() {
                 {isNegotiating ? <Icon icon="line-md:loading-twotone-loop" width={18} /> : <Icon icon="solar:chat-round-dots-bold-duotone" width={18} className="text-primary" />}
                 <span className="hidden md:inline">Discuter</span>
             </button>
-            <button onClick={handleAddToCart}
-                className="flex-1 py-3 px-5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl font-black text-sm active:scale-95 transition-all shadow-lg flex items-center justify-center gap-2">
-                <Icon icon="solar:cart-large-bold-duotone" width={18} />
-                Ajouter au panier
-            </button>
+            {isSupplierProduct ? (
+                <button onClick={() => setIsQuoteModalOpen(true)}
+                    className="flex-1 py-3 px-5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl font-black text-sm active:scale-95 transition-all shadow-lg flex items-center justify-center gap-2">
+                    <Icon icon="solar:delivery-bold-duotone" width={18} />
+                    Je souhaite être livré
+                </button>
+            ) : (
+                <button onClick={handleAddToCart}
+                    className="flex-1 py-3 px-5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl font-black text-sm active:scale-95 transition-all shadow-lg flex items-center justify-center gap-2">
+                    <Icon icon="solar:cart-large-bold-duotone" width={18} />
+                    Ajouter au panier
+                </button>
+            )}
         </div>
     );
 
@@ -434,11 +445,19 @@ export default function ProductDetailPage() {
 
                 {/* Footer mobile */}
                 <div className="fixed bottom-0 left-0 right-0 z-50 px-4 py-3 bg-[#FBFAF6]/95 dark:bg-zinc-900/95 backdrop-blur-md border-t border-[#EEF1F4] dark:border-zinc-800">
-                    <button onClick={handleAddToCart}
-                        className="w-full py-3.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl font-black text-sm active:scale-95 transition-all shadow-lg flex items-center justify-center gap-2">
-                        <Icon icon="solar:cart-large-bold-duotone" width={18} />
-                        Ajouter au panier
-                    </button>
+                    {isSupplierProduct ? (
+                        <button onClick={() => setIsQuoteModalOpen(true)}
+                            className="w-full py-3.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl font-black text-sm active:scale-95 transition-all shadow-lg flex items-center justify-center gap-2">
+                            <Icon icon="solar:delivery-bold-duotone" width={18} />
+                            Je souhaite être livré
+                        </button>
+                    ) : (
+                        <button onClick={handleAddToCart}
+                            className="w-full py-3.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl font-black text-sm active:scale-95 transition-all shadow-lg flex items-center justify-center gap-2">
+                            <Icon icon="solar:cart-large-bold-duotone" width={18} />
+                            Ajouter au panier
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -604,6 +623,13 @@ export default function ProductDetailPage() {
                 storeName={storeInfo?.storeName || ''}
                 storeLogo={product.user?.storeLogo || product.user?.avatar}
             />
+            {isSupplierProduct && (
+                <SupplierQuoteRequestModal
+                    isOpen={isQuoteModalOpen}
+                    onClose={() => setIsQuoteModalOpen(false)}
+                    product={product}
+                />
+            )}
         </>
     );
 }

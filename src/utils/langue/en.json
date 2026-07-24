@@ -133,6 +133,11 @@
                 "title": "Garage Directory",
                 "description": "Find a general mechanics garage near you, browse its auto parts catalogue and contact it directly."
             },
+            "fournisseurs": {
+                "label": "Suppliers",
+                "title": "Suppliers & Wholesalers",
+                "description": "Find B2B suppliers and wholesalers, browse their catalogue and request delivery directly."
+            },
             "scroll_hint": "Swipe to see more services"
         },
         "promo": {
