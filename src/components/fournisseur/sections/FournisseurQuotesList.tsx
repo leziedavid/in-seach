@@ -8,6 +8,7 @@ import { useNotification } from "@/components/notifications/NotificationProvider
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import ConfirmAction, { ConfirmVariant } from "@/components/ui/ConfirmAction";
+import { useSubscriptionCheck } from "@/hooks/useSubscriptionCheck";
 
 const STATUS_CONFIG: Record<SupplierQuoteStatus, { label: string; color: string; icon: string }> = {
     PENDING: { label: "En attente", color: "bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400", icon: "solar:clock-circle-bold-duotone" },
@@ -34,6 +35,7 @@ export default function FournisseurQuotesList() {
 
     const { addNotification } = useNotification();
     const router = useRouter();
+    const { checkFeatureAccess, loading: checkLoading } = useSubscriptionCheck();
 
     const openConfirm = (action: () => Promise<void>, cfg: { title: string; message: string; confirmLabel: string; variant: ConfirmVariant; icon: string }) => {
         pendingAction.current = action;
@@ -68,7 +70,9 @@ export default function FournisseurQuotesList() {
 
     useEffect(() => { fetchQuotes(); }, []);
 
-    const startEdit = (quote: SupplierQuote) => {
+    const startEdit = async (quote: SupplierQuote) => {
+        const canProceed = await checkFeatureAccess();
+        if (!canProceed) return;
         setEditingId(quote.id);
         setTempQuantity(String(quote.quantity));
         setTempPrice(String(quote.unitPrice));
@@ -102,6 +106,8 @@ export default function FournisseurQuotesList() {
     };
 
     const handleUpdateStatus = async (id: string, status: SupplierQuoteStatus) => {
+        const canProceed = await checkFeatureAccess();
+        if (!canProceed) return;
         try {
             const res = await updateSupplierQuoteStatus(id, status);
             if (res.statusCode === 200) {
@@ -116,6 +122,8 @@ export default function FournisseurQuotesList() {
     };
 
     const handleContact = async (quote: SupplierQuote) => {
+        const canProceed = await checkFeatureAccess();
+        if (!canProceed) return;
         setIsNegotiating(prev => ({ ...prev, [quote.id]: true }));
         try {
             const res = await createChatConversation({ participant2Id: quote.buyerId });
@@ -224,17 +232,17 @@ export default function FournisseurQuotesList() {
                                 {/* Actions */}
                                 {quote.status === "PENDING" && !isEditing && (
                                     <div className="flex flex-col gap-2 md:pl-6 md:border-l border-border/50 shrink-0">
-                                        <Button size="sm" variant="outline" className="rounded-xl h-9 border-primary/20 text-primary hover:bg-primary/5 font-black text-[10px] gap-2" onClick={() => startEdit(quote)}>
-                                            <Icon icon="solar:pen-bold" className="w-4 h-4" />
+                                        <Button size="sm" variant="outline" className="rounded-xl h-9 border-primary/20 text-primary hover:bg-primary/5 font-black text-[10px] gap-2" disabled={checkLoading} onClick={() => startEdit(quote)}>
+                                            {checkLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:pen-bold" className="w-4 h-4" />}
                                             Ajuster
                                         </Button>
-                                        <Button size="sm" variant="outline" className="rounded-xl h-9 border-primary/20 text-primary hover:bg-primary/5 font-black text-[10px] gap-2" disabled={isNegotiating[quote.id]} onClick={() => handleContact(quote)}>
-                                            {isNegotiating[quote.id] ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:chat-round-dots-bold-duotone" className="w-4 h-4" />}
+                                        <Button size="sm" variant="outline" className="rounded-xl h-9 border-primary/20 text-primary hover:bg-primary/5 font-black text-[10px] gap-2" disabled={isNegotiating[quote.id] || checkLoading} onClick={() => handleContact(quote)}>
+                                            {isNegotiating[quote.id] || checkLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:chat-round-dots-bold-duotone" className="w-4 h-4" />}
                                             Contacter
                                         </Button>
                                         <div className="flex gap-2">
                                             <Button size="sm" className="rounded-xl h-9 flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-black text-[10px]"
-                                                disabled={!stockOk}
+                                                disabled={!stockOk || checkLoading}
                                                 onClick={() => openConfirm(() => handleUpdateStatus(quote.id, "VALIDATED"), {
                                                     title: "Valider le devis",
                                                     message: `Confirmez-vous la validation du devis ${quote.code} ? Une commande sera automatiquement créée.`,
@@ -243,6 +251,7 @@ export default function FournisseurQuotesList() {
                                                 Valider
                                             </Button>
                                             <Button size="sm" variant="outline" className="rounded-xl h-9 border-red-100 text-red-500 hover:bg-red-50 font-black text-[10px]"
+                                                disabled={checkLoading}
                                                 onClick={() => openConfirm(() => handleUpdateStatus(quote.id, "REJECTED"), {
                                                     title: "Refuser le devis",
                                                     message: `Êtes-vous sûr de vouloir refuser le devis ${quote.code} ?`,

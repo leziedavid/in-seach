@@ -69,7 +69,7 @@ export const useSubscriptionCheck = () => {
         }
     }, [showNotification, router]);
 
-    const checkEligibility = useCallback(async (entityName: 'Product' | 'Service' | 'Annonce' | 'LogisticService'): Promise<boolean> => {
+    const checkEligibility = useCallback(async (entityName: 'Product' | 'Service' | 'Annonce' | 'LogisticService' | 'Live' | 'GasBottle' | 'Garage' | 'GaragePiece'): Promise<boolean> => {
         try {
             setLoading(true);
 
@@ -117,6 +117,11 @@ export const useSubscriptionCheck = () => {
             if (entityName === 'Product') currentCount = stats.totalProducts;
             if (entityName === 'Service') currentCount = stats.totalServices;
             if (entityName === 'Annonce') currentCount = stats.totalAnnonces;
+            if (entityName === 'LogisticService') currentCount = stats.totalLogisticServices;
+            if (entityName === 'Live') currentCount = stats.totalLives;
+            if (entityName === 'GasBottle') currentCount = stats.totalGasBottles;
+            if (entityName === 'Garage') currentCount = stats.totalGarages;
+            if (entityName === 'GaragePiece') currentCount = stats.totalGaragePieces;
 
             if (limit !== 999999 && currentCount >= limit) {
                 showNotification(`Vous avez atteint la limite de votre plan (${limit} ${entityName}s). Veuillez passer au plan supérieur.`, "warning");

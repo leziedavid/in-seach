@@ -7,6 +7,7 @@ import { updateEasyDeliveryStatus, unassignDriver, getLiveTracking } from "@/api
 import { HistoryDelivery, EasyDeliveryStatus } from "@/types/interface";
 import { Button } from "@/components/ui/button";
 import { useNotification } from "@/components/notifications/NotificationProvider";
+import { useSubscriptionCheck } from "@/hooks/useSubscriptionCheck";
 import Image from "next/image";
 
 interface LiveTrackingViewProps {
@@ -49,6 +50,7 @@ export default function LiveTrackingView({ delivery: initialDelivery, onBack }: 
     const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const { showNotification } = useNotification();
     const queryClient = useQueryClient();
+    const { checkFeatureAccess, loading: subscriptionLoading } = useSubscriptionCheck();
 
     // Polling for live updates every 15 seconds
     useEffect(() => {
@@ -74,6 +76,12 @@ export default function LiveTrackingView({ delivery: initialDelivery, onBack }: 
         },
         onError: () => showNotification("Erreur lors de la mise à jour du statut", "error"),
     });
+
+    const handleAdvanceStatus = async (status: EasyDeliveryStatus) => {
+        const canProceed = await checkFeatureAccess();
+        if (!canProceed) return;
+        statusMutation.mutate(status);
+    };
 
     const unassignMutation = useMutation({
         mutationFn: () => unassignDriver(delivery.id),
@@ -264,11 +272,11 @@ export default function LiveTrackingView({ delivery: initialDelivery, onBack }: 
                         Mettre à jour le statut
                     </p>
                     <Button
-                        onClick={() => statusMutation.mutate(nextStatus)}
-                        disabled={statusMutation.isPending}
+                        onClick={() => handleAdvanceStatus(nextStatus)}
+                        disabled={statusMutation.isPending || subscriptionLoading}
                         className="w-full rounded-xl font-black h-12 flex items-center gap-2"
                     >
-                        {statusMutation.isPending ? (
+                        {statusMutation.isPending || subscriptionLoading ? (
                             <Icon icon="line-md:loading-twotone-loop" className="w-5 h-5" />
                         ) : (
                             <>

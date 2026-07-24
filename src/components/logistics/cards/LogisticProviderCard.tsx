@@ -16,6 +16,7 @@ interface LogisticProviderCardProps {
 
 export default function LogisticProviderCard({ provider, viewMode = "grid" }: LogisticProviderCardProps) {
     const router = useRouter();
+    const servicesCount = provider.logisticServices?.length || 0;
 
     const handleNavigate = () => {
         const slug = slugifyCompany(provider.companyName);
@@ -23,7 +24,6 @@ export default function LogisticProviderCard({ provider, viewMode = "grid" }: Lo
     };
 
     if (viewMode === 'list') {
-        const servicesCount = provider.logisticServices?.length || 0;
         return (
             <div onClick={handleNavigate}
                 className="group flex items-start gap-4 p-4 rounded-xl cursor-pointer bg-muted/20 border border-border/30 hover:border-primary/30 hover:bg-muted/30 transition-all">
@@ -65,47 +65,36 @@ export default function LogisticProviderCard({ provider, viewMode = "grid" }: Lo
 
     return (
         <div onClick={handleNavigate}
-            className="group rounded-2xl transition-all duration-300 cursor-pointer bg-muted/20 border border-border/30 hover:border-primary/30 hover:bg-muted/30 overflow-hidden p-2 md:p-4 flex flex-col md:items-center text-left md:text-center">
+            className="group rounded-2xl transition-all duration-300 cursor-pointer bg-muted/20 border border-border/30 hover:border-primary/30 hover:bg-muted/30 overflow-hidden p-3 md:p-4 flex flex-col items-center text-center">
 
-            {/* Image Section */}
-            <div className="relative overflow-hidden rounded-lg md:rounded-2xl shrink-0 w-full aspect-square mb-1.5 ring-1 ring-border/40">
+            {/* Logo */}
+            <div className="relative shrink-0 rounded-2xl bg-primary/10 flex items-center justify-center overflow-hidden ring-1 ring-border/40 w-16 h-16 mb-3">
                 <Image
                     src={provider.logo || '/placeholder-logistic.jpg'}
                     alt={provider.companyName}
                     fill
                     unoptimized
-                    className="object-cover group-hover:scale-110 transition-transform duration-500" />
-
-                {/* Badge Overlay */}
-                <div className="absolute bg-black/70 md:bg-background/95 backdrop-blur-sm px-1.5 py-0.5 md:px-2 md:py-0.5 rounded-full text-[8px] md:text-[9px] font-black text-white md:text-foreground uppercase tracking-tighter flex items-center gap-1 top-1 left-1 md:top-2 md:left-2">
-                    <Icon icon="solar:box-bold-duotone" className="w-3.5 h-3.5 text-primary" />
-                    {provider.logisticServices?.length || 0} Services
-                </div>
+                    className="object-cover" />
             </div>
 
-            {/* Content Section */}
-            <div className="flex flex-col flex-1 min-w-0 px-0.5 pb-0 md:px-0 md:pb-0 w-full">
+            {/* Content */}
+            <div className="flex flex-col flex-1 min-w-0 w-full items-center">
                 <span className="text-[9px] md:text-[10px] font-bold text-primary uppercase tracking-wide mb-0.5">Compagnie logistique</span>
-                <h3 className="font-black text-foreground mb-1 group-hover:text-primary transition-colors leading-tight truncate text-xs md:text-base line-clamp-2 md:line-clamp-1 text-left">
+                <h3 className="font-black text-foreground mb-1 group-hover:text-primary transition-colors leading-tight truncate text-sm md:text-base w-full">
                     {provider.companyName}
                 </h3>
-
                 {provider.siegeSocial && (
-                    <div className="flex items-center gap-1.5 text-muted-foreground pt-1 justify-center">
-                        <Icon icon="solar:map-point-bold-duotone" className="w-3 h-3" />
-                        <span className="text-[10px] font-bold uppercase truncate max-w-[150px]">
-                            {provider.siegeSocial}
-                        </span>
-                    </div>
+                    <p className="text-[10px] md:text-xs text-muted-foreground truncate w-full">{provider.siegeSocial}</p>
                 )}
-
-                {/* Action Button */}
-                <div className="pt-3 w-full">
-                    <button className="flex items-center gap-1 md:gap-2 bg-secondary text-white rounded-full font-black hover:bg-primary transition-all active:scale-90 shadow-sm px-2 py-1 md:px-3 md:py-2 text-[10px] md:text-xs mx-auto">
-                        Voir les services
-                        <Icon icon="solar:arrow-right-up-bold-duotone" className="w-4 h-4" />
-                    </button>
-                </div>
+                {servicesCount > 0 && (
+                    <p className="text-[10px] md:text-xs text-muted-foreground mt-1">
+                        {servicesCount} service{servicesCount > 1 ? "s" : ""} de transport
+                    </p>
+                )}
+                <button className="mt-3 flex items-center gap-1.5 bg-secondary text-white rounded-full font-black hover:bg-primary transition-all active:scale-90 shadow-sm px-3 py-1.5 text-[10px] md:text-xs">
+                    <span className="whitespace-nowrap">Voir les services</span>
+                    <Icon icon="solar:arrow-right-up-bold-duotone" className="w-3.5 h-3.5" />
+                </button>
             </div>
         </div>
     );

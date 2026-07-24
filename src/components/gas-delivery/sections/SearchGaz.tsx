@@ -188,71 +188,30 @@ export default function SearchGaz() {
                         skeletonCount={3}
                         gridClassName={viewMode === 'grid' ? "grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-6" : "grid grid-cols-1 gap-4"}
                         renderItem={(provider: GasProvider) => (
-                            viewMode === 'list' ? (
-                                <div key={provider.id} onClick={() => withAuth(() => setSelectedProvider(provider))}
-                                    className="group flex items-start gap-4 p-4 rounded-xl cursor-pointer bg-muted/20 border border-border/30 hover:border-primary/30 hover:bg-muted/30 transition-all">
-                                    <div className="relative shrink-0 w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center ring-1 ring-border/40">
-                                        <Icon icon="mdi:propane-tank" className="w-7 h-7 text-primary" />
-                                        <span className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-card ${provider.isAvailable ? "bg-emerald-500" : "bg-red-500"}`} />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2 mb-0.5">
-                                            <span className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                                                <Icon icon="mdi:propane-tank" className="w-3 h-3 text-primary" />
-                                            </span>
-                                            <span className="text-sm font-bold text-foreground truncate">{provider.companyName}</span>
-                                        </div>
-                                        {provider.address && (
-                                            <p className="text-xs text-muted-foreground/70 truncate mb-1.5 ml-7">{provider.address}</p>
-                                        )}
-                                        <h3 className="text-base md:text-lg font-black leading-snug mb-1 group-hover:text-primary transition-colors">
-                                            <span className="text-primary">Prestataire de gaz</span> <span className="text-foreground">{provider.companyName}</span>
-                                        </h3>
-                                        <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
-                                            {provider.isAvailable ? "Disponible pour livraison immédiate." : "Actuellement indisponible."}
-                                            {typeof provider.bottlesCount === "number" ? ` ${provider.bottlesCount} bouteille${provider.bottlesCount > 1 ? "s" : ""} au catalogue.` : ""}
+                            <div key={provider.id} onClick={() => withAuth(() => setSelectedProvider(provider))}
+                                className={`group rounded-2xl transition-all duration-300 cursor-pointer bg-muted/20 border border-border/30 hover:border-primary/30 hover:bg-muted/30 overflow-hidden p-3 md:p-4 flex ${viewMode === 'grid' ? "flex-col items-center text-center" : "flex-row items-center gap-4 text-left"}`}>
+                                <div className={`relative shrink-0 rounded-2xl bg-primary/10 flex items-center justify-center overflow-hidden ring-1 ring-border/40 ${viewMode === 'grid' ? "w-16 h-16 mb-3" : "w-16 h-16 md:w-20 md:h-20"}`}>
+                                    <Icon icon="mdi:propane-tank" className="w-8 h-8 text-primary" />
+                                </div>
+                                <div className={`flex flex-col flex-1 min-w-0 ${viewMode === 'grid' ? "w-full items-center" : ""}`}>
+                                    <span className="text-[9px] md:text-[10px] font-bold text-primary uppercase tracking-wide mb-0.5">Prestataire de gaz</span>
+                                    <h3 className="font-black text-foreground mb-1 group-hover:text-primary transition-colors leading-tight truncate text-sm md:text-base w-full">
+                                        {provider.companyName}
+                                    </h3>
+                                    {provider.address && (
+                                        <p className="text-[10px] md:text-xs text-muted-foreground truncate w-full">{provider.address}</p>
+                                    )}
+                                    {typeof provider.bottlesCount === "number" && (
+                                        <p className="text-[10px] md:text-xs text-muted-foreground mt-1">
+                                            {provider.bottlesCount} bouteille{provider.bottlesCount > 1 ? "s" : ""} au catalogue
                                         </p>
-                                        {typeof provider.bottlesCount === "number" && (
-                                            <p className="text-xl font-black text-foreground">
-                                                {provider.bottlesCount} <span className="text-sm font-bold text-muted-foreground">bouteille{provider.bottlesCount > 1 ? "s" : ""}</span>
-                                            </p>
-                                        )}
-                                    </div>
+                                    )}
+                                    <button className="mt-3 flex items-center gap-1.5 bg-secondary text-white rounded-full font-black hover:bg-primary transition-all active:scale-90 shadow-sm px-3 py-1.5 text-[10px] md:text-xs">
+                                        <span className="whitespace-nowrap">Voir le prestataire</span>
+                                        <Icon icon="solar:check-circle-bold-duotone" className="w-3.5 h-3.5" />
+                                    </button>
                                 </div>
-                            ) : (
-                                <div key={provider.id} onClick={() => withAuth(() => setSelectedProvider(provider))} className="group rounded-2xl transition-all duration-300 cursor-pointer bg-muted/20 border border-border/30 hover:border-primary/30 hover:bg-muted/30 overflow-hidden p-3 md:p-4 flex flex-col items-center text-center">
-                                    {/* Icône bouteille de gaz */}
-                                    <div className="relative shrink-0 rounded-2xl bg-primary/10 flex items-center justify-center w-16 h-16 mb-3 ring-1 ring-border/40">
-                                        <Icon icon="mdi:propane-tank" className="w-8 h-8 text-primary" />
-                                        <span className={`absolute -top-1 -right-1 w-4 h-4 rounded-full border-2 border-card ${provider.isAvailable ? "bg-emerald-500" : "bg-red-500"}`} />
-                                    </div>
-                                    {/* Contenu */}
-                                    <div className="flex flex-col flex-1 min-w-0 w-full items-center">
-                                        <span className="text-[9px] md:text-[10px] font-bold text-primary uppercase tracking-wide mb-0.5">Prestataire de gaz</span>
-                                        <h3 className="font-black text-foreground mb-1 group-hover:text-primary transition-colors leading-tight truncate text-sm md:text-base w-full">
-                                            {provider.companyName}
-                                        </h3>
-                                        <span className={`text-[9px] md:text-[10px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full mb-2 ${provider.isAvailable ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-red-500/10 text-red-600 dark:text-red-400"}`}>
-                                            {provider.isAvailable ? "Disponible" : "Indisponible"}
-                                        </span>
-                                        {provider.address && (
-                                            <p className="text-[10px] md:text-xs text-muted-foreground truncate w-full flex items-center gap-1 justify-center">
-                                                <Icon icon="solar:map-point-bold-duotone" className="w-3 h-3 shrink-0" />
-                                                <span className="truncate">{provider.address}</span>
-                                            </p>
-                                        )}
-                                        {typeof provider.bottlesCount === "number" && (
-                                            <p className="text-[10px] md:text-xs text-muted-foreground mt-1">
-                                                {provider.bottlesCount} bouteille{provider.bottlesCount > 1 ? "s" : ""} au catalogue
-                                            </p>
-                                        )}
-                                        <button className="mt-3 flex items-center gap-1.5 bg-secondary text-white rounded-full font-black hover:bg-primary transition-all active:scale-90 shadow-sm px-3 py-1.5 text-[10px] md:text-xs">
-                                            <span className="whitespace-nowrap">Voir le prestataire</span>
-                                            <Icon icon="solar:check-circle-bold-duotone" className="w-3.5 h-3.5" />
-                                        </button>
-                                    </div>
-                                </div>
-                            )
+                            </div>
                         )}
                         className="w-full"
                     />
