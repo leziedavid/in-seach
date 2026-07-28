@@ -277,18 +277,26 @@ export default function SearchServies() {
                             {categories.map((cat) => {
                                 const isActive = selectedCategoryId === cat.id;
                                 return (
-                                    <button key={cat.id} type="button" onClick={() => handleCategoryClick(cat.id)} className="flex flex-col items-center gap-1.5 shrink-0 group active:scale-95 transition-transform" >
-                                        <div className={`relative w-14 h-14 rounded-2xl overflow-hidden flex items-center justify-center border transition-all duration-300 ${isActive ? "border-primary bg-primary/10 shadow-md shadow-primary/20 scale-105" : "border-border/40 bg-muted/40 group-hover:border-primary/40"}`}>
-                                            {cat.iconName ? (
-                                                <Image src={cat.iconName} alt={cat.label} fill unoptimized className="object-cover p-2" />
-                                            ) : (
-                                                <Icon icon="solar:widget-5-bold-duotone" className={`w-6 h-6 ${isActive ? "text-primary" : "text-muted-foreground"}`} />
+                                    <div key={cat.id} className="flex flex-col items-center gap-1.5 shrink-0 group">
+                                        <div className="relative">
+                                            <button type="button" onClick={() => handleCategoryClick(cat.id)} className={`relative w-14 h-14 rounded-2xl overflow-hidden flex items-center justify-center border transition-all duration-300 active:scale-95 ${isActive ? "border-primary bg-primary/10 shadow-md shadow-primary/20 scale-105" : "border-border/40 bg-muted/40 group-hover:border-primary/40"}`}>
+                                                {cat.iconName ? (
+                                                    <Image src={cat.iconName} alt={cat.label} fill unoptimized className="object-contain p-2.5" />
+                                                ) : (
+                                                    <Icon icon="solar:widget-5-bold-duotone" className={`w-6 h-6 ${isActive ? "text-primary" : "text-muted-foreground"}`} />
+                                                )}
+                                            </button>
+                                            {/* Croix rouge — visible seulement sur la catégorie active, permet de la désélectionner sans re-cliquer dessus */}
+                                            {isActive && (
+                                                <button type="button" onClick={(e) => { e.stopPropagation(); handleCategoryClick(cat.id); }} className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center shadow-md ring-2 ring-white dark:ring-zinc-900 active:scale-90 transition-all" aria-label={t("services.remove_category_filter")} title={t("services.remove_category_filter")} >
+                                                    <Icon icon="solar:close-circle-bold" className="w-4 h-4" />
+                                                </button>
                                             )}
                                         </div>
                                         <span className={`text-[11px] font-black max-w-[64px] truncate transition-colors ${isActive ? "text-primary" : "text-foreground/80 group-hover:text-primary"}`}>
                                             {cat.label}
                                         </span>
-                                    </button>
+                                    </div>
                                 );
                             })}
                         </div>

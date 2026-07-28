@@ -163,7 +163,8 @@
         "not_found_title": "No service found",
         "not_found_description": "No service matches your search. Try other keywords or a different location.",
         "ai_not_found_description": "No service matches this image. Try with another photo or type the service name.",
-        "categories_scroll_hint": "Swipe to see more categories"
+        "categories_scroll_hint": "Swipe to see more categories",
+        "remove_category_filter": "Remove category filter"
     },
     "admin": {
         "menu": {

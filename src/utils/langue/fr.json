@@ -163,7 +163,8 @@
         "not_found_title": "Aucun service trouvé",
         "not_found_description": "Aucun service ne correspond à votre recherche. Essayez d'autres mots-clés ou une localisation différente.",
         "ai_not_found_description": "Aucun service ne correspond à cette image. Essayez avec une autre photo ou saisissez le nom du service.",
-        "categories_scroll_hint": "Glissez pour voir plus de catégories"
+        "categories_scroll_hint": "Glissez pour voir plus de catégories",
+        "remove_category_filter": "Retirer le filtre catégorie"
     },
     "admin": {
         "menu": {
