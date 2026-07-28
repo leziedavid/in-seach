@@ -129,6 +129,7 @@ export default function ProductsPage() {
                     onCategoryChange={(id) => { setSelectedCategory(id); setSelectedSubCategory("all"); }}
                     onSubCategoryChange={setSelectedSubCategory}
                     hasSubCategories={true}
+                    variant="cards"
                 />
             </div>
 

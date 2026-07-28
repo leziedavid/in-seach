@@ -17,6 +17,11 @@ interface CategoryFilterProps {
     onSubCategoryChange?: (id: string) => void;
     hasSubCategories?: boolean;
     className?: string;
+    // "pills" (défaut, inchangé — utilisé par shop/[storeName], fournisseur/[storeName],
+    // LogisticProvider, LogisticsServicesList) vs "cards" : icône dans une carte arrondie +
+    // libellé dessous, comme la liste de catégories de SearchServies.tsx. Les catégories
+    // produit n'ayant pas d'image, "cards" affiche toujours une icône par défaut.
+    variant?: "pills" | "cards";
 }
 
 export default function CategoryFilter({
@@ -26,7 +31,8 @@ export default function CategoryFilter({
     onCategoryChange,
     onSubCategoryChange,
     hasSubCategories = false,
-    className = ""
+    className = "",
+    variant = "pills"
 }: CategoryFilterProps) {
     const categoryRef = useRef<HTMLDivElement>(null);
     const subCategoryRef = useRef<HTMLDivElement>(null);
@@ -55,6 +61,74 @@ export default function CategoryFilter({
     }, [categories]);
 
     const activeCategory = categories.find(cat => cat.id === selectedCategoryId);
+
+    if (variant === "cards") {
+        // Carte icône (pas d'image dispo côté catégories/sous-catégories produit → icône
+        // par défaut systématique) + libellé dessous, avec la même croix rouge de
+        // désélection que le style "pills". "all"/"Tous" n'est jamais déselectionnable
+        // (c'est déjà l'état "aucun filtre").
+        const renderCard = (id: string, name: string, isActive: boolean, isDeselectable: boolean, onClick: () => void, onDeselect: () => void, icon: string) => (
+            <div key={id} className="flex flex-col items-center gap-1.5 shrink-0">
+                <div className="relative">
+                    <button type="button" onClick={onClick} className={`relative w-14 h-14 rounded-2xl overflow-hidden flex items-center justify-center border transition-all duration-300 active:scale-95 ${isActive ? "border-primary bg-primary/10 shadow-md shadow-primary/20 scale-105" : "border-border/40 bg-muted/40 hover:border-primary/40"}`}>
+                        <Icon icon={icon} className={`w-6 h-6 ${isActive ? "text-primary" : "text-muted-foreground"}`} />
+                    </button>
+                    {isDeselectable && (
+                        <button type="button" onClick={(e) => { e.stopPropagation(); onDeselect(); }} className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center shadow-md ring-2 ring-white dark:ring-zinc-900 active:scale-90 transition-all" aria-label={`Désélectionner ${name}`} title={`Désélectionner ${name}`} >
+                            <Icon icon="solar:close-circle-bold" className="w-4 h-4" />
+                        </button>
+                    )}
+                </div>
+                <span className={`text-[11px] font-black max-w-[64px] truncate transition-colors ${isActive ? "text-primary" : "text-foreground/80"}`}>
+                    {name}
+                </span>
+            </div>
+        );
+
+        return (
+            <div className={`w-full space-y-3 ${className}`}>
+                <div className="w-full overflow-x-auto scroll-smooth scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" style={{ WebkitOverflowScrolling: "touch" }}>
+                    <div className="flex items-start gap-3 px-1 py-1 w-max">
+                        {categories.map((cat) =>
+                            renderCard(
+                                cat.id, cat.name,
+                                selectedCategoryId === cat.id,
+                                selectedCategoryId === cat.id && cat.id !== "all",
+                                () => onCategoryChange(cat.id),
+                                () => onCategoryChange("all"),
+                                "solar:widget-5-bold-duotone",
+                            )
+                        )}
+                    </div>
+                </div>
+
+                {hasSubCategories && activeCategory && activeCategory.subCategories && activeCategory.subCategories.length > 0 && (
+                    <div className="w-full overflow-x-auto scroll-smooth scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden animate-in fade-in slide-in-from-top-2 duration-500" style={{ WebkitOverflowScrolling: "touch" }}>
+                        <div className="flex items-start gap-3 px-1 py-1 w-max">
+                            {onSubCategoryChange && renderCard(
+                                "all", `Tout ${activeCategory.name}`,
+                                selectedSubCategoryId === "all",
+                                false,
+                                () => onSubCategoryChange("all"),
+                                () => onSubCategoryChange("all"),
+                                "solar:layers-minimalistic-bold-duotone",
+                            )}
+                            {activeCategory.subCategories.map((sub) =>
+                                renderCard(
+                                    sub.id, sub.name,
+                                    selectedSubCategoryId === sub.id,
+                                    selectedSubCategoryId === sub.id,
+                                    () => onSubCategoryChange?.(sub.id),
+                                    () => onSubCategoryChange?.("all"),
+                                    "solar:tag-bold-duotone",
+                                )
+                            )}
+                        </div>
+                    </div>
+                )}
+            </div>
+        );
+    }
 
     return (
         <div className={`w-full space-y-4 ${className}`}>

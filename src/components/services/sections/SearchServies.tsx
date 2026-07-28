@@ -45,6 +45,7 @@ export default function SearchServies() {
     // Filtre par catégorie — liste horizontale au-dessus de la recherche (voir maquette).
     // Indépendant de `query` : peut être combiné avec le texte saisi ou utilisé seul.
     const [categories, setCategories] = useState<Category[]>([]);
+    const [categoriesLoading, setCategoriesLoading] = useState(true);
     const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
     const categoryScrollRef = useRef<HTMLDivElement>(null);
     const [categoryRowOverflow, setCategoryRowOverflow] = useState(false);
@@ -58,6 +59,8 @@ export default function SearchServies() {
                 }
             } catch (e) {
                 console.error("Error fetching categories:", e);
+            } finally {
+                setCategoriesLoading(false);
             }
         };
         fetchCategories();
@@ -270,7 +273,18 @@ export default function SearchServies() {
     return (
         <div className="flex flex-col items-center w-full max-w-7xl mx-auto px-4 py-2">
             {/* Catégories — filtre horizontal scrollable, indépendant du texte de recherche */}
-            {categories.length > 0 && (
+            {categoriesLoading ? (
+                <div className="flex flex-col items-center w-full max-w-2xl mb-3">
+                    <div className="flex items-start gap-3 px-1 py-1 w-max mx-auto">
+                        {Array.from({ length: 6 }).map((_, i) => (
+                            <div key={i} className="flex flex-col items-center gap-1.5 shrink-0">
+                                <div className="w-14 h-14 rounded-2xl bg-muted/60 animate-pulse" />
+                                <div className="w-10 h-2.5 rounded-full bg-muted/60 animate-pulse" />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            ) : categories.length > 0 && (
                 <div className="relative flex flex-col items-center w-full max-w-2xl mb-3">
                     <div ref={categoryScrollRef} className="w-full overflow-x-auto scroll-smooth scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" style={{ WebkitOverflowScrolling: "touch" }}>
                         <div className="flex items-start gap-3 px-1 py-1 w-max mx-auto">
@@ -281,7 +295,7 @@ export default function SearchServies() {
                                         <div className="relative">
                                             <button type="button" onClick={() => handleCategoryClick(cat.id)} className={`relative w-14 h-14 rounded-2xl overflow-hidden flex items-center justify-center border transition-all duration-300 active:scale-95 ${isActive ? "border-primary bg-primary/10 shadow-md shadow-primary/20 scale-105" : "border-border/40 bg-muted/40 group-hover:border-primary/40"}`}>
                                                 {cat.iconName ? (
-                                                    <Image src={cat.iconName} alt={cat.label} fill unoptimized className="object-contain p-2.5" />
+                                                    <Image src={cat.iconName} alt={cat.label} fill unoptimized className="object-cover" />
                                                 ) : (
                                                     <Icon icon="solar:widget-5-bold-duotone" className={`w-6 h-6 ${isActive ? "text-primary" : "text-muted-foreground"}`} />
                                                 )}
