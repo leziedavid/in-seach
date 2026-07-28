@@ -791,6 +791,13 @@ export const getForSelectCategorieAnnonces = async (): Promise<BaseResponse<any[
     return await response.json();
 };
 
+// Toutes les catégories d'annonces sans pagination (id + label + icône) — alimente les UI
+// de filtre comme SearchAnnonces, sur le même principe que getAllCategories (services).
+export const getAllCategorieAnnonces = async (): Promise<BaseResponse<CategorieAnnonce[]>> => {
+    const response = await fetch(`${getBaseUrl()}/categorie-annonce/all`);
+    return await response.json();
+};
+
 export const searchAnnonceCategories = async (query: string): Promise<BaseResponse<any[]>> => {
     const response = await fetch(`${getBaseUrl()}/categorie-annonce/searchByName?q=${encodeURIComponent(query)}`);
     return await response.json();

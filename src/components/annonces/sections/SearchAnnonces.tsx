@@ -3,8 +3,8 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Icon } from "@iconify/react";
 import Image from "next/image";
-import { getAnnonces, searchAnnonceCategories } from "@/api/api";
-import { Annonce, UserLocation } from "@/types/interface";
+import { getAnnonces, searchAnnonceCategories, getAllCategorieAnnonces } from "@/api/api";
+import { Annonce, UserLocation, CategorieAnnonce } from "@/types/interface";
 import { useUserLocation } from "@/utils/location";
 import AnnonceModal from "../../home/AnnonceModal";
 import InfiniteScroll from "@/components/ui/InfiniteScroll";
@@ -29,6 +29,46 @@ export default function SearchAnnonces() {
     const [address, setAddress] = useState<string>("");
     const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
     const [viewMode, setViewMode] = useState<ViewMode>("grid");
+
+    // Filtre par catégorie — liste horizontale au-dessus de la recherche (même comportement
+    // que SearchServies.tsx). Indépendant de `query` : peut être combiné au texte saisi.
+    const [categories, setCategories] = useState<CategorieAnnonce[]>([]);
+    const [categoriesLoading, setCategoriesLoading] = useState(true);
+    const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+    const categoryScrollRef = useRef<HTMLDivElement>(null);
+    const [categoryRowOverflow, setCategoryRowOverflow] = useState(false);
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const res = await getAllCategorieAnnonces();
+                if (res.statusCode === 200 && res.data) {
+                    setCategories(res.data);
+                }
+            } catch (e) {
+                console.error("Error fetching annonce categories:", e);
+            } finally {
+                setCategoriesLoading(false);
+            }
+        };
+        fetchCategories();
+    }, []);
+
+    // Indication de scroll — visible seulement si les catégories dépassent la largeur visible
+    // (même logique que AppTabs.tsx / SearchServies.tsx).
+    useEffect(() => {
+        const checkOverflow = () => {
+            const el = categoryScrollRef.current;
+            if (el) setCategoryRowOverflow(el.scrollWidth > el.clientWidth + 4);
+        };
+        checkOverflow();
+        window.addEventListener("resize", checkOverflow);
+        return () => window.removeEventListener("resize", checkOverflow);
+    }, [categories.length]);
+
+    const handleCategoryClick = (categoryId: string) => {
+        setSelectedCategoryId(prev => (prev === categoryId ? null : categoryId));
+    };
 
     // Autocomplete states
     const [suggestions, setSuggestions] = useState<{ id: string, name: string }[]>([]);
@@ -57,6 +97,7 @@ export default function SearchAnnonces() {
                 page: pageNum,
                 limit: ITEMS_PER_PAGE,
                 query: query || undefined,
+                categorieId: selectedCategoryId || undefined,
                 lat: lat || undefined,
                 lng: lng || undefined,
                 radiusKm: lat && lng ? 10 : undefined
@@ -81,7 +122,7 @@ export default function SearchAnnonces() {
             loadingRef.current = false;
             setLoading(false);
         }
-    }, [query, lat, lng]);
+    }, [query, lat, lng, selectedCategoryId]);
 
     // Reset and fetch when filters change
     useEffect(() => {
@@ -91,7 +132,7 @@ export default function SearchAnnonces() {
         //     setPage(1);
         //     fetchAnnonces(1, true);
         // }
-    }, [isSearching, query, lat, lng, fetchAnnonces]);
+    }, [isSearching, query, lat, lng, selectedCategoryId, fetchAnnonces]);
 
     // Load more when page changes
     useEffect(() => {
@@ -184,6 +225,56 @@ export default function SearchAnnonces() {
 
     return (
         <div className="flex flex-col items-center w-full max-w-7xl mx-auto px-4 py-2">
+            {/* Catégories — filtre horizontal scrollable, indépendant du texte de recherche */}
+            {categoriesLoading ? (
+                <div className="flex flex-col items-center w-full max-w-2xl mb-3">
+                    <div className="flex items-start gap-3 px-1 py-1 w-max mx-auto">
+                        {Array.from({ length: 6 }).map((_, i) => (
+                            <div key={i} className="flex flex-col items-center gap-1.5 shrink-0">
+                                <div className="w-14 h-14 rounded-2xl bg-muted/60 animate-pulse" />
+                                <div className="w-10 h-2.5 rounded-full bg-muted/60 animate-pulse" />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            ) : categories.length > 0 && (
+                <div className="relative flex flex-col items-center w-full max-w-2xl mb-3">
+                    <div ref={categoryScrollRef} className="w-full overflow-x-auto scroll-smooth scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" style={{ WebkitOverflowScrolling: "touch" }}>
+                        <div className="flex items-start gap-3 px-1 py-1 w-max mx-auto">
+                            {categories.map((cat) => {
+                                const isActive = selectedCategoryId === cat.id;
+                                return (
+                                    <div key={cat.id} className="flex flex-col items-center gap-1.5 shrink-0 group">
+                                        <div className="relative">
+                                            <button type="button" onClick={() => handleCategoryClick(cat.id)} className={`relative w-14 h-14 rounded-2xl overflow-hidden flex items-center justify-center border transition-all duration-300 active:scale-95 ${isActive ? "border-primary bg-primary/10 shadow-md shadow-primary/20 scale-105" : "border-border/40 bg-muted/40 group-hover:border-primary/40"}`}>
+                                                {cat.iconName ? (
+                                                    <Image src={cat.iconName} alt={cat.label} fill unoptimized className="object-cover" />
+                                                ) : (
+                                                    <Icon icon="solar:widget-5-bold-duotone" className={`w-6 h-6 ${isActive ? "text-primary" : "text-muted-foreground"}`} />
+                                                )}
+                                            </button>
+                                            {isActive && (
+                                                <button type="button" onClick={(e) => { e.stopPropagation(); handleCategoryClick(cat.id); }} className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center shadow-md ring-2 ring-white dark:ring-zinc-900 active:scale-90 transition-all" aria-label={`Désélectionner ${cat.label}`} title={`Désélectionner ${cat.label}`} >
+                                                    <Icon icon="solar:close-circle-bold" className="w-4 h-4" />
+                                                </button>
+                                            )}
+                                        </div>
+                                        <span className={`text-[11px] font-black max-w-[64px] truncate transition-colors ${isActive ? "text-primary" : "text-foreground/80 group-hover:text-primary"}`}>
+                                            {cat.label}
+                                        </span>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                    {categoryRowOverflow && (
+                        <span className="flex items-center gap-1 text-[10px] text-muted-foreground mt-1">
+                            <Icon icon="solar:round-double-alt-arrow-right-bold-duotone" className="w-3 h-3 animate-bounce" />
+                            Glissez pour voir plus de catégories
+                        </span>
+                    )}
+                </div>
+            )}
             {/* Search Input - Centered */}
             <form onSubmit={handleSearch} className="flex flex-row items-stretch justify-center gap-2 w-full max-w-2xl mb-2 relative">
                 <div className="flex items-center w-full bg-card border border-primary rounded-xl px-4 py-2 shadow-sm hover:border-secondary transition-colors">
@@ -245,17 +336,9 @@ export default function SearchAnnonces() {
                 </div>
 
                 {loading && annonces.length === 0 ? (
-                    <Loader
-                        title="Recherche d'annonces..."
-                        description="Nous recherchons les annonces correspondant à vos critères."
-                        icon="solar:tag-bold-duotone"
-                    />
+                    <Loader title="Recherche d'annonces..." description="Nous recherchons les annonces correspondant à vos critères." icon="solar:tag-bold-duotone" />
                 ) : !loading && annonces.length === 0 ? (
-                    <NotFound
-                        title="Aucune annonce trouvée"
-                        description="Aucune annonce ne correspond à votre recherche. Essayez d'autres mots-clés ou une localisation différente."
-                        icon="solar:tag-bold-duotone"
-                    />
+                    <NotFound title="Aucune annonce trouvée" description="Aucune annonce ne correspond à votre recherche. Essayez d'autres mots-clés ou une localisation différente." icon="solar:tag-bold-duotone" />
                 ) : (
 
                     <InfiniteScroll
@@ -274,12 +357,7 @@ export default function SearchAnnonces() {
                                     {/* Image */}
                                     <div className={`relative overflow-hidden rounded-lg md:rounded-2xl shrink-0 ${viewMode === 'grid' ? "w-full aspect-square mb-1.5" : "w-24 h-24 md:w-32 md:h-32"}`}>
                                         {/* <Image src={(annonce.images?.[0] && typeof annonce.images?.[0] === 'string') ? annonce.images[0] : (Array.isArray(annonce.images) && (annonce.images[0] as any)?.fileUrl) || 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop'} alt={annonce.title} fill unoptimized className="object-cover group-hover:scale-110 transition-transform duration-500" /> */}
-                                        <Image
-                                            src={imageUrl}
-                                            alt={annonce.title}
-                                            fill
-                                            unoptimized
-                                            className="object-cover group-hover:scale-110 transition-transform duration-500" />
+                                        <Image src={imageUrl} alt={annonce.title} fill unoptimized className="object-cover group-hover:scale-110 transition-transform duration-500" />
                                         {annonce.categorie && (
                                             <div className={`absolute bg-black/70 md:bg-background/95 backdrop-blur-sm px-1.5 py-0.5 md:px-2 md:py-0.5 rounded-full text-[8px] md:text-[9px] font-black text-white md:text-foreground shadow-sm uppercase tracking-tighter ${viewMode === 'grid' ? "top-1 left-1 md:top-2 md:left-2" : "top-1 left-1"}`}>
                                                 {annonce.categorie.label}
@@ -310,8 +388,7 @@ export default function SearchAnnonces() {
                                                 )}
                                             </div>
 
-                                            <button className={`flex items-center gap-1 md:gap-2 bg-secondary text-white rounded-full font-black hover:bg-primary transition-all active:scale-90 shadow-sm ${viewMode === 'grid' ? "px-2 py-1 md:px-3 md:py-2 text-[10px] md:text-xs" : "px-3 py-1.5 md:px-5 md:py-2.5 text-xs md:text-sm"
-                                                }`}>
+                                            <button className={`flex items-center gap-1 md:gap-2 bg-secondary text-white rounded-full font-black hover:bg-primary transition-all active:scale-90 shadow-sm ${viewMode === 'grid' ? "px-2 py-1 md:px-3 md:py-2 text-[10px] md:text-xs" : "px-3 py-1.5 md:px-5 md:py-2.5 text-xs md:text-sm"}`}>
                                                 <span className="whitespace-nowrap">{viewMode === 'grid' ? "Consulter" : "Voir l'annonce"}</span>
                                                 <Icon icon="solar:check-circle-bold-duotone" className="w-3 h-3 md:w-4 md:h-4" />
                                             </button>
