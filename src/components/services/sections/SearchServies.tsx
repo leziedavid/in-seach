@@ -286,7 +286,7 @@ export default function SearchServies() {
                 </div>
             ) : categories.length > 0 && (
                 <div className="relative flex flex-col items-center w-full max-w-2xl mb-3">
-                    <div ref={categoryScrollRef} className="w-full overflow-x-auto scroll-smooth scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" style={{ WebkitOverflowScrolling: "touch" }}>
+                    <div ref={categoryScrollRef} className="w-full overflow-x-auto scroll-smooth scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                         <div className="flex items-start gap-3 px-1 py-1 w-max mx-auto">
                             {categories.map((cat) => {
                                 const isActive = selectedCategoryId === cat.id;

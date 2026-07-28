@@ -87,7 +87,7 @@ export default function CategoryFilter({
 
         return (
             <div className={`w-full space-y-3 ${className}`}>
-                <div className="w-full overflow-x-auto scroll-smooth scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" style={{ WebkitOverflowScrolling: "touch" }}>
+                <div className="w-full overflow-x-auto scroll-smooth scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     <div className="flex items-start gap-3 px-1 py-1 w-max">
                         {categories.map((cat) =>
                             renderCard(
@@ -103,7 +103,7 @@ export default function CategoryFilter({
                 </div>
 
                 {hasSubCategories && activeCategory && activeCategory.subCategories && activeCategory.subCategories.length > 0 && (
-                    <div className="w-full overflow-x-auto scroll-smooth scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden animate-in fade-in slide-in-from-top-2 duration-500" style={{ WebkitOverflowScrolling: "touch" }}>
+                    <div className="w-full overflow-x-auto scroll-smooth scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden animate-in fade-in slide-in-from-top-2 duration-500">
                         <div className="flex items-start gap-3 px-1 py-1 w-max">
                             {onSubCategoryChange && renderCard(
                                 "all", `Tout ${activeCategory.name}`,
