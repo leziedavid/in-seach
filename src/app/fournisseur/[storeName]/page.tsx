@@ -215,6 +215,7 @@ export default function FournisseurPage(props: Props) {
                     }}
                     onSubCategoryChange={setSelectedSubCategory}
                     hasSubCategories={true}
+                    variant="cards"
                 />
             </div>
             {/* Price range & view toggle */}
