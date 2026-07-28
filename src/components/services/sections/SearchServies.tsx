@@ -3,8 +3,8 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Icon } from "@iconify/react";
 import Image from "next/image";
-import { getServices, searchServiceIA, searchServiceCategories } from "@/api/api";
-import { UserLocation, Service } from "@/types/interface";
+import { getServices, searchServiceIA, searchServiceCategories, getAllCategories } from "@/api/api";
+import { UserLocation, Service, Category } from "@/types/interface";
 import { useUserLocation } from "@/utils/location";
 import BookingModal from "@/components/bookings/modals/BookingModal";
 import ImageSearchModal from "@/components/services/sections/ImageSearchModal";
@@ -42,6 +42,39 @@ export default function SearchServies() {
     const [aiMessage, setAiMessage] = useState("");
     const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
 
+    // Filtre par catégorie — liste horizontale au-dessus de la recherche (voir maquette).
+    // Indépendant de `query` : peut être combiné avec le texte saisi ou utilisé seul.
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+    const categoryScrollRef = useRef<HTMLDivElement>(null);
+    const [categoryRowOverflow, setCategoryRowOverflow] = useState(false);
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const res = await getAllCategories();
+                if (res.statusCode === 200 && res.data) {
+                    setCategories(res.data);
+                }
+            } catch (e) {
+                console.error("Error fetching categories:", e);
+            }
+        };
+        fetchCategories();
+    }, []);
+
+    // Indication de scroll — visible seulement si les catégories dépassent la largeur visible
+    // (même logique que AppTabs.tsx).
+    useEffect(() => {
+        const checkOverflow = () => {
+            const el = categoryScrollRef.current;
+            if (el) setCategoryRowOverflow(el.scrollWidth > el.clientWidth + 4);
+        };
+        checkOverflow();
+        window.addEventListener("resize", checkOverflow);
+        return () => window.removeEventListener("resize", checkOverflow);
+    }, [categories.length]);
+
     // Autocomplete states
     const [suggestions, setSuggestions] = useState<{ id: string, label: string }[]>([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
@@ -70,6 +103,7 @@ export default function SearchServies() {
                 page: pageNum,
                 limit: ITEMS_PER_PAGE,
                 search: query || undefined,
+                categoryId: selectedCategoryId || undefined,
                 lat: lat || undefined,
                 lng: lng || undefined
             });
@@ -93,14 +127,14 @@ export default function SearchServies() {
             loadingRef.current = false;
             setLoading(false);
         }
-    }, [query, lat, lng]);
+    }, [query, lat, lng, selectedCategoryId]);
 
-    // Réinitialiser la recherche si query est vide ET pas de localisation
+    // Réinitialiser la recherche si query est vide, pas de localisation ET pas de catégorie active
     useEffect(() => {
-        if (query === "" && !lat && !lng) {
+        if (query === "" && !lat && !lng && !selectedCategoryId) {
             setIsSearching(false);
         }
-    }, [query, lat, lng]);
+    }, [query, lat, lng, selectedCategoryId]);
 
     // Reset and fetch when filters change
     useEffect(() => {
@@ -108,7 +142,7 @@ export default function SearchServies() {
             setPage(1);
             fetchServices(1, true);
         }
-    }, [isSearching, query, lat, lng, fetchServices, aiResults.length]);
+    }, [isSearching, query, lat, lng, selectedCategoryId, fetchServices, aiResults.length]);
 
     // Load more when page changes
     useEffect(() => {
@@ -153,6 +187,18 @@ export default function SearchServies() {
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
+
+    // Clic sur une catégorie — la sélectionne (ou la désélectionne si déjà active) et
+    // lance/actualise la recherche, seule ou combinée au texte déjà saisi.
+    const handleCategoryClick = (categoryId: string) => {
+        const next = selectedCategoryId === categoryId ? null : categoryId;
+        setAiResults([]);
+        setAiSearchEmpty(false);
+        setSelectedCategoryId(next);
+        if (next || query.trim() || lat || lng) {
+            setIsSearching(true);
+        }
+    };
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -223,13 +269,45 @@ export default function SearchServies() {
 
     return (
         <div className="flex flex-col items-center w-full max-w-7xl mx-auto px-4 py-2">
+            {/* Catégories — filtre horizontal scrollable, indépendant du texte de recherche */}
+            {categories.length > 0 && (
+                <div className="relative flex flex-col items-center w-full max-w-2xl mb-3">
+                    <div ref={categoryScrollRef} className="w-full overflow-x-auto scroll-smooth scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" style={{ WebkitOverflowScrolling: "touch" }}>
+                        <div className="flex items-start gap-3 px-1 py-1 w-max mx-auto">
+                            {categories.map((cat) => {
+                                const isActive = selectedCategoryId === cat.id;
+                                return (
+                                    <button key={cat.id} type="button" onClick={() => handleCategoryClick(cat.id)} className="flex flex-col items-center gap-1.5 shrink-0 group active:scale-95 transition-transform" >
+                                        <div className={`relative w-14 h-14 rounded-2xl overflow-hidden flex items-center justify-center border transition-all duration-300 ${isActive ? "border-primary bg-primary/10 shadow-md shadow-primary/20 scale-105" : "border-border/40 bg-muted/40 group-hover:border-primary/40"}`}>
+                                            {cat.iconName ? (
+                                                <Image src={cat.iconName} alt={cat.label} fill unoptimized className="object-cover p-2" />
+                                            ) : (
+                                                <Icon icon="solar:widget-5-bold-duotone" className={`w-6 h-6 ${isActive ? "text-primary" : "text-muted-foreground"}`} />
+                                            )}
+                                        </div>
+                                        <span className={`text-[11px] font-black max-w-[64px] truncate transition-colors ${isActive ? "text-primary" : "text-foreground/80 group-hover:text-primary"}`}>
+                                            {cat.label}
+                                        </span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                    {categoryRowOverflow && (
+                        <span className="flex items-center gap-1 text-[10px] text-muted-foreground mt-1">
+                            <Icon icon="solar:round-double-alt-arrow-right-bold-duotone" className="w-3 h-3 animate-bounce" />
+                            {t("services.categories_scroll_hint")}
+                        </span>
+                    )}
+                </div>
+            )}
             {/* Search Input - Centered */}
             <form onSubmit={handleSearch} className="flex flex-row items-stretch justify-center gap-1 w-full max-w-2xl mb-2 relative">
                 <div className="flex items-center w-full bg-card border border-primary rounded-xl px-3 md:px-4 py-2 shadow-sm hover:border-secondary transition-colors">
                     <Icon icon="solar:map-point-bold-duotone" className="w-4 h-4 text-muted-foreground mr-2 flex-shrink-0" />
                     <input value={query} type="text" placeholder={t("services.search_placeholder")} className="flex-1 bg-transparent text-foreground outline-none text-sm min-w-0 placeholder:text-muted-foreground" onChange={(e) => setQuery(e.target.value)} />
                     {query && (
-                        <button type="button" onClick={() => { setQuery(""); if (!lat && !lng) setIsSearching(false); }} className="p-1 text-muted-foreground hover:text-primary transition-colors animate-in fade-in zoom-in duration-200" title={t("common.clear_search")}>
+                        <button type="button" onClick={() => { setQuery(""); if (!lat && !lng && !selectedCategoryId) setIsSearching(false); }} className="p-1 text-muted-foreground hover:text-primary transition-colors animate-in fade-in zoom-in duration-200" title={t("common.clear_search")}>
                             <Icon icon="solar:close-circle-bold-duotone" className="w-5 h-5" />
                         </button>
                     )}

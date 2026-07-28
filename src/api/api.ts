@@ -689,6 +689,13 @@ export const getForSelectCategories = async (): Promise<BaseResponse<Category[]>
     return await response.json();
 };
 
+// Toutes les catégories sans pagination (id + label + icône) — alimente les UI de filtre
+// comme SearchServies, où toutes les catégories doivent être affichées d'un coup.
+export const getAllCategories = async (): Promise<BaseResponse<Category[]>> => {
+    const response = await fetch(`${getBaseUrl()}/categories/all`);
+    return await response.json();
+};
+
 export const searchServiceCategories = async (query: string): Promise<BaseResponse<Category[]>> => {
     const response = await fetch(`${getBaseUrl()}/categories/search?q=${encodeURIComponent(query)}`);
     return await response.json();

@@ -162,7 +162,8 @@
         "search_loading_description": "We are looking for the best services available for you.",
         "not_found_title": "No service found",
         "not_found_description": "No service matches your search. Try other keywords or a different location.",
-        "ai_not_found_description": "No service matches this image. Try with another photo or type the service name."
+        "ai_not_found_description": "No service matches this image. Try with another photo or type the service name.",
+        "categories_scroll_hint": "Swipe to see more categories"
     },
     "admin": {
         "menu": {
