@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Icon } from "@iconify/react";
 import Image from "next/image";
 import { getServices, searchServiceIA, searchServiceCategories, getAllCategories } from "@/api/api";
@@ -44,27 +45,19 @@ export default function SearchServies() {
 
     // Filtre par catégorie — liste horizontale au-dessus de la recherche (voir maquette).
     // Indépendant de `query` : peut être combiné avec le texte saisi ou utilisé seul.
-    const [categories, setCategories] = useState<Category[]>([]);
-    const [categoriesLoading, setCategoriesLoading] = useState(true);
+    // useQuery (pas un simple useEffect+fetch) : les catégories changent rarement et
+    // AppTabs démonte/remonte ce composant à chaque changement d'onglet — sans cache
+    // partagé, on refetch inutilement à chaque retour sur l'onglet "Expertise". React
+    // Query dédoublonne/cache ce résultat (staleTime 5 min, voir QueryProvider.tsx) : un
+    // retour sur l'onglet dans ce délai réutilise le cache, zéro requête réseau.
+    const { data: categoriesRes, isLoading: categoriesLoading } = useQuery({
+        queryKey: ["services-categories-all"],
+        queryFn: getAllCategories,
+    });
+    const categories: Category[] = categoriesRes?.statusCode === 200 ? (categoriesRes.data ?? []) : [];
     const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
     const categoryScrollRef = useRef<HTMLDivElement>(null);
     const [categoryRowOverflow, setCategoryRowOverflow] = useState(false);
-
-    useEffect(() => {
-        const fetchCategories = async () => {
-            try {
-                const res = await getAllCategories();
-                if (res.statusCode === 200 && res.data) {
-                    setCategories(res.data);
-                }
-            } catch (e) {
-                console.error("Error fetching categories:", e);
-            } finally {
-                setCategoriesLoading(false);
-            }
-        };
-        fetchCategories();
-    }, []);
 
     // Indication de scroll — visible seulement si les catégories dépassent la largeur visible
     // (même logique que AppTabs.tsx).

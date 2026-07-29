@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react"
+import { useQuery } from "@tanstack/react-query"
 import { getProducts, getProductCategories } from "@/api/api"
 import { Product, CategoryProd } from "@/types/interface"
 import CategoryButton from "@/components/products/sections/CategoryButton"
@@ -21,7 +22,6 @@ export default function ProductsPage() {
     const [selectedCategory, setSelectedCategory] = useState("all")
     const [selectedSubCategory, setSelectedSubCategory] = useState("all")
     const [products, setProducts] = useState<Product[]>([])
-    const [categories, setCategories] = useState<CategoryProd[]>([])
     const [page, setPage] = useState(1)
     const [typeVente, setTypeVente] = useState("ALL")
     const [minPrice, setMinPrice] = useState("")
@@ -34,20 +34,14 @@ export default function ProductsPage() {
     // Ref pour éviter la stale closure sur `loading` dans le useCallback
     const loadingRef = useRef(false)
 
-    // Load Categories
-    useEffect(() => {
-        const fetchCategories = async () => {
-            try {
-                const res = await getProductCategories()
-                if (res.statusCode === 200 && res.data) {
-                    setCategories(res.data)
-                }
-            } catch (error) {
-                console.error("Error fetching product categories:", error)
-            }
-        }
-        fetchCategories()
-    }, [])
+    // Catégories produit — changent rarement, mais ce composant est démonté/remonté à
+    // chaque changement d'onglet dans AppTabs ; useQuery évite de refetch à chaque retour
+    // sur l'onglet "Boutique" (staleTime 5 min, voir QueryProvider.tsx).
+    const { data: categoriesRes } = useQuery({
+        queryKey: ["product-categories-all"],
+        queryFn: () => getProductCategories(),
+    })
+    const categories: CategoryProd[] = categoriesRes?.statusCode === 200 ? (categoriesRes.data ?? []) : []
 
     // Load Products
     const fetchProducts = useCallback(async (pageNum: number, isNewSearch: boolean) => {

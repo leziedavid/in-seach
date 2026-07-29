@@ -47,18 +47,24 @@ export default function CategoryFilter({
         }
     };
 
+    // Recalcule la visibilité des flèches quand la liste change (le scrollWidth peut changer).
     useEffect(() => {
         checkArrows(categoryRef);
-        const currentRef = categoryRef.current;
-        if (currentRef) {
-            currentRef.addEventListener("scroll", () => checkArrows(categoryRef));
-        }
-        return () => {
-            if (currentRef) {
-                currentRef.removeEventListener("scroll", () => checkArrows(categoryRef));
-            }
-        };
     }, [categories]);
+
+    // Écouteur de scroll — attaché UNE SEULE FOIS au montage. `categories` étant reconstruit à
+    // chaque rendu du parent (nouvelle référence de tableau à chaque frappe/filtre), le mettre
+    // en dépendance ici recréait un nouveau listener anonyme à chaque rendu SANS jamais
+    // retirer les précédents (removeEventListener avec une fonction anonyme différente de
+    // celle passée à addEventListener ne fait rien) — fuite de listeners qui s'accumulaient
+    // indéfiniment au fil de la navigation.
+    useEffect(() => {
+        const currentRef = categoryRef.current;
+        if (!currentRef) return;
+        const handleScroll = () => checkArrows(categoryRef);
+        currentRef.addEventListener("scroll", handleScroll);
+        return () => currentRef.removeEventListener("scroll", handleScroll);
+    }, []);
 
     const activeCategory = categories.find(cat => cat.id === selectedCategoryId);
 

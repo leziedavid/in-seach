@@ -2,6 +2,7 @@
 
 
 import { useState, useEffect, useCallback, use } from "react"
+import { useQuery } from "@tanstack/react-query"
 import { getProducts, getProductCategories, getPublicStoreInfo } from "@/api/api"
 import { Product, CategoryProd, StoreUserInfo } from "@/types/interface"
 import ProductCard from "@/components/products/cards/ProductCard"
@@ -25,7 +26,6 @@ export default function FournisseurPage(props: Props) {
     const [selectedCategory, setSelectedCategory] = useState("all")
     const [selectedSubCategory, setSelectedSubCategory] = useState("all")
     const [products, setProducts] = useState<Product[]>([])
-    const [categories, setCategories] = useState<CategoryProd[]>([])
     const [page, setPage] = useState(1)
     const [minPrice, setMinPrice] = useState("")
     const [maxPrice, setMaxPrice] = useState("")
@@ -56,20 +56,14 @@ export default function FournisseurPage(props: Props) {
         fetchPublicStoreData()
     }, [fetchPublicStoreData])
 
-    // Load Categories
-    useEffect(() => {
-        const fetchCategories = async () => {
-            try {
-                const res = await getProductCategories()
-                if (res.statusCode === 200 && res.data) {
-                    setCategories(res.data)
-                }
-            } catch (error) {
-                console.error("Error fetching product categories:", error)
-            }
-        }
-        fetchCategories()
-    }, [])
+    // Catégories produit — changent rarement ; useQuery les met en cache (staleTime 5 min,
+    // voir QueryProvider.tsx) et les partage avec Boutique.tsx (même queryKey), évitant un
+    // refetch réseau si l'utilisateur vient de visiter l'un puis l'autre.
+    const { data: categoriesRes } = useQuery({
+        queryKey: ["product-categories-all"],
+        queryFn: () => getProductCategories(),
+    })
+    const categories: CategoryProd[] = categoriesRes?.statusCode === 200 ? (categoriesRes.data ?? []) : []
 
     // Load Products — toujours filtré sur le catalogue B2B (productType=SUPPLIER)
     const fetchProducts = useCallback(async (pageNum: number, isNewSearch: boolean) => {
