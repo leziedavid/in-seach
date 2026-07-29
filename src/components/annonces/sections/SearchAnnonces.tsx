@@ -235,12 +235,15 @@ export default function SearchAnnonces() {
                         <div className="flex items-start gap-3 px-1 py-1 w-max mx-auto">
                             {categories.map((cat) => {
                                 const isActive = selectedCategoryId === cat.id;
+                                // cat.iconName peut aussi être un ancien nom d'icône texte (legacy) plutôt
+                                // qu'une vraie image uploadée — voir même garde dans SearchServies.tsx.
+                                const hasImage = !!cat.iconName && (cat.iconName.startsWith("http") || cat.iconName.startsWith("/"));
                                 return (
                                     <div key={cat.id} className="flex flex-col items-center gap-1.5 shrink-0 group">
                                         <div className="relative">
                                             <button type="button" onClick={() => handleCategoryClick(cat.id)} className={`relative w-14 h-14 rounded-2xl overflow-hidden flex items-center justify-center border transition-all duration-300 active:scale-95 ${isActive ? "border-primary bg-primary/10 shadow-md shadow-primary/20 scale-105" : "border-border/40 bg-muted/40 group-hover:border-primary/40"}`}>
-                                                {cat.iconName ? (
-                                                    <Image src={cat.iconName} alt={cat.label} fill unoptimized className="object-cover" />
+                                                {hasImage ? (
+                                                    <Image src={cat.iconName!} alt={cat.label} fill sizes="56px" className="object-cover" />
                                                 ) : (
                                                     <Icon icon="solar:widget-5-bold-duotone" className={`w-6 h-6 ${isActive ? "text-primary" : "text-muted-foreground"}`} />
                                                 )}
