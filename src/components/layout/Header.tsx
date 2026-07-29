@@ -143,8 +143,12 @@ export default function Header() {
         };
     }, []);
 
-    // 🔔 FETCH UNREAD MESSAGES
+    // 🔔 FETCH UNREAD MESSAGES — uniquement si connecté avec un token valide (non expiré),
+    // sinon /chat/unread-count renvoie systématiquement 401 pour chaque visiteur non
+    // authentifié (le header s'affiche sur toutes les pages, y compris publiques).
     useEffect(() => {
+        if (!isAuthenticated()) return;
+
         const fetchUnreadCount = async () => {
             try {
                 const res = await getConversationsCount();
@@ -192,16 +196,8 @@ export default function Header() {
                 <div className="flex items-center gap-2.5 min-w-0">
                     <div className="w-9 h-9 bg-primary/20 rounded-full flex items-center justify-center overflow-hidden relative border-2 border-primary/10 shrink-0 shadow-md">
                         {images.map((img, index) => (
-                            <Image
-                                key={img}
-                                src={img}
-                                alt="Avatar"
-                                width={36}
-                                height={36}
-                                priority={index === 0}
-                                unoptimized
-                                onClick={() => handleProtectedNavigation("/akwaba")}
-                                className={`object-cover w-full h-full absolute top-0 left-0 transition-opacity duration-500 ease-in-out cursor-pointer ${index === currentImageIndex ? "opacity-100" : "opacity-0"}`} />
+                            <Image key={img} src={img} alt="Avatar" width={36} height={36} priority={index === 0 && !isDesktop} unoptimized
+                                onClick={() => handleProtectedNavigation("/akwaba")} className={`object-cover w-full h-full absolute top-0 left-0 transition-opacity duration-500 ease-in-out cursor-pointer ${index === currentImageIndex ? "opacity-100" : "opacity-0"}`} />
                         ))}
                     </div>
                     <div className="min-w-0">
@@ -234,7 +230,7 @@ export default function Header() {
                     <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="hidden md:flex relative group transition-transform active:scale-95" >
                         <div className="w-9 h-9 bg-primary/20 rounded-full flex items-center justify-center overflow-hidden relative border-2 border-primary/10 group-hover:border-primary/30 transition-all shrink-0">
                             {images.map((img, index) => (
-                                <Image key={img} src={img} alt="Avatar" width={48} height={48} priority={index === 0} unoptimized onClick={() => handleProtectedNavigation("/akwaba")} className={`object-cover w-full h-full absolute top-0 left-0 transition-opacity duration-500 ease-in-out cursor-pointer ${index === currentImageIndex ? "opacity-100" : "opacity-0"}`} />
+                                <Image key={img} src={img} alt="Avatar" width={48} height={48} priority={index === 0 && isDesktop} unoptimized onClick={() => handleProtectedNavigation("/akwaba")} className={`object-cover w-full h-full absolute top-0 left-0 transition-opacity duration-500 ease-in-out cursor-pointer ${index === currentImageIndex ? "opacity-100" : "opacity-0"}`} />
                             ))}
                         </div>
                     </button>
@@ -259,20 +255,8 @@ export default function Header() {
                 {/* Content Wrapper for Animation */}
                 <AnimatePresence mode="wait">
                     {mounted && (isMenuOpen || isDesktop) && (
-                        <motion.div
-                            key="menu-content"
-                            initial={{ opacity: 0, x: -20, width: 0 }}
-                            animate={{
-                                opacity: 1,
-                                x: 0,
-                                width: "auto",
-                                transition: {
-                                    type: "spring",
-                                    stiffness: 300,
-                                    damping: 30,
-                                    staggerChildren: 0.05
-                                }
-                            }}
+                        <motion.div key="menu-content" initial={{ opacity: 0, x: -20, width: 0 }}
+                            animate={{ opacity: 1, x: 0, width: "auto", transition: { type: "spring", stiffness: 300, damping: 30, staggerChildren: 0.05 } }}
                             exit={{ opacity: 0, x: -20, width: 0 }}
                             className="flex items-center justify-start md:justify-start w-full md:w-auto gap-4 md:gap-4 overflow-hidden"  >
                             {/* Navigation Tabs */}

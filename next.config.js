@@ -27,7 +27,7 @@ const nextConfig = {
       "default-src 'self'",
 
       // Scripts — unsafe-eval + unsafe-inline actifs partout (Next.js + Firebase SW)
-      "script-src 'self' 'unsafe-eval' 'unsafe-inline' cdnjs.cloudflare.com https://www.gstatic.com",
+      "script-src 'self' 'unsafe-eval' 'unsafe-inline' cdnjs.cloudflare.com https://www.gstatic.com https://www.googletagmanager.com https://www.google-analytics.com",
 
       // Styles (unsafe-inline requis par Tailwind/CSS-in-JS)
       "style-src 'self' 'unsafe-inline' cdnjs.cloudflare.com",
@@ -62,7 +62,8 @@ const nextConfig = {
         "https://fcmregistrations.googleapis.com",        // FCM Web Push : endpoint réel de getToken()/abonnement
         "https://firebaseinstallations.googleapis.com",   // Firebase Installations
         "https://firebase.googleapis.com",                // Firebase Remote Config (Analytics)
-        "https://www.google-analytics.com",               // Firebase Analytics
+        "https://www.google-analytics.com",               // Firebase Analytics / GA4
+        "https://www.googletagmanager.com",               // Google Tag Manager (config fetch)
         "https://analytics.google.com",                   // Firebase Analytics
         "https://region1.google-analytics.com",           // Firebase Analytics (région)
         "https://overpass-api.de",                        // Overpass POIs temps réel

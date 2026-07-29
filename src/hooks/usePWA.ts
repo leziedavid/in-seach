@@ -32,15 +32,17 @@ export function usePWA() {
             e.preventDefault();
             setDeferredPrompt(e);
         };
-
-        window.addEventListener("beforeinstallprompt", handler);
-        window.addEventListener("appinstalled", () => {
+        const handleInstalled = () => {
             setIsInstalled(true);
             setDeferredPrompt(null);
-        });
+        };
+
+        window.addEventListener("beforeinstallprompt", handler);
+        window.addEventListener("appinstalled", handleInstalled);
 
         return () => {
             window.removeEventListener("beforeinstallprompt", handler);
+            window.removeEventListener("appinstalled", handleInstalled);
         };
     }, []);
 

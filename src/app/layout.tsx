@@ -12,13 +12,15 @@ import { WebPushManager } from "@/components/notifications/webPush";
 import { I18nProvider } from "@/utils/langue/provider";
 import VideoModal from "@/components/modals/VideoModal";
 
-// [PERF] Police principale uniquement, display:swap pour éviter le FOIT
+// [PERF] --font-jost n'est référencée nulle part dans le code (aucune classe/style ne
+// l'utilise) — preload:true téléchargeait ses 4 graisses sur chaque page sans jamais les
+// afficher (cause directe des warnings "woff2 preloaded but not used").
 const jost = Jost({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   variable: "--font-jost",
   display: "swap",
-  preload: true,
+  preload: false,
 })
 
 // [PERF] Montserrat : weights réduits à l'essentiel, display:swap
@@ -167,23 +169,29 @@ export default function RootLayout({ children, }: Readonly<{ children: React.Rea
             ce script s'exécute après l'hydratation — 'load' a donc déjà été déclenché la plupart
             du temps, et le listener ci-dessous ne se déclenchait jamais (SW jamais enregistré,
             navigator.serviceWorker.ready restait en attente indéfiniment). On enregistre
-            immédiatement, avec 'load' seulement en repli si le document n'est pas encore prêt. */}
-        <Script id="sw-register" strategy="afterInteractive">{`
-          if ('serviceWorker' in navigator) {
-            function registerFirebaseSW() {
-              navigator.serviceWorker.register('/firebase-messaging-sw.js', { updateViaCache: 'none' }).then(function(registration) {
-                console.log('Firebase ServiceWorker registration successful with scope: ', registration.scope);
-              }, function(err) {
-                console.log('Firebase ServiceWorker registration failed: ', err);
-              });
+            immédiatement, avec 'load' seulement en repli si le document n'est pas encore prêt.
+            Désactivé en dev (NODE_ENV) : ce SW n'a pas de fetch handler (il ne peut pas mettre
+            en cache _next/static ni interférer avec Fast Refresh), mais un service worker actif
+            en local n'a aucune utilité pour développer et ajoute juste une variable de plus à
+            écarter quand on débogue un souci d'affichage. */}
+        {process.env.NODE_ENV !== 'development' && (
+          <Script id="sw-register" strategy="afterInteractive">{`
+            if ('serviceWorker' in navigator) {
+              function registerFirebaseSW() {
+                navigator.serviceWorker.register('/firebase-messaging-sw.js', { updateViaCache: 'none' }).then(function(registration) {
+                  console.log('Firebase ServiceWorker registration successful with scope: ', registration.scope);
+                }, function(err) {
+                  console.log('Firebase ServiceWorker registration failed: ', err);
+                });
+              }
+              if (document.readyState === 'complete') {
+                registerFirebaseSW();
+              } else {
+                window.addEventListener('load', registerFirebaseSW);
+              }
             }
-            if (document.readyState === 'complete') {
-              registerFirebaseSW();
-            } else {
-              window.addEventListener('load', registerFirebaseSW);
-            }
-          }
-        `}</Script>
+          `}</Script>
+        )}
       </body>
     </html>
   );
