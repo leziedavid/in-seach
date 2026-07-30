@@ -3,57 +3,50 @@
 import { useState, useRef, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Icon } from "@iconify/react"
+import { useQuery } from "@tanstack/react-query"
 import SearchAnnonces from "@/components/annonces/sections/SearchAnnonces"
 import Boutique from "@/components/store/sections/Boutique"
-import { OpportunitiesIcon, BoutiqueIcon, SearchIcon, LogisticsIcon, GazIcon, CarRepairIcon, SupplierIcon } from "@/components/layout/TabIcons"
+import { strokeColor, defaultSizeClasses } from "@/components/layout/TabIcons"
 import SearchServies from "@/components/services/sections/SearchServies"
 import LogisticProvider from "@/components/logistics/sections/LogisticProvider"
 import SearchGaz from "@/components/gas-delivery/sections/SearchGaz"
 import SearchGarage from "@/components/garage/sections/SearchGarage"
 import SearchFournisseurs from "@/components/fournisseur/sections/SearchFournisseurs"
+import SearchRestaurants from "@/components/restaurant/sections/SearchRestaurants"
 import TabPromoBanner, { TabPromo } from "@/components/home/TabPromoBanner"
 import { useTranslation } from "@/utils/langue/hooks"
+import { getMenusByType } from "@/api/api"
+import { queryKeys } from "@/lib/queryKeys"
+
+// Menu dynamique (piloté par la base, voir backend/src/menu) — le `code`
+// stable de chaque Menu HOME_* est mappé vers l'id court historique utilisé
+// par ce composant (state `active`, contenu, promos). Ajouter un futur onglet
+// = créer le Menu correspondant depuis /admin/menus + une entrée ici pour
+// son contenu (un composant React ne peut pas venir de la base).
+const HOME_CODE_TO_ID: Record<string, string> = {
+    HOME_SEARCH: "search",
+    HOME_ANNONCES: "annonces",
+    HOME_BOUTIQUE: "boutique",
+    HOME_GAZ: "gaz",
+    HOME_GARAGE: "garage",
+    HOME_FOURNISSEURS: "fournisseurs",
+    HOME_RESTAURANTS: "restaurants",
+}
 
 export default function AppTabs() {
     const { t } = useTranslation();
 
-    const tabs = [
-        {
-            id: "search",
-            label: "",
-            Icon: SearchIcon,
-        },
-        {
-            id: "annonces",
-            label: t("home.tabs.opportunities.label"),
-            Icon: OpportunitiesIcon,
-        },
-        {
-            id: "boutique",
-            label: t("home.tabs.boutique.label"),
-            Icon: BoutiqueIcon,
-        },
-        // {
-        //     id: "logistics",
-        //     label: t("home.tabs.logistics.label"),
-        //     Icon: LogisticsIcon,
-        // },
-        {
-            id: "gaz",
-            label: t("home.tabs.gaz.label"),
-            Icon: GazIcon,
-        },
-        {
-            id: "garage",
-            label: t("home.tabs.garage.label"),
-            Icon: CarRepairIcon,
-        },
-        {
-            id: "fournisseurs",
-            label: t("home.tabs.fournisseurs.label"),
-            Icon: SupplierIcon,
-        },
-    ]
+    const { data: menusRes } = useQuery({
+        queryKey: queryKeys.menus.byType("HOME"),
+        queryFn: () => getMenusByType("HOME"),
+    })
+    const menus = menusRes?.statusCode === 200 ? (menusRes.data ?? []) : []
+
+    const tabs = menus.map((m) => ({
+        id: HOME_CODE_TO_ID[m.code] ?? m.code,
+        label: m.label,
+        icon: m.icon || "solar:widget-5-bold-duotone",
+    }))
 
     // Un message promo par onglet, totalement indépendant des autres (id, actif/inactif,
     // fermeture propre — voir TabPromoBanner.tsx / useDismissiblePromo.ts). Ajouter un futur
@@ -112,6 +105,15 @@ export default function AppTabs() {
             tone: "primary",
             title: t("home.tabs.fournisseurs.title"),
             description: t("home.tabs.fournisseurs.description"),
+        },
+        {
+            tabId: "restaurants",
+            active: true,
+            badge: t("home.promo.badge_new"),
+            icon: "solar:chef-hat-bold-duotone",
+            tone: "amber",
+            title: t("home.tabs.restaurants.title"),
+            description: t("home.tabs.restaurants.description"),
         },
     ]
 
@@ -184,7 +186,6 @@ export default function AppTabs() {
 
                     {tabs.map((tab) => {
                         const isActive = active === tab.id
-                        const IconComponent = tab.Icon
 
                         return (
                             <button key={tab.id} ref={isActive ? activeTabRef : null} onClick={() => handleTabClick(tab.id)} className={`relative flex flex-col items-center shrink-0 group py-2 ${tabs.length > 4 ? "basis-1/4 min-w-0" : ""}`} >
@@ -195,14 +196,14 @@ export default function AppTabs() {
 
                                 {/* Cercle - Augmenté pour mobile (w-16) et web (sm-w-18) */}
                                 <div className={`relative z-10 w-16 h-16 sm:w-18 sm:h-18 md:w-20 md:h-20 flex items-center justify-center rounded-[2rem] border transition-all duration-300 ${isActive ? "bg-primary border-primary shadow-[0_10px_25px_-5px_rgba(var(--primary-rgb),0.4)] scale-105" : "bg-white dark:bg-zinc-800 border-border/40 shadow-sx hover:border-primary/50"} `} >
-                                    <IconComponent active={isActive} />
+                                    <Icon icon={tab.icon} className={defaultSizeClasses} style={{ color: strokeColor(isActive) }} />
                                 </div>
 
                                 {/* Label - Optionnel, caché sur mobile si vide. max-w-full + truncate : au-delà de
                                     4 onglets, chaque bouton fait exactement 25% de largeur (basis-1/4) — un libellé
                                     plus long que ça ne doit pas repousser l'icône ni déborder sur le voisin. */}
                                 <span className={`text-[10px] sm:text-xs mt-3 max-w-full truncate transition-colors duration-300 font-black uppercase tracking-tighter ${tab.id === "search" ? "hidden sm:block" : ""} ${isActive ? "text-primary" : "text-zinc-600 dark:text-zinc-400 group-hover:text-primary"} `}  >
-                                    {tab.label || t("home.tabs.expertise.label")}
+                                    {tab.label}
                                 </span>
                             </button>
                         )
@@ -270,6 +271,12 @@ export default function AppTabs() {
                 {active === "fournisseurs" && (
                     <div className="w-full flex flex-col items-center px-0 sm:px-0 stagger-item">
                         <SearchFournisseurs />
+                    </div>
+                )}
+
+                {active === "restaurants" && (
+                    <div className="w-full flex flex-col items-center px-0 sm:px-0 stagger-item">
+                        <SearchRestaurants />
                     </div>
                 )}
             </div>

@@ -24,7 +24,7 @@ export default function SensitiveMedia({ children, revealed, onToggle, variant =
 
     return (
         <div className="absolute inset-0 z-10">
-            <div className={`w-full h-full transition-all duration-500 ${revealed ? "" : "blur-2xl scale-110"}`}>
+            <div className={`relative w-full h-full transition-all duration-500 ${revealed ? "" : "blur-2xl scale-110"}`}>
                 {children}
             </div>
 

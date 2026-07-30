@@ -23,26 +23,31 @@ export interface CommentStats {
   distribution: { note: number; _count: { note: number } }[];
 }
 
-export const useSeriesComment = (labelleServies: string, targetUserId: string) => {
+// targetEntityId : sous-cible optionnelle quand targetUserId possède plusieurs entités
+// notables (ex. plusieurs Restaurant) — scope la note/l'avis à l'entité précise plutôt
+// qu'au propriétaire seul. Absent pour tous les usages existants (Boutique, LogisticService...).
+export const useSeriesComment = (labelleServies: string, targetUserId: string, targetEntityId?: string) => {
   const [comments, setComments] = useState<CommentData[]>([]);
   const [stats, setStats] = useState<CommentStats | null>(null);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
 
+  const entitySuffix = targetEntityId ? `&targetEntityId=${targetEntityId}` : '';
+
   const fetchStats = useCallback(async () => {
     try {
-      const data = await api.get(`/series-comment/stats/${targetUserId}?labelleServies=${labelleServies}`);
+      const data = await api.get(`/series-comment/stats/${targetUserId}?labelleServies=${labelleServies}${entitySuffix}`);
       setStats(data as any);
     } catch (error) {
       console.error('Error fetching comment stats:', error);
     }
-  }, [labelleServies, targetUserId]);
+  }, [labelleServies, targetUserId, entitySuffix]);
 
   const fetchComments = useCallback(async (pageNum = 1) => {
     setLoading(true);
     try {
-      const res: any = await api.get(`/series-comment/by-target-user/${targetUserId}?labelleServies=${labelleServies}&page=${pageNum}&limit=10`);
+      const res: any = await api.get(`/series-comment/by-target-user/${targetUserId}?labelleServies=${labelleServies}&page=${pageNum}&limit=10${entitySuffix}`);
       if (pageNum === 1) {
         setComments(res.data);
       } else {
@@ -54,7 +59,7 @@ export const useSeriesComment = (labelleServies: string, targetUserId: string) =
     } finally {
       setLoading(false);
     }
-  }, [labelleServies, targetUserId]);
+  }, [labelleServies, targetUserId, entitySuffix]);
 
   useEffect(() => {
     if (targetUserId) {
@@ -76,6 +81,7 @@ export const useSeriesComment = (labelleServies: string, targetUserId: string) =
       const newComment = await api.post('/series-comment', {
         labelleServies,
         userAddServiesId: targetUserId,
+        ...(targetEntityId && { targetEntityId }),
         note,
         comment
       });

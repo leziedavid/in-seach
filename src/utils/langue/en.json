@@ -138,6 +138,11 @@
                 "title": "Suppliers & Wholesalers",
                 "description": "Find B2B suppliers and wholesalers, browse their catalogue and request delivery directly."
             },
+            "restaurants": {
+                "label": "Restaurants",
+                "title": "Food Ordering",
+                "description": "Discover restaurants near you, browse their menu and get your favorite dish delivered."
+            },
             "scroll_hint": "Swipe to see more services"
         },
         "promo": {

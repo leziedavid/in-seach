@@ -1,5 +1,5 @@
 import { getCookie } from '@/lib/cookies';
-import { BaseResponse, Category, Pagination, ReverseGeocodeData, Role, Service, MySpaceResponse, Annonce, BookingsCalendar, Product, CategoryProd, Order, AdminQueryParams, AdminUserUpdateDto, AdminProductUpdateDto, AdminServiceUpdateDto, AdminAnnonceUpdateDto, AdminSubscriptionPlanDto, User, AdminLog, SubscriptionPlan, PlanEntity, AdminUserSubscription, Subscription, OrdersGroupedResponse, SubOrder, BookingsGroupedResponse, LogisticService, Quote, Delivery, DeliveryTracking, QuoteStatus, DeliveryStatus, TransportType, LocationLog, CategorieAnnonce, TypeAnnonce, LogisticsClient, Video, StoreUserInfo, StoreStats, ServiceStats, AnnonceStats, LiveStats, LogisticProvider, LogisticStats, GasProvider, GasBottle, GasBottleFormat, GasDelivery, GasDeliveryStatus, GasProviderStats, Booking, GasAdminOverview, GasProviderAdminRow, Garage, GaragePieceCatalogue, EasyDelivery, HistoryDelivery, EasyDeliveryStatus, DriverStats, SubCategoryProd, Slider, Live, LiveFeedResponse, LiveListResponse, LiveStatus, LiveEntityType, Boost, BoostPricing, BoostEntityType, BoostPaymentMethod, WebPushNotifActiveResponse, WebPushNotifStatus, WebPushNotifAdminListResponse, NotificationSubscriptionListResponse, PushNotificationPayload, SendPushResult, MyAccess, AuthorizationNode, SupplierQuote, SupplierQuoteStatus } from '@/types/interface';
+import { BaseResponse, Category, Pagination, ReverseGeocodeData, Role, Service, MySpaceResponse, Annonce, BookingsCalendar, Product, CategoryProd, Order, AdminQueryParams, AdminUserUpdateDto, AdminProductUpdateDto, AdminServiceUpdateDto, AdminAnnonceUpdateDto, AdminSubscriptionPlanDto, User, AdminLog, SubscriptionPlan, PlanEntity, AdminUserSubscription, Subscription, OrdersGroupedResponse, SubOrder, BookingsGroupedResponse, LogisticService, Quote, Delivery, DeliveryTracking, QuoteStatus, DeliveryStatus, TransportType, LocationLog, CategorieAnnonce, TypeAnnonce, LogisticsClient, Video, StoreUserInfo, StoreStats, ServiceStats, AnnonceStats, LiveStats, LogisticProvider, LogisticStats, GasProvider, GasBottle, GasBottleFormat, GasDelivery, GasDeliveryStatus, GasProviderStats, Booking, GasAdminOverview, GasProviderAdminRow, Garage, GaragePieceCatalogue, EasyDelivery, HistoryDelivery, EasyDeliveryStatus, DriverStats, SubCategoryProd, Slider, Live, LiveFeedResponse, LiveListResponse, LiveStatus, LiveEntityType, Boost, BoostPricing, BoostEntityType, BoostPaymentMethod, WebPushNotifActiveResponse, WebPushNotifStatus, WebPushNotifAdminListResponse, NotificationSubscriptionListResponse, PushNotificationPayload, SendPushResult, MyAccess, AuthorizationNode, MenuTypeNode, MenuGroupNode, MenuNode, MenuAdminRow, SupplierQuote, SupplierQuoteStatus, Restaurant, RestaurantType } from '@/types/interface';
 
 export const getBaseUrl = (): string => {
     return process.env.NEXT_PUBLIC_API_URL || 'https://api.djamko.com/api/v1';
@@ -333,6 +333,98 @@ export const assignRolesToUser = async (userId: string, roleIds: string[]): Prom
         method: 'POST',
         body: JSON.stringify({ roleIds }),
     });
+    return await response.json();
+};
+
+// =====================
+// Menus dynamiques (TypeMenu / MenuGroup / Menu) — voir backend/src/menu
+// =====================
+
+// Façade publique — pas d'auth requise (menus HOME visibles par les visiteurs
+// anonymes). secureFetch reste utilisable ici : un token absent/invalide est
+// traité côté backend comme "non connecté", jamais comme une erreur.
+export const getMenusByType = async (code: string): Promise<BaseResponse<MenuNode[]>> => {
+    const response = await secureFetch(`${getBaseUrl()}/menus/type/${code}`, { method: 'GET' });
+    return await response.json();
+};
+
+export type ReorderItem = { id: string; order: number; groupId?: string | null };
+
+export const reorderAuthorizations = async (items: ReorderItem[]): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/authorizations/reorder`, {
+        method: 'PATCH',
+        body: JSON.stringify({ items }),
+    });
+    return await response.json();
+};
+
+export const getMenuTypes = async (): Promise<BaseResponse<MenuTypeNode[]>> => {
+    const response = await secureFetch(`${getBaseUrl()}/menu-types`, { method: 'GET' });
+    return await response.json();
+};
+
+export const createMenuType = async (data: Partial<MenuTypeNode>): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/menu-types`, { method: 'POST', body: JSON.stringify(data) });
+    return await response.json();
+};
+
+export const updateMenuType = async (id: string, data: Partial<MenuTypeNode>): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/menu-types/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
+    return await response.json();
+};
+
+export const deleteMenuType = async (id: string): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/menu-types/${id}`, { method: 'DELETE' });
+    return await response.json();
+};
+
+export const getMenuGroups = async (typeMenuId?: string): Promise<BaseResponse<MenuGroupNode[]>> => {
+    const response = await secureFetch(`${getBaseUrl()}/menu-groups${typeMenuId ? `?typeMenuId=${typeMenuId}` : ''}`, { method: 'GET' });
+    return await response.json();
+};
+
+export const createMenuGroup = async (data: Partial<MenuGroupNode>): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/menu-groups`, { method: 'POST', body: JSON.stringify(data) });
+    return await response.json();
+};
+
+export const updateMenuGroup = async (id: string, data: Partial<MenuGroupNode>): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/menu-groups/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
+    return await response.json();
+};
+
+export const deleteMenuGroup = async (id: string): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/menu-groups/${id}`, { method: 'DELETE' });
+    return await response.json();
+};
+
+export const reorderMenuGroups = async (items: ReorderItem[]): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/menu-groups/reorder`, { method: 'PATCH', body: JSON.stringify({ items }) });
+    return await response.json();
+};
+
+export const getMenusAdmin = async (typeMenuId?: string): Promise<BaseResponse<MenuAdminRow[]>> => {
+    const response = await secureFetch(`${getBaseUrl()}/menus${typeMenuId ? `?typeMenuId=${typeMenuId}` : ''}`, { method: 'GET' });
+    return await response.json();
+};
+
+export const createMenu = async (data: Partial<MenuAdminRow>): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/menus`, { method: 'POST', body: JSON.stringify(data) });
+    return await response.json();
+};
+
+export const updateMenu = async (id: string, data: Partial<MenuAdminRow>): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/menus/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
+    return await response.json();
+};
+
+export const deleteMenu = async (id: string): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/menus/${id}`, { method: 'DELETE' });
+    return await response.json();
+};
+
+export const reorderMenus = async (items: ReorderItem[]): Promise<BaseResponse<any>> => {
+    const response = await secureFetch(`${getBaseUrl()}/menus/reorder`, { method: 'PATCH', body: JSON.stringify({ items }) });
     return await response.json();
 };
 
@@ -1710,13 +1802,13 @@ export const reconnectUser = async (userId: string): Promise<BaseResponse<any>> 
    PRODUCTS & ORDERS API
 ======================================================= */
 
-export const getProducts = async (params: { page?: number; limit?: number; query?: string; categoryId?: string; subCategoryId?: string; storeName?: string; typeVente?: string; minPrice?: number; maxPrice?: number; productType?: string }): Promise<BaseResponse<Pagination<Product>>> => {
+export const getProducts = async (params: { page?: number; limit?: number; query?: string; categoryId?: string; subCategoryId?: string; storeName?: string; typeVente?: string; minPrice?: number; maxPrice?: number; productType?: string; restaurantId?: string }): Promise<BaseResponse<Pagination<Product>>> => {
     const queryString = toQueryString(params);
     const response = await fetch(`${getBaseUrl()}/products?${queryString}`);
     return await response.json();
 };
 
-export const getMyProducts = async (params: { page?: number; limit?: number; query?: string }): Promise<BaseResponse<Pagination<Product>>> => {
+export const getMyProducts = async (params: { page?: number; limit?: number; query?: string; restaurantId?: string }): Promise<BaseResponse<Pagination<Product>>> => {
     const queryString = toQueryString(params);
     const response = await secureFetch(`${getBaseUrl()}/products/my-products?${queryString}`, {
         method: 'GET',
@@ -1730,8 +1822,16 @@ export const getProductById = async (id: string): Promise<BaseResponse<Product>>
     return await response.json();
 };
 
-export const getProductCategories = async (onlyActive: boolean = true): Promise<BaseResponse<CategoryProd[]>> => {
-    const response = await fetch(`${getBaseUrl()}/products/categories?onlyActive=${onlyActive}`);
+export const getProductCategories = async (onlyActive: boolean = true, scope?: 'MARKETPLACE' | 'RESTAURANT'): Promise<BaseResponse<CategoryProd[]>> => {
+    const response = await fetch(`${getBaseUrl()}/products/categories?onlyActive=${onlyActive}${scope ? `&scope=${scope}` : ''}`);
+    return await response.json();
+};
+
+// Produits similaires (même catégorie), paginé — alimente la section "Autre chose ?"
+// de la fiche produit (modal + page dédiée).
+export const getSimilarProducts = async (id: string, params: { page?: number; limit?: number }): Promise<BaseResponse<Pagination<Product>>> => {
+    const queryString = toQueryString(params);
+    const response = await fetch(`${getBaseUrl()}/products/${id}/similar?${queryString}`);
     return await response.json();
 };
 
@@ -2599,6 +2699,99 @@ export const updateGaragePiece = async (id: string, formData: FormData): Promise
 export const deleteGaragePiece = async (id: string): Promise<BaseResponse<boolean>> => {
     const response = await secureFetch(`${getBaseUrl()}/garages/pieces/${id}`, {
         method: 'DELETE',
+    });
+    return await response.json();
+};
+
+/* =======================================================
+   RESTAURANT API (Restaurants & Menus)
+   Les plats de menu réutilisent directement createProduct/updateProduct/
+   getProductCategories (productType='RESTAURANT', restaurantId dans le FormData).
+======================================================= */
+
+// --- Recherche & fiche publiques ---
+export const getRestaurants = async (params: { page?: number; limit?: number; query?: string; typeId?: string; lat?: number; lng?: number; radiusKm?: number } = {}): Promise<BaseResponse<Pagination<Restaurant> & { isFallback?: boolean }>> => {
+    const response = await fetch(`${getBaseUrl()}/restaurants?${toQueryString(params)}`);
+    return await response.json();
+};
+
+export const getRestaurantBySlug = async (slug: string): Promise<BaseResponse<Restaurant>> => {
+    const response = await fetch(`${getBaseUrl()}/restaurants/${slug}`);
+    return await response.json();
+};
+
+export const getRestaurantEffectiveAddress = async (id: string): Promise<BaseResponse<{ address: string | null; city: string | null; district: string | null; latitude: number | null; longitude: number | null }>> => {
+    const response = await fetch(`${getBaseUrl()}/restaurants/${id}/effective-address`);
+    return await response.json();
+};
+
+// --- Mes restaurants (propriétaire — peut en posséder plusieurs) ---
+export const getMyRestaurants = async (): Promise<BaseResponse<Restaurant[]>> => {
+    const response = await secureFetch(`${getBaseUrl()}/restaurants/my`, { method: 'GET' });
+    return await response.json();
+};
+
+export const getMyRestaurantById = async (id: string): Promise<BaseResponse<Restaurant>> => {
+    const response = await secureFetch(`${getBaseUrl()}/restaurants/my/${id}`, { method: 'GET' });
+    return await response.json();
+};
+
+export const createRestaurant = async (formData: FormData): Promise<BaseResponse<Restaurant>> => {
+    const response = await secureFetch(`${getBaseUrl()}/restaurants`, {
+        method: 'POST',
+        body: formData,
+    });
+    return await response.json();
+};
+
+export const updateRestaurant = async (id: string, formData: FormData): Promise<BaseResponse<Restaurant>> => {
+    const response = await secureFetch(`${getBaseUrl()}/restaurants/${id}`, {
+        method: 'PATCH',
+        body: formData,
+    });
+    return await response.json();
+};
+
+export const deleteRestaurant = async (id: string): Promise<BaseResponse<boolean>> => {
+    const response = await secureFetch(`${getBaseUrl()}/restaurants/${id}`, {
+        method: 'DELETE',
+    });
+    return await response.json();
+};
+
+// --- Types de cuisine (RestaurantType) ---
+export const getRestaurantTypes = async (onlyActive: boolean = true): Promise<BaseResponse<RestaurantType[]>> => {
+    const response = await fetch(`${getBaseUrl()}/restaurant-types?onlyActive=${onlyActive}`);
+    return await response.json();
+};
+
+export const adminCreateRestaurantType = async (formData: FormData): Promise<BaseResponse<RestaurantType>> => {
+    const response = await secureFetch(`${getBaseUrl()}/restaurant-types`, {
+        method: 'POST',
+        body: formData,
+    });
+    return await response.json();
+};
+
+export const adminUpdateRestaurantType = async (id: string, formData: FormData): Promise<BaseResponse<RestaurantType>> => {
+    const response = await secureFetch(`${getBaseUrl()}/restaurant-types/${id}`, {
+        method: 'PATCH',
+        body: formData,
+    });
+    return await response.json();
+};
+
+export const adminDeleteRestaurantType = async (id: string): Promise<BaseResponse<null>> => {
+    const response = await secureFetch(`${getBaseUrl()}/restaurant-types/${id}`, {
+        method: 'DELETE',
+    });
+    return await response.json();
+};
+
+export const adminToggleRestaurantTypeStatus = async (id: string, status: boolean): Promise<BaseResponse<RestaurantType>> => {
+    const response = await secureFetch(`${getBaseUrl()}/restaurant-types/${id}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status }),
     });
     return await response.json();
 };

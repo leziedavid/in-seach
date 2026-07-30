@@ -3,12 +3,14 @@
 import React from "react";
 import { Icon } from "@iconify/react";
 import Image from "next/image";
-import { Role, AuthorizationNode } from "@/types/interface";
+import { useQuery } from "@tanstack/react-query";
+import { Role, MenuNode } from "@/types/interface";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "@/utils/langue/hooks";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useNotification } from "@/components/notifications/NotificationProvider";
-import { useAuthStore } from "@/store/authStore";
+import { getMenusByType } from "@/api/api";
+import { queryKeys } from "@/lib/queryKeys";
 
 // Numéro WhatsApp de l'assistance Djamko (indicatif +225 conservé avec le 0 initial,
 // conforme au plan de numérotation ivoirien en vigueur)
@@ -44,6 +46,8 @@ export type TabType =
     | "Mon-Garage"
     | "Produits-fournisseur"
     | "Devis-fournisseur"
+    | "Restaurants-gestion"
+    | "Menus-restaurant"
     | "Historique";
 
 interface SidebarProps {
@@ -53,12 +57,10 @@ interface SidebarProps {
     onLogout: () => void;
 }
 
-// Le menu est piloté par les Authorization dynamiques (RBAC, voir /authorizations/my),
-// filtrées côté serveur selon les policies de l'utilisateur — plus aucun rôle codé en dur ici.
-// Seules les entrées "AKWABA_*" (voir backend/prisma/seed-rbac.ts) concernent ce menu ; le
-// tab historique (TabType) reste piloté par page.tsx via le paramètre `tab` de frontendRoute.
-const AKWABA_PREFIX = 'AKWABA_';
-
+// Le menu est piloté par GET /menus/type/AKWABA (voir backend/src/menu) — façade publique
+// qui reste, pour ce type, backée par les Authorization RBAC dynamiques (AKWABA_*, voir
+// backend/prisma/seed-rbac.ts), déjà filtrées côté serveur par policy ET par isActive.
+// Le tab historique (TabType) reste piloté par page.tsx via le paramètre `tab` de la route.
 function extractTabFromRoute(frontendRoute: string | null): TabType | null {
     if (!frontendRoute) return null;
     const qIndex = frontendRoute.indexOf('?');
@@ -74,34 +76,27 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
     const { permission, subscribe, unsubscribe, isNotificationsEnabled, isPushSupported, lastError } = useNotifications();
     const userRole = user?.role as Role;
 
-    const authorizations = useAuthStore(s => s.authorizations);
-    const hydrated = useAuthStore(s => s.hydrated);
-    const hydrate = useAuthStore(s => s.hydrate);
+    const { data: menusRes, isLoading: menusLoading } = useQuery({
+        queryKey: queryKeys.menus.byType('AKWABA'),
+        queryFn: () => getMenusByType('AKWABA'),
+        enabled: !!user,
+    });
+    const menu: MenuNode[] = menusRes?.statusCode === 200 ? (menusRes.data ?? []) : [];
 
-    React.useEffect(() => {
-        if (user) hydrate();
-    }, [user, hydrate]);
-
-    // Menu Akwaba = les Authorization dynamiques préfixées AKWABA_ que le backend a déjà
-    // filtrées selon les policies de l'utilisateur (voir GET /authorizations/my), regroupées
-    // par catégorie (remplace les anciens groupes MOBILE_GROUPS codés en dur).
-    const menu = React.useMemo(
-        () => authorizations.filter(a => a.code.startsWith(AKWABA_PREFIX)),
-        [authorizations],
-    );
-
+    // Regroupé par MenuGroup (groupOrder administrable depuis /admin/menus) —
+    // remplace le groupby par `category` non trié utilisé avant la migration.
     const menuGroups = React.useMemo(() => {
-        const byCategory = new Map<string, AuthorizationNode[]>();
+        const byGroup = new Map<string, { label: string; order: number; items: MenuNode[] }>();
         for (const item of menu) {
-            const cat = item.category || 'Autres';
-            if (!byCategory.has(cat)) byCategory.set(cat, []);
-            byCategory.get(cat)!.push(item);
+            const key = item.groupId ?? item.groupLabel ?? 'Autres';
+            if (!byGroup.has(key)) byGroup.set(key, { label: item.groupLabel || 'Autres', order: item.groupOrder ?? 0, items: [] });
+            byGroup.get(key)!.items.push(item);
         }
-        return Array.from(byCategory.values());
+        return Array.from(byGroup.values()).sort((a, b) => a.order - b.order);
     }, [menu]);
 
     const [open, setOpen] = React.useState(false);
-    const isLoading = !user || !hydrated;
+    const isLoading = !user || menusLoading;
 
     const roleLabel = userRole === Role.PRESTATAIRE ? t("akwaba.sidebar.roles.prestataire") :
         userRole === Role.ENTREPRISE ? t("akwaba.sidebar.roles.entreprise") :
@@ -137,8 +132,8 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
     };
 
     // ── Ligne de menu style Yango — variant "desktop" = icônes légèrement réduites pour ne pas déborder ──
-    const renderMobileRow = (item: AuthorizationNode, isLast: boolean, variant: 'mobile' | 'desktop' = 'mobile') => {
-        const tab = extractTabFromRoute(item.frontendRoute);
+    const renderMobileRow = (item: MenuNode, isLast: boolean, variant: 'mobile' | 'desktop' = 'mobile') => {
+        const tab = extractTabFromRoute(item.route);
         const isActive = !!tab && activeTab === tab;
         const circleSize = variant === 'desktop' ? 'w-8 h-8' : 'w-9 h-9';
         const iconWidth = variant === 'desktop' ? 16 : 19;
@@ -151,7 +146,7 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
                 {/* Label */}
                 <div className="flex-1 text-left min-w-0">
                     <p className={`text-sm font-semibold truncate ${isActive ? 'text-primary' : 'text-foreground'}`}>
-                        {item.name}
+                        {item.label}
                     </p>
                 </div>
 
@@ -283,13 +278,13 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
                             <MenuSkeleton count={skeletonCount} />
                         ) : (
                             <>
-                                {menuGroups.map((groupItems, gi) => {
+                                {menuGroups.map((group, gi) => {
                                     return (
                                         <div key={gi} className="bg-muted/40 dark:bg-zinc-800/40 rounded-2xl overflow-hidden border border-border/40">
-                                            {groupItems.map((item, idx) => (
+                                            {group.items.map((item, idx) => (
                                                 <React.Fragment key={item.code}>
-                                                    {renderMobileRow(item, idx === groupItems.length - 1, 'desktop')}
-                                                    {idx < groupItems.length - 1 && (
+                                                    {renderMobileRow(item, idx === group.items.length - 1, 'desktop')}
+                                                    {idx < group.items.length - 1 && (
                                                         <div className="h-px bg-border/40 mx-4" />
                                                     )}
                                                 </React.Fragment>
@@ -421,13 +416,13 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
                                     <MenuSkeleton count={skeletonCount} />
                                 ) : (
                                     <>
-                                        {menuGroups.map((groupItems, gi) => {
+                                        {menuGroups.map((group, gi) => {
                                             return (
                                                 <div key={gi} className="bg-muted/40 dark:bg-zinc-800/40 rounded-2xl overflow-hidden border border-border/40">
-                                                    {groupItems.map((item, idx) => (
+                                                    {group.items.map((item, idx) => (
                                                         <React.Fragment key={item.code}>
-                                                            {renderMobileRow(item, idx === groupItems.length - 1)}
-                                                            {idx < groupItems.length - 1 && (
+                                                            {renderMobileRow(item, idx === group.items.length - 1)}
+                                                            {idx < group.items.length - 1 && (
                                                                 <div className="h-px bg-border/40 mx-4" />
                                                             )}
                                                         </React.Fragment>

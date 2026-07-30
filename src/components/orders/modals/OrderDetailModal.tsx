@@ -191,7 +191,9 @@ export default function OrderDetailModal({ isOpen, onClose, order, onItemRemoved
                             <div className="space-y-5">
                                 {order.subOrders.map((subOrder: SubOrder) => {
                                     const subStatus = statusConfig[subOrder.status] || statusConfig.PENDING;
-                                    const vendorLabel = subOrder.vendor?.storeName || subOrder.vendor?.fullName || "Vendeur";
+                                    // Un même vendeur peut posséder plusieurs restaurants — le nom du restaurant précis
+                                    // (quand présent) distingue mieux la provenance que storeName/fullName seuls.
+                                    const vendorLabel = subOrder.restaurant?.name || subOrder.vendor?.storeName || subOrder.vendor?.fullName || "Vendeur";
                                     const isMyVendorSubOrder = subOrder.vendorId === getUserId();
                                     const canRemoveFromThisSubOrder = isMyVendorSubOrder
                                         && subOrder.status !== OrderStatus.CANCELLED
@@ -200,7 +202,7 @@ export default function OrderDetailModal({ isOpen, onClose, order, onItemRemoved
                                         <div key={subOrder.id} className="border border-neutral-100 dark:border-neutral-800 rounded-xl overflow-hidden">
                                             <div className="flex items-center justify-between gap-2 px-4 py-2.5 bg-neutral-50 dark:bg-neutral-800/50">
                                                 <span className="text-xs font-semibold text-neutral-700 dark:text-neutral-200 flex items-center gap-1.5">
-                                                    <Icon icon="solar:shop-bold-duotone" width={15} />
+                                                    <Icon icon={subOrder.restaurant ? "solar:chef-hat-bold-duotone" : "solar:shop-bold-duotone"} width={15} />
                                                     {vendorLabel}
                                                 </span>
                                                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${subStatus.bg} ${subStatus.color}`}>

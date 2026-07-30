@@ -4,12 +4,15 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Icon } from '@iconify/react';
+import { useQuery } from '@tanstack/react-query';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from "@/utils/langue/hooks";
 import { isAuthenticated, getUserName, getUserSpaceRoute } from '@/lib/auth';
 import { useAuthStore } from '@/store/authStore';
-import { AuthorizationNode } from '@/types/interface';
+import { getMenusByType } from '@/api/api';
+import { queryKeys } from '@/lib/queryKeys';
+import { MenuNode } from '@/types/interface';
 
 /* ─────────────────────────────────────────────────────────────
    Types
@@ -21,29 +24,27 @@ interface MenuItem {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   Menu groupé — construit dynamiquement à partir des Authorization RBAC
+   Menu groupé — construit dynamiquement depuis GET /menus/type/ADMIN (voir
+   backend/src/menu), qui reste backé par les Authorization RBAC dynamiques
    (préfixes ADMIN_ / MARKETING_, voir backend/prisma/seed-rbac.ts) déjà
-   filtrées côté serveur selon les policies de l'utilisateur connecté.
-   Remplace l'ancien MENU_GROUPS codé en dur.
+   filtrées côté serveur par policy ET isActive, groupées via MenuGroup
+   (ordre administrable depuis /admin/menus — remplace le tri implicite par
+   `category` de l'ancien MENU_GROUPS codé en dur).
 ───────────────────────────────────────────────────────────── */
-const ADMIN_MENU_PREFIXES = ['ADMIN_', 'MARKETING_'];
-
-function buildMenuGroups(authorizations: AuthorizationNode[]): { title?: string; items: MenuItem[] }[] {
-    const relevant = authorizations.filter(a => ADMIN_MENU_PREFIXES.some(p => a.code.startsWith(p)));
-    const byCategory = new Map<string, MenuItem[]>();
-    for (const a of relevant) {
-        const cat = a.category || 'Autres';
-        if (!byCategory.has(cat)) byCategory.set(cat, []);
-        byCategory.get(cat)!.push({
-            label: a.name,
-            icon: a.icon || 'solar:widget-5-bold-duotone',
-            href: a.frontendRoute || '/admin',
+function buildMenuGroups(menus: MenuNode[]): { title?: string; items: MenuItem[] }[] {
+    const byGroup = new Map<string, { label: string; order: number; items: MenuItem[] }>();
+    for (const m of menus) {
+        const key = m.groupId ?? m.groupLabel ?? 'Autres';
+        if (!byGroup.has(key)) byGroup.set(key, { label: m.groupLabel || 'Autres', order: m.groupOrder ?? 0, items: [] });
+        byGroup.get(key)!.items.push({
+            label: m.label,
+            icon: m.icon || 'solar:widget-5-bold-duotone',
+            href: m.route || '/admin',
         });
     }
-    return Array.from(byCategory.entries()).map(([category, items]) => ({
-        title: category === 'Tableau de bord' ? undefined : category,
-        items,
-    }));
+    return Array.from(byGroup.values())
+        .sort((a, b) => a.order - b.order)
+        .map(g => ({ title: g.label === 'Tableau de bord' ? undefined : g.label, items: g.items }));
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -133,7 +134,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const [isMounted, setIsMounted] = React.useState(false);
     const [authChecked, setAuthChecked] = React.useState(false);
 
-    const authorizations = useAuthStore(s => s.authorizations);
     const roles = useAuthStore(s => s.roles);
     const hydrated = useAuthStore(s => s.hydrated);
     const hydrate = useAuthStore(s => s.hydrate);
@@ -162,7 +162,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         setAuthChecked(true);
     }, [hydrated, roles, router]);
 
-    const menuGroups = React.useMemo(() => buildMenuGroups(authorizations), [authorizations]);
+    // Se lance dès le montage (avant la vérification de rôle ci-dessus, avant
+    // tout appel spécifique à une sous-page /admin/*) — voir consigne "l'appel
+    // des menus doit toujours être le premier lancé, à chaque changement de
+    // page/refresh". Un utilisateur non authentifié reçoit une 401 ignorée
+    // silencieusement (menus vides) ; sans incidence, le garde d'accès
+    // ci-dessus gère déjà la redirection dans ce cas.
+    const { data: menusRes } = useQuery({
+        queryKey: queryKeys.menus.byType('ADMIN'),
+        queryFn: () => getMenusByType('ADMIN'),
+    });
+    const menus: MenuNode[] = menusRes?.statusCode === 200 ? (menusRes.data ?? []) : [];
+    const menuGroups = React.useMemo(() => buildMenuGroups(menus), [menus]);
     const allItems = menuGroups.flatMap(g => g.items);
     const currentLabel = allItems.find(item => item.href === pathname)?.label ?? 'Administration';
 

@@ -6,6 +6,8 @@ import { Icon } from "@iconify/react";
 export interface CategoryItem {
     id: string;
     name: string;
+    /** Icône/photo optionnelle (URL) affichée en variant "cards" — ex. icône de type de cuisine. Repli sur l'icône générique si absente. */
+    image?: string | null;
     subCategories?: { id: string; name: string }[];
 }
 
@@ -73,11 +75,16 @@ export default function CategoryFilter({
         // par défaut systématique) + libellé dessous, avec la même croix rouge de
         // désélection que le style "pills". "all"/"Tous" n'est jamais déselectionnable
         // (c'est déjà l'état "aucun filtre").
-        const renderCard = (id: string, name: string, isActive: boolean, isDeselectable: boolean, onClick: () => void, onDeselect: () => void, icon: string) => (
+        const renderCard = (id: string, name: string, isActive: boolean, isDeselectable: boolean, onClick: () => void, onDeselect: () => void, icon: string, image?: string | null) => (
             <div key={id} className="flex flex-col items-center gap-1.5 shrink-0">
                 <div className="relative">
                     <button type="button" onClick={onClick} className={`relative w-14 h-14 rounded-2xl overflow-hidden flex items-center justify-center border transition-all duration-300 active:scale-95 ${isActive ? "border-primary bg-primary/10 shadow-md shadow-primary/20 scale-105" : "border-border/40 bg-muted/40 hover:border-primary/40"}`}>
-                        <Icon icon={icon} className={`w-6 h-6 ${isActive ? "text-primary" : "text-muted-foreground"}`} />
+                        {image ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={image} alt={name} className="w-full h-full object-cover" />
+                        ) : (
+                            <Icon icon={icon} className={`w-6 h-6 ${isActive ? "text-primary" : "text-muted-foreground"}`} />
+                        )}
                     </button>
                     {isDeselectable && (
                         <button type="button" onClick={(e) => { e.stopPropagation(); onDeselect(); }} className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center shadow-md ring-2 ring-white dark:ring-zinc-900 active:scale-90 transition-all" aria-label={`Désélectionner ${name}`} title={`Désélectionner ${name}`} >
@@ -103,6 +110,7 @@ export default function CategoryFilter({
                                 () => onCategoryChange(cat.id),
                                 () => onCategoryChange("all"),
                                 "solar:widget-5-bold-duotone",
+                                cat.image,
                             )
                         )}
                     </div>

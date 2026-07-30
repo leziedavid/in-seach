@@ -10,8 +10,10 @@ type IconProps = {
 // Icône blanche quand active, bleu/gris sinon
 export const strokeColor = (active?: boolean) => (active ? "#ffffff" : "#94a3b8")
 
-// Taille par défaut augmentée : mobile (30px) -> desktop (32px)
-const defaultSizeClasses = "w-[30px] h-[30px] sm:w-[32px] sm:h-[32px] md:w-[34px] md:h-[34px]"
+// Taille par défaut augmentée : mobile (30px) -> desktop (32px). Exportée pour
+// AppTabs.tsx, qui rend désormais les icônes génériquement depuis `menu.icon`
+// (menus dynamiques) plutôt que via les composants nommés ci-dessous.
+export const defaultSizeClasses = "w-[30px] h-[30px] sm:w-[32px] sm:h-[32px] md:w-[34px] md:h-[34px]"
 
 export function SearchIcon({ active, className }: IconProps) {
     return (
@@ -57,6 +59,13 @@ export function CarRepairIcon({ active, className }: IconProps) {
 export function SupplierIcon({ active, className }: IconProps) {
     return (
         <Icon icon="mdi:warehouse" className={`${defaultSizeClasses} ${className}`} style={{ color: strokeColor(active) }} />
+    )
+}
+
+// Pour "Restaurants" : commande de repas
+export function RestaurantIcon({ active, className }: IconProps) {
+    return (
+        <Icon icon="solar:chef-hat-bold-duotone" className={`${defaultSizeClasses} ${className}`} style={{ color: strokeColor(active) }} />
     )
 }
 

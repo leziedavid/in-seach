@@ -119,11 +119,7 @@ export default function FournisseurPage(props: Props) {
     if (storeLoading) {
         return (
             <div className="flex flex-col items-center w-full max-w-7xl mx-auto px-4 py-8 md:py-12">
-                <Loader
-                    title="Chargement du fournisseur..."
-                    description="Nous récupérons les informations de ce fournisseur, veuillez patienter."
-                    icon="mdi:warehouse"
-                />
+                <Loader title="Chargement du fournisseur..." description="Nous récupérons les informations de ce fournisseur, veuillez patienter." icon="mdi:warehouse" />
             </div>
         )
     }
@@ -131,11 +127,7 @@ export default function FournisseurPage(props: Props) {
     if (!publicStore) {
         return (
             <div className="flex flex-col items-center w-full max-w-7xl mx-auto px-4 py-8 md:py-12">
-                <NotFound
-                    title="Fournisseur introuvable"
-                    description="Ce fournisseur n'existe pas ou n'est plus disponible. Vérifiez l'URL ou explorez d'autres fournisseurs sur la plateforme."
-                    icon="mdi:warehouse"
-                />
+                <NotFound title="Fournisseur introuvable" description="Ce fournisseur n'existe pas ou n'est plus disponible. Vérifiez l'URL ou explorez d'autres fournisseurs sur la plateforme." icon="mdi:warehouse" />
             </div>
         )
     }
@@ -146,12 +138,7 @@ export default function FournisseurPage(props: Props) {
             <div className="flex flex-col items-center text-center w-full max-w-4xl mb-12 space-y-4">
                 <div className="relative w-24 h-24 md:w-32 md:h-32 rounded-full bg-card border-4 border-background shadow-xl overflow-hidden mb-2">
                     {publicStore?.storeLogo ? (
-                        <Image
-                            src={publicStore.storeLogo}
-                            alt={publicStore.storeName || "Fournisseur"}
-                            fill
-                            className="object-cover"
-                            unoptimized />
+                        <Image src={publicStore.storeLogo} alt={publicStore.storeName || "Fournisseur"} fill className="object-cover" unoptimized />
                     ) : (
                         <div className="w-full h-full flex items-center justify-center bg-primary/10">
                             <Icon icon="mdi:warehouse" className="w-12 h-12 md:w-16 md:h-16 text-primary" />
@@ -203,10 +190,7 @@ export default function FournisseurPage(props: Props) {
                     ]}
                     selectedCategoryId={selectedCategory}
                     selectedSubCategoryId={selectedSubCategory}
-                    onCategoryChange={(id) => {
-                        setSelectedCategory(id);
-                        setSelectedSubCategory("all");
-                    }}
+                    onCategoryChange={(id) => { setSelectedCategory(id); setSelectedSubCategory("all"); }}
                     onSubCategoryChange={setSelectedSubCategory}
                     hasSubCategories={true}
                     variant="cards"
@@ -252,11 +236,7 @@ export default function FournisseurPage(props: Props) {
             {/* Review Section */}
             {publicStore && publicStore.id && (
                 <div className="w-full max-w-4xl mx-auto px-4 mt-12">
-                    <ReviewSection
-                        labelleServies="Fournisseur"
-                        targetUserId={publicStore.id}
-                        title={`Avis sur ${publicStore.storeName || 'ce fournisseur'}`}
-                    />
+                    <ReviewSection labelleServies="Fournisseur" targetUserId={publicStore.id} title={`Avis sur ${publicStore.storeName || 'ce fournisseur'}`} />
                 </div>
             )}
             <VoiceSearchModal

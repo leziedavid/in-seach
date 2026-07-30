@@ -138,6 +138,11 @@
                 "title": "Fournisseurs & Grossistes",
                 "description": "Trouvez des fournisseurs et grossistes B2B, consultez leur catalogue et demandez à être livré directement."
             },
+            "restaurants": {
+                "label": "Restaurants",
+                "title": "Commande de Repas",
+                "description": "Découvrez les restaurants près de chez vous, parcourez leur menu et faites-vous livrer votre plat préféré."
+            },
             "scroll_hint": "Glissez pour voir plus de services"
         },
         "promo": {

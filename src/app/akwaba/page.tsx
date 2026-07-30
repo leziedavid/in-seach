@@ -42,6 +42,7 @@ import GarageManagement from '@/components/garage/sections/GarageManagement';
 import UnifiedHistory from '@/components/history/UnifiedHistory';
 import FournisseurBoutique from '@/components/fournisseur/sections/FournisseurBoutique';
 import FournisseurQuotesList from '@/components/fournisseur/sections/FournisseurQuotesList';
+import RestaurantManagement from '@/components/restaurant/sections/RestaurantManagement';
 import { useTranslation } from '@/utils/langue/hooks';
 import { Icon } from '@iconify/react';
 
@@ -133,6 +134,8 @@ export default function Page() {
                 setActiveTab('Mon-Garage');
             } else if (userRole === Role.FOURNISSEUR) {
                 setActiveTab('Produits-fournisseur');
+            } else if (userRole === Role.RESTAURANT) {
+                setActiveTab('Restaurants-gestion');
             } else {
                 setActiveTab('Overview');
             }
@@ -354,6 +357,9 @@ export default function Page() {
                 return <FournisseurBoutique onNavigateToOrders={handleNavigateFromStoreToOrders} />;
             case 'Devis-fournisseur':
                 return <FournisseurQuotesList />;
+            case 'Restaurants-gestion':
+            case 'Menus-restaurant':
+                return <RestaurantManagement onNavigateToOrders={handleNavigateFromStoreToOrders} />;
             case 'Historique':
                 return <UnifiedHistory />;
             default:

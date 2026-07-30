@@ -32,7 +32,8 @@ export enum Role {
     GAZIER = 'GAZIER',
     MARKETING = 'MARKETING',
     GARAGISTE_VENTE_PIECE_AUTO = 'GARAGISTE_VENTE_PIECE_AUTO',
-    FOURNISSEUR = 'FOURNISSEUR'
+    FOURNISSEUR = 'FOURNISSEUR',
+    RESTAURANT = 'RESTAURANT'
 }
 
 // RBAC dynamique (Role / Authorization / Policy) — voir backend/src/rbac
@@ -53,6 +54,67 @@ export interface AuthorizationNode {
     order: number;
     policies: string[];
     children: AuthorizationNode[];
+    // Menus dynamiques (additif) — voir backend/src/menu.
+    typeMenuId?: string | null;
+    groupId?: string | null;
+    groupLabel?: string | null;
+    groupOrder?: number;
+}
+
+// Menus dynamiques (TypeMenu/MenuGroup/Menu) — voir backend/src/menu.
+// Architecture hybride : HOME est backé par Menu (accès public possible,
+// permission optionnelle) ; AKWABA/ADMIN restent backés par Authorization
+// (JWT obligatoire). GET /menus/type/:code normalise les deux sources.
+export type MenuSource = 'MENU' | 'AUTHORIZATION';
+
+export interface MenuTypeNode {
+    id: string;
+    code: string;
+    label: string;
+    description: string | null;
+    source: MenuSource;
+    isActive: boolean;
+    order: number;
+}
+
+export interface MenuGroupNode {
+    id: string;
+    typeMenuId: string;
+    code: string;
+    label: string;
+    isActive: boolean;
+    order: number;
+}
+
+export interface MenuNode {
+    id: string;
+    code: string;
+    label: string;
+    icon: string | null;
+    route: string | null;
+    order: number;
+    groupId: string | null;
+    groupLabel: string | null;
+    groupOrder: number;
+    permission: string | null;
+    children: MenuNode[];
+}
+
+// Ligne brute de l'admin CRUD (GET /menus, GET /menu-types, GET /menu-groups) —
+// distinct de MenuNode (façade publique GET /menus/type/:code, déjà normalisée
+// en arbre). Ici on garde les champs bruts du modèle Prisma pour les formulaires.
+export interface MenuAdminRow {
+    id: string;
+    typeMenuId: string;
+    groupId: string | null;
+    parentId: string | null;
+    code: string;
+    label: string;
+    icon: string | null;
+    route: string | null;
+    permissionCode: string | null;
+    isActive: boolean;
+    order: number;
 }
 
 export interface DynamicRole {
@@ -606,6 +668,8 @@ export interface CategoryProd {
     id: string
     name: string
     status: boolean
+    /** MARKETPLACE (défaut) = catégories marchandises classiques. RESTAURANT = catégories de menu (Entrées/Plats/Desserts...). */
+    scope?: 'MARKETPLACE' | 'RESTAURANT'
     subCategories?: SubCategoryProd[]
 }
 
@@ -652,8 +716,12 @@ export interface Product {
     etat: ProductCondition
     typeVente?: 'UNITE' | 'GROS'
     prixVenteGros?: number | null
-    /** absent/null = produit marketplace classique. "SUPPLIER" = catalogue B2B Fournisseurs/Grossistes. */
-    productType?: 'SUPPLIER' | null
+    /** absent/null = produit marketplace classique. "SUPPLIER" = catalogue B2B Fournisseurs/Grossistes. "RESTAURANT" = plat de menu. */
+    productType?: 'SUPPLIER' | 'RESTAURANT' | null
+    /** Restaurant propriétaire du plat (productType = RESTAURANT uniquement) — un même vendeur peut posséder plusieurs restaurants. */
+    restaurantId?: string | null
+    /** Temps de préparation en minutes (plats de restaurant uniquement). */
+    preparationTime?: number | null
     imageUrl?: string | null
     imageUrls?: string[]
     images?: string[]
@@ -665,6 +733,43 @@ export interface Product {
     category: CategoryProd
     subCategory?: SubCategoryProd | null
     user?: Partial<User>
+    createdAt: string
+    updatedAt: string
+}
+
+/** Type de cuisine (Ivoirien, Libanais, Asiatique...) — un restaurant peut en avoir plusieurs. */
+export interface RestaurantType {
+    id: string
+    name: string
+    slug: string
+    icon?: string | null
+    status: boolean
+    order: number
+}
+
+export interface Restaurant {
+    id: string
+    userId: string
+    name: string
+    slug: string
+    description?: string | null
+    logo?: string | null
+    coverPhoto?: string | null
+    images: string[]
+    phone?: string | null
+    whatsapp?: string | null
+    email?: string | null
+    address?: string | null
+    city?: string | null
+    district?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    horaires?: any
+    preparationTimeMin?: number | null
+    preparationTimeMax?: number | null
+    isActive: boolean
+    types?: RestaurantType[]
+    menuCount?: number
     createdAt: string
     updatedAt: string
 }
@@ -729,6 +834,9 @@ export interface SubOrder {
     orderId: string
     vendorId: string
     vendor?: Partial<User>
+    /** Restaurant précis d'origine quand les items proviennent d'un restaurant (un même vendor peut en posséder plusieurs). */
+    restaurantId?: string | null
+    restaurant?: { id: string; name: string; logo?: string | null } | null
     status: OrderStatus
     totalPrice: number
     shippingPrice: number

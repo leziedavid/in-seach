@@ -6,11 +6,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 interface ReviewSectionProps {
   labelleServies: string;
   targetUserId: string;
+  targetEntityId?: string;
   title?: string;
 }
 
-export const ReviewSection: React.FC<ReviewSectionProps> = ({ labelleServies, targetUserId, title = 'Avis clients' }) => {
-  const { comments, stats, loading, hasMore, loadMore, createComment } = useSeriesComment(labelleServies, targetUserId);
+export const ReviewSection: React.FC<ReviewSectionProps> = ({ labelleServies, targetUserId, targetEntityId, title = 'Avis clients' }) => {
+  const { comments, stats, loading, hasMore, loadMore, createComment } = useSeriesComment(labelleServies, targetUserId, targetEntityId);
   const [newComment, setNewComment] = useState('');
   const [newNote, setNewNote] = useState(5);
   const [isSubmitting, setIsSubmitting] = useState(false);

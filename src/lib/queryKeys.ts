@@ -95,4 +95,12 @@ export const queryKeys = {
   ai: {
     tools: ['ai', 'tools'] as const,
   },
+
+  // ─── Menus dynamiques (TypeMenu/MenuGroup/Menu) ─────────────────
+  menus: {
+    byType: (code: string) => ['menus', 'byType', code] as const,
+    types: ['menus', 'types'] as const,
+    groups: (typeMenuId?: string) => ['menus', 'groups', typeMenuId] as const,
+    adminList: (typeMenuId?: string) => ['menus', 'adminList', typeMenuId] as const,
+  },
 } as const;
