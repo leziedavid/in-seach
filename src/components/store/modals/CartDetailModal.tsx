@@ -81,7 +81,8 @@ export default function CartDetailModal({ isOpen, onClose }: CartDetailModalProp
             const items = cart.map(item => ({
                 productId: item.id,
                 quantity: item.quantity,
-                achatType: item.achatType
+                achatType: item.achatType,
+                ...(item.accompagnementId && { accompagnementId: item.accompagnementId }),
             }));
 
             const res = await createOrder({ items, paymentMethod: paymentMethod! });
@@ -157,23 +158,29 @@ export default function CartDetailModal({ isOpen, onClose }: CartDetailModalProp
                                                                     <span className="text-[10px] font-black text-primary bg-primary/10 px-2 py-0.5 rounded w-fit mt-1">Vente en Gros</span>
                                                                 )}
                                                             </div>
-                                                            <button onClick={() => removeFromCart(item.id, item.achatType)} className="text-muted-foreground hover:text-red-500 transition-colors p-1">
+                                                            <button onClick={() => removeFromCart(item.id, item.achatType, item.accompagnementId)} className="text-muted-foreground hover:text-red-500 transition-colors p-1">
                                                                 <Icon icon="solar:trash-bin-trash-bold-duotone" width={18} />
                                                             </button>
                                                         </div>
-                                                        <p className="text-primary font-black text-sm mb-2">{item.price.toLocaleString()} FCFA</p>
+                                                        <p className="text-primary font-black text-sm mb-1">{(item.price + (item.accompagnementSupplement ?? 0)).toLocaleString()} FCFA</p>
+                                                        {item.accompagnementName && (
+                                                            <p className="text-[11px] font-bold text-muted-foreground mb-2">
+                                                                Accompagnement : {item.accompagnementName}
+                                                                {!!item.accompagnementSupplement && ` (+${item.accompagnementSupplement.toLocaleString()} FCFA)`}
+                                                            </p>
+                                                        )}
                                                         <div className="flex items-center justify-between">
                                                             <div className="flex items-center bg-background rounded-lg border border-border/50 p-1">
-                                                                <button onClick={() => updateQuantity(item.id, item.quantity - 1, item.achatType)} className="w-7 h-7 text-muted-foreground flex items-center justify-center rounded-md hover:bg-secondary hover:text-white transition-colors">
+                                                                <button onClick={() => updateQuantity(item.id, item.quantity - 1, item.achatType, item.accompagnementId)} className="w-7 h-7 text-muted-foreground flex items-center justify-center rounded-md hover:bg-secondary hover:text-white transition-colors">
                                                                     <Icon icon="iconamoon:sign-minus-bold" width={18} />
                                                                 </button>
                                                                 <span className="w-8 text-center text-xs font-black">{item.quantity}</span>
-                                                                <button onClick={() => updateQuantity(item.id, item.quantity + 1, item.achatType)} className="w-7 h-7 text-muted-foreground flex items-center justify-center rounded-md hover:bg-secondary hover:text-white transition-colors">
+                                                                <button onClick={() => updateQuantity(item.id, item.quantity + 1, item.achatType, item.accompagnementId)} className="w-7 h-7 text-muted-foreground flex items-center justify-center rounded-md hover:bg-secondary hover:text-white transition-colors">
                                                                     <Icon icon="iconamoon:sign-plus-bold" width={18} />
                                                                 </button>
                                                             </div>
                                                             <p className="text-xs font-black italic">
-                                                                {item.achatType === 'GROS' && item.prixVenteGros ? item.prixVenteGros.toLocaleString() : (item.price * item.quantity).toLocaleString()} FCFA
+                                                                {item.achatType === 'GROS' && item.prixVenteGros ? item.prixVenteGros.toLocaleString() : ((item.price + (item.accompagnementSupplement ?? 0)) * item.quantity).toLocaleString()} FCFA
                                                             </p>
                                                         </div>
                                                     </div>

@@ -722,6 +722,8 @@ export interface Product {
     restaurantId?: string | null
     /** Temps de préparation en minutes (plats de restaurant uniquement). */
     preparationTime?: number | null
+    /** Accompagnements proposés pour ce plat (plats de restaurant uniquement) — voir ProductAccompagnementOption. */
+    accompagnements?: ProductAccompagnementOption[]
     imageUrl?: string | null
     imageUrls?: string[]
     images?: string[]
@@ -745,6 +747,22 @@ export interface RestaurantType {
     icon?: string | null
     status: boolean
     order: number
+}
+
+/** Accompagnement générique (Attiéké, Frites, Alloco...) — créé et géré uniquement par l'admin. */
+export interface Accompagnement {
+    id: string
+    name: string
+    status: boolean
+    order: number
+}
+
+/** Accompagnement proposé pour un plat précis, avec son supplément spécifique à ce plat. */
+export interface ProductAccompagnementOption {
+    id: string
+    name: string
+    supplementPrice: number
+    isDefault: boolean
 }
 
 export interface Restaurant {
@@ -814,6 +832,10 @@ export interface OrderItem {
     achatType?: 'UNITE' | 'GROS'
     removed?: boolean
     removedAt?: string | null
+    /** Accompagnement choisi, figé au moment de la commande (jamais recalculé depuis Product.accompagnements). */
+    accompagnementId?: string | null
+    accompagnementName?: string | null
+    accompagnementSupplement?: number | null
     product?: Product
 }
 

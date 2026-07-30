@@ -80,6 +80,12 @@ export default function OrderDetailModal({ isOpen, onClose, order, onItemRemoved
                 <div className="flex-1 min-w-0">
                     <p className={`text-sm font-medium truncate ${item.removed ? "line-through text-neutral-400" : "text-neutral-900 dark:text-neutral-50"}`}>{item.product?.name || "Produit inconnu"}</p>
                     <p className="text-sm text-neutral-400 mt-0.5">Qty {item.quantity}</p>
+                    {item.accompagnementName && (
+                        <p className="text-xs text-neutral-400 mt-0.5">
+                            Accompagnement : {item.accompagnementName}
+                            {!!item.accompagnementSupplement && ` (+${item.accompagnementSupplement.toLocaleString()} FCFA)`}
+                        </p>
+                    )}
                 </div>
                 <span className={`text-sm font-medium shrink-0 ${item.removed ? "line-through text-neutral-400" : "text-neutral-900 dark:text-neutral-50"}`}>{(item.price * item.quantity).toLocaleString()} FCFA</span>
             </div>

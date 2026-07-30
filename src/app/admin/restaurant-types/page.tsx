@@ -16,6 +16,7 @@ import ConfirmAction, { ConfirmVariant } from '@/components/ui/ConfirmAction';
 import ImageUploadGrid from '@/components/ui/ImageUploadGrid';
 import { Switch } from '@/components/ui/switch';
 import { useNotification } from '@/components/notifications/NotificationProvider';
+import AccompagnementsTab from '@/components/restaurant/admin/AccompagnementsTab';
 
 interface TypeFormState {
     name: string;
@@ -27,8 +28,11 @@ interface TypeFormState {
 
 const emptyForm = (): TypeFormState => ({ name: '', order: '0', status: true, iconFile: null, iconPreview: null });
 
+type TabId = 'types' | 'accompagnements';
+
 export default function AdminRestaurantTypesPage() {
     const { addNotification } = useNotification();
+    const [activeTab, setActiveTab] = useState<TabId>('types');
     const [types, setTypes] = useState<RestaurantType[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -134,56 +138,78 @@ export default function AdminRestaurantTypesPage() {
 
     return (
         <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-6">
-            <div className="flex items-center justify-between flex-wrap gap-4">
-                <div>
-                    <h1 className="text-2xl font-black text-foreground flex items-center gap-3">
-                        <Icon icon="solar:chef-hat-bold-duotone" className="w-7 h-7 text-primary" />
-                        Types de cuisine
-                    </h1>
-                    <p className="text-sm text-muted-foreground mt-1">
-                        Gérez les types de cuisine proposés aux restaurants (Ivoirien, Libanais, Asiatique...) — un restaurant peut en avoir plusieurs.
-                    </p>
-                </div>
-                <div className="w-full sm:w-auto">
-                    <CreateButton label="Ajouter un type" onClick={openCreate} />
-                </div>
+            <div>
+                <h1 className="text-2xl font-black text-foreground flex items-center gap-3">
+                    <Icon icon="solar:chef-hat-bold-duotone" className="w-7 h-7 text-primary" />
+                    Restauration
+                </h1>
+                <p className="text-sm text-muted-foreground mt-1">
+                    Types de cuisine et accompagnements proposés aux restaurants de la plateforme.
+                </p>
             </div>
 
-            {loading ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                    {Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-24 rounded-2xl bg-muted/40 animate-pulse" />)}
-                </div>
-            ) : types.length === 0 ? (
-                <div className="py-14 text-center flex flex-col items-center justify-center gap-3 bg-muted/20 rounded-2xl border-2 border-dashed border-border">
-                    <Icon icon="solar:chef-hat-bold-duotone" className="w-10 h-10 text-muted-foreground" />
-                    <p className="text-sm font-bold text-muted-foreground">Aucun type de cuisine pour le moment</p>
-                    <p className="text-xs text-muted-foreground/80 max-w-xs">Ajoutez des types (Ivoirien, Libanais...) pour permettre aux restaurants de se catégoriser.</p>
-                </div>
+            <div className="flex items-center gap-1 bg-muted/50 rounded-2xl p-1 w-full sm:w-fit">
+                <button
+                    onClick={() => setActiveTab('types')}
+                    className={`flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${activeTab === 'types' ? 'bg-card shadow-sm text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                >
+                    Types de cuisine
+                </button>
+                <button
+                    onClick={() => setActiveTab('accompagnements')}
+                    className={`flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${activeTab === 'accompagnements' ? 'bg-card shadow-sm text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                >
+                    Accompagnements
+                </button>
+            </div>
+
+            {activeTab === 'accompagnements' ? (
+                <AccompagnementsTab />
             ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                    {types.map(type => (
-                        <div key={type.id} className="flex items-center gap-3 p-4 rounded-2xl border border-border bg-card">
-                            <div className="w-12 h-12 shrink-0 rounded-xl bg-primary/10 flex items-center justify-center overflow-hidden">
-                                {type.icon ? <img src={type.icon} alt="" className="w-full h-full object-cover" /> : <Icon icon="solar:widget-5-bold-duotone" className="w-6 h-6 text-primary" />}
-                            </div>
-                            <div className="min-w-0 flex-1">
-                                <p className="text-sm font-black text-foreground truncate">{type.name}</p>
-                                <p className="text-[10px] text-muted-foreground font-bold">Ordre : {type.order}</p>
-                            </div>
-                            <div className="flex flex-col items-end gap-1.5 shrink-0">
-                                <Switch checked={type.status} onCheckedChange={(v) => handleToggleStatus(type, v)} />
-                                <div className="flex items-center gap-1">
-                                    <button onClick={() => openEdit(type)} className="p-1.5 rounded-lg hover:bg-muted transition" title="Modifier">
-                                        <Icon icon="solar:pen-bold-duotone" className="w-4 h-4" />
-                                    </button>
-                                    <button onClick={() => confirmDelete(type)} className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 transition" title="Supprimer">
-                                        <Icon icon="solar:trash-bin-trash-bold-duotone" className="w-4 h-4" />
-                                    </button>
-                                </div>
-                            </div>
+                <>
+                    <div className="flex justify-end">
+                        <div className="w-full sm:w-auto">
+                            <CreateButton label="Ajouter un type" onClick={openCreate} />
                         </div>
-                    ))}
-                </div>
+                    </div>
+
+                    {loading ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                            {Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-24 rounded-2xl bg-muted/40 animate-pulse" />)}
+                        </div>
+                    ) : types.length === 0 ? (
+                        <div className="py-14 text-center flex flex-col items-center justify-center gap-3 bg-muted/20 rounded-2xl border-2 border-dashed border-border">
+                            <Icon icon="solar:chef-hat-bold-duotone" className="w-10 h-10 text-muted-foreground" />
+                            <p className="text-sm font-bold text-muted-foreground">Aucun type de cuisine pour le moment</p>
+                            <p className="text-xs text-muted-foreground/80 max-w-xs">Ajoutez des types (Ivoirien, Libanais...) pour permettre aux restaurants de se catégoriser.</p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                            {types.map(type => (
+                                <div key={type.id} className="flex items-center gap-3 p-4 rounded-2xl border border-border bg-card">
+                                    <div className="w-12 h-12 shrink-0 rounded-xl bg-primary/10 flex items-center justify-center overflow-hidden">
+                                        {type.icon ? <img src={type.icon} alt="" className="w-full h-full object-cover" /> : <Icon icon="solar:widget-5-bold-duotone" className="w-6 h-6 text-primary" />}
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                        <p className="text-sm font-black text-foreground truncate">{type.name}</p>
+                                        <p className="text-[10px] text-muted-foreground font-bold">Ordre : {type.order}</p>
+                                    </div>
+                                    <div className="flex flex-col items-end gap-1.5 shrink-0">
+                                        <Switch checked={type.status} onCheckedChange={(v) => handleToggleStatus(type, v)} />
+                                        <div className="flex items-center gap-1">
+                                            <button onClick={() => openEdit(type)} className="p-1.5 rounded-lg hover:bg-muted transition" title="Modifier">
+                                                <Icon icon="solar:pen-bold-duotone" className="w-4 h-4" />
+                                            </button>
+                                            <button onClick={() => confirmDelete(type)} className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 transition" title="Supprimer">
+                                                <Icon icon="solar:trash-bin-trash-bold-duotone" className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </>
             )}
 
             <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>

@@ -1,5 +1,5 @@
 import { getCookie } from '@/lib/cookies';
-import { BaseResponse, Category, Pagination, ReverseGeocodeData, Role, Service, MySpaceResponse, Annonce, BookingsCalendar, Product, CategoryProd, Order, AdminQueryParams, AdminUserUpdateDto, AdminProductUpdateDto, AdminServiceUpdateDto, AdminAnnonceUpdateDto, AdminSubscriptionPlanDto, User, AdminLog, SubscriptionPlan, PlanEntity, AdminUserSubscription, Subscription, OrdersGroupedResponse, SubOrder, BookingsGroupedResponse, LogisticService, Quote, Delivery, DeliveryTracking, QuoteStatus, DeliveryStatus, TransportType, LocationLog, CategorieAnnonce, TypeAnnonce, LogisticsClient, Video, StoreUserInfo, StoreStats, ServiceStats, AnnonceStats, LiveStats, LogisticProvider, LogisticStats, GasProvider, GasBottle, GasBottleFormat, GasDelivery, GasDeliveryStatus, GasProviderStats, Booking, GasAdminOverview, GasProviderAdminRow, Garage, GaragePieceCatalogue, EasyDelivery, HistoryDelivery, EasyDeliveryStatus, DriverStats, SubCategoryProd, Slider, Live, LiveFeedResponse, LiveListResponse, LiveStatus, LiveEntityType, Boost, BoostPricing, BoostEntityType, BoostPaymentMethod, WebPushNotifActiveResponse, WebPushNotifStatus, WebPushNotifAdminListResponse, NotificationSubscriptionListResponse, PushNotificationPayload, SendPushResult, MyAccess, AuthorizationNode, MenuTypeNode, MenuGroupNode, MenuNode, MenuAdminRow, SupplierQuote, SupplierQuoteStatus, Restaurant, RestaurantType } from '@/types/interface';
+import { BaseResponse, Category, Pagination, ReverseGeocodeData, Role, Service, MySpaceResponse, Annonce, BookingsCalendar, Product, CategoryProd, Order, AdminQueryParams, AdminUserUpdateDto, AdminProductUpdateDto, AdminServiceUpdateDto, AdminAnnonceUpdateDto, AdminSubscriptionPlanDto, User, AdminLog, SubscriptionPlan, PlanEntity, AdminUserSubscription, Subscription, OrdersGroupedResponse, SubOrder, BookingsGroupedResponse, LogisticService, Quote, Delivery, DeliveryTracking, QuoteStatus, DeliveryStatus, TransportType, LocationLog, CategorieAnnonce, TypeAnnonce, LogisticsClient, Video, StoreUserInfo, StoreStats, ServiceStats, AnnonceStats, LiveStats, LogisticProvider, LogisticStats, GasProvider, GasBottle, GasBottleFormat, GasDelivery, GasDeliveryStatus, GasProviderStats, Booking, GasAdminOverview, GasProviderAdminRow, Garage, GaragePieceCatalogue, EasyDelivery, HistoryDelivery, EasyDeliveryStatus, DriverStats, SubCategoryProd, Slider, Live, LiveFeedResponse, LiveListResponse, LiveStatus, LiveEntityType, Boost, BoostPricing, BoostEntityType, BoostPaymentMethod, WebPushNotifActiveResponse, WebPushNotifStatus, WebPushNotifAdminListResponse, NotificationSubscriptionListResponse, PushNotificationPayload, SendPushResult, MyAccess, AuthorizationNode, MenuTypeNode, MenuGroupNode, MenuNode, MenuAdminRow, SupplierQuote, SupplierQuoteStatus, Restaurant, RestaurantType, Accompagnement } from '@/types/interface';
 
 export const getBaseUrl = (): string => {
     return process.env.NEXT_PUBLIC_API_URL || 'https://api.djamko.com/api/v1';
@@ -1866,7 +1866,7 @@ export const handleToggleProductActive = async (id: string, isActive: boolean): 
     return await response.json();
 };
 
-export const createOrder = async (data: { items: { productId: string; quantity: number }[]; paymentMethod: string }): Promise<BaseResponse<Order>> => {
+export const createOrder = async (data: { items: { productId: string; quantity: number; achatType?: 'UNITE' | 'GROS'; accompagnementId?: string }[]; paymentMethod: string }): Promise<BaseResponse<Order>> => {
     const response = await secureFetch(`${getBaseUrl()}/orders`, {
         method: 'POST',
         body: JSON.stringify(data),
@@ -2790,6 +2790,46 @@ export const adminDeleteRestaurantType = async (id: string): Promise<BaseRespons
 
 export const adminToggleRestaurantTypeStatus = async (id: string, status: boolean): Promise<BaseResponse<RestaurantType>> => {
     const response = await secureFetch(`${getBaseUrl()}/restaurant-types/${id}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status }),
+    });
+    return await response.json();
+};
+
+/* =======================================================
+   ACCOMPAGNEMENTS API (Attiéké, Frites, Alloco... — gérés par l'admin)
+======================================================= */
+
+export const getAccompagnements = async (onlyActive: boolean = true): Promise<BaseResponse<Accompagnement[]>> => {
+    const response = await fetch(`${getBaseUrl()}/accompagnements?onlyActive=${onlyActive}`);
+    return await response.json();
+};
+
+export const adminCreateAccompagnement = async (data: { name: string; status?: boolean; order?: number }): Promise<BaseResponse<Accompagnement>> => {
+    const response = await secureFetch(`${getBaseUrl()}/accompagnements`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const adminUpdateAccompagnement = async (id: string, data: { name?: string; status?: boolean; order?: number }): Promise<BaseResponse<Accompagnement>> => {
+    const response = await secureFetch(`${getBaseUrl()}/accompagnements/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+    });
+    return await response.json();
+};
+
+export const adminDeleteAccompagnement = async (id: string): Promise<BaseResponse<null>> => {
+    const response = await secureFetch(`${getBaseUrl()}/accompagnements/${id}`, {
+        method: 'DELETE',
+    });
+    return await response.json();
+};
+
+export const adminToggleAccompagnementStatus = async (id: string, status: boolean): Promise<BaseResponse<Accompagnement>> => {
+    const response = await secureFetch(`${getBaseUrl()}/accompagnements/${id}/status`, {
         method: 'PATCH',
         body: JSON.stringify({ status }),
     });

@@ -2,10 +2,14 @@
 
 import React, { useState, useEffect } from "react";
 import { Icon } from "@iconify/react";
-import { getProductCategories } from "@/api/api";
+import { getProductCategories, getAccompagnements } from "@/api/api";
 import { Select2 } from "@/components/ui/Select2";
 import ImageUploadGrid from "@/components/ui/ImageUploadGrid";
-import { Product, CategoryProd } from "@/types/interface";
+import { Product, CategoryProd, Accompagnement } from "@/types/interface";
+
+/** Sélection d'accompagnements en cours d'édition, keyée par accompagnementId — la présence
+ * d'une clé = accompagnement coché. Un seul peut avoir isDefault=true (gratuit/inclus). */
+type AccompSelection = Record<string, { supplement: string; isDefault: boolean }>;
 
 interface FormsMenuItemProps {
     initialData?: Product;
@@ -23,6 +27,10 @@ interface FormsMenuItemProps {
  */
 export default function FormsMenuItem({ initialData, onSubmit, isSubmitting = false, isEditMode = false, onClose }: FormsMenuItemProps) {
     const [categories, setCategories] = useState<CategoryProd[]>([]);
+    const [accompagnementCatalog, setAccompagnementCatalog] = useState<Accompagnement[]>([]);
+    const [accompSelection, setAccompSelection] = useState<AccompSelection>(() =>
+        Object.fromEntries((initialData?.accompagnements || []).map(a => [a.id, { supplement: String(a.supplementPrice), isDefault: a.isDefault }]))
+    );
     const [name, setName] = useState(initialData?.name || "");
     const [description, setDescription] = useState(initialData?.description || "");
     const [price, setPrice] = useState<string>(initialData?.price?.toString() || "");
@@ -42,6 +50,9 @@ export default function FormsMenuItem({ initialData, onSubmit, isSubmitting = fa
         getProductCategories(true, 'RESTAURANT').then(res => {
             if (isMounted && res.statusCode === 200 && res.data) setCategories(res.data);
         }).catch(() => { });
+        getAccompagnements(true).then(res => {
+            if (isMounted && res.statusCode === 200 && res.data) setAccompagnementCatalog(res.data);
+        }).catch(() => { });
         return () => { isMounted = false; };
     }, []);
 
@@ -56,8 +67,31 @@ export default function FormsMenuItem({ initialData, onSubmit, isSubmitting = fa
             setCategoryId(initialData.categoryId || null);
             setIsActive(initialData.isActive ?? true);
             setImagePreviews(initialData.files?.map(f => f.fileUrl) || initialData.imageUrls || initialData.images || []);
+            setAccompSelection(Object.fromEntries((initialData.accompagnements || []).map(a => [a.id, { supplement: String(a.supplementPrice), isDefault: a.isDefault }])));
         }
     }, [initialData]);
+
+    const toggleAccompagnement = (id: string) => {
+        setAccompSelection(prev => {
+            if (prev[id]) {
+                const { [id]: _removed, ...rest } = prev;
+                return rest;
+            }
+            // Premier accompagnement coché = gratuit par défaut, les suivants démarrent à 0 FCFA de supplément.
+            const isFirst = Object.keys(prev).length === 0;
+            return { ...prev, [id]: { supplement: "0", isDefault: isFirst } };
+        });
+    };
+
+    const setAccompSupplement = (id: string, supplement: string) => {
+        setAccompSelection(prev => ({ ...prev, [id]: { ...prev[id], supplement } }));
+    };
+
+    const setAccompDefault = (id: string) => {
+        setAccompSelection(prev => Object.fromEntries(
+            Object.entries(prev).map(([key, val]) => [key, { supplement: key === id ? "0" : val.supplement, isDefault: key === id }])
+        ));
+    };
 
     const handleAddImages = (files: File[]) => {
         setImages(prev => [...prev, ...files]);
@@ -78,6 +112,13 @@ export default function FormsMenuItem({ initialData, onSubmit, isSubmitting = fa
         if (!price || isNaN(Number(price)) || Number(price) <= 0) errs.price = "Le prix doit être positif";
         if (!categoryId) errs.categoryId = "Veuillez sélectionner une catégorie de menu";
         if (stock === "" || isNaN(Number(stock)) || Number(stock) < 0) errs.stock = "La quantité doit être ≥ 0";
+        const accompEntries = Object.entries(accompSelection);
+        if (accompEntries.length > 0 && !accompEntries.some(([, v]) => v.isDefault)) {
+            errs.accompagnements = "Sélectionnez un accompagnement gratuit/inclus parmi ceux cochés";
+        }
+        if (accompEntries.some(([, v]) => !v.isDefault && (v.supplement === "" || isNaN(Number(v.supplement)) || Number(v.supplement) < 0))) {
+            errs.accompagnements = "Le supplément de chaque accompagnement doit être un nombre ≥ 0";
+        }
         return errs;
     };
 
@@ -97,6 +138,18 @@ export default function FormsMenuItem({ initialData, onSubmit, isSubmitting = fa
         formData.append("categoryId", categoryId || "");
         formData.append("isActive", String(isActive));
         images.forEach(file => formData.append("files", file));
+
+        // En édition, envoyer même un tableau vide (pour permettre de tout décocher) — en
+        // création, omettre le champ si rien n'est sélectionné (comportement inchangé pour
+        // un plat sans accompagnement).
+        const accompEntries = Object.entries(accompSelection);
+        if (isEditMode || accompEntries.length > 0) {
+            formData.append("accompagnements", JSON.stringify(accompEntries.map(([accompagnementId, v]) => ({
+                accompagnementId,
+                supplementPrice: v.isDefault ? 0 : Number(v.supplement) || 0,
+                isDefault: v.isDefault,
+            }))));
+        }
 
         await onSubmit(formData);
     };
@@ -180,6 +233,59 @@ export default function FormsMenuItem({ initialData, onSubmit, isSubmitting = fa
                         </button>
                     </div>
                 </div>
+
+                {accompagnementCatalog.length > 0 && (
+                    <div className="bg-card rounded-2xl border border-border p-6 shadow-sm space-y-4">
+                        <div>
+                            <h3 className="text-sm font-black flex items-center gap-2 text-foreground/80">
+                                <Icon icon="solar:bowl-bold-duotone" className="w-5 h-5 text-primary" />
+                                Accompagnements du plat
+                            </h3>
+                            <p className="text-xs text-muted-foreground mt-1">
+                                Choisissez les accompagnements proposés pour ce plat, marquez-en un comme gratuit/inclus, et définissez le supplément des autres.
+                            </p>
+                        </div>
+
+                        <div className="space-y-2">
+                            {accompagnementCatalog.map(accomp => {
+                                const selected = accompSelection[accomp.id];
+                                return (
+                                    <div key={accomp.id} className={`rounded-xl border p-3 transition-all ${selected ? 'border-primary/40 bg-primary/5' : 'border-border bg-muted/20'}`}>
+                                        <label className="flex items-center gap-3 cursor-pointer">
+                                            <input type="checkbox" checked={!!selected} onChange={() => toggleAccompagnement(accomp.id)} className="w-4 h-4 accent-primary shrink-0" />
+                                            <span className="text-sm font-bold text-foreground flex-1">{accomp.name}</span>
+                                        </label>
+                                        {selected && (
+                                            <div className="mt-2.5 ml-7 flex items-center gap-3 flex-wrap">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setAccompDefault(accomp.id)}
+                                                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wide transition-all ${selected.isDefault ? 'bg-emerald-500 text-white' : 'bg-muted text-muted-foreground hover:bg-muted-foreground/10'}`}
+                                                >
+                                                    <Icon icon={selected.isDefault ? 'solar:check-circle-bold' : 'solar:circle-linear'} className="w-3.5 h-3.5" />
+                                                    Gratuit / inclus
+                                                </button>
+                                                {!selected.isDefault && (
+                                                    <div className="flex items-center gap-1.5">
+                                                        <span className="text-xs font-bold text-muted-foreground">Supplément :</span>
+                                                        <input
+                                                            type="number" min="0" value={selected.supplement}
+                                                            onChange={e => setAccompSupplement(accomp.id, e.target.value)}
+                                                            className="w-24 px-2.5 py-1.5 rounded-lg border border-border bg-background text-xs font-bold outline-none focus:border-primary"
+                                                            placeholder="0"
+                                                        />
+                                                        <span className="text-xs text-muted-foreground">FCFA</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        {errors.accompagnements && <p className="text-[10px] text-red-500 font-bold">{errors.accompagnements}</p>}
+                    </div>
+                )}
             </div>
 
             <div className="sticky bottom-0 bg-background/95 backdrop-blur-sm p-4 border-t border-border flex items-center justify-end gap-3">
