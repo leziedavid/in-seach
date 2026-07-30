@@ -16,7 +16,7 @@ import {
     getPolicies,
 } from '@/api/api';
 import { Modal } from '@/components/ui/MotionModal';
-import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { useNotification } from '@/components/notifications/NotificationProvider';
 import { MenuTypeNode, MenuGroupNode } from '@/types/interface';
 
@@ -187,7 +187,7 @@ function GroupForm({ initial, onSubmit, onClose, isSubmitting }: {
     );
 }
 
-function SortableRow({ row, onEdit, onDelete }: { row: Row; onEdit: () => void; onDelete: () => void }) {
+function SortableRow({ row, onEdit, onDelete, onToggleActive }: { row: Row; onEdit: () => void; onDelete: () => void; onToggleActive: (value: boolean) => void }) {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: row.id });
     const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 };
 
@@ -203,20 +203,19 @@ function SortableRow({ row, onEdit, onDelete }: { row: Row; onEdit: () => void; 
                 <p className="text-sm font-bold truncate">{row.label}</p>
                 <p className="text-[10px] text-muted-foreground font-mono truncate">{row.code}{row.permission ? ` · ${row.permission}` : ''}</p>
             </div>
-            {row.isActive
-                ? <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50 text-[9px] font-black uppercase shrink-0">Actif</Badge>
-                : <Badge variant="outline" className="text-rose-600 border-rose-200 bg-rose-50 text-[9px] font-black uppercase shrink-0">Inactif</Badge>}
+            <Switch checked={row.isActive} onCheckedChange={onToggleActive} className="shrink-0" />
             <button type="button" onClick={onEdit} className="p-2 rounded-lg hover:bg-muted text-muted-foreground shrink-0"><Edit2 size={14} /></button>
             <button type="button" onClick={onDelete} className="p-2 rounded-lg hover:bg-muted text-rose-600 shrink-0"><Trash2 size={14} /></button>
         </div>
     );
 }
 
-function ItemList({ items, onReorder, onEdit, onDelete }: {
+function ItemList({ items, onReorder, onEdit, onDelete, onToggleActive }: {
     items: Row[];
     onReorder: (orderedIds: string[]) => void;
     onEdit: (row: Row) => void;
     onDelete: (row: Row) => void;
+    onToggleActive: (row: Row, value: boolean) => void;
 }) {
     const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -233,7 +232,7 @@ function ItemList({ items, onReorder, onEdit, onDelete }: {
             <SortableContext items={items.map((i) => i.id)} strategy={verticalListSortingStrategy}>
                 <div className="rounded-xl border border-border/40 overflow-hidden">
                     {items.map((row) => (
-                        <SortableRow key={row.id} row={row} onEdit={() => onEdit(row)} onDelete={() => onDelete(row)} />
+                        <SortableRow key={row.id} row={row} onEdit={() => onEdit(row)} onDelete={() => onDelete(row)} onToggleActive={(value) => onToggleActive(row, value)} />
                     ))}
                 </div>
             </SortableContext>
@@ -241,12 +240,13 @@ function ItemList({ items, onReorder, onEdit, onDelete }: {
     );
 }
 
-function SortableGroupBlock({ group, items, onReorderItems, onEditItem, onDeleteItem, onEditGroup, onDeleteGroup }: {
+function SortableGroupBlock({ group, items, onReorderItems, onEditItem, onDeleteItem, onToggleItemActive, onEditGroup, onDeleteGroup }: {
     group: MenuGroupNode | { id: string; label: string; isActive: boolean };
     items: Row[];
     onReorderItems: (orderedIds: string[]) => void;
     onEditItem: (row: Row) => void;
     onDeleteItem: (row: Row) => void;
+    onToggleItemActive: (row: Row, value: boolean) => void;
     onEditGroup?: () => void;
     onDeleteGroup?: () => void;
 }) {
@@ -266,7 +266,7 @@ function SortableGroupBlock({ group, items, onReorderItems, onEditItem, onDelete
             </div>
             <div className="p-2">
                 {items.length > 0 ? (
-                    <ItemList items={items} onReorder={onReorderItems} onEdit={onEditItem} onDelete={onDeleteItem} />
+                    <ItemList items={items} onReorder={onReorderItems} onEdit={onEditItem} onDelete={onDeleteItem} onToggleActive={onToggleItemActive} />
                 ) : (
                     <p className="text-xs text-muted-foreground text-center py-4">Aucun menu dans ce groupe</p>
                 )}
@@ -422,6 +422,21 @@ export default function AdminMenusPage() {
         }
     };
 
+    // Activation/désactivation rapide (Switch) — optimiste, sans passer par le
+    // formulaire de modification (qui reste disponible pour les autres champs).
+    const handleToggleActive = async (row: Row, value: boolean) => {
+        if (!selectedType) return;
+        setItems((prev) => prev.map((it) => (it.id === row.id ? { ...it, isActive: value } : it)));
+        const updateFn = selectedType.source === 'AUTHORIZATION' ? updateAuthorization : updateMenu;
+        const res = await updateFn(row.id, { isActive: value });
+        if (res.statusCode === 200) {
+            addNotification(value ? 'Menu activé' : 'Menu désactivé', 'success');
+        } else {
+            setItems((prev) => prev.map((it) => (it.id === row.id ? { ...it, isActive: !value } : it)));
+            addNotification(res.message || 'Erreur lors de la mise à jour', 'error');
+        }
+    };
+
     const handleSubmitGroup = async (data: any) => {
         if (!selectedType) return;
         setIsSubmitting(true);
@@ -505,6 +520,7 @@ export default function AdminMenusPage() {
                                         onReorderItems={(ids) => handleReorderItemsInGroup(group.id, ids)}
                                         onEditItem={(row) => { setEditingRow(row); setIsRowFormOpen(true); }}
                                         onDeleteItem={handleDeleteRow}
+                                        onToggleItemActive={handleToggleActive}
                                         onEditGroup={() => { setEditingGroup(group); setIsGroupFormOpen(true); }}
                                         onDeleteGroup={() => handleDeleteGroup(group)}
                                     />
@@ -516,6 +532,7 @@ export default function AdminMenusPage() {
                                         onReorderItems={(ids) => handleReorderItemsInGroup(NO_GROUP, ids)}
                                         onEditItem={(row) => { setEditingRow(row); setIsRowFormOpen(true); }}
                                         onDeleteItem={handleDeleteRow}
+                                        onToggleItemActive={handleToggleActive}
                                     />
                                 )}
                             </div>
@@ -527,6 +544,7 @@ export default function AdminMenusPage() {
                         onReorder={(ids) => handleReorderItemsInGroup(NO_GROUP, ids)}
                         onEdit={(row) => { setEditingRow(row); setIsRowFormOpen(true); }}
                         onDelete={handleDeleteRow}
+                        onToggleActive={handleToggleActive}
                     />
                 ) : (
                     <p className="text-sm text-muted-foreground text-center py-8">Aucun menu pour ce type.</p>
