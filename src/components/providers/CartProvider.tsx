@@ -6,19 +6,32 @@ import { getUserId } from "@/lib/auth";
 import { toast } from "sonner";
 import AccompagnementPickerModal from "@/components/restaurant/modals/AccompagnementPickerModal";
 
+interface CartExtra { id: string; name: string; supplementPrice: number }
+
 interface CartItem extends Product {
     quantity: number;
     achatType?: 'UNITE' | 'GROS';
     accompagnementId?: string;
     accompagnementName?: string;
     accompagnementSupplement?: number;
+    // Suppléments additionnels (sélection multiple, en plus de l'accompagnement inclus
+    // ci-dessus) — choisis inline sur products/detail pour un plat RESTAURANT.
+    selectedExtras?: CartExtra[];
+}
+
+// Clé stable pour comparer deux sélections d'extras (ordre indifférent) — deux mêmes plats
+// avec des suppléments différents doivent rester deux lignes de panier distinctes.
+function extrasSignature(extras?: CartExtra[]): string {
+    return (extras ?? []).map((e) => e.id).slice().sort().join(',');
 }
 
 interface CartContextType {
     cart: CartItem[];
-    addToCart: (product: Product, quantity?: number, achatType?: 'UNITE' | 'GROS') => void;
-    removeFromCart: (productId: string, achatType?: 'UNITE' | 'GROS', accompagnementId?: string) => void;
-    updateQuantity: (productId: string, quantity: number, achatType?: 'UNITE' | 'GROS', accompagnementId?: string) => void;
+    addToCart: (product: Product, quantity?: number, achatType?: 'UNITE' | 'GROS', preSelected?: {
+        accompagnementId?: string; accompagnementName?: string; accompagnementSupplement?: number; extras?: CartExtra[];
+    }) => void;
+    removeFromCart: (productId: string, achatType?: 'UNITE' | 'GROS', accompagnementId?: string, extras?: CartExtra[]) => void;
+    updateQuantity: (productId: string, quantity: number, achatType?: 'UNITE' | 'GROS', accompagnementId?: string, extras?: CartExtra[]) => void;
     clearCart: () => void;
     totalItems: number;
     totalAmount: number;
@@ -61,6 +74,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const commitAddToCart = useCallback((
         product: Product, quantity: number, achatType: 'UNITE' | 'GROS',
         accompagnementId?: string, accompagnementName?: string, accompagnementSupplement?: number,
+        extras?: CartExtra[],
     ) => {
         const itemPrice = (product.pricePromo !== undefined && product.pricePromo !== null && product.pricePromo > 0)
             ? product.pricePromo
@@ -70,21 +84,23 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
             ...product,
             price: itemPrice
         };
+        const extrasKey = extrasSignature(extras);
 
         setCart((prevCart) => {
-            const existingItem = prevCart.find((item) => item.id === effectiveProduct.id && item.achatType === achatType && item.accompagnementId === accompagnementId);
+            const matches = (item: CartItem) => item.id === effectiveProduct.id && item.achatType === achatType && item.accompagnementId === accompagnementId && extrasSignature(item.selectedExtras) === extrasKey;
+            const existingItem = prevCart.find(matches);
             if (existingItem) {
                 return prevCart.map((item) =>
-                    item.id === effectiveProduct.id && item.achatType === achatType && item.accompagnementId === accompagnementId
-                        ? { ...item, quantity: item.quantity + quantity }
-                        : item
+                    matches(item) ? { ...item, quantity: item.quantity + quantity } : item
                 );
             }
-            return [...prevCart, { ...effectiveProduct, quantity, achatType, accompagnementId, accompagnementName, accompagnementSupplement }];
+            return [...prevCart, { ...effectiveProduct, quantity, achatType, accompagnementId, accompagnementName, accompagnementSupplement, selectedExtras: extras }];
         });
     }, []);
 
-    const addToCart = useCallback((product: Product, quantity: number = 1, achatType: 'UNITE' | 'GROS' = 'UNITE') => {
+    const addToCart = useCallback((product: Product, quantity: number = 1, achatType: 'UNITE' | 'GROS' = 'UNITE', preSelected?: {
+        accompagnementId?: string; accompagnementName?: string; accompagnementSupplement?: number; extras?: CartExtra[];
+    }) => {
         if (product.productType === 'SUPPLIER') {
             toast.error("Ce produit Fournisseur nécessite une demande de devis, il ne peut pas être ajouté au panier.");
             return;
@@ -96,9 +112,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
             return;
         }
 
+        // Sélection déjà faite en amont (page/modale de détail produit RESTAURANT, voir
+        // useProductDetail.ts) — on ajoute directement, sans repasser par la modale popup.
+        if (preSelected) {
+            commitAddToCart(product, quantity, achatType, preSelected.accompagnementId, preSelected.accompagnementName, preSelected.accompagnementSupplement, preSelected.extras);
+            return;
+        }
+
         // Plat proposant des accompagnements : on ne l'ajoute pas encore, on demande d'abord
         // au client d'en choisir un (un seul, voir AccompagnementPickerModal) — même entrée
-        // "Ajouter" pour ProductCard/useProductDetail, aucun changement de leur côté.
+        // "Ajouter" pour ProductCard, aucun changement de son côté.
         if (product.accompagnements && product.accompagnements.length > 0) {
             setPendingSelection({ product, quantity, achatType });
             return;
@@ -107,19 +130,20 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         commitAddToCart(product, quantity, achatType);
     }, [commitAddToCart]);
 
-    const removeFromCart = useCallback((productId: string, achatType: 'UNITE' | 'GROS' = 'UNITE', accompagnementId?: string) => {
-        setCart((prevCart) => prevCart.filter((item) => !(item.id === productId && item.achatType === achatType && item.accompagnementId === accompagnementId)));
+    const removeFromCart = useCallback((productId: string, achatType: 'UNITE' | 'GROS' = 'UNITE', accompagnementId?: string, extras?: CartExtra[]) => {
+        const extrasKey = extrasSignature(extras);
+        setCart((prevCart) => prevCart.filter((item) => !(item.id === productId && item.achatType === achatType && item.accompagnementId === accompagnementId && extrasSignature(item.selectedExtras) === extrasKey)));
     }, []);
 
-    const updateQuantity = useCallback((productId: string, quantity: number, achatType: 'UNITE' | 'GROS' = 'UNITE', accompagnementId?: string) => {
+    const updateQuantity = useCallback((productId: string, quantity: number, achatType: 'UNITE' | 'GROS' = 'UNITE', accompagnementId?: string, extras?: CartExtra[]) => {
+        const extrasKey = extrasSignature(extras);
+        const matches = (item: CartItem) => item.id === productId && item.achatType === achatType && item.accompagnementId === accompagnementId && extrasSignature(item.selectedExtras) === extrasKey;
         if (quantity <= 0) {
-            setCart((prevCart) => prevCart.filter((item) => !(item.id === productId && item.achatType === achatType && item.accompagnementId === accompagnementId)));
+            setCart((prevCart) => prevCart.filter((item) => !matches(item)));
             return;
         }
         setCart((prevCart) =>
-            prevCart.map((item) =>
-                item.id === productId && item.achatType === achatType && item.accompagnementId === accompagnementId ? { ...item, quantity } : item
-            )
+            prevCart.map((item) => matches(item) ? { ...item, quantity } : item)
         );
     }, []);
 
@@ -130,13 +154,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const totalItems = useMemo(() => cart.reduce((sum, item) => sum + item.quantity, 0), [cart]);
     const totalAmount = useMemo(() => cart.reduce((sum, item) => {
         const supplement = item.accompagnementSupplement ?? 0;
+        const extrasSum = (item.selectedExtras ?? []).reduce((s, e) => s + e.supplementPrice, 0);
         if (item.achatType === 'GROS' && item.typeVente === 'GROS' && item.prixVenteGros) {
-            return sum + item.prixVenteGros + supplement;
+            return sum + item.prixVenteGros + supplement + extrasSum;
         }
         const effectivePrice = (item.pricePromo !== undefined && item.pricePromo !== null && item.pricePromo > 0)
             ? item.pricePromo
             : item.price;
-        return sum + (effectivePrice + supplement) * item.quantity;
+        return sum + (effectivePrice + supplement + extrasSum) * item.quantity;
     }, 0), [cart]);
 
     const value = useMemo(() => ({

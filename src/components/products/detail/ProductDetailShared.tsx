@@ -2,9 +2,10 @@
 
 import React from "react";
 import { Icon } from "@iconify/react";
-import { Product, productConditionLabels } from "@/types/interface";
+import { Product, ProductAccompagnementOption, productConditionLabels } from "@/types/interface";
 import TextDisplayBox from "@/components/home/TextDisplayBox";
 import { AccordionSection } from "@/components/ui/AccordionSection";
+import { Checkbox } from "@/components/ui/checkbox";
 import NegotiateButton from "@/components/products/detail/NegotiateButton";
 
 /**
@@ -88,6 +89,88 @@ export function DetailAccordions({ activeAccordion, onToggle, description, produ
                     <Spec label="Stock" value={product.stock > 0 ? `${product.stock} dispo` : "Épuisé"} tone={product.stock > 0 ? "success" : "danger"} />
                 </div>
             </AccordionSection>
+        </div>
+    );
+}
+
+// Choix d'accompagnement pour un plat RESTAURANT — accompagnement inclus (le défaut du plat,
+// non modifiable) + suppléments en sélection multiple (cases à cocher). Réutilise le style
+// déjà établi par AccompagnementPickerModal.tsx (cercle radio / badge "Gratuit" émeraude /
+// prix "+X FCFA" primary), affiché inline au lieu d'une modale popup.
+export function RestaurantAccompagnementSection({ includedAccompagnement, extraOptions, selectedExtraIds, onToggleExtra }: {
+    includedAccompagnement: ProductAccompagnementOption | null;
+    extraOptions: ProductAccompagnementOption[];
+    selectedExtraIds: Set<string>;
+    onToggleExtra: (id: string) => void;
+}) {
+    if (!includedAccompagnement && extraOptions.length === 0) return null;
+
+    return (
+        <div className="space-y-4">
+            {includedAccompagnement && (
+                <div className="space-y-2">
+                    <p className="text-xs font-black text-muted-foreground uppercase tracking-wider">Accompagnement inclus</p>
+                    <div className="w-full flex items-center justify-between gap-3 p-3.5 rounded-2xl border-2 border-primary bg-primary/5">
+                        <div className="flex items-center gap-3 min-w-0">
+                            <div className="w-5 h-5 rounded-full border-2 border-primary flex items-center justify-center shrink-0">
+                                <div className="w-2.5 h-2.5 bg-primary rounded-full" />
+                            </div>
+                            <span className="text-sm font-bold text-foreground truncate">{includedAccompagnement.name}</span>
+                        </div>
+                        <span className="text-[11px] font-black uppercase tracking-wide text-emerald-600 dark:text-emerald-400 shrink-0">Gratuit</span>
+                    </div>
+                </div>
+            )}
+
+            {extraOptions.length > 0 && (
+                <div className="space-y-2">
+                    <p className="text-xs font-black text-muted-foreground uppercase tracking-wider">Ajouter un supplément</p>
+                    <div className="space-y-2">
+                        {extraOptions.map(option => {
+                            const isSelected = selectedExtraIds.has(option.id);
+                            return (
+                                <button
+                                    key={option.id}
+                                    type="button"
+                                    onClick={() => onToggleExtra(option.id)}
+                                    className={`w-full flex items-center justify-between gap-3 p-3.5 rounded-2xl border-2 transition-all text-left ${isSelected ? 'border-primary bg-primary/5' : 'border-border bg-muted/20 hover:border-primary/30'}`}
+                                >
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <Checkbox checked={isSelected} className="pointer-events-none" />
+                                        <span className="text-sm font-bold text-foreground truncate">{option.name}</span>
+                                    </div>
+                                    <span className="text-xs font-black text-primary shrink-0">+{option.supplementPrice.toLocaleString()} FCFA</span>
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
+
+// Barre inférieure collante spécifique aux plats RESTAURANT (stepper quantité + bouton total
+// dynamique) — ProductFooter reste inchangé pour tous les autres ProductType.
+export function RestaurantProductFooter({ displayPrice, quantity, onIncrement, onDecrement, onAddToCart }: {
+    displayPrice: number; quantity: number; onIncrement: () => void; onDecrement: () => void; onAddToCart: () => void;
+}) {
+    return (
+        <div className="shrink-0 px-4 py-3 bg-[#FBFAF6] dark:bg-zinc-900 border-t border-[#EEF1F4] dark:border-zinc-800 flex items-center gap-3">
+            <div className="flex items-center bg-muted/40 rounded-2xl border border-border/50 p-1 shrink-0">
+                <button type="button" onClick={onDecrement} disabled={quantity <= 1} className="w-9 h-9 flex items-center justify-center rounded-xl text-foreground hover:bg-background transition-colors disabled:opacity-30">
+                    <Icon icon="iconamoon:sign-minus-bold" width={18} />
+                </button>
+                <span className="w-8 text-center text-sm font-black">{quantity}</span>
+                <button type="button" onClick={onIncrement} className="w-9 h-9 flex items-center justify-center rounded-xl text-foreground hover:bg-background transition-colors">
+                    <Icon icon="iconamoon:sign-plus-bold" width={18} />
+                </button>
+            </div>
+            <button onClick={onAddToCart}
+                className="flex-1 min-w-0 py-3.5 px-5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl font-black text-sm active:scale-95 transition-all shadow-lg shadow-primary/30 flex items-center justify-center gap-2">
+                <Icon icon="solar:cart-large-minimalistic-bold-duotone" width={20} />
+                <span className="truncate">Ajouter {(displayPrice * quantity).toLocaleString()} FCFA</span>
+            </button>
         </div>
     );
 }

@@ -836,6 +836,8 @@ export interface OrderItem {
     accompagnementId?: string | null
     accompagnementName?: string | null
     accompagnementSupplement?: number | null
+    /** Suppléments additionnels choisis en plus de l'accompagnement inclus (sélection multiple), figés au moment de la commande. */
+    extras?: { id: string; accompagnementId: string | null; name: string; supplementPrice: number }[]
     product?: Product
 }
 

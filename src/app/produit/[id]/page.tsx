@@ -11,7 +11,7 @@ import { useProductDetail } from "@/components/products/detail/useProductDetail"
 import ProductImageGallery from "@/components/products/detail/ProductImageGallery";
 import ProductSellerCard from "@/components/products/detail/ProductSellerCard";
 import SimilarProducts from "@/components/products/detail/SimilarProducts";
-import { CategoryChip, PriceBlock, DetailAccordions, ProductFooter } from "@/components/products/detail/ProductDetailShared";
+import { CategoryChip, PriceBlock, DetailAccordions, ProductFooter, RestaurantAccompagnementSection, RestaurantProductFooter } from "@/components/products/detail/ProductDetailShared";
 import NotFound from "@/components/common/NotFound";
 
 export default function ProductDetailPage() {
@@ -28,6 +28,8 @@ export default function ProductDetailPage() {
         achatType, setAchatType, isNegotiating, isRevealed, setIsRevealed,
         displayPrice, originalPrice, discount,
         handleAddToCart, handleNegotiate,
+        includedAccompagnement, extraOptions, selectedExtraIds, toggleExtra,
+        quantity, setQuantity,
     } = useProductDetail(id);
 
     const toggleAccordion = (accId: string) => setActiveAccordion(prev => prev === accId ? null : accId);
@@ -91,6 +93,7 @@ export default function ProductDetailPage() {
     }
 
     const isSupplierProduct = product.productType === 'SUPPLIER';
+    const isRestaurantProduct = product.productType === 'RESTAURANT';
     const isSensitive = isSensitiveProduct(product);
 
     return (
@@ -122,6 +125,15 @@ export default function ProductDetailPage() {
 
                     <DetailAccordions activeAccordion={activeAccordion} onToggle={toggleAccordion} description={product.description} product={product} />
 
+                    {isRestaurantProduct && (
+                        <RestaurantAccompagnementSection
+                            includedAccompagnement={includedAccompagnement}
+                            extraOptions={extraOptions}
+                            selectedExtraIds={selectedExtraIds}
+                            onToggleExtra={toggleExtra}
+                        />
+                    )}
+
                     <div className="pt-2">
                         <SimilarProducts productId={product.id} />
                     </div>
@@ -132,14 +144,24 @@ export default function ProductDetailPage() {
                 </div>
 
                 <div className="fixed bottom-0 left-0 right-0 z-50">
-                    <ProductFooter
-                        displayPrice={displayPrice}
-                        isSupplierProduct={isSupplierProduct}
-                        isNegotiating={isNegotiating}
-                        onNegotiate={handleNegotiate}
-                        onAddToCart={handleAddToCart}
-                        onRequestQuote={() => setIsQuoteModalOpen(true)}
-                    />
+                    {isRestaurantProduct ? (
+                        <RestaurantProductFooter
+                            displayPrice={displayPrice}
+                            quantity={quantity}
+                            onIncrement={() => setQuantity(q => q + 1)}
+                            onDecrement={() => setQuantity(q => Math.max(1, q - 1))}
+                            onAddToCart={handleAddToCart}
+                        />
+                    ) : (
+                        <ProductFooter
+                            displayPrice={displayPrice}
+                            isSupplierProduct={isSupplierProduct}
+                            isNegotiating={isNegotiating}
+                            onNegotiate={handleNegotiate}
+                            onAddToCart={handleAddToCart}
+                            onRequestQuote={() => setIsQuoteModalOpen(true)}
+                        />
+                    )}
                 </div>
             </div>
 
@@ -176,17 +198,35 @@ export default function ProductDetailPage() {
                             <PriceBlock achatType={achatType} setAchatType={setAchatType} typeVente={product.typeVente} displayPrice={displayPrice} originalPrice={originalPrice} prixVenteGros={product.prixVenteGros} />
                             {product.user && <ProductSellerCard storeInfo={storeInfo} />}
                             <DetailAccordions activeAccordion={activeAccordion} onToggle={toggleAccordion} description={product.description} product={product} />
+                            {isRestaurantProduct && (
+                                <RestaurantAccompagnementSection
+                                    includedAccompagnement={includedAccompagnement}
+                                    extraOptions={extraOptions}
+                                    selectedExtraIds={selectedExtraIds}
+                                    onToggleExtra={toggleExtra}
+                                />
+                            )}
                         </div>
                     </div>
 
-                    <ProductFooter
-                        displayPrice={displayPrice}
-                        isSupplierProduct={isSupplierProduct}
-                        isNegotiating={isNegotiating}
-                        onNegotiate={handleNegotiate}
-                        onAddToCart={handleAddToCart}
-                        onRequestQuote={() => setIsQuoteModalOpen(true)}
-                    />
+                    {isRestaurantProduct ? (
+                        <RestaurantProductFooter
+                            displayPrice={displayPrice}
+                            quantity={quantity}
+                            onIncrement={() => setQuantity(q => q + 1)}
+                            onDecrement={() => setQuantity(q => Math.max(1, q - 1))}
+                            onAddToCart={handleAddToCart}
+                        />
+                    ) : (
+                        <ProductFooter
+                            displayPrice={displayPrice}
+                            isSupplierProduct={isSupplierProduct}
+                            isNegotiating={isNegotiating}
+                            onNegotiate={handleNegotiate}
+                            onAddToCart={handleAddToCart}
+                            onRequestQuote={() => setIsQuoteModalOpen(true)}
+                        />
+                    )}
                 </div>
 
                 <div className="mt-8">

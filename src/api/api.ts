@@ -1866,7 +1866,7 @@ export const handleToggleProductActive = async (id: string, isActive: boolean): 
     return await response.json();
 };
 
-export const createOrder = async (data: { items: { productId: string; quantity: number; achatType?: 'UNITE' | 'GROS'; accompagnementId?: string }[]; paymentMethod: string }): Promise<BaseResponse<Order>> => {
+export const createOrder = async (data: { items: { productId: string; quantity: number; achatType?: 'UNITE' | 'GROS'; accompagnementId?: string; extraAccompagnementIds?: string[] }[]; paymentMethod: string }): Promise<BaseResponse<Order>> => {
     const response = await secureFetch(`${getBaseUrl()}/orders`, {
         method: 'POST',
         body: JSON.stringify(data),

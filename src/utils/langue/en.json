@@ -143,7 +143,12 @@
                 "title": "Food Ordering",
                 "description": "Discover restaurants near you, browse their menu and get your favorite dish delivered."
             },
-            "scroll_hint": "Swipe to see more services"
+            "scroll_hint": "Swipe to see more services",
+            "load_error": {
+                "title": "Unable to load menus",
+                "description": "Something went wrong, please refresh the page.",
+                "reload": "Refresh page"
+            }
         },
         "promo": {
             "badge_new": "New!"

@@ -86,6 +86,11 @@ export default function OrderDetailModal({ isOpen, onClose, order, onItemRemoved
                             {!!item.accompagnementSupplement && ` (+${item.accompagnementSupplement.toLocaleString()} FCFA)`}
                         </p>
                     )}
+                    {!!item.extras?.length && (
+                        <p className="text-xs text-neutral-400 mt-0.5">
+                            {item.extras.map(e => `+ ${e.name} (+${e.supplementPrice.toLocaleString()} FCFA)`).join(', ')}
+                        </p>
+                    )}
                 </div>
                 <span className={`text-sm font-medium shrink-0 ${item.removed ? "line-through text-neutral-400" : "text-neutral-900 dark:text-neutral-50"}`}>{(item.price * item.quantity).toLocaleString()} FCFA</span>
             </div>

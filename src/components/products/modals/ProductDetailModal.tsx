@@ -13,7 +13,7 @@ import { useProductDetail } from "@/components/products/detail/useProductDetail"
 import ProductImageGallery from "@/components/products/detail/ProductImageGallery";
 import ProductSellerCard from "@/components/products/detail/ProductSellerCard";
 import SimilarProducts from "@/components/products/detail/SimilarProducts";
-import { CategoryChip, PriceBlock, DetailAccordions, ProductFooter } from "@/components/products/detail/ProductDetailShared";
+import { CategoryChip, PriceBlock, DetailAccordions, ProductFooter, RestaurantAccompagnementSection, RestaurantProductFooter } from "@/components/products/detail/ProductDetailShared";
 
 interface ProductDetailModalProps {
     isOpen: boolean;
@@ -38,11 +38,14 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
         achatType, setAchatType, isNegotiating, isRevealed, setIsRevealed,
         displayPrice, originalPrice, discount,
         handleAddToCart, handleNegotiate,
+        includedAccompagnement, extraOptions, selectedExtraIds, toggleExtra,
+        quantity, setQuantity,
     } = useProductDetail(isOpen ? product?.id : undefined, product);
 
     if (!displayProduct || !mounted) return null;
 
     const isSupplierProduct = displayProduct.productType === 'SUPPLIER';
+    const isRestaurantProduct = displayProduct.productType === 'RESTAURANT';
     const isSensitive = isSensitiveProduct(displayProduct);
     const toggleAccordion = (id: string) => setActiveAccordion(prev => prev === id ? null : id);
 
@@ -99,6 +102,14 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                                             activeAccordion={activeAccordion} onToggle={toggleAccordion}
                                             description={displayProduct.description} product={displayProduct}
                                         />
+                                        {isRestaurantProduct && (
+                                            <RestaurantAccompagnementSection
+                                                includedAccompagnement={includedAccompagnement}
+                                                extraOptions={extraOptions}
+                                                selectedExtraIds={selectedExtraIds}
+                                                onToggleExtra={toggleExtra}
+                                            />
+                                        )}
                                     </div>
                                 </div>
 
@@ -131,6 +142,14 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                                             activeAccordion={activeAccordion} onToggle={toggleAccordion}
                                             description={displayProduct.description} product={displayProduct}
                                         />
+                                        {isRestaurantProduct && (
+                                            <RestaurantAccompagnementSection
+                                                includedAccompagnement={includedAccompagnement}
+                                                extraOptions={extraOptions}
+                                                selectedExtraIds={selectedExtraIds}
+                                                onToggleExtra={toggleExtra}
+                                            />
+                                        )}
 
                                         <div className="pt-2">
                                             <SimilarProducts productId={displayProduct.id} />
@@ -144,6 +163,15 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                             </div>
 
                             {/* ══ FOOTER ══ */}
+                            {isRestaurantProduct ? (
+                                <RestaurantProductFooter
+                                    displayPrice={displayPrice}
+                                    quantity={quantity}
+                                    onIncrement={() => setQuantity(q => q + 1)}
+                                    onDecrement={() => setQuantity(q => Math.max(1, q - 1))}
+                                    onAddToCart={handleAddToCart}
+                                />
+                            ) : (
                             <ProductFooter
                                 displayPrice={displayPrice}
                                 isSupplierProduct={isSupplierProduct}
@@ -152,6 +180,7 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                                 onAddToCart={handleAddToCart}
                                 onRequestQuote={() => setIsQuoteModalOpen(true)}
                             />
+                            )}
                         </motion.div>
                     </motion.div>
                 </>
