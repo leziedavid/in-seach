@@ -33,10 +33,28 @@ const HOME_CODE_TO_ID: Record<string, string> = {
     HOME_RESTAURANTS: "restaurants",
 }
 
+// Overlay plein écran affiché tant que GET /menus/type/HOME n'a pas répondu —
+// z-[9999] (même palier que VoiceSearchModal/NotificationToast, le plus haut
+// du projet) pour rester au-dessus de tout : header, footer, inputs, modales.
+function TabsSkeleton() {
+    return (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-background/60 backdrop-blur-md">
+            <div className="flex px-3 py-2 gap-4 sm:gap-6">
+                {Array.from({ length: 5 }).map((_, i) => (
+                    <div key={i} className="flex flex-col items-center shrink-0 py-2">
+                        <div className="w-16 h-16 sm:w-18 sm:h-18 md:w-20 md:h-20 rounded-[2rem] bg-muted animate-pulse" />
+                        <div className="h-2 sm:h-2.5 w-10 rounded-full bg-muted animate-pulse mt-3" />
+                    </div>
+                ))}
+            </div>
+        </div>
+    )
+}
+
 export default function AppTabs() {
     const { t } = useTranslation();
 
-    const { data: menusRes } = useQuery({
+    const { data: menusRes, isLoading: menusLoading } = useQuery({
         queryKey: queryKeys.menus.byType("HOME"),
         queryFn: () => getMenusByType("HOME"),
     })
@@ -182,41 +200,47 @@ export default function AppTabs() {
                 navigateurs appliquent une marge négative automatique pour "centrer" le débordement, ce
                 qui décale tout vers la gauche dès le premier rendu. On centre uniquement quand ça tient. */}
             <div ref={scrollContainerRef} className="w-full max-w-[300px] sm:max-w-[360px] md:max-w-[400px] mx-auto overflow-x-auto scroll-smooth scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" style={{ WebkitOverflowScrolling: "touch" }}>
-                <div className={`flex px-3 py-2 ${tabs.length > 4 ? "w-full" : "w-fit mx-auto gap-4 sm:gap-6"}`}>
+                {menusLoading ? (
+                    <TabsSkeleton />
+                ) : (
+                    <div className={`flex px-3 py-2 ${tabs.length > 4 ? "w-full" : "w-fit mx-auto gap-4 sm:gap-6"}`}>
 
-                    {tabs.map((tab) => {
-                        const isActive = active === tab.id
+                        {tabs.map((tab) => {
+                            const isActive = active === tab.id
 
-                        return (
-                            <button key={tab.id} ref={isActive ? activeTabRef : null} onClick={() => handleTabClick(tab.id)} className={`relative flex flex-col items-center shrink-0 group py-2 ${tabs.length > 4 ? "basis-1/4 min-w-0" : ""}`} >
-                                {/* Active Indicator (Sliding Background) */}
-                                {isActive && (
-                                    <motion.div layoutId="activeTabBackground" className="absolute inset-0 bg-primary/5 rounded-3xl z-0" transition={{ type: "spring", bounce: 0.2, duration: 0.6 }} />
-                                )}
+                            return (
+                                <button key={tab.id} ref={isActive ? activeTabRef : null} onClick={() => handleTabClick(tab.id)} className={`relative flex flex-col items-center shrink-0 group py-2 ${tabs.length > 4 ? "basis-1/4 min-w-0" : ""}`} >
+                                    {/* Active Indicator (Sliding Background) */}
+                                    {isActive && (
+                                        <motion.div layoutId="activeTabBackground" className="absolute inset-0 bg-primary/5 rounded-3xl z-0" transition={{ type: "spring", bounce: 0.2, duration: 0.6 }} />
+                                    )}
 
-                                {/* Cercle - Augmenté pour mobile (w-16) et web (sm-w-18) */}
-                                <div className={`relative z-10 w-16 h-16 sm:w-18 sm:h-18 md:w-20 md:h-20 flex items-center justify-center rounded-[2rem] border transition-all duration-300 ${isActive ? "bg-primary border-primary shadow-[0_10px_25px_-5px_rgba(var(--primary-rgb),0.4)] scale-105" : "bg-white dark:bg-zinc-800 border-border/40 shadow-sx hover:border-primary/50"} `} >
-                                    <Icon icon={tab.icon} className={defaultSizeClasses} style={{ color: strokeColor(isActive) }} />
-                                </div>
+                                    {/* Cercle - Augmenté pour mobile (w-16) et web (sm-w-18) */}
+                                    <div className={`relative z-10 w-16 h-16 sm:w-18 sm:h-18 md:w-20 md:h-20 flex items-center justify-center rounded-[2rem] border transition-all duration-300 ${isActive ? "bg-primary border-primary shadow-[0_10px_25px_-5px_rgba(var(--primary-rgb),0.4)] scale-105" : "bg-white dark:bg-zinc-800 border-border/40 shadow-sx hover:border-primary/50"} `} >
+                                        <Icon icon={tab.icon} className={defaultSizeClasses} style={{ color: strokeColor(isActive) }} />
+                                    </div>
 
-                                {/* Label - Optionnel, caché sur mobile si vide. max-w-full + truncate : au-delà de
-                                    4 onglets, chaque bouton fait exactement 25% de largeur (basis-1/4) — un libellé
-                                    plus long que ça ne doit pas repousser l'icône ni déborder sur le voisin. */}
-                                <span className={`text-[10px] sm:text-xs mt-3 max-w-full truncate transition-colors duration-300 font-black uppercase tracking-tighter ${tab.id === "search" ? "hidden sm:block" : ""} ${isActive ? "text-primary" : "text-zinc-600 dark:text-zinc-400 group-hover:text-primary"} `}  >
-                                    {tab.label}
-                                </span>
-                            </button>
-                        )
-                    })}
-                </div>
+                                    {/* Label - Optionnel, caché sur mobile si vide. max-w-full + truncate : au-delà de
+                                        4 onglets, chaque bouton fait exactement 25% de largeur (basis-1/4) — un libellé
+                                        plus long que ça ne doit pas repousser l'icône ni déborder sur le voisin. */}
+                                    <span className={`text-[10px] sm:text-xs mt-3 max-w-full truncate transition-colors duration-300 font-black uppercase tracking-tighter ${tab.id === "search" ? "hidden sm:block" : ""} ${isActive ? "text-primary" : "text-zinc-600 dark:text-zinc-400 group-hover:text-primary"} `}  >
+                                        {tab.label}
+                                    </span>
+                                </button>
+                            )
+                        })}
+                    </div>
+                )}
             </div>
 
             {/* INDICATEURS DE SCROLL (optionnel) */}
-            <div className="flex sm:hidden items-center justify-center gap-1 mt-2">
-                {tabs.map((tab) => (
-                    <div key={`dot-${tab.id}`} className={` w-1.5 h-1.5 rounded-full transition-all duration-300 ${active === tab.id ? "w-4 bg-primary" : "bg-muted"} `} />
-                ))}
-            </div>
+            {!menusLoading && (
+                <div className="flex sm:hidden items-center justify-center gap-1 mt-2">
+                    {tabs.map((tab) => (
+                        <div key={`dot-${tab.id}`} className={` w-1.5 h-1.5 rounded-full transition-all duration-300 ${active === tab.id ? "w-4 bg-primary" : "bg-muted"} `} />
+                    ))}
+                </div>
+            )}
 
             {/* Petit texte d'aide au scroll, visible seulement si ça dépasse */}
             {hasOverflow && (

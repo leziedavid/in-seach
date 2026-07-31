@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { adminGetProducts, adminDeleteProduct, adminUpdateProduct, adminGetCategoriesProduct, adminCreateCategoryProduct, adminUpdateCategoryProduct, adminDeleteCategoryProduct, adminGetSubCategoriesProduct, adminCreateSubCategoryProduct, adminUpdateSubCategoryProduct, adminDeleteSubCategoryProduct, adminToggleProductStatus, adminToggleCategoryProductStatus, adminToggleSubCategoryProductStatus } from '@/api/api';
-import { ShoppingBag, Package, Trash2, Edit2, Box, Tag, Calendar, Plus, Layers, Grid, ListTree } from 'lucide-react';
+import { ShoppingBag, Package, Trash2, Edit2, Box, Tag, Calendar, Plus, Layers, Grid, ListTree, ChefHat } from 'lucide-react';
 import { useNotification } from '@/components/notifications/NotificationProvider';
 import Image from "next/image";
 import { Product, CategoryProd, SubCategoryProd, productConditionLabels } from '@/types/interface';
@@ -17,10 +17,15 @@ import { Button } from '@/components/ui/button';
 import { useTranslation } from "@/utils/langue/hooks";
 
 type TabType = 'products' | 'categories' | 'sub-categories';
+type CategoryScope = 'MARKETPLACE' | 'RESTAURANT';
 
 export default function AdminProductsPage() {
     const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState<TabType>('products');
+    // Sous-onglet de la section "Catégories" — distingue les catégories marchandises
+    // (Boutique) des catégories de menu (Restaurant), qui partagent la même table
+    // CategoryProduct côté backend (voir CategoryProduct.scope).
+    const [categoryScope, setCategoryScope] = useState<CategoryScope>('MARKETPLACE');
     const [products, setProducts] = useState<Product[]>([]);
     const [categories, setCategories] = useState<CategoryProd[]>([]);
     const [subCategories, setSubCategories] = useState<SubCategoryProd[]>([]);
@@ -59,10 +64,10 @@ export default function AdminProductsPage() {
         }
     };
 
-    const fetchCategories = async () => {
+    const fetchCategories = async (scope: CategoryScope = categoryScope) => {
         setLoading(true);
         try {
-            const res = await adminGetCategoriesProduct();
+            const res = await adminGetCategoriesProduct(scope);
             if (res.statusCode === 200 && res.data) {
                 setCategories(res.data);
             }
@@ -91,11 +96,12 @@ export default function AdminProductsPage() {
         if (activeTab === 'products') {
             fetchProducts(page);
         } else if (activeTab === 'categories') {
-            fetchCategories();
+            fetchCategories(categoryScope);
         } else {
             fetchSubCategories();
         }
-    }, [page, activeTab]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [page, activeTab, categoryScope]);
 
     // --- Product Handlers ---
     const handleEditProductClick = (product: Product) => {
@@ -171,7 +177,7 @@ export default function AdminProductsPage() {
         }
     };
 
-    const handleCategorySubmit = async (data: { name: string; status: boolean }) => {
+    const handleCategorySubmit = async (data: { name: string; status: boolean; scope: CategoryScope }) => {
         setIsSubmitting(true);
         try {
             let res;
@@ -500,7 +506,23 @@ export default function AdminProductsPage() {
 
             {activeTab === 'categories' && (
                 <div className="animate-in slide-in-from-bottom-2 duration-500 space-y-4">
-                    <div className="flex justify-end">
+                    <div className="flex items-center justify-between gap-4 flex-wrap">
+                        <div className="flex items-center gap-2 p-1 bg-muted rounded-xl">
+                            <button
+                                onClick={() => setCategoryScope('MARKETPLACE')}
+                                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${categoryScope === 'MARKETPLACE' ? 'bg-card shadow-xs text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                            >
+                                <ShoppingBag className="w-3.5 h-3.5" />
+                                Marketplace
+                            </button>
+                            <button
+                                onClick={() => setCategoryScope('RESTAURANT')}
+                                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${categoryScope === 'RESTAURANT' ? 'bg-card shadow-xs text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                            >
+                                <ChefHat className="w-3.5 h-3.5" />
+                                Restaurant
+                            </button>
+                        </div>
                         <Button onClick={handleCreateCategoryClick} className="rounded-xl font-bold gap-2">
                             <Plus className="w-4 h-4" /> {t("admin.products.new_category")}
                         </Button>
@@ -599,6 +621,7 @@ export default function AdminProductsPage() {
                     <p className="text-muted-foreground mb-6 text-sm font-medium tracking-tight">{t("admin.products.category_name")}</p>
                     <CategoryProductForm
                         initialData={selectedCategory || undefined}
+                        defaultScope={categoryScope}
                         onSubmit={handleCategorySubmit}
                         isSubmitting={isSubmitting}
                         isEditing={isEditing}

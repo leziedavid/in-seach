@@ -4,10 +4,15 @@ import React, { useState } from "react";
 import { Icon } from "@iconify/react";
 import { CategoryProd } from "@/types/interface";
 import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+type CategoryScope = 'MARKETPLACE' | 'RESTAURANT';
 
 interface CategoryProductFormProps {
     initialData?: CategoryProd;
-    onSubmit: (data: { name: string; status: boolean }) => void | Promise<void>;
+    /** Portée par défaut à la création — pré-remplit le Select avec l'onglet actif (MARKETPLACE ou RESTAURANT). */
+    defaultScope?: CategoryScope;
+    onSubmit: (data: { name: string; status: boolean; scope: CategoryScope }) => void | Promise<void>;
     isSubmitting: boolean;
     isEditing?: boolean;
     onClose: () => void;
@@ -15,6 +20,7 @@ interface CategoryProductFormProps {
 
 export default function CategoryProductForm({
     initialData,
+    defaultScope = 'MARKETPLACE',
     onSubmit,
     isSubmitting,
     isEditing = false,
@@ -22,6 +28,7 @@ export default function CategoryProductForm({
 }: CategoryProductFormProps) {
     const [name, setName] = useState(initialData?.name || "");
     const [status, setStatus] = useState(initialData?.status ?? true);
+    const [scope, setScope] = useState<CategoryScope>(initialData?.scope ?? defaultScope);
     const [error, setError] = useState("");
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -31,7 +38,7 @@ export default function CategoryProductForm({
             return;
         }
         setError("");
-        await onSubmit({ name: name.trim(), status });
+        await onSubmit({ name: name.trim(), status, scope });
     };
 
     return (
@@ -46,6 +53,24 @@ export default function CategoryProductForm({
                     autoFocus
                 />
                 {error && <p className="text-[10px] text-red-500 font-bold">{error}</p>}
+            </div>
+
+            <div className="space-y-1">
+                <label className="text-xs font-bold">Portée de la catégorie *</label>
+                <Select value={scope} onValueChange={(val) => setScope(val as CategoryScope)}>
+                    <SelectTrigger className="w-full rounded-lg border-border/50 h-10 font-bold text-xs">
+                        <SelectValue placeholder="Choisir la portée" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="MARKETPLACE">Marketplace (catégories marchandises)</SelectItem>
+                        <SelectItem value="RESTAURANT">Restaurant (catégories de menu)</SelectItem>
+                    </SelectContent>
+                </Select>
+                <p className="text-[10px] text-muted-foreground font-medium italic">
+                    {scope === 'RESTAURANT'
+                        ? "Utilisée pour catégoriser les plats de menu (Entrées, Plats, Desserts...)."
+                        : "Utilisée pour catégoriser les produits de la boutique classique."}
+                </p>
             </div>
 
             <div className="flex items-center justify-between p-3 bg-muted/50 rounded-xl border border-border/50">

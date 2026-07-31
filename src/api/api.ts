@@ -1962,12 +1962,12 @@ export const adminDeleteProduct = async (id: string): Promise<BaseResponse<Produ
 };
 
 // ADMIN - CATEGORY PRODUCTS
-export const adminGetCategoriesProduct = async (): Promise<BaseResponse<CategoryProd[]>> => {
-    const response = await secureFetch(`${getBaseUrl()}/category-products`);
+export const adminGetCategoriesProduct = async (scope?: 'MARKETPLACE' | 'RESTAURANT'): Promise<BaseResponse<CategoryProd[]>> => {
+    const response = await secureFetch(`${getBaseUrl()}/category-products${scope ? `?scope=${scope}` : ''}`);
     return await response.json();
 };
 
-export const adminCreateCategoryProduct = async (data: { name: string }): Promise<BaseResponse<CategoryProd>> => {
+export const adminCreateCategoryProduct = async (data: { name: string; status?: boolean; scope?: 'MARKETPLACE' | 'RESTAURANT' }): Promise<BaseResponse<CategoryProd>> => {
     const response = await secureFetch(`${getBaseUrl()}/category-products`, {
         method: 'POST',
         body: JSON.stringify(data),
@@ -1975,7 +1975,7 @@ export const adminCreateCategoryProduct = async (data: { name: string }): Promis
     return await response.json();
 };
 
-export const adminUpdateCategoryProduct = async (id: string, data: { name: string }): Promise<BaseResponse<CategoryProd>> => {
+export const adminUpdateCategoryProduct = async (id: string, data: { name?: string; status?: boolean; scope?: 'MARKETPLACE' | 'RESTAURANT' }): Promise<BaseResponse<CategoryProd>> => {
     const response = await secureFetch(`${getBaseUrl()}/category-products/${id}`, {
         method: 'PATCH',
         body: JSON.stringify(data),
