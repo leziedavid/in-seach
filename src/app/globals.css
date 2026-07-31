@@ -51,6 +51,9 @@
   --glow-secondary: rgba(14, 76, 112, 0.12);
   --grid-color: rgba(0, 0, 0, 0.05);
   /* --bg-gradient: radial-gradient(circle at top left, var(--glow-primary), transparent 40%), radial-gradient(circle at bottom right, var(--glow-secondary), transparent 40%); */
+
+  /* Skeleton shimmer highlight — voir .skeleton-shimmer plus bas */
+  --shimmer-highlight: rgba(255, 255, 255, 0.8);
 }
 
 @theme inline {
@@ -135,6 +138,9 @@
   --glow-primary: rgba(176, 123, 94, 0.08);
   --glow-secondary: rgba(14, 76, 112, 0.15);
   --grid-color: rgba(255, 255, 255, 0.03);
+
+  /* Skeleton shimmer highlight - Dark Mode */
+  --shimmer-highlight: rgba(255, 255, 255, 0.08);
 }
 
 @layer base {
@@ -281,6 +287,19 @@
 
   .tracking-tightest {
     letter-spacing: -0.05em;
+  }
+
+  /* Skeleton premium — remplace animate-pulse par un balayage de lumière,
+     utilisé par AppEntrySkeleton (voir src/components/shared). */
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  .skeleton-shimmer {
+    background-image: linear-gradient(90deg, var(--muted) 25%, var(--shimmer-highlight) 50%, var(--muted) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.8s ease-in-out infinite;
   }
 
   /* Dark mode: force light text on dark/gray backgrounds */

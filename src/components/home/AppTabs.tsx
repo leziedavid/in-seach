@@ -1,10 +1,11 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { createPortal } from "react-dom"
 import { motion } from "framer-motion"
 import { Icon } from "@iconify/react"
 import { useQuery } from "@tanstack/react-query"
+import FullScreenOverlayPortal from "@/components/shared/FullScreenOverlayPortal"
+import AppEntrySkeleton from "@/components/shared/AppEntrySkeleton"
 import SearchAnnonces from "@/components/annonces/sections/SearchAnnonces"
 import Boutique from "@/components/store/sections/Boutique"
 import { strokeColor, defaultSizeClasses } from "@/components/layout/TabIcons"
@@ -34,62 +35,35 @@ const HOME_CODE_TO_ID: Record<string, string> = {
     HOME_RESTAURANTS: "restaurants",
 }
 
-// Portail vers document.body — AppTabs est monté à l'intérieur du motion.div
-// de PageTransition (ClientLayout.tsx), qui applique un `transform` Framer
-// Motion. Or `transform` sur un ancêtre crée un nouveau "containing block"
-// pour tout descendant `position: fixed`, qui se retrouve alors piégé dans la
-// boîte de PageTransition au lieu de couvrir le vrai viewport (header/footer
-// restent visibles au-dessus). Le portail sort l'overlay de cette
-// hiérarchie DOM pour qu'il se pose bien au-dessus de tout, comme les autres
-// overlays plein écran du projet (voir Modal dans MotionModal.tsx).
-function FullScreenOverlayPortal({ children }: { children: React.ReactNode }) {
-    const [mounted, setMounted] = useState(false)
-    useEffect(() => { setMounted(true) }, [])
-    if (!mounted) return null
-    return createPortal(children, document.body)
-}
-
 // Overlay plein écran affiché tant que GET /menus/type/HOME n'a pas répondu —
-// z-[9999] (même palier que VoiceSearchModal/NotificationToast, le plus haut
-// du projet) pour rester au-dessus de tout : header (desktop et mobile, tous
-// deux en z-[100]), footer, inputs, modales. Fond opaque (bg-background) pour
-// que rien ne transparaisse en dessous.
+// mécanique de portail/z-index/fond centralisée dans FullScreenOverlayPortal
+// (shared), au-dessus de tout : header (desktop et mobile, tous deux en
+// z-[100]), footer, inputs, modales.
 function TabsSkeleton() {
     return (
-        <FullScreenOverlayPortal>
-            <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-background">
-                <div className="flex px-3 py-2 gap-4 sm:gap-6">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                        <div key={i} className="flex flex-col items-center shrink-0 py-2">
-                            <div className="w-16 h-16 sm:w-18 sm:h-18 md:w-20 md:h-20 rounded-[2rem] bg-muted animate-pulse" />
-                            <div className="h-2 sm:h-2.5 w-10 rounded-full bg-muted animate-pulse mt-3" />
-                        </div>
-                    ))}
-                </div>
-            </div>
+        <FullScreenOverlayPortal show={true}>
+            <AppEntrySkeleton />
         </FullScreenOverlayPortal>
     )
 }
 
 // Overlay plein écran affiché si GET /menus/type/HOME échoue (réseau, ou
-// réponse HTTP 200 sans statusCode 200 dans l'enveloppe BaseResponse) — même
-// palier z-[9999], propose un rechargement complet de la page.
+// réponse HTTP 200 sans statusCode 200 dans l'enveloppe BaseResponse) —
+// propose un rechargement complet de la page.
 function TabsError({ onReload }: { onReload: () => void }) {
     const { t } = useTranslation();
     return (
-        <FullScreenOverlayPortal>
-            <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-background">
-                <div className="flex flex-col items-center text-center px-8 max-w-xs">
-                    <div className="w-16 h-16 rounded-[2rem] bg-rose-500/10 flex items-center justify-center mb-4">
-                        <Icon icon="solar:wi-fi-router-minimalistic-bold-duotone" width={28} className="text-rose-500" />
-                    </div>
-                    <p className="font-black text-foreground text-sm">{t("home.tabs.load_error.title")}</p>
-                    <p className="text-muted-foreground text-xs mt-1.5">{t("home.tabs.load_error.description")}</p>
-                    <button onClick={onReload} className="mt-5 flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-white text-xs font-black uppercase hover:bg-secondary transition-all">
-                        <Icon icon="solar:refresh-bold-duotone" width={16} />
-                        {t("home.tabs.load_error.reload")}
-                    </button>
+        <FullScreenOverlayPortal show={true}>
+            <div className="flex flex-col items-center text-center px-8 max-w-xs">
+                <div className="w-16 h-16 rounded-[2rem] bg-rose-500/10 flex items-center justify-center mb-4">
+                    <Icon icon="solar:wi-fi-router-minimalistic-bold-duotone" width={28} className="text-rose-500" />
                 </div>
+                <p className="font-black text-foreground text-sm">{t("home.tabs.load_error.title")}</p>
+                <p className="text-muted-foreground text-xs mt-1.5">{t("home.tabs.load_error.description")}</p>
+                <button onClick={onReload} className="mt-5 flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-white text-xs font-black uppercase hover:bg-secondary transition-all">
+                    <Icon icon="solar:refresh-bold-duotone" width={16} />
+                    {t("home.tabs.load_error.reload")}
+                </button>
             </div>
         </FullScreenOverlayPortal>
     )

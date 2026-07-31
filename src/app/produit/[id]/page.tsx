@@ -121,9 +121,9 @@ export default function ProductDetailPage() {
                     <h1 className="text-xl font-black leading-snug tracking-tight">{product.name}</h1>
                     <PriceBlock achatType={achatType} setAchatType={setAchatType} typeVente={product.typeVente} displayPrice={displayPrice} originalPrice={originalPrice} prixVenteGros={product.prixVenteGros} />
 
-                    {product.user && <ProductSellerCard storeInfo={storeInfo} />}
+                    {!isRestaurantProduct && product.user && <ProductSellerCard storeInfo={storeInfo} />}
 
-                    <DetailAccordions activeAccordion={activeAccordion} onToggle={toggleAccordion} description={product.description} product={product} />
+                    <DetailAccordions activeAccordion={activeAccordion} onToggle={toggleAccordion} description={product.description} product={product} hideEtat={isRestaurantProduct} />
 
                     {isRestaurantProduct && (
                         <RestaurantAccompagnementSection
@@ -196,8 +196,8 @@ export default function ProductDetailPage() {
                             <CategoryChip category={product.category?.name} inStock={product.stock > 0} />
                             <h1 className="text-2xl font-black leading-tight">{product.name}</h1>
                             <PriceBlock achatType={achatType} setAchatType={setAchatType} typeVente={product.typeVente} displayPrice={displayPrice} originalPrice={originalPrice} prixVenteGros={product.prixVenteGros} />
-                            {product.user && <ProductSellerCard storeInfo={storeInfo} />}
-                            <DetailAccordions activeAccordion={activeAccordion} onToggle={toggleAccordion} description={product.description} product={product} />
+                            {!isRestaurantProduct && product.user && <ProductSellerCard storeInfo={storeInfo} />}
+                            <DetailAccordions activeAccordion={activeAccordion} onToggle={toggleAccordion} description={product.description} product={product} hideEtat={isRestaurantProduct} />
                             {isRestaurantProduct && (
                                 <RestaurantAccompagnementSection
                                     includedAccompagnement={includedAccompagnement}

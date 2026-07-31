@@ -7,8 +7,11 @@ import EasyDeliveryPage from '@/components/delivery/sections/EasyDeliveryPage';
 import Sidebar, { TabType } from './Sidebar';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { getMySpace, upsertLocationLog } from '@/api/api';
+import { getMySpace, upsertLocationLog, getMenusByType } from '@/api/api';
+import { queryKeys } from '@/lib/queryKeys';
 import { useUserLocation } from '@/utils/location';
+import FullScreenOverlayPortal from '@/components/shared/FullScreenOverlayPortal';
+import AppEntrySkeleton from '@/components/shared/AppEntrySkeleton';
 import { useRealTimeUpdate } from '@/hooks/useRealTimeUpdate';
 import AccountServicesList from '@/components/profile/AccountServicesList';
 import AccountAnnonces from '@/components/profile/AccountAnnonces';
@@ -165,6 +168,19 @@ export default function Page() {
 
     const data = response?.data;
 
+    // Écran d'entrée plein écran (FullScreenOverlayPortal) : même queryKey que le menu
+    // AKWABA interrogé par Sidebar.tsx → requête dédupliquée par React Query, aucun appel
+    // réseau supplémentaire. `enabled: !!data?.user` reproduit la garde de Sidebar.tsx —
+    // tant que `data?.user` n'existe pas, cette query reste désactivée et `isLoading` vaut
+    // `false` (sémantique React Query v5 : isPending && isFetching), d'où le check explicite
+    // `!data?.user` ci-dessous plutôt que de se fier uniquement à akwabaMenusLoading.
+    const { isLoading: akwabaMenusLoading } = useQuery({
+        queryKey: queryKeys.menus.byType('AKWABA'),
+        queryFn: () => getMenusByType('AKWABA'),
+        enabled: !!data?.user,
+    });
+    const showEntryOverlay = !isMounted || !data?.user || akwabaMenusLoading;
+
     // Invalide le cache "my-space" dès qu'une réservation change de statut (validation,
     // scan, terminaison, annulation...), où que l'action ait été effectuée — sinon les
     // onglets Rendez-vous/Rendez-vous-annonces/Historique-rdv (alimentés par cette seule
@@ -222,10 +238,6 @@ export default function Page() {
                 return { items: [], total: 0, totalPages: 0 };
         }
     }, [data, activeTab, limit, userRole, bookingScope]);
-
-    if (!isMounted) {
-        return <div className="min-h-screen bg-background" />;
-    }
 
     const handleTabChange = (tab: TabType) => {
         if (tab === 'Tarifs') {
@@ -369,6 +381,13 @@ export default function Page() {
 
     return (
         <div className="min-h-screen">
+
+            {/* Point d'entrée plein écran — reste visible tant que l'utilisateur et le
+                menu AKWABA (Sidebar) ne sont pas entièrement prêts, remplace l'ancien
+                flash de fond vide (if (!isMounted) return <div .../>). */}
+            <FullScreenOverlayPortal show={showEntryOverlay}>
+                <AppEntrySkeleton />
+            </FullScreenOverlayPortal>
 
             <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-6 px-2 md:px-4 py-10">
 

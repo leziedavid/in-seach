@@ -73,8 +73,8 @@ export function Spec({ label, value, upper, tone }: { label: string; value: stri
     );
 }
 
-export function DetailAccordions({ activeAccordion, onToggle, description, product }: {
-    activeAccordion: string | null; onToggle: (id: string) => void; description?: string | null; product: Product;
+export function DetailAccordions({ activeAccordion, onToggle, description, product, hideEtat }: {
+    activeAccordion: string | null; onToggle: (id: string) => void; description?: string | null; product: Product; hideEtat?: boolean;
 }) {
     return (
         <div className="space-y-2">
@@ -83,7 +83,7 @@ export function DetailAccordions({ activeAccordion, onToggle, description, produ
             </AccordionSection>
             <AccordionSection id="specs" title="Détails du produit" icon="solar:widget-5-bold-duotone" activeSection={activeAccordion} onToggle={onToggle}>
                 <div className="grid grid-cols-2 gap-2">
-                    <Spec label="État" value={productConditionLabels[product.etat] || product.etat} />
+                    {!hideEtat && <Spec label="État" value={productConditionLabels[product.etat] || product.etat} />}
                     <Spec label="Référence" value={product.sku || product.id.slice(0, 8)} upper />
                     <Spec label="Catégorie" value={product.category?.name || "—"} />
                     <Spec label="Stock" value={product.stock > 0 ? `${product.stock} dispo` : "Épuisé"} tone={product.stock > 0 ? "success" : "danger"} />

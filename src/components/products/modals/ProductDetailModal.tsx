@@ -97,10 +97,10 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                                         <CategoryChip category={displayProduct.category?.name} inStock={displayProduct.stock > 0} />
                                         <h2 className="text-2xl font-black leading-tight">{displayProduct.name}</h2>
                                         <PriceBlock achatType={achatType} setAchatType={setAchatType} typeVente={displayProduct.typeVente} displayPrice={displayPrice} originalPrice={originalPrice} prixVenteGros={displayProduct.prixVenteGros} />
-                                        {displayProduct.user && <ProductSellerCard storeInfo={storeInfo} />}
+                                        {!isRestaurantProduct && displayProduct.user && <ProductSellerCard storeInfo={storeInfo} />}
                                         <DetailAccordions
                                             activeAccordion={activeAccordion} onToggle={toggleAccordion}
-                                            description={displayProduct.description} product={displayProduct}
+                                            description={displayProduct.description} product={displayProduct} hideEtat={isRestaurantProduct}
                                         />
                                         {isRestaurantProduct && (
                                             <RestaurantAccompagnementSection
@@ -136,11 +136,11 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                                         <h1 className="text-xl font-black leading-snug tracking-tight">{displayProduct.name}</h1>
                                         <PriceBlock achatType={achatType} setAchatType={setAchatType} typeVente={displayProduct.typeVente} displayPrice={displayPrice} originalPrice={originalPrice} prixVenteGros={displayProduct.prixVenteGros} />
 
-                                        {displayProduct.user && <ProductSellerCard storeInfo={storeInfo} />}
+                                        {!isRestaurantProduct && displayProduct.user && <ProductSellerCard storeInfo={storeInfo} />}
 
                                         <DetailAccordions
                                             activeAccordion={activeAccordion} onToggle={toggleAccordion}
-                                            description={displayProduct.description} product={displayProduct}
+                                            description={displayProduct.description} product={displayProduct} hideEtat={isRestaurantProduct}
                                         />
                                         {isRestaurantProduct && (
                                             <RestaurantAccompagnementSection
