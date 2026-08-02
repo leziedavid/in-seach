@@ -259,6 +259,15 @@ export interface StoreStats {
     totalRevenue: number;
 }
 
+export interface RestaurantStats {
+    totalMenuItems: number;
+    activeMenuItems: number;
+    ordersReceivedCount: number;
+    pendingOrdersCount: number;
+    boostedMenuItemsCount: number;
+    totalRevenue: number;
+}
+
 export interface ServiceStats {
     totalServices: number;
     activeServices: number;

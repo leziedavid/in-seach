@@ -4,10 +4,10 @@ import { useState, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { Icon } from "@iconify/react";
 import {
-    getMyRestaurants, createRestaurant, updateRestaurant, deleteRestaurant, getRestaurantTypes,
+    getMyRestaurants, createRestaurant, updateRestaurant, deleteRestaurant, getRestaurantTypes, getRestaurantStats,
     getMyProducts, createProduct, updateProduct, deleteProduct, handleToggleProductActive,
 } from "@/api/api";
-import { Restaurant, RestaurantType, GarageHoraires, Product } from "@/types/interface";
+import { Restaurant, RestaurantType, RestaurantStats, GarageHoraires, Product } from "@/types/interface";
 import { useUserLocation } from "@/utils/location";
 import { useDebounce } from "@/hooks/useDebounce";
 import { Modal } from "@/components/ui/MotionModal";
@@ -23,6 +23,7 @@ import ImageUploadGrid from "@/components/ui/ImageUploadGrid";
 import ProductsManagementContent from "@/components/store/sections/components/ProductsManagementContent";
 import VoiceSearchModal from "@/components/services/sections/VoiceSearchModal";
 import FormsMenuItem from "@/components/restaurant/forms/FormsMenuItem";
+import RestaurantPerformance from "@/components/restaurant/components/RestaurantPerformance";
 import { useRealTimeUpdate } from "@/hooks/useRealTimeUpdate";
 
 const inputClass = "w-full px-4 py-2.5 rounded-xl border border-border bg-muted/30 text-sm outline-none focus:border-primary transition-all font-medium";
@@ -104,6 +105,7 @@ export default function RestaurantManagement({ onNavigateToOrders }: RestaurantM
     const [activeSection, setActiveSection] = useState<string | null>("profil");
     const toggleSection = (id: string) => setActiveSection(prev => prev === id ? null : id);
     const [restaurantTypes, setRestaurantTypes] = useState<RestaurantType[]>([]);
+    const [restaurantStats, setRestaurantStats] = useState<RestaurantStats | null>(null);
 
     // ── Modal restaurant (création / édition) ──
     const [isRestoModalOpen, setIsRestoModalOpen] = useState(false);
@@ -183,7 +185,30 @@ export default function RestaurantManagement({ onNavigateToOrders }: RestaurantM
         if (menuPage > 1) fetchMenuItems(menuPage, false);
     }, [menuPage, fetchMenuItems]);
 
-    useRealTimeUpdate('Order', () => { if (selectedRestaurant) fetchRestaurants(); });
+    // ── Stats (KPI) : scopées au restaurant sélectionné, pas au compte (un compte peut posséder plusieurs restaurants) ──
+    const fetchRestaurantStats = useCallback(async (restaurantId: string) => {
+        try {
+            const res = await getRestaurantStats(restaurantId);
+            if (res.statusCode === 200 && res.data) setRestaurantStats(res.data);
+        } catch (error) {
+            console.error("Error fetching restaurant stats:", error);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (selectedRestaurant) {
+            fetchRestaurantStats(selectedRestaurant.id);
+        } else {
+            setRestaurantStats(null);
+        }
+    }, [selectedRestaurant, fetchRestaurantStats]);
+
+    useRealTimeUpdate('Order', () => {
+        if (selectedRestaurant) {
+            fetchRestaurants();
+            fetchRestaurantStats(selectedRestaurant.id);
+        }
+    });
 
     // ── Restaurant: création / édition ──
 
@@ -392,6 +417,11 @@ export default function RestaurantManagement({ onNavigateToOrders }: RestaurantM
                 </button>
 
                 <SectionHeader title={selectedRestaurant.name} subtitle={[selectedRestaurant.district, selectedRestaurant.city].filter(Boolean).join(", ")} className="mb-6" />
+
+                {/* ── Performances ── */}
+                <div className="w-full mb-8">
+                    <RestaurantPerformance stats={restaurantStats} />
+                </div>
 
                 <div className="w-full flex flex-col gap-3">
                     <AccordionSection id="profil" title="Profil du restaurant" subtitle="Coordonnées, adresse, horaires, types de cuisine et photos" icon="solar:card-bold-duotone" activeSection={activeSection} onToggle={toggleSection}>

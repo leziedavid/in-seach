@@ -90,22 +90,13 @@ export default function SearchRestaurants() {
             {/* Types de cuisine — icônes rondes en scroll horizontal */}
             {types.length > 0 && (
                 <div className="w-full max-w-3xl mx-auto mb-6">
-                    <CategoryFilter
-                        variant="cards"
-                        categories={[{ id: "all", name: "Tous" }, ...types.map(t => ({ id: t.id, name: t.name, image: t.icon }))]}
-                        selectedCategoryId={selectedTypeId}
-                        onCategoryChange={setSelectedTypeId}
-                    />
+                    <CategoryFilter variant="cards" categories={[{ id: "all", name: "Tous" }, ...types.map(t => ({ id: t.id, name: t.name, image: t.icon }))]} selectedCategoryId={selectedTypeId} onCategoryChange={setSelectedTypeId} />
                 </div>
             )}
 
             <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-1">
                 {!loading && restaurants.length === 0 ? (
-                    <NotFound
-                        title="Aucun restaurant trouvé"
-                        description={search || selectedTypeId !== "all" ? "Aucun restaurant ne correspond à votre recherche." : "Aucun restaurant n'est disponible pour le moment."}
-                        icon="solar:chef-hat-bold-duotone"
-                    />
+                    <NotFound title="Aucun restaurant trouvé" description={search || selectedTypeId !== "all" ? "Aucun restaurant ne correspond à votre recherche." : "Aucun restaurant n'est disponible pour le moment."} icon="solar:chef-hat-bold-duotone" />
                 ) : (
                     <InfiniteScroll<Restaurant>
                         items={restaurants}
@@ -115,10 +106,7 @@ export default function SearchRestaurants() {
                         skeletonCount={6}
                         gridClassName="grid grid-cols-1 sm:grid-cols-2 gap-4"
                         renderItem={(restaurant) => (
-                            <button
-                                onClick={() => goToRestaurant(restaurant.slug)}
-                                className="group text-left rounded-2xl overflow-hidden border border-border/40 bg-card hover:border-primary/40 hover:shadow-lg transition-all w-full"
-                            >
+                            <button onClick={() => goToRestaurant(restaurant.slug)} className="group text-left rounded-2xl overflow-hidden border border-border/40 bg-card hover:border-primary/40 hover:shadow-lg transition-all w-full">
                                 <div className="relative w-full aspect-[16/10] bg-muted overflow-hidden">
                                     {restaurant.coverPhoto ? (
                                         <Image src={restaurant.coverPhoto} alt={restaurant.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" unoptimized />

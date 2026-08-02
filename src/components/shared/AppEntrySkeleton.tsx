@@ -5,10 +5,7 @@
 // Une carte supplémentaire est rendue partiellement coupée + estompée en bas (overflow-
 // hidden + dégradé vers bg-background) pour reproduire l'indice de contenu scrollable
 // visible dans le mockup, plutôt que de s'arrêter net sur la dernière carte complète.
-export default function AppEntrySkeleton({ iconCount = 5, cardCount = 2 }: {
-    iconCount?: number;
-    cardCount?: number;
-}) {
+export default function AppEntrySkeleton({ iconCount = 5, cardCount = 2 }: { iconCount?: number; cardCount?: number; }) {
     return (
         <div className="relative w-full max-w-sm max-h-[92vh] overflow-hidden px-6">
             <div className="flex items-start justify-between gap-3">
