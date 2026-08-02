@@ -108,6 +108,8 @@ export default function LoginPage() {
                     router.push('/akwaba');
                 } else if (res.data.role === Role.GAZIER) {
                     router.push('/akwaba');
+                } else if (res.data.role === Role.RESTAURANT) {
+                    router.push('/akwaba');
                 } else if (res.data.role === Role.MARKETING) {
                     router.push('/suivi_marketing');
                 } else {

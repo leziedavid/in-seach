@@ -153,9 +153,20 @@ export default function Page() {
     const [selectedServiceForQuote, setSelectedServiceForQuote] = useState<any>(null);
     const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
 
-    // Origine de la navigation vers "Commandes" — permet d'afficher un bouton "Retour à la boutique"
-    // uniquement quand on y arrive depuis <Store />, sans jamais casser la navigation via la Sidebar.
-    const [commandesOrigin, setCommandesOrigin] = useState<'store' | null>(null);
+    // Onglet d'origine de la navigation vers "Commandes" — Commandes est partagé par plusieurs
+    // espaces de gestion (Boutique, Produits-fournisseur, Restaurants-gestion...). On mémorise
+    // l'onglet exact d'où l'utilisateur est venu pour que le bouton "Retour" le ramène toujours
+    // à son point de départ réel, jamais figé sur un onglet par défaut. Reste `null` (pas de
+    // bouton retour) quand on arrive sur Commandes via la Sidebar.
+    const [commandesOrigin, setCommandesOrigin] = useState<TabType | null>(null);
+
+    // Libellé du bouton "Retour" affiché dans <Commandes />, par onglet d'origine possible.
+    const COMMANDES_ORIGIN_LABELS: Partial<Record<TabType, string>> = {
+        'Boutique': 'Retour à la boutique',
+        'Produits-fournisseur': 'Retour à mon espace fournisseur',
+        'Restaurants-gestion': 'Retour à mes restaurants',
+        'Menus-restaurant': 'Retour à mes restaurants',
+    };
 
     // React Query for global data
     // bookingScope fait partie de la clé pour relire la liste à chaque changement
@@ -249,15 +260,16 @@ export default function Page() {
         setPage(1);
     };
 
-    const handleNavigateFromStoreToOrders = () => {
-        setCommandesOrigin('store');
+    const handleNavigateToOrders = () => {
+        setCommandesOrigin(activeTab);
         setActiveTab('Commandes');
         setPage(1);
     };
 
-    const handleBackToStoreFromOrders = () => {
+    const handleBackFromOrders = () => {
+        const origin = commandesOrigin;
         setCommandesOrigin(null);
-        setActiveTab('Boutique');
+        setActiveTab(origin ?? 'Boutique');
         setPage(1);
     };
 
@@ -330,9 +342,15 @@ export default function Page() {
             case 'Historique-commandes':
                 return <HistoriqueCommandes />;
             case 'Boutique':
-                return <Store onNavigateToOrders={handleNavigateFromStoreToOrders} />;
+                return <Store onNavigateToOrders={handleNavigateToOrders} />;
             case 'Commandes':
-                return <Commandes onSuccess={() => { void refetch(); }} fromStore={commandesOrigin === 'store'} onBackToStore={handleBackToStoreFromOrders} />;
+                return (
+                    <Commandes
+                        onSuccess={() => { void refetch(); }}
+                        backLabel={commandesOrigin ? COMMANDES_ORIGIN_LABELS[commandesOrigin] : undefined}
+                        onBack={commandesOrigin ? handleBackFromOrders : undefined}
+                    />
+                );
             case 'Services-logistiques':
                 return (<LogisticsServicesList mode="marketplace" onRequestQuote={(service) => { setSelectedServiceForQuote(service); setIsQuoteModalOpen(true); }} />);
             case 'Mes-services-logistiques':
@@ -366,12 +384,12 @@ export default function Page() {
             case 'Mon-Garage':
                 return <GarageManagement />;
             case 'Produits-fournisseur':
-                return <FournisseurBoutique onNavigateToOrders={handleNavigateFromStoreToOrders} />;
+                return <FournisseurBoutique onNavigateToOrders={handleNavigateToOrders} />;
             case 'Devis-fournisseur':
                 return <FournisseurQuotesList />;
             case 'Restaurants-gestion':
             case 'Menus-restaurant':
-                return <RestaurantManagement onNavigateToOrders={handleNavigateFromStoreToOrders} />;
+                return <RestaurantManagement onNavigateToOrders={handleNavigateToOrders} />;
             case 'Historique':
                 return <UnifiedHistory />;
             default:

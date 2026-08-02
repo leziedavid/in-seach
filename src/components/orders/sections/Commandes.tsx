@@ -28,13 +28,18 @@ interface CommandesProps {
     loading?: boolean;
     onPageChange?: (page: number) => void;
     onSuccess?: () => void;
-    /** true quand ce composant est ouvert depuis <Store /> — affiche le bouton "Retour à la boutique" */
-    fromStore?: boolean;
-    /** Callback pour revenir à <Store /> — requis si fromStore est true */
-    onBackToStore?: () => void;
+    /**
+     * Libellé du bouton de retour — affiché uniquement si défini. Ce composant est partagé
+     * par plusieurs espaces de gestion (Boutique, Fournisseur, Restaurants...) ; le parent
+     * (akwaba/page.tsx) qui a déclenché l'affichage de Commandes fournit son propre libellé,
+     * jamais figé sur "boutique" ici.
+     */
+    backLabel?: string;
+    /** Callback pour revenir à l'espace d'origine — requis si backLabel est défini */
+    onBack?: () => void;
 }
 
-export default function Commandes({ data: propData, page: propPage, limit: propLimit = 6, total: propTotal, totalPages: propTotalPages, loading: propLoading, onPageChange, onSuccess, fromStore, onBackToStore }: CommandesProps) {
+export default function Commandes({ data: propData, page: propPage, limit: propLimit = 6, total: propTotal, totalPages: propTotalPages, loading: propLoading, onPageChange, onSuccess, backLabel, onBack }: CommandesProps) {
 
     const [internalPage, setInternalPage] = useState(1);
     const page = propPage ?? internalPage;
@@ -166,13 +171,13 @@ export default function Commandes({ data: propData, page: propPage, limit: propL
     return (
         <div className="w-full mx-auto py-4">
 
-            {fromStore && onBackToStore && (
+            {backLabel && onBack && (
                 <button
-                    onClick={onBackToStore}
+                    onClick={onBack}
                     className="flex items-center gap-2 mb-4 text-xs font-black text-primary hover:underline"
                 >
                     <Icon icon="solar:alt-arrow-left-bold-duotone" className="w-4 h-4" />
-                    Retour à la boutique
+                    {backLabel}
                 </button>
             )}
 
