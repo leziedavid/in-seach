@@ -28,7 +28,7 @@ import ProductsManagementContent from "./components/ProductsManagementContent"
 import StorePerformance from "./components/StorePerformance"
 import SharePanel from "@/components/shared/SharePanel"
 import RecentOrders from "./components/RecentOrders"
-import QRCodeSection from "./components/QRCodeSection"
+import QRCodeCard from "@/components/shared/QRCodeCard"
 
 const ITEMS_PER_PAGE = 10
 
@@ -71,6 +71,7 @@ export default function Store({ onNavigateToOrders }: StoreProps) {
     const [isStoreUpdating, setIsStoreUpdating] = useState(false)
     const [copied, setCopied] = useState(false);
     const [isShareOpen, setIsShareOpen] = useState(false);
+    const [isQrModalOpen, setIsQrModalOpen] = useState(false);
 
     // KPI Stats State
     const [storeStats, setStoreStats] = useState<StoreStats | null>(null)
@@ -393,7 +394,18 @@ export default function Store({ onNavigateToOrders }: StoreProps) {
                 {/* Accordéons — repliés par défaut, un seul ouvert à la fois. "Commandes reçues" navigue vers un autre onglet, ce n'est pas un accordéon. */}
                 <div className="flex flex-col gap-3">
 
-                    {storeInfo?.id && (<QRCodeSection storeInfo={storeInfo} activeSection={activeQuickAction} onToggle={toggleQuickAction} />)}
+                    {storeInfo?.id && (
+                        <button onClick={() => setIsQrModalOpen(true)} className="w-full flex items-center gap-4 p-5 bg-card border border-border/60 hover:border-border rounded-2xl shadow-sm transition-all text-left" >
+                            <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-muted text-muted-foreground">
+                                <Icon icon="solar:qr-code-bold-duotone" className="w-6 h-6" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <h3 className="font-black tracking-tight text-foreground">QR Code de votre boutique</h3>
+                                <p className="text-[11px] font-medium text-muted-foreground">Affichage physique — à imprimer ou afficher en boutique</p>
+                            </div>
+                            <Icon icon="solar:alt-arrow-right-bold-duotone" className="w-5 h-5 text-muted-foreground/40 shrink-0" />
+                        </button>
+                    )}
 
                     <AccordionSection id="catalogue" title="Catalogue" subtitle="Gérez vos produits en ligne" icon="solar:widget-2-bold-duotone" activeSection={activeQuickAction} onToggle={toggleQuickAction} >
 
@@ -464,6 +476,20 @@ export default function Store({ onNavigateToOrders }: StoreProps) {
                 storeLogo={storeInfo?.storeLogo || ""}
             />
             <OrderDetailModal isOpen={isOrderPreviewOpen} onClose={() => { setIsOrderPreviewOpen(false); setPreviewOrder(null); }} order={previewOrder} />
+
+            {/* QR Code Modal */}
+            <Modal isOpen={isQrModalOpen} onClose={() => setIsQrModalOpen(false)} title="QR Code de la boutique">
+                <div className="p-4 md:p-6">
+                    <QRCodeCard
+                        path={`/qr/store/${storeInfo?.id}`}
+                        name={storeInfo?.storeName || "Ma Boutique"}
+                        logoSrc={storeInfo?.storeLogo}
+                        tagline="Scannez pour découvrir notre boutique"
+                        infoText="Ce QR Code reste valide même si vous modifiez le nom, le logo ou la description de votre boutique."
+                        filenamePrefix="qr-boutique"
+                    />
+                </div>
+            </Modal>
             {/* Product Form Modal */}
 
             <Modal isOpen={isModalOpen} onClose={() => { setIsModalOpen(false); setIsEditing(false); setSelectedProduct(null); }}>

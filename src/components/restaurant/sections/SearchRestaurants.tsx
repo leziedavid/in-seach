@@ -9,6 +9,7 @@ import { Restaurant, RestaurantType } from "@/types/interface";
 import InfiniteScroll from "@/components/ui/InfiniteScroll";
 import CategoryFilter from "@/components/ui/CategoryFilter";
 import NotFound from "@/components/common/NotFound";
+import ViewToggle, { ViewMode } from "@/components/shared/ViewToggle";
 
 const ITEMS_PER_PAGE = 12;
 
@@ -27,6 +28,7 @@ export default function SearchRestaurants() {
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
     const [loading, setLoading] = useState(false);
+    const [viewMode, setViewMode] = useState<ViewMode>("grid");
 
     useEffect(() => {
         getRestaurantTypes(true).then(res => { if (res.statusCode === 200 && res.data) setTypes(res.data); });
@@ -78,7 +80,9 @@ export default function SearchRestaurants() {
             <form onSubmit={e => e.preventDefault()} className="flex items-center justify-center w-full max-w-2xl mb-4">
                 <div className="flex items-center w-full bg-card border border-primary rounded-xl px-4 py-2 shadow-sm hover:border-secondary transition-colors">
                     <Icon icon="solar:chef-hat-bold-duotone" className="w-4 h-4 text-muted-foreground mr-2 shrink-0" />
-                    <input value={search} type="text" placeholder="Rechercher un restaurant..." className="flex-1 bg-transparent text-foreground outline-none text-sm min-w-0 placeholder:text-muted-foreground" onChange={(e) => setSearch(e.target.value)} />
+                    <input value={search} type="text" placeholder="Rechercher un restaurant..."
+                        className="flex-1 bg-transparent text-foreground outline-none text-sm min-w-0 placeholder:text-muted-foreground"
+                        onChange={(e) => setSearch(e.target.value)} />
                     {search && (
                         <button type="button" onClick={() => setSearch("")} className="p-1 text-muted-foreground hover:text-primary transition-colors">
                             <Icon icon="solar:close-circle-bold-duotone" className="w-5 h-5" />
@@ -95,50 +99,61 @@ export default function SearchRestaurants() {
             )}
 
             <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-1">
+
                 {!loading && restaurants.length === 0 ? (
                     <NotFound title="Aucun restaurant trouvé" description={search || selectedTypeId !== "all" ? "Aucun restaurant ne correspond à votre recherche." : "Aucun restaurant n'est disponible pour le moment."} icon="solar:chef-hat-bold-duotone" />
                 ) : (
-                    <InfiniteScroll<Restaurant>
-                        items={restaurants}
-                        hasMore={hasMore}
-                        isLoading={loading}
-                        loadMore={() => setPage(prev => prev + 1)}
-                        skeletonCount={6}
-                        gridClassName="grid grid-cols-1 sm:grid-cols-2 gap-4"
-                        renderItem={(restaurant) => (
-                            <button onClick={() => goToRestaurant(restaurant.slug)} className="group text-left rounded-2xl overflow-hidden border border-border/40 bg-card hover:border-primary/40 hover:shadow-lg transition-all w-full">
-                                <div className="relative w-full aspect-[16/10] bg-muted overflow-hidden">
-                                    {restaurant.coverPhoto ? (
-                                        <Image src={restaurant.coverPhoto} alt={restaurant.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" unoptimized />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center bg-primary/10">
-                                            <Icon icon="solar:chef-hat-bold-duotone" className="w-12 h-12 text-primary" />
-                                        </div>
-                                    )}
-                                    {!restaurant.isActive && (
-                                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                                            <span className="text-white text-xs font-black uppercase tracking-widest">Fermé</span>
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="p-4 space-y-1.5">
-                                    <div className="flex items-center gap-2 min-w-0">
-                                        <h3 className="font-black text-foreground truncate flex-1">{restaurant.name}</h3>
+                    <>
+                        <div className="flex items-center justify-between w-full px-2 md:px-0 mb-4">
+                            <h3 className="text-xl md:text-2xl font-black text-foreground italic text-left md:text-center leading-tight"> </h3>
+                            {restaurants.length > 0 && (
+                                <ViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />
+                            )}
+                        </div>
+
+                        <InfiniteScroll<Restaurant>
+                            items={restaurants}
+                            hasMore={hasMore}
+                            isLoading={loading}
+                            loadMore={() => setPage(prev => prev + 1)}
+                            skeletonCount={6}
+                            gridClassName={viewMode === 'grid' ? "grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-6" : "grid grid-cols-1 gap-4"}
+                            renderItem={(restaurant) => (
+                                <button onClick={() => goToRestaurant(restaurant.slug)} className="group text-left rounded-2xl overflow-hidden border border-border/40 bg-card hover:border-primary/40 hover:shadow-lg transition-all w-full">
+                                    <div className="relative w-full aspect-[16/10] bg-muted overflow-hidden">
+                                        {restaurant.coverPhoto ? (
+                                            <Image src={restaurant.coverPhoto} alt={restaurant.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" unoptimized />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center bg-primary/10">
+                                                <Icon icon="solar:chef-hat-bold-duotone" className="w-12 h-12 text-primary" />
+                                            </div>
+                                        )}
+                                        {!restaurant.isActive && (
+                                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                                                <span className="text-white text-xs font-black uppercase tracking-widest">Fermé</span>
+                                            </div>
+                                        )}
                                     </div>
-                                    <p className="text-xs text-muted-foreground truncate">
-                                        {(restaurant.types || []).map(t => t.name).join(", ") || "Restaurant"}
-                                    </p>
-                                    {prepTimeLabel(restaurant) && (
-                                        <p className="text-xs font-bold text-muted-foreground flex items-center gap-1.5">
-                                            <Icon icon="solar:scooter-bold-duotone" className="w-3.5 h-3.5 text-primary" />
-                                            {prepTimeLabel(restaurant)}
+                                    <div className="p-4 space-y-1.5">
+                                        <div className="flex items-center gap-2 min-w-0">
+                                            <h3 className="font-black text-foreground truncate flex-1">{restaurant.name}</h3>
+                                        </div>
+                                        <p className="text-xs text-muted-foreground truncate">
+                                            {(restaurant.types || []).map(t => t.name).join(", ") || "Restaurant"}
                                         </p>
-                                    )}
-                                </div>
-                            </button>
-                        )}
-                    />
+                                        {prepTimeLabel(restaurant) && (
+                                            <p className="text-xs font-bold text-muted-foreground flex items-center gap-1.5">
+                                                <Icon icon="solar:scooter-bold-duotone" className="w-3.5 h-3.5 text-primary" />
+                                                {prepTimeLabel(restaurant)}
+                                            </p>
+                                        )}
+                                    </div>
+                                </button>
+                            )}
+                        />
+                    </>
                 )}
+
             </div>
         </div>
     );

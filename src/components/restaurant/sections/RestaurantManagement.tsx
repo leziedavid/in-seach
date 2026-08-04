@@ -25,6 +25,8 @@ import VoiceSearchModal from "@/components/services/sections/VoiceSearchModal";
 import FormsMenuItem from "@/components/restaurant/forms/FormsMenuItem";
 import RestaurantPerformance from "@/components/restaurant/components/RestaurantPerformance";
 import { useRealTimeUpdate } from "@/hooks/useRealTimeUpdate";
+import { Share } from "@/components/shared/Share";
+import QRCodeCard from "@/components/shared/QRCodeCard";
 
 const inputClass = "w-full px-4 py-2.5 rounded-xl border border-border bg-muted/30 text-sm outline-none focus:border-primary transition-all font-medium";
 const labelClass = "text-xs font-bold text-muted-foreground uppercase tracking-wider";
@@ -106,6 +108,10 @@ export default function RestaurantManagement({ onNavigateToOrders }: RestaurantM
     const toggleSection = (id: string) => setActiveSection(prev => prev === id ? null : id);
     const [restaurantTypes, setRestaurantTypes] = useState<RestaurantType[]>([]);
     const [restaurantStats, setRestaurantStats] = useState<RestaurantStats | null>(null);
+
+    // ── Partage & QR Code de la page publique du restaurant ──
+    const [isRestoShareOpen, setIsRestoShareOpen] = useState(false);
+    const [isRestoQrOpen, setIsRestoQrOpen] = useState(false);
 
     // ── Modal restaurant (création / édition) ──
     const [isRestoModalOpen, setIsRestoModalOpen] = useState(false);
@@ -416,7 +422,17 @@ export default function RestaurantManagement({ onNavigateToOrders }: RestaurantM
                     Tous mes restaurants
                 </button>
 
-                <SectionHeader title={selectedRestaurant.name} subtitle={[selectedRestaurant.district, selectedRestaurant.city].filter(Boolean).join(", ")} className="mb-6" />
+                <div className="w-full flex items-start justify-between gap-4 mb-6">
+                    <SectionHeader title={selectedRestaurant.name} subtitle={[selectedRestaurant.district, selectedRestaurant.city].filter(Boolean).join(", ")} />
+                    <div className="flex items-center gap-2 shrink-0">
+                        <button onClick={() => setIsRestoShareOpen(true)} className="w-9 h-9 md:w-10 md:h-10 rounded-2xl bg-muted flex items-center justify-center hover:bg-primary/20 hover:text-primary transition-all active:scale-90 shrink-0">
+                            <Icon icon="solar:share-bold-duotone" className="w-5 h-5" />
+                        </button>
+                        <button onClick={() => setIsRestoQrOpen(true)} className="w-9 h-9 md:w-10 md:h-10 rounded-2xl bg-muted flex items-center justify-center hover:bg-primary/20 hover:text-primary transition-all active:scale-90 shrink-0">
+                            <Icon icon="solar:qr-code-bold-duotone" className="w-5 h-5" />
+                        </button>
+                    </div>
+                </div>
 
                 {/* ── Performances ── */}
                 <div className="w-full mb-8">
@@ -537,6 +553,27 @@ export default function RestaurantManagement({ onNavigateToOrders }: RestaurantM
                 </Modal>
                 <VoiceSearchModal isOpen={isVoiceModalOpen} onClose={() => setIsVoiceModalOpen(false)} onResult={(text) => setMenuSearch(text)} />
                 <ConfirmAction isOpen={confirmState.isOpen} onClose={closeConfirm} onConfirm={() => { confirmState.action?.(); closeConfirm(); }} title={confirmState.title} message={confirmState.message} confirmLabel={confirmState.confirmLabel} variant={confirmState.variant} icon={confirmState.icon} />
+
+                <Share isOpen={isRestoShareOpen}
+                    onClose={() => setIsRestoShareOpen(false)}
+                    url={`${process.env.NEXT_PUBLIC_BASE_URL}/restaurant/${selectedRestaurant.slug}`}
+                    title={selectedRestaurant.name}
+                    description={selectedRestaurant.description || ""}
+                    image={selectedRestaurant.logo || ""}
+                />
+
+                <Modal isOpen={isRestoQrOpen} onClose={() => setIsRestoQrOpen(false)} title="QR Code du restaurant">
+                    <div className="p-4 md:p-6">
+                        <QRCodeCard
+                            path={`/restaurant/${selectedRestaurant.slug}`}
+                            name={selectedRestaurant.name}
+                            logoSrc={selectedRestaurant.logo}
+                            tagline="Scannez pour découvrir notre menu"
+                            infoText="Ce QR Code reste valide même si vous modifiez les informations de votre restaurant."
+                            filenamePrefix="qr-restaurant"
+                        />
+                    </div>
+                </Modal>
             </div>
         );
     }
