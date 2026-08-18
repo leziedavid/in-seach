@@ -144,7 +144,7 @@ export default function SearchInput({
     const hasActions = enableVoice || enableMap || enableImage || enableSubmitButton;
 
     const bar = (
-        <div className={`flex flex-col w-full bg-card border border-primary rounded-3xl shadow-lg hover:border-secondary focus-within:border-secondary transition-colors ${disabled ? "opacity-60" : ""}`}>
+        <div className={`flex flex-col w-full bg-card border border-primary rounded-xl shadow-lg hover:border-secondary focus-within:border-secondary transition-colors ${disabled ? "opacity-60" : ""}`}>
             <div className="flex items-start gap-2 pl-4 pr-3 pt-1.5">
                 <Icon icon={leadingIcon} className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                 <textarea
@@ -252,7 +252,7 @@ export default function SearchInput({
             />
             <div
                 className="fixed inset-x-0 z-40 flex justify-center px-4 pointer-events-none"
-                style={{ bottom: "calc(var(--footer-height, 0px) + 6px)" }}
+                style={{ bottom: "calc(var(--footer-height, 0px) + 16px + env(safe-area-inset-bottom, 0px))" }}
             >
                 <div className={`w-full max-w-2xl pointer-events-auto ${className}`}>
                     {content}

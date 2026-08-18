@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Icon } from '@iconify/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
@@ -8,6 +9,13 @@ import { Switch } from '@/components/ui/switch';
 
 export const CookieConsentModal = () => {
     const [isVisible, setIsVisible] = useState(false);
+    // Portail vers document.body : ce composant est monté à l'intérieur du motion.div de
+    // PageTransition, qui applique un `transform` Framer Motion — celui-ci crée un nouveau
+    // contexte d'empilement pour tout ce qu'il contient, donc son z-[101] ne peut plus
+    // l'emporter sur des éléments fixes portés directement sur document.body (SearchInput,
+    // etc.), quelle que soit sa valeur. Même contournement que FullScreenOverlayPortal.tsx.
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => { setMounted(true); }, []);
     const [preferences, setPreferences] = useState({
         analytics: true,
         ads: true,
@@ -47,7 +55,9 @@ export const CookieConsentModal = () => {
         setPreferences(prev => ({ ...prev, [key]: !prev[key] }));
     };
 
-    return (
+    if (!mounted) return null;
+
+    return createPortal(
         <AnimatePresence>
             {isVisible && (
                 <div className="fixed inset-0 z-[101] flex items-center justify-center p-4 sm:p-6">
@@ -158,6 +168,7 @@ export const CookieConsentModal = () => {
                     </motion.div>
                 </div>
             )}
-        </AnimatePresence>
+        </AnimatePresence>,
+        document.body
     );
 };

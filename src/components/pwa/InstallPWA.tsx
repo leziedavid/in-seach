@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Icon } from "@iconify/react";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,13 @@ export default function InstallPWA() {
     const { deferredPrompt, isInstalled, platform, installApp } = usePWA();
     const [show, setShow] = useState(false);
     const [showIOSGuide, setShowIOSGuide] = useState(false);
+    // Portail vers document.body : ce composant est monté à l'intérieur du motion.div de
+    // PageTransition, qui applique un `transform` Framer Motion — celui-ci crée un nouveau
+    // contexte d'empilement pour tout ce qu'il contient, donc son z-[100] ne peut plus
+    // l'emporter sur des éléments fixes portés directement sur document.body (SearchInput,
+    // etc.), quelle que soit sa valeur. Même contournement que FullScreenOverlayPortal.tsx.
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => { setMounted(true); }, []);
 
     useEffect(() => {
         // Check if we should show the prompt
@@ -47,7 +55,9 @@ export default function InstallPWA() {
         setShow(false);
     };
 
-    return (
+    if (!mounted) return null;
+
+    return createPortal(
         <>
             <AnimatePresence>
                 {show && (
@@ -99,6 +109,7 @@ export default function InstallPWA() {
                     startAt="wizard"
                 />
             )}
-        </>
+        </>,
+        document.body
     );
 }
