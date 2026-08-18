@@ -8,8 +8,13 @@ const nextConfig = {
   allowedDevOrigins: ["192.168.4.35"],
 
   // Required by Dockerfile - it copies .next/standalone, which only exists
-  // with this output mode.
-  output: "standalone",
+  // with this output mode. Must stay OFF on Vercel: Vercel packages its own
+  // serverless output and this mode makes its build step look for a
+  // next-server.js.nft.json that standalone output doesn't produce the same
+  // way, failing with ENOENT right after "Finalizing page optimization".
+  // Vercel sets process.env.VERCEL during its builds, so this only applies
+  // for the Docker build.
+  output: process.env.VERCEL ? undefined : "standalone",
 
   // ─── Stabilité & DX ───────────────────────────────────────────────
   reactStrictMode: true,
