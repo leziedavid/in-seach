@@ -9,6 +9,7 @@ import { UserLocation, Service, Category } from "@/types/interface";
 import { useUserLocation } from "@/utils/location";
 import BookingModal from "@/components/bookings/modals/BookingModal";
 import ImageSearchModal from "@/components/services/sections/ImageSearchModal";
+import SearchInput from "@/components/shared/SearchInput";
 import InfiniteScroll from "@/components/ui/InfiniteScroll";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import NotFound from "@/components/common/NotFound";
@@ -205,6 +206,9 @@ export default function SearchServies() {
             setIsSearching(true);
         }
     };
+    // SearchInput n'est plus un <form> HTML — adapte le handler existant (qui n'utilise
+    // l'event que pour preventDefault) à sa signature onSubmit(value), sans toucher à sa logique.
+    const handleSearchSubmit = () => handleSearch({ preventDefault: () => { } } as React.FormEvent);
 
     const handleSuggestionClick = (suggestion: any) => {
         setQuery(suggestion.label);
@@ -322,56 +326,43 @@ export default function SearchServies() {
                 </div>
             )}
             {/* Search Input - Centered */}
-            <form onSubmit={handleSearch} className="flex flex-row items-stretch justify-center gap-1 w-full max-w-2xl mb-2 relative">
-                <div className="flex items-center w-full bg-card border border-primary rounded-xl px-3 md:px-4 py-2 shadow-sm hover:border-secondary transition-colors">
-                    <Icon icon="solar:map-point-bold-duotone" className="w-4 h-4 text-muted-foreground mr-2 flex-shrink-0" />
-                    <input value={query} type="text" placeholder={t("services.search_placeholder")} className="flex-1 bg-transparent text-foreground outline-none text-sm min-w-0 placeholder:text-muted-foreground" onChange={(e) => setQuery(e.target.value)} />
-                    {query && (
-                        <button type="button" onClick={() => { setQuery(""); if (!lat && !lng && !selectedCategoryId) setIsSearching(false); }} className="p-1 text-muted-foreground hover:text-primary transition-colors animate-in fade-in zoom-in duration-200" title={t("common.clear_search")}>
-                            <Icon icon="solar:close-circle-bold-duotone" className="w-5 h-5" />
-                        </button>
+            <div className="w-full mb-2">
+                <SearchInput
+                    value={query}
+                    onChange={setQuery}
+                    onSubmit={handleSearchSubmit}
+                    placeholder={t("services.search_placeholder")}
+                    enableVoice
+                    onVoiceOpen={() => setIsVoiceModalOpen(true)}
+                    enableImage
+                    onImageOpen={() => setIsImageModalOpen(true)}
+                    enableMap
+                    onMapClick={handleUseMyLocation}
+                    addressLabel={address}
+                    labels={{
+                        clear: t("common.clear_search"),
+                        voice: t("common.voice_search"),
+                        image: t("common.image_search"),
+                        location: t("common.my_location"),
+                    }}
+                    suggestionsSlot={showSuggestions && (
+                        <div ref={suggestionRef} className="absolute z-50 top-full mt-2 w-full bg-card border border-border/40 rounded-xl shadow-lg overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                            {isSearchingSuggestions ? (
+                                <div className="p-4 text-center text-sm text-muted-foreground">Recherche...</div>
+                            ) : suggestions.length > 0 ? (
+                                <ul className="max-h-60 overflow-y-auto">
+                                    {suggestions.map((suggestion) => (
+                                        <li key={suggestion.id} onClick={() => handleSuggestionClick(suggestion)} className="px-4 py-3 flex items-center gap-3 hover:bg-primary/10 cursor-pointer transition-colors border-b border-border/20 last:border-0" >
+                                            <Icon icon="solar:magnifer-outline" className="w-4 h-4 text-muted-foreground" />
+                                            <span className="text-foreground text-sm font-medium">{suggestion.label}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            ) : null}
+                        </div>
                     )}
-                    <button type="button" onClick={() => setIsVoiceModalOpen(true)} className="p-2 text-muted-foreground hover:text-primary transition-colors hover:scale-110 active:scale-90" title={t("common.voice_search")} >
-                        <Icon icon="solar:microphone-bold-duotone" className="w-5 h-5" />
-                    </button>
-
-                    {/* <button type="button" onClick={() => setIsImageModalOpen(true)} className="p-2 text-muted-foreground hover:text-primary transition-colors" title={t("common.image_search")} >
-                        <Icon icon="solar:camera-bold-duotone" className="w-5 h-5" />
-                    </button> */}
-
-                    <button type="button" onClick={handleUseMyLocation} className="p-2 text-muted-foreground hover:text-primary transition-colors" title={t("common.my_location")} >
-                        <Icon icon="solar:gps-bold-duotone" className="w-5 h-5" />
-                    </button>
-                </div>
-                <button type="submit" className="flex-shrink-0 px-3 bg-transparent border border-border/40 text-muted-foreground hover:text-primary rounded-xl shadow-sm transition-all active:scale-95 hover:border-primary/50 flex items-center justify-center" >
-                    <Icon icon="solar:magnifer-bold-duotone" className="w-5 h-5" />
-                </button>
-
-                {/* Suggestions Dropdown */}
-                {showSuggestions && (
-                    <div ref={suggestionRef} className="absolute z-50 w-full max-w-2xl mt-14 bg-card border border-border/40 rounded-xl shadow-lg overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-                        {isSearchingSuggestions ? (
-                            <div className="p-4 text-center text-sm text-muted-foreground">Recherche...</div>
-                        ) : suggestions.length > 0 ? (
-                            <ul className="max-h-60 overflow-y-auto">
-                                {suggestions.map((suggestion) => (
-                                    <li key={suggestion.id} onClick={() => handleSuggestionClick(suggestion)} className="px-4 py-3 flex items-center gap-3 hover:bg-primary/10 cursor-pointer transition-colors border-b border-border/20 last:border-0" >
-                                        <Icon icon="solar:magnifer-outline" className="w-4 h-4 text-muted-foreground" />
-                                        <span className="text-foreground text-sm font-medium">{suggestion.label}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                        ) : null}
-                    </div>
-                )}
-            </form>
-            {/* Adresse */}
-            {address && (
-                <div className="mb-8 px-4 py-2 rounded-full bg-primary/5 border border-primary/10 flex items-center gap-2 md:mb-8 md:px-4 md:py-2">
-                    <Icon icon="solar:map-point-bold-duotone" className="w-4 h-4 text-primary flex-shrink-0" />
-                    <span className="text-sm text-foreground/80 md:text-sm">{address}</span>
-                </div>
-            )}
+                />
+            </div>
             {/* Dynamic Results or Initial Steps */}
             {isSearching && (
                 <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-1">

@@ -7,6 +7,7 @@ import { getProducts, getProductCategories, getPublicStoreInfo } from "@/api/api
 import { Product, CategoryProd, StoreUserInfo } from "@/types/interface"
 import ProductCard from "@/components/products/cards/ProductCard"
 import VoiceSearchModal from "@/components/services/sections/VoiceSearchModal"
+import SearchInput from "@/components/shared/SearchInput"
 import InfiniteScroll from "@/components/ui/InfiniteScroll"
 import { Icon } from "@iconify/react"
 import CategoryFilter from "@/components/ui/CategoryFilter"
@@ -163,19 +164,14 @@ export default function FournisseurPage(props: Props) {
                 </div>
             </div>
             {/* Search Input */}
-            <div className="flex flex-col md:flex-row items-center justify-center gap-4 w-full max-w-2xl mb-2">
-                <div className="flex items-center w-full bg-card border border-primary rounded-xl px-4 py-3 shadow-sm hover:border-secondary transition-colors focus-within:border-secondary">
-                    <Icon icon="solar:magnifer-bold-duotone" className="w-4 h-4 text-muted-foreground mr-2 flex-shrink-0" />
-                    <input type="text" placeholder="Quel produit recherchez-vous ?" className="flex-1 bg-transparent text-foreground outline-none text-sm min-w-0 placeholder:text-muted-foreground" value={search} onChange={(e) => setSearch(e.target.value)} />
-                    {search && (
-                        <button type="button" onClick={() => setSearch("")} className="p-1 text-muted-foreground hover:text-primary transition-colors">
-                            <Icon icon="solar:close-circle-bold-duotone" className="w-5 h-5" />
-                        </button>
-                    )}
-                    <button type="button" onClick={() => setIsVoiceModalOpen(true)} className="p-1 text-muted-foreground hover:text-primary transition-colors hover:scale-110 active:scale-90">
-                        <Icon icon="solar:microphone-bold-duotone" className="w-5 h-5" />
-                    </button>
-                </div>
+            <div className="w-full mb-2">
+                <SearchInput
+                    value={search}
+                    onChange={setSearch}
+                    placeholder="Quel produit recherchez-vous ?"
+                    enableVoice
+                    onVoiceOpen={() => setIsVoiceModalOpen(true)}
+                />
             </div>
             {/* CATEGORIES & SUB-CATEGORIES FILTERS */}
             <div className="w-full max-w-3xl mx-auto mb-6">

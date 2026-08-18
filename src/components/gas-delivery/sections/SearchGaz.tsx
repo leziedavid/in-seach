@@ -8,6 +8,7 @@ import { useUserLocation } from "@/utils/location";
 import InfiniteScroll from "@/components/ui/InfiniteScroll";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import VoiceSearchModal from "@/components/services/sections/VoiceSearchModal";
+import SearchInput from "@/components/shared/SearchInput";
 import NotFound from "@/components/common/NotFound";
 import Loader from "@/components/common/Loader";
 import ViewToggle, { ViewMode } from "@/components/shared/ViewToggle";
@@ -88,6 +89,9 @@ export default function SearchGaz() {
             setIsSearching(true);
         }
     };
+    // SearchInput n'est plus un <form> HTML — adapte le handler existant (qui n'utilise
+    // l'event que pour preventDefault) à sa signature onSubmit(value), sans toucher à sa logique.
+    const handleSearchSubmit = () => handleSearch({ preventDefault: () => { } } as React.FormEvent);
 
     const handleUseMyLocation = async () => {
         const location = await getUserLocation();
@@ -120,37 +124,20 @@ export default function SearchGaz() {
     return (
         <div className="flex flex-col items-center w-full max-w-7xl mx-auto px-4 py-2">
             {/* Search Input - Centered */}
-            <form onSubmit={handleSearch} className="flex flex-row items-stretch justify-center gap-2 w-full max-w-2xl mb-2 relative">
-                <div className="flex items-center w-full bg-card border border-primary rounded-xl px-4 py-2 shadow-sm hover:border-secondary transition-colors">
-                    <Icon icon="solar:map-point-bold-duotone" className="w-4 h-4 text-muted-foreground mr-2 flex-shrink-0" />
-                    <input value={query} type="text" placeholder="Rechercher un prestataire de gaz..."
-                        className="flex-1 bg-transparent text-foreground outline-none text-sm min-w-0 placeholder:text-muted-foreground"
-                        onChange={(e) => setQuery(e.target.value)}
-                    />
-                    {query && (
-                        <button type="button" onClick={() => setQuery("")} className="p-1 text-muted-foreground hover:text-primary transition-colors animate-in fade-in zoom-in duration-200" title="Effacer la recherche" >
-                            <Icon icon="solar:close-circle-bold-duotone" className="w-5 h-5" />
-                        </button>
-                    )}
-                    <button type="button" onClick={() => setIsVoiceModalOpen(true)} className="p-2 text-muted-foreground hover:text-primary transition-colors hover:scale-110 active:scale-90" title="Recherche vocale" >
-                        <Icon icon="solar:microphone-bold-duotone" className="w-5 h-5" />
-                    </button>
-
-                    <button type="button" onClick={handleUseMyLocation} className="p-2 text-muted-foreground hover:text-primary transition-colors" title="Prestataires à proximité" >
-                        <Icon icon="solar:gps-bold-duotone" className="w-5 h-5" />
-                    </button>
-                </div>
-                <button type="submit" className="flex-shrink-0 px-3 bg-transparent border border-border/40 text-muted-foreground hover:text-primary rounded-xl shadow-sm transition-all active:scale-95 hover:border-primary/50 flex items-center justify-center" >
-                    <Icon icon="solar:magnifer-bold-duotone" className="w-5 h-5" />
-                </button>
-            </form>
-            {/* Adresse */}
-            {address && (
-                <div className="mb-4 px-4 py-2 rounded-full bg-primary/5 border border-primary/10 flex items-center gap-2">
-                    <Icon icon="solar:map-point-bold-duotone" className="w-4 h-4 text-primary flex-shrink-0" />
-                    <span className="text-sm text-foreground/80">{address}</span>
-                </div>
-            )}
+            <div className="w-full mb-2">
+                <SearchInput
+                    value={query}
+                    onChange={setQuery}
+                    onSubmit={handleSearchSubmit}
+                    placeholder="Rechercher un prestataire de gaz..."
+                    enableVoice
+                    onVoiceOpen={() => setIsVoiceModalOpen(true)}
+                    enableMap
+                    onMapClick={handleUseMyLocation}
+                    addressLabel={address}
+                    labels={{ location: "Prestataires à proximité" }}
+                />
+            </div>
             {lat && lng && isFallback && (
                 <div className="mb-8 px-4 py-2 rounded-full bg-orange-500/5 border border-orange-500/10 flex items-center gap-2">
                     <Icon icon="solar:info-circle-bold-duotone" className="w-4 h-4 text-orange-500 flex-shrink-0" />

@@ -6,6 +6,7 @@ import { LogisticProvider, TransportType } from "@/types/interface";
 import { findAllPrestataire } from "@/api/api";
 import LogisticProviderCard from "@/components/logistics/cards/LogisticProviderCard";
 import VoiceSearchModal from "@/components/services/sections/VoiceSearchModal";
+import SearchInput from "@/components/shared/SearchInput";
 import InfiniteScroll from "@/components/ui/InfiniteScroll";
 import NotFound from "@/components/common/NotFound";
 import Loader from "@/components/common/Loader";
@@ -80,23 +81,15 @@ export default function LogisticProviderList() {
     return (
         <div className="flex flex-col items-center w-full max-w-7xl mx-auto px-4 py-1">
             {/* Search Input */}
-            <form onSubmit={e => e.preventDefault()} className="flex flex-row items-stretch justify-center gap-2 w-full max-w-2xl mb-4 relative">
-                <div className="flex items-center w-full bg-card border border-primary rounded-xl px-4 py-2 shadow-sm hover:border-secondary transition-colors">
-                    <Icon icon="solar:magnifer-bold-duotone" className="w-4 h-4 text-muted-foreground mr-2 flex-shrink-0" />
-                    <input value={searchTerm} type="text" placeholder="Rechercher une compagnie logistique..."
-                        className="flex-1 bg-transparent text-foreground outline-none text-sm min-w-0 placeholder:text-muted-foreground"
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                    {searchTerm && (
-                        <button type="button" onClick={() => setSearchTerm("")} className="p-1 text-muted-foreground hover:text-primary transition-colors">
-                            <Icon icon="solar:close-circle-bold-duotone" className="w-5 h-5" />
-                        </button>
-                    )}
-                    <button type="button" onClick={() => setIsVoiceModalOpen(true)} className="p-2 text-muted-foreground hover:text-primary transition-colors hover:scale-110 active:scale-90" title="Recherche vocale" >
-                        <Icon icon="solar:microphone-bold-duotone" className="w-5 h-5" />
-                    </button>
-                </div>
-            </form>
+            <div className="w-full mb-4">
+                <SearchInput
+                    value={searchTerm}
+                    onChange={setSearchTerm}
+                    placeholder="Rechercher une compagnie logistique..."
+                    enableVoice
+                    onVoiceOpen={() => setIsVoiceModalOpen(true)}
+                />
+            </div>
             {/* Transport Filters */}
             <div className="w-full max-w-3xl mx-auto mb-4">
                 <CategoryFilter

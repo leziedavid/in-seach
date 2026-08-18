@@ -11,6 +11,7 @@ import Image from "next/image"
 import NotFound from "@/components/common/NotFound"
 import Loader from "@/components/common/Loader"
 import { ReviewSection } from "@/components/shared/ReviewSection"
+import SearchInput from "@/components/shared/SearchInput"
 
 type Props = { params: Promise<{ slug: string }> }
 
@@ -163,16 +164,12 @@ export default function RestaurantMenuPage(props: Props) {
             </div>
 
             {/* Recherche */}
-            <div className="flex items-center justify-center w-full max-w-2xl mb-6">
-                <div className="flex items-center w-full bg-card border border-primary rounded-xl px-4 py-2.5 shadow-sm hover:border-secondary transition-colors focus-within:border-secondary">
-                    <Icon icon="solar:magnifer-bold-duotone" className="w-4 h-4 text-muted-foreground mr-2 shrink-0" />
-                    <input type="text" placeholder="Rechercher un plat..." className="flex-1 bg-transparent text-foreground outline-none text-sm min-w-0 placeholder:text-muted-foreground" value={search} onChange={(e) => setSearch(e.target.value)} />
-                    {search && (
-                        <button type="button" onClick={() => setSearch("")} className="p-1 text-muted-foreground hover:text-primary transition-colors">
-                            <Icon icon="solar:close-circle-bold-duotone" className="w-5 h-5" />
-                        </button>
-                    )}
-                </div>
+            <div className="w-full mb-6">
+                <SearchInput
+                    value={search}
+                    onChange={setSearch}
+                    placeholder="Rechercher un plat..."
+                />
             </div>
 
             {/* Catégories de menu */}

@@ -7,6 +7,7 @@ import Link from "next/link";
 import { StoreUserInfo } from "@/types/interface";
 import { getAllStores } from "@/api/api";
 import InfiniteScroll from "@/components/ui/InfiniteScroll";
+import SearchInput from "@/components/shared/SearchInput";
 import { createStoreSlug } from "@/utils/storeSlug";
 
 type Store = StoreUserInfo & { productCount: number; id: string };
@@ -76,18 +77,6 @@ const EmptyState = () => (
     <div className="flex flex-col items-center justify-center py-20 gap-3 text-muted-foreground">
         <Icon icon="solar:shop-bold-duotone" width={56} className="opacity-20" />
         <p className="font-black">Aucune boutique trouvée</p>
-    </div>
-);
-
-const SearchBar = ({ value, onChange, onClear }: { value: string; onChange: (v: string) => void; onClear: () => void }) => (
-    <div className="flex items-center gap-2 bg-muted rounded-2xl px-4 py-3">
-        <Icon icon="solar:magnifer-bold-duotone" className="w-4 h-4 text-muted-foreground shrink-0" />
-        <input type="text" placeholder="Rechercher une boutique..." value={value} onChange={e => onChange(e.target.value)} className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground" />
-        {value && (
-            <button onClick={onClear}>
-                <Icon icon="solar:close-circle-bold" className="w-4 h-4 text-muted-foreground" />
-            </button>
-        )}
     </div>
 );
 
@@ -188,7 +177,7 @@ export default function ShopSellersContent() {
                 </div>
                 <div className="px-4 pt-4 pb-2 flex items-center gap-2">
                     <div className="flex-1">
-                        <SearchBar value={search} onChange={setSearch} onClear={() => setSearch("")} />
+                        <SearchInput value={search} onChange={setSearch} placeholder="Rechercher une boutique..." sticky={false} />
                     </div>
                     <ViewToggle viewMode={viewMode} setViewMode={setViewMode} />
                 </div>
@@ -205,7 +194,7 @@ export default function ShopSellersContent() {
                         <ViewToggle viewMode={viewMode} setViewMode={setViewMode} />
                     </div>
                     <div className="px-6 pb-4">
-                        <SearchBar value={search} onChange={setSearch} onClear={() => setSearch("")} />
+                        <SearchInput value={search} onChange={setSearch} placeholder="Rechercher une boutique..." sticky={false} />
                     </div>
                     <div className="px-6 pb-6">
                         {grid("grid grid-cols-2 gap-4", "flex flex-col gap-2")}

@@ -10,6 +10,7 @@ import InfiniteScroll from "@/components/ui/InfiniteScroll";
 import CategoryFilter from "@/components/ui/CategoryFilter";
 import NotFound from "@/components/common/NotFound";
 import ViewToggle, { ViewMode } from "@/components/shared/ViewToggle";
+import SearchInput from "@/components/shared/SearchInput";
 
 const ITEMS_PER_PAGE = 12;
 
@@ -77,19 +78,14 @@ export default function SearchRestaurants() {
     return (
         <div className="flex flex-col items-center w-full max-w-7xl mx-auto px-4 py-2">
             {/* Recherche */}
-            <form onSubmit={e => e.preventDefault()} className="flex items-center justify-center w-full max-w-2xl mb-4">
-                <div className="flex items-center w-full bg-card border border-primary rounded-xl px-4 py-2 shadow-sm hover:border-secondary transition-colors">
-                    <Icon icon="solar:chef-hat-bold-duotone" className="w-4 h-4 text-muted-foreground mr-2 shrink-0" />
-                    <input value={search} type="text" placeholder="Rechercher un restaurant..."
-                        className="flex-1 bg-transparent text-foreground outline-none text-sm min-w-0 placeholder:text-muted-foreground"
-                        onChange={(e) => setSearch(e.target.value)} />
-                    {search && (
-                        <button type="button" onClick={() => setSearch("")} className="p-1 text-muted-foreground hover:text-primary transition-colors">
-                            <Icon icon="solar:close-circle-bold-duotone" className="w-5 h-5" />
-                        </button>
-                    )}
-                </div>
-            </form>
+            <div className="w-full mb-4">
+                <SearchInput
+                    value={search}
+                    onChange={setSearch}
+                    leadingIcon="solar:chef-hat-bold-duotone"
+                    placeholder="Rechercher un restaurant..."
+                />
+            </div>
 
             {/* Types de cuisine — icônes rondes en scroll horizontal */}
             {types.length > 0 && (
