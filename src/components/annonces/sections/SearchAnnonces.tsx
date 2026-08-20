@@ -171,17 +171,17 @@ export default function SearchAnnonces() {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault();
+    // SearchInput ne commet la saisie au parent (`setQuery`) qu'à la soumission, dans le même
+    // tick que cet appel — `query` via closure serait donc encore l'ancienne valeur (React
+    // n'a pas encore re-rendu). On lit `submitted` (la valeur soumise) directement à la place,
+    // même condition/actions que l'ancien handleSearch basé sur un événement de formulaire.
+    const handleSearchSubmit = (submitted: string) => {
         setShowSuggestions(false);
-        if (query.trim() || lat || lng) {
+        if (submitted.trim() || lat || lng) {
             setAnnonces([]);
             setIsSearching(true);
         }
     };
-    // SearchInput n'est plus un <form> HTML — adapte le handler existant (qui n'utilise
-    // l'event que pour preventDefault) à sa signature onSubmit(value), sans toucher à sa logique.
-    const handleSearchSubmit = () => handleSearch({ preventDefault: () => { } } as React.FormEvent);
 
     const handleSuggestionClick = (suggestion: any) => {
         setQuery(suggestion.name);

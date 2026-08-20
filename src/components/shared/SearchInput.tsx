@@ -8,10 +8,16 @@ export interface SearchInputProps {
     value: string;
     onChange: (value: string) => void;
     onSubmit?: (value: string) => void;
+    // Appelé à CHAQUE frappe (contrairement à onChange, qui n'est commis qu'à la soumission) —
+    // pour les besoins "live" qui ne doivent pas déclencher la recherche principale elle-même
+    // (ex : suggestions d'autocomplétion pendant que l'utilisateur tape).
+    onDraftChange?: (value: string) => void;
     placeholder?: string;
     isLoading?: boolean;
     disabled?: boolean;
 
+    // Tant que le brouillon correspond exactement à la dernière recherche envoyée, le bouton
+    // d'envoi se transforme en bouton "effacer" (même emplacement/taille/style) — défaut true.
     enableClear?: boolean;
     onClear?: () => void;
 
@@ -58,6 +64,7 @@ export default function SearchInput({
     value,
     onChange,
     onSubmit,
+    onDraftChange,
     placeholder = "Rechercher...",
     isLoading = false,
     disabled = false,
@@ -84,6 +91,15 @@ export default function SearchInput({
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const wrapRef = useRef<HTMLDivElement>(null);
     const [mounted, setMounted] = useState(false);
+    // Brouillon local : la frappe ne touche jamais `value`/`onChange` (donc jamais l'effet de
+    // recherche live du parent) — le texte tapé n'est "commis" au parent qu'à la soumission
+    // (bouton d'envoi ou Entrée), façon ChatGPT/Claude/Gemini. `value` reste la source de
+    // vérité pour tout ce qui vient de l'EXTÉRIEUR de la frappe (résultat vocal, clic sur une
+    // suggestion, position GPS, effacement de l'adresse...) : ce useEffect resynchronise le
+    // brouillon dessus à chaque changement externe, y compris après notre propre commit
+    // (no-op à ce moment-là puisque les deux valent alors déjà la même chose).
+    const [draft, setDraft] = useState(value);
+    useEffect(() => { setDraft(value); }, [value]);
 
     useEffect(() => { setMounted(true); }, []);
 
@@ -98,7 +114,7 @@ export default function SearchInput({
         const next = Math.min(el.scrollHeight, maxHeight);
         el.style.height = `${next}px`;
         el.style.overflowY = el.scrollHeight > maxHeight ? "auto" : "hidden";
-    }, [value, maxRows]);
+    }, [draft, maxRows]);
 
     // Rapporte sa propre hauteur dans --searchinput-height : ComingSoon.tsx (padding-bottom
     // du contenu) et sa propre position (`bottom: var(--footer-height)`, juste en dessous)
@@ -120,15 +136,25 @@ export default function SearchInput({
         };
     }, [sticky, mounted]);
 
+    // Seul point de contact entre le brouillon local et le parent : commit `onChange` (met à
+    // jour son state, donc son effet de recherche) puis `onSubmit` — jamais appelé pendant la
+    // frappe, uniquement au clic sur le bouton d'envoi ou à Entrée.
+    const commit = (submitted: string) => {
+        onChange(submitted);
+        onSubmit?.(submitted);
+    };
+
     const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
-            if (!disabled && !isLoading) onSubmit?.(value);
+            if (!disabled && !isLoading) commit(draft);
         }
     };
 
     const handleClear = () => {
+        setDraft("");
         onChange("");
+        onDraftChange?.("");
         onClear?.();
         textareaRef.current?.focus();
     };
@@ -143,14 +169,21 @@ export default function SearchInput({
 
     const hasActions = enableVoice || enableMap || enableImage || enableSubmitButton;
 
+    // Le bouton d'envoi se transforme en bouton "effacer" tant que le brouillon correspond
+    // exactement à la dernière recherche commise (donc juste après une soumission, tant que
+    // rien n'a été retapé) — même emplacement/taille/style, pour ne jamais faire cohabiter les
+    // deux boutons ni décaler la mise en page. Dès que l'utilisateur modifie le texte, le
+    // brouillon diverge de `value` et le bouton redevient "envoyer".
+    const isClearMode = enableClear && !!draft && draft === value;
+
     const bar = (
         <div className={`flex flex-col w-full bg-card border border-primary rounded-xl shadow-lg hover:border-secondary focus-within:border-secondary transition-colors ${disabled ? "opacity-60" : ""}`}>
             <div className="flex items-start gap-2 pl-4 pr-3 pt-1.5">
-                <Icon icon={leadingIcon} className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                {/* <Icon icon={leadingIcon} className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" /> */}
                 <textarea
                     ref={textareaRef}
-                    value={value}
-                    onChange={(e) => onChange(e.target.value)}
+                    value={draft}
+                    onChange={(e) => { setDraft(e.target.value); onDraftChange?.(e.target.value); }}
                     onKeyDown={handleKeyDown}
                     placeholder={labels?.placeholder ?? placeholder}
                     disabled={disabled}
@@ -158,11 +191,6 @@ export default function SearchInput({
                     rows={1}
                     className="flex-1 bg-transparent text-foreground outline-none text-sm min-w-0 placeholder:text-muted-foreground resize-none py-0 leading-4"
                 />
-                {enableClear && value && (
-                    <button type="button" onClick={handleClear} className="p-0.5 mt-0.5 text-muted-foreground hover:text-primary transition-colors animate-in fade-in zoom-in duration-200 flex-shrink-0" title={L.clear}>
-                        <Icon icon="solar:close-circle-bold-duotone" className="w-4 h-4" />
-                    </button>
-                )}
             </div>
 
             {hasActions && (
@@ -183,8 +211,18 @@ export default function SearchInput({
                         </button>
                     )}
                     {enableSubmitButton && (
-                        <button type="button" onClick={() => !disabled && !isLoading && onSubmit?.(value)} disabled={disabled || isLoading} className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white hover:bg-secondary transition-all active:scale-90 disabled:opacity-50 ml-1 shadow-sm" title={L.submit}>
-                            <Icon icon={isLoading ? "solar:refresh-bold-duotone" : "solar:magnifer-bold-duotone"} className={`w-3.5 h-3.5 ${isLoading ? "animate-spin" : ""}`} />
+                        <button
+                            type="button"
+                            onClick={() => { if (disabled || isLoading) return; isClearMode ? handleClear() : commit(draft); }}
+                            disabled={disabled || isLoading}
+                            className={`relative flex items-center justify-center w-8 h-8 rounded-full text-white transition-all active:scale-90 disabled:opacity-50 ml-1 shadow-sm overflow-hidden ${isClearMode ? "bg-red-500 hover:bg-red-600" : "bg-primary hover:bg-secondary"}`}
+                            title={isClearMode ? L.clear : L.submit}
+                        >
+                            <Icon
+                                key={isClearMode ? "clear" : "submit"}
+                                icon={isLoading ? "solar:refresh-bold-duotone" : isClearMode ? "solar:close-circle-bold-duotone" : "solar:arrow-up-bold-duotone"}
+                                className={`w-3.5 h-3.5 animate-in fade-in zoom-in duration-150 ${isLoading ? "animate-spin" : ""}`}
+                            />
                         </button>
                     )}
                 </div>
@@ -204,17 +242,16 @@ export default function SearchInput({
         </div>
     );
 
-    // Suggestions ouvrent vers le HAUT (bottom-full) puisque la barre est ancrée en bas de
-    // l'écran — l'équivalent d'un menu d'auto-complétion façon chat, jamais hors-écran.
+    // Suggestions se déroulent vers le BAS, juste sous la barre — ne doivent jamais recouvrir
+    // ce que l'utilisateur est en train de saisir au-dessus. `suggestionsSlot` se positionne
+    // lui-même (`absolute top-full mt-2`, voir les appelants) relativement à ce conteneur
+    // `relative` — pas de wrapper de positionnement supplémentaire ici pour éviter un double
+    // décalage.
     const content = (
         <div ref={wrapRef} className="relative w-full flex flex-col items-stretch gap-2">
-            {suggestionsSlot && (
-                <div className="absolute bottom-full left-0 right-0 mb-2">
-                    {suggestionsSlot}
-                </div>
-            )}
             {addressPill}
             {bar}
+            {suggestionsSlot}
         </div>
     );
 

@@ -31,6 +31,11 @@ export default function SearchServies() {
     const { withAuth } = useRequireAuth();
     const { getUserLocation } = useUserLocation();
     const [query, setQuery] = useState("");
+    // `query` n'est mis à jour qu'à la soumission (voir <SearchInput onChange/onSubmit>) pour
+    // éviter un appel API de recherche à chaque frappe. `draftQuery`, lui, suit la frappe en
+    // temps réel (via `onDraftChange`) — utilisé uniquement pour les suggestions de catégories,
+    // qui doivent rester en auto-search.
+    const [draftQuery, setDraftQuery] = useState("");
     const [isSearching, setIsSearching] = useState(false);
     const [selectedService, setSelectedService] = useState<any>(null);
     const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
@@ -148,17 +153,18 @@ export default function SearchServies() {
         }
     }, [page, fetchServices, aiResults.length]);
 
-    // Fetch suggestions
+    // Fetch suggestions — reste en auto-search sur `draftQuery` (texte tapé en temps réel),
+    // indépendamment de `query` (qui ne bouge qu'à la soumission de la recherche principale).
     useEffect(() => {
         const fetchSuggestions = async () => {
-            if (!query.trim() || isSearching) {
+            if (!draftQuery.trim() || isSearching) {
                 setSuggestions([]);
                 setShowSuggestions(false);
                 return;
             }
             setIsSearchingSuggestions(true);
             try {
-                const res = await searchServiceCategories(query);
+                const res = await searchServiceCategories(draftQuery);
                 if (res.statusCode === 200 && res.data) {
                     setSuggestions(res.data);
                     setShowSuggestions(res.data.length > 0);
@@ -172,7 +178,7 @@ export default function SearchServies() {
 
         const debounce = setTimeout(fetchSuggestions, 300);
         return () => clearTimeout(debounce);
-    }, [query, isSearching]);
+    }, [draftQuery, isSearching]);
 
     // Close suggestions on outside click
     useEffect(() => {
@@ -197,21 +203,22 @@ export default function SearchServies() {
         }
     };
 
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault();
+    // SearchInput ne commet la saisie au parent (`setQuery`) qu'à la soumission, dans le même
+    // tick que cet appel — `query` via closure serait donc encore l'ancienne valeur (React
+    // n'a pas encore re-rendu). On lit `submitted` (la valeur soumise) directement à la place,
+    // même condition/actions que l'ancien handleSearch basé sur un événement de formulaire.
+    const handleSearchSubmit = (submitted: string) => {
         setShowSuggestions(false);
-        if (query.trim() || lat || lng) {
+        if (submitted.trim() || lat || lng) {
             setAiResults([]);
             setAiSearchEmpty(false);
             setIsSearching(true);
         }
     };
-    // SearchInput n'est plus un <form> HTML — adapte le handler existant (qui n'utilise
-    // l'event que pour preventDefault) à sa signature onSubmit(value), sans toucher à sa logique.
-    const handleSearchSubmit = () => handleSearch({ preventDefault: () => { } } as React.FormEvent);
 
     const handleSuggestionClick = (suggestion: any) => {
         setQuery(suggestion.label);
+        setDraftQuery(suggestion.label);
         setShowSuggestions(false);
         setAiResults([]);
         setAiSearchEmpty(false);
@@ -260,6 +267,7 @@ export default function SearchServies() {
 
     const handleVoiceResult = (text: string) => {
         setQuery(text);
+        setDraftQuery(text);
         if (text.trim()) {
             setAiResults([]);
             setAiSearchEmpty(false);
@@ -331,6 +339,13 @@ export default function SearchServies() {
                     value={query}
                     onChange={setQuery}
                     onSubmit={handleSearchSubmit}
+                    onDraftChange={setDraftQuery}
+                    // SearchInput appelle onChange("") puis onClear dans le même gestionnaire
+                    // d'événement (donc le même batch React) — en réinitialisant isSearching
+                    // ici plutôt que de compter sur l'effet séparé qui l'observe, on évite un
+                    // rendu intermédiaire où cet effet le verrait encore à `true` et lancerait
+                    // un fetch inutile. Comportement du bouton "effacer" d'origine, avant migration.
+                    onClear={() => { if (!lat && !lng && !selectedCategoryId) setIsSearching(false); }}
                     placeholder={t("services.search_placeholder")}
                     enableVoice
                     onVoiceOpen={() => setIsVoiceModalOpen(true)}
