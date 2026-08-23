@@ -255,7 +255,7 @@ export default function Header() {
                 </div>
             </div>
 
-            <header className={`fixed left-4 z-[100] bottom-4 ${isMenuOpen ? "w-[92%]" : "w-fit"} max-w-[800px] md:top-6 md:bottom-auto md:left-1/2 md:-translate-x-1/2 md:w-fit md:px-6 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-lg border border-white/40 dark:border-white/10 rounded-full shadow-lg px-2 py-2 flex items-center justify-start gap-1 md:gap-4 transition-all duration-500 ease-in-out will-change-transform ${hideOnScroll ? "translate-y-32 opacity-0 pointer-events-none" : "translate-y-0 opacity-100"} md:translate-y-0 md:opacity-100 md:pointer-events-auto`}>
+            <header className={`fixed left-4 right-4 md:right-auto z-[100] bottom-4 ${isMenuOpen ? "w-auto" : "w-fit"} max-w-[800px] md:top-6 md:bottom-auto md:left-1/2 md:-translate-x-1/2 md:w-fit md:px-6 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-lg border border-white/40 dark:border-white/10 rounded-full shadow-lg px-2 py-2 flex items-center justify-start gap-1 md:gap-4 transition-all duration-500 ease-in-out will-change-transform ${hideOnScroll ? "translate-y-32 opacity-0 pointer-events-none" : "translate-y-0 opacity-100"} md:translate-y-0 md:opacity-100 md:pointer-events-auto`}>
                 {/* User Section - Desktop: avatar+nom inchangés | Mobile: bouton Menu (photo/nom déplacés en haut) */}
                 <div className="flex items-center gap-1 md:gap-4 shrink-0">
                     {/* Desktop uniquement : avatar identique à avant */}
@@ -287,12 +287,12 @@ export default function Header() {
                 {/* Content Wrapper for Animation */}
                 <AnimatePresence mode="wait">
                     {mounted && (isMenuOpen || isDesktop) && (
-                        <motion.div key="menu-content" initial={{ opacity: 0, x: -20, width: 0 }}
-                            animate={{ opacity: 1, x: 0, width: "auto", transition: { type: "spring", stiffness: 300, damping: 30, staggerChildren: 0.05 } }}
-                            exit={{ opacity: 0, x: -20, width: 0 }}
-                            className="flex items-center justify-start md:justify-start w-full md:w-auto gap-4 md:gap-4 overflow-hidden"  >
-                            {/* Navigation Tabs */}
-                            <nav className="flex items-center gap-3 md:gap-4">
+                        <motion.div key="menu-content" initial={{ opacity: 0, width: 0 }}
+                            animate={{ opacity: 1, width: "auto", transition: { type: "spring", stiffness: 300, damping: 30, staggerChildren: 0.05 } }}
+                            exit={{ opacity: 0, width: 0 }}
+                            className="flex items-center justify-start w-full md:w-auto gap-4 md:gap-4 overflow-hidden"  >
+                            {/* Navigation Tabs — desktop : ligne icône+texte inchangée */}
+                            <nav className="hidden md:flex items-center gap-3 md:gap-4">
                                 {NAVIGATION_TABS.map((tab) => {
                                     const active = isTabActive(tab.path);
                                     const isProtected = protectedPaths.includes(tab.path);
@@ -317,10 +317,40 @@ export default function Header() {
                                 })}
                             </nav>
 
+                            {/* Navigation Tabs — mobile : icône + label empilés, label toujours visible */}
+                            <nav className="flex md:hidden items-center gap-3">
+                                {NAVIGATION_TABS.map((tab) => {
+                                    const isProtected = protectedPaths.includes(tab.path);
+
+                                    const content = (
+                                        <>
+                                            <span className="bg-primary p-2 rounded-full flex items-center justify-center">
+                                                <Icon icon={tab.icon} className="text-white w-5 h-5" />
+                                            </span>
+                                            <span className="text-[9px] font-bold text-gray-600 dark:text-gray-300 leading-none">{tab.label}</span>
+                                        </>
+                                    );
+
+                                    if (isProtected) {
+                                        return (
+                                            <button key={tab.key} onClick={() => handleProtectedNavigation(tab.path)} className="flex flex-col items-center gap-0.5 active:scale-95 transition-transform" title={tab.label} >
+                                                {content}
+                                            </button>
+                                        );
+                                    }
+
+                                    return (
+                                        <Link key={tab.key} href={tab.path} className="flex flex-col items-center gap-0.5 active:scale-95 transition-transform" title={tab.label} >
+                                            {content}
+                                        </Link>
+                                    );
+                                })}
+                            </nav>
+
                             <div className="w-px h-6 bg-border/40 shrink-0 hidden md:block" />
 
                             {/* Actions Section */}
-                            <div className="flex items-center gap-3 md:gap-4 ml-2 md:ml-0">
+                            <div className="flex items-center justify-between md:justify-start flex-1 md:flex-none gap-3 md:gap-4 ml-2 md:ml-0">
                                 {/* Panier — desktop uniquement ici (déplacé en haut sur mobile, voir la rangée d'icônes mobile) */}
                                 <button onClick={() => setIsCartModalOpen(true)} className="relative hidden md:flex bg-primary p-2 rounded-full transition hover:scale-110 active:scale-95 items-center justify-center hover:rotate-6" >
                                     <Icon icon="solar:cart-bold" className="text-white w-5 h-5 md:w-5 md:h-5" />
@@ -332,22 +362,42 @@ export default function Header() {
                                 </button>
 
                                 {/* Guide — mobile uniquement, remplace l'ancien accès "Nos solutions" à cet emplacement. */}
-                                <Link href="/guide" title="Guide" className="relative md:hidden bg-primary p-2 rounded-full transition hover:scale-110 active:scale-95 flex items-center justify-center">
-                                    <Icon icon="solar:book-bookmark-bold-duotone" className="text-white w-5 h-5" />
+                                <Link href="/guide" title="Guide" className="md:hidden flex flex-col items-center gap-0.5 active:scale-95 transition-transform">
+                                    <span className="bg-primary p-2 rounded-full flex items-center justify-center">
+                                        <Icon icon="solar:book-bookmark-bold-duotone" className="text-white w-5 h-5" />
+                                    </span>
+                                    <span className="text-[9px] font-bold text-gray-600 dark:text-gray-300 leading-none">Guide</span>
                                 </Link>
 
                                 <span className="hidden md:block">
                                     <QrCodeLogo user={userId} />
                                 </span>
 
-                                <button onClick={() => handleProtectedNavigation("/chat-ia")} className="relative bg-primary p-2 rounded-full transition hover:scale-110 active:scale-95 flex items-center justify-center hover:-rotate-6">
-                                    <Icon icon="solar:chat-round-dots-bold-duotone" className="text-white w-5 h-5 md:w-5 md:h-5" />
+                                {/* Chat — mobile : icône + label empilés | desktop : icône seule inchangée */}
+                                <button onClick={() => handleProtectedNavigation("/chat-ia")} className="md:hidden flex flex-col items-center gap-0.5 active:scale-95 transition-transform">
+                                    <span className="relative bg-primary p-2 rounded-full flex items-center justify-center">
+                                        <Icon icon="solar:chat-round-dots-bold-duotone" className="text-white w-5 h-5" />
+                                        {unreadMessages > 0 && (
+                                            <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-1.5 py-0.5 text-[8px] font-black text-white bg-red-500 rounded-full border-2 border-white dark:border-zinc-900">  {unreadMessages}  </span>
+                                        )}
+                                    </span>
+                                    <span className="text-[9px] font-bold text-gray-600 dark:text-gray-300 leading-none">Chat</span>
+                                </button>
+                                <button onClick={() => handleProtectedNavigation("/chat-ia")} className="relative hidden md:flex bg-primary p-2 rounded-full transition hover:scale-110 active:scale-95 items-center justify-center hover:-rotate-6">
+                                    <Icon icon="solar:chat-round-dots-bold-duotone" className="text-white w-5 h-5" />
                                     {unreadMessages > 0 && (
                                         <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-1.5 py-0.5 text-[8px] font-black text-white bg-red-500 rounded-full border-2 border-white dark:border-zinc-900">  {unreadMessages}  </span>
                                     )}
                                 </button>
 
-                                <Link href="/shop-sellers" className="relative bg-primary p-2 rounded-full transition hover:scale-110 active:scale-95 flex items-center justify-center">
+                                {/* Boutiques — mobile : icône + label empilés | desktop : icône seule inchangée */}
+                                <Link href="/shop-sellers" className="md:hidden flex flex-col items-center gap-0.5 active:scale-95 transition-transform">
+                                    <span className="bg-primary p-2 rounded-full flex items-center justify-center">
+                                        <Icon icon="solar:shop-2-bold-duotone" className="text-white w-5 h-5" />
+                                    </span>
+                                    <span className="text-[9px] font-bold text-gray-600 dark:text-gray-300 leading-none">Boutiques</span>
+                                </Link>
+                                <Link href="/shop-sellers" className="relative hidden md:flex bg-primary p-2 rounded-full transition hover:scale-110 active:scale-95 items-center justify-center">
                                     <Icon icon="solar:shop-2-bold-duotone" className="text-white w-5 h-5" />
                                 </Link>
 
@@ -366,9 +416,16 @@ export default function Header() {
                                     <NotificationBell />
                                 </div>
 
-                                {/* Compte utilisateur — toujours en dernière position, web comme mobile */}
-                                <button onClick={() => handleProtectedNavigation("/akwaba")} className="relative bg-primary p-2 rounded-full transition hover:scale-110 active:scale-95 flex items-center justify-center">
-                                    <Icon icon="solar:user-bold" className="text-white w-5 h-5 md:w-5 md:h-5" />
+                                {/* Compte utilisateur — toujours en dernière position, web comme mobile.
+                                    Mobile : icône + label empilés | desktop : icône seule inchangée. */}
+                                <button onClick={() => handleProtectedNavigation("/akwaba")} className="md:hidden flex flex-col items-center gap-0.5 active:scale-95 transition-transform">
+                                    <span className="bg-primary p-2 rounded-full flex items-center justify-center">
+                                        <Icon icon="solar:user-bold" className="text-white w-5 h-5" />
+                                    </span>
+                                    <span className="text-[9px] font-bold text-gray-600 dark:text-gray-300 leading-none">Compte</span>
+                                </button>
+                                <button onClick={() => handleProtectedNavigation("/akwaba")} className="relative hidden md:flex bg-primary p-2 rounded-full transition hover:scale-110 active:scale-95 items-center justify-center">
+                                    <Icon icon="solar:user-bold" className="text-white w-5 h-5" />
                                 </button>
                             </div>
                         </motion.div>

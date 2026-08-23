@@ -11,6 +11,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { useNotification } from "@/components/notifications/NotificationProvider";
 import { getMenusByType } from "@/api/api";
 import { queryKeys } from "@/lib/queryKeys";
+import Wallet from "@/components/shared/Wallet";
 
 // Numéro WhatsApp de l'assistance Djamko (indicatif +225 conservé avec le 0 initial,
 // conforme au plan de numérotation ivoirien en vigueur)
@@ -97,6 +98,7 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
     }, [menu]);
 
     const [open, setOpen] = React.useState(false);
+    const [walletOpen, setWalletOpen] = React.useState(false);
     const isLoading = !user || menusLoading;
 
     const roleLabel = userRole === Role.PRESTATAIRE ? t("akwaba.sidebar.roles.prestataire") :
@@ -259,6 +261,8 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
                         <div className="flex items-center justify-center gap-6 px-2 pb-4">
                             {menu.some(i => i.code === 'AKWABA_HISTORIQUE') && renderQuickAction("solar:clock-circle-bold-duotone", t("akwaba.sidebar.history"), () => onTabChange('Historique'), "history-desktop", 'desktop'
                             )}
+                            {renderQuickAction("solar:wallet-bold-duotone", t("akwaba.sidebar.wallet"), () => setWalletOpen(true), "wallet-desktop", 'desktop'
+                            )}
                             {renderQuickAction("solar:headphones-round-bold-duotone", t("akwaba.sidebar.assistance"), handleOpenAssistance, "assistance-desktop", 'desktop'
                             )}
                             {menu.some(i => i.code === 'AKWABA_PARAMETRES') && renderQuickAction("solar:settings-bold-duotone", t("akwaba.sidebar.settings"), () => onTabChange('Paramètres'), "settings-desktop", 'desktop'
@@ -397,6 +401,8 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
                                 <div className="flex items-center justify-center gap-8 px-6 pb-5">
                                     {menu.some(i => i.code === 'AKWABA_HISTORIQUE') && renderQuickAction("solar:clock-circle-bold-duotone", t("akwaba.sidebar.history"), () => { onTabChange('Historique'); setOpen(false); }, "history"
                                     )}
+                                    {renderQuickAction("solar:wallet-bold-duotone", t("akwaba.sidebar.wallet"), () => setWalletOpen(true), "wallet"
+                                    )}
                                     {renderQuickAction("solar:headphones-round-bold-duotone", t("akwaba.sidebar.assistance"), handleOpenAssistance, "assistance"
                                     )}
                                     {menu.some(i => i.code === 'AKWABA_PARAMETRES') && renderQuickAction("solar:settings-bold-duotone", t("akwaba.sidebar.settings"), () => { onTabChange('Paramètres'); setOpen(false); }, "settings"
@@ -449,6 +455,8 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
                     </>
                 )}
             </AnimatePresence>
+
+            <Wallet isOpen={walletOpen} onClose={() => setWalletOpen(false)} />
         </>
     );
 }

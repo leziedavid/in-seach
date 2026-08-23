@@ -9,6 +9,7 @@ import { QRCodeCanvas } from "qrcode.react";
 import { useNotification } from "@/components/notifications/NotificationProvider";
 import { getStoreUserInfo, getOverview } from "@/api/api";
 import { StoreUserInfo } from "@/types/interface";
+import Wallet from "@/components/shared/Wallet";
 import type { TabType } from "@/app/akwaba/Sidebar";
 
 interface DashMenuProps {
@@ -56,6 +57,7 @@ export default function DashMenu({ onNavigate }: DashMenuProps) {
     const { addNotification } = useNotification();
     const [showBalance, setShowBalance] = useState(false);
     const [showPromo, setShowPromo] = useState(true);
+    const [walletOpen, setWalletOpen] = useState(false);
 
     // Même requête/queryKey que Overview.tsx — total des gains (RDV + ventes boutique)
     // du prestataire, affiché à la place du numéro masqué en haut du QR.
@@ -102,82 +104,105 @@ export default function DashMenu({ onNavigate }: DashMenuProps) {
     return (
         <div className="space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-700">
 
-            {/* Barre du haut — Paramètres */}
-            <button
-                onClick={() => onNavigate("Paramètres")}
-                className="w-10 h-10 rounded-full bg-muted flex items-center justify-center hover:bg-muted/70 active:scale-90 transition-all"
-                aria-label="Paramètres"
-            >
-                <Icon icon="solar:settings-bold-duotone" width={20} className="text-foreground/80" />
-            </button>
-
-            {/* Gains totaux — masqués par défaut (points), révélés à la bascule de l'œil */}
-            <div className="flex items-center justify-center gap-1.5 min-h-[20px]">
-                {showBalance ? (
-                    <span className="text-2xl font-black text-secondary tabular-nums">
-                        {`${totalGains.toLocaleString()} F`}
-                    </span>
-                ) : (
-                    Array.from({ length: 8 }).map((_, i) => ( <span key={i}  className={`rounded-full transition-all ${i === 0 ? "w-4 h-1.5 bg-primary" : "w-1.5 h-1.5 bg-muted-foreground/30" }`} />  ))
-                )}
+            {/* Barre du haut — Portefeuille + Paramètres, à droite pour l'accessibilité au pouce */}
+            <div className="flex justify-end gap-2">
                 <button
-                    onClick={() => setShowBalance((v) => !v)}
-                    className="ml-2 p-1 rounded-full hover:bg-muted active:scale-90 transition-all"
-                    aria-label={showBalance ? "Masquer" : "Afficher"}
+                    onClick={() => setWalletOpen(true)}
+                    className="w-10 h-10 rounded-full bg-muted flex items-center justify-center hover:bg-muted/70 active:scale-90 transition-all"
+                    aria-label="Mon portefeuille"
                 >
-                    <Icon
-                        icon={showBalance ? "solar:eye-bold-duotone" : "solar:eye-closed-bold-duotone"}
-                        width={16}
-                        className="text-muted-foreground"
-                    />
+                    <Icon icon="solar:wallet-bold-duotone" width={20} className="text-foreground/80" />
+                </button>
+                <button
+                    onClick={() => onNavigate("Paramètres")}
+                    className="w-10 h-10 rounded-full bg-muted flex items-center justify-center hover:bg-muted/70 active:scale-90 transition-all"
+                    aria-label="Paramètres"
+                >
+                    <Icon icon="solar:settings-bold-duotone" width={20} className="text-foreground/80" />
                 </button>
             </div>
 
-            {/* Bloc QR / Scanner — logo "chapeau" au-dessus du QR (boutique si dispo, sinon logo de l'app), boutique si elle existe sinon lien d'installation PWA */}
-            <div className="flex flex-col items-center gap-2 pt-4">
-                {storeLoading ? (
-                    <div className="relative">
-                        <div className="w-[144px] h-[144px] rounded-2xl bg-muted animate-pulse" />
-                        <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-14 h-14 rounded-full bg-muted animate-pulse border-2 border-background" />
-                    </div>
-                ) : (
-                    <motion.div
-                        key="qr"
-                        initial={{ opacity: 0, scale: 0.96 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.3 }}
-                        className="relative"
+            <Wallet isOpen={walletOpen} onClose={() => setWalletOpen(false)} />
+
+            {/* Carte gains + QR — fond dégradé façon "portefeuille" (teinte secondary du projet) */}
+            <div className="relative rounded-3xl bg-gradient-to-br from-[#092E40] to-secondary p-5 shadow-lg shadow-secondary/20 overflow-hidden">
+
+                {/* En-tête discret */}
+                <div className="flex items-center justify-center gap-1.5 text-white/70 text-[11px] font-bold uppercase tracking-wide mb-1">
+                    <Icon icon="solar:wallet-bold-duotone" width={15} />
+                    Mes gains
+                </div>
+
+                {/* Gains totaux — masqués par défaut (points), révélés à la bascule de l'œil */}
+                <div className="flex items-center justify-center gap-1.5 min-h-[32px]">
+                    {showBalance ? (
+                        <span className="text-2xl font-black text-white tabular-nums">
+                            {`${totalGains.toLocaleString()} F`}
+                        </span>
+                    ) : (
+                        Array.from({ length: 8 }).map((_, i) => ( <span key={i}  className={`rounded-full transition-all ${i === 0 ? "w-4 h-1.5 bg-white" : "w-1.5 h-1.5 bg-white/40" }`} />  ))
+                    )}
+                    <button
+                        onClick={() => setShowBalance((v) => !v)}
+                        className="ml-2 p-1 rounded-full hover:bg-white/10 active:scale-90 transition-all"
+                        aria-label={showBalance ? "Masquer" : "Afficher"}
                     >
-                        <div className="p-2 rounded-2xl bg-card border border-border shadow-sm">
-                            <QRCodeCanvas value={qrValue} size={144} level="H" bgColor="#ffffff" fgColor="#111111" />
-                        </div>
-                        {/* Logo "chapeau" — chevauche le bord supérieur du QR */}
-                        <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-14 h-14 rounded-full bg-card border-2 border-background shadow-md flex items-center justify-center overflow-hidden">
-                            <Image
-                                src={qrLogoSrc}
-                                alt={hasStore ? (storeInfo?.storeName || "Boutique") : "Djamko"}
-                                width={hasStore && storeInfo?.storeLogo ? 56 : 32}
-                                height={hasStore && storeInfo?.storeLogo ? 56 : 32}
-                                className={hasStore && storeInfo?.storeLogo ? "w-full h-full object-cover" : "object-contain"}
-                                unoptimized
-                            />
-                        </div>
-                    </motion.div>
-                )}
+                        <Icon
+                            icon={showBalance ? "solar:eye-bold-duotone" : "solar:eye-closed-bold-duotone"}
+                            width={16}
+                            className="text-white/70"
+                        />
+                    </button>
+                </div>
 
-                <p className="text-xs font-semibold text-muted-foreground text-center px-6">
-                    {hasStore
-                        ? "Présentez ce code à un client : il accède directement à votre boutique"
-                        : "Scannez ce code pour installer l'application Djamko"}
-                </p>
+                <div className="h-px bg-white/15 my-4" />
 
-                <button
-                    onClick={handleScanClick}
-                    className="flex items-center gap-2 bg-muted hover:bg-muted/70 text-foreground font-bold text-sm px-5 py-2 rounded-2xl transition-all active:scale-95"
-                >
-                    <Icon icon="solar:camera-bold-duotone" width={20} className="text-primary" />
-                    Scanner
-                </button>
+                {/* Bloc QR / Scanner — logo "chapeau" au-dessus du QR (boutique si dispo, sinon logo de l'app), boutique si elle existe sinon lien d'installation PWA */}
+                <div className="flex flex-col items-center gap-2">
+                    {storeLoading ? (
+                        <div className="relative">
+                            <div className="w-[144px] h-[144px] rounded-2xl bg-white/10 animate-pulse" />
+                            <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-14 h-14 rounded-full bg-white/10 animate-pulse border-2 border-white/20" />
+                        </div>
+                    ) : (
+                        <motion.div
+                            key="qr"
+                            initial={{ opacity: 0, scale: 0.96 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 0.3 }}
+                            className="relative"
+                        >
+                            <div className="p-2 rounded-2xl bg-white shadow-sm">
+                                <QRCodeCanvas value={qrValue} size={144} level="H" bgColor="#ffffff" fgColor="#111111" />
+                            </div>
+                            {/* Logo "chapeau" — chevauche le bord supérieur du QR */}
+                            <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-14 h-14 rounded-full bg-white border-2 border-white/30 shadow-md flex items-center justify-center overflow-hidden">
+                                <Image
+                                    src={qrLogoSrc}
+                                    alt={hasStore ? (storeInfo?.storeName || "Boutique") : "Djamko"}
+                                    width={hasStore && storeInfo?.storeLogo ? 56 : 32}
+                                    height={hasStore && storeInfo?.storeLogo ? 56 : 32}
+                                    className={hasStore && storeInfo?.storeLogo ? "w-full h-full object-cover" : "object-contain"}
+                                    unoptimized
+                                />
+                            </div>
+                        </motion.div>
+                    )}
+
+                    <p className="text-xs font-semibold text-white/70 text-center px-6">
+                        {hasStore
+                            ? "Présentez ce code à un client : il accède directement à votre boutique"
+                            : "Scannez ce code pour installer l'application Djamko"}
+                    </p>
+
+                    <button
+                        onClick={handleScanClick}
+                        className="flex items-center gap-2 bg-white/15 hover:bg-white/25 text-white font-bold text-sm px-5 py-2 rounded-2xl transition-all active:scale-95"
+                    >
+                        <Icon icon="solar:camera-bold-duotone" width={20} className="text-white" />
+                        Scanner
+                    </button>
+                </div>
             </div>
 
             {/* Grille des raccourcis — une couleur distincte par tuile */}
