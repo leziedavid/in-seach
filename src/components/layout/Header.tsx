@@ -186,6 +186,31 @@ export default function Header() {
         return pathname.startsWith(tabPath);
     };
 
+    // ⬅️ BOUTON RETOUR — mobile uniquement (md:hidden ci-dessous) : en PWA installée, il n'y a
+    // pas de bouton retour natif du navigateur, donc on en fournit un dans le header. Masqué
+    // sur l'accueil (rien où retourner), sur /akwaba (a déjà son propre retour par onglet, voir
+    // OnBack.tsx) et sur les pages détail service/produit/annonce (ont déjà le leur).
+    const BACK_EXCLUDED_PREFIXES = ["/akwaba", "/service/", "/produit/", "/annonce/"];
+    const showBackButton = mounted && pathname !== "/" && !BACK_EXCLUDED_PREFIXES.some((p) => pathname.startsWith(p));
+
+    // window.history.length n'est pas fiable en PWA installée (souvent bloqué à 1 même après
+    // plusieurs navigations internes, ou au contraire >1 dès le lancement direct sur une page
+    // profonde sans qu'il y ait de "précédent" réel dans l'app) — router.back() se contente
+    // alors de ne rien faire. On suit nous-mêmes le nombre de navigations effectuées dans
+    // cette session pour savoir avec certitude s'il existe un vrai "retour" possible.
+    const inAppNavCount = useRef(0);
+    useEffect(() => {
+        inAppNavCount.current += 1;
+    }, [pathname]);
+
+    const handleBack = () => {
+        if (inAppNavCount.current > 1) {
+            router.back();
+        } else {
+            router.push("/");
+        }
+    };
+
     return (
         <>
             {/* Icônes mobiles hautes — photo + nom (gauche), thème/langue/notifications (droite).
@@ -193,18 +218,25 @@ export default function Header() {
                 page (voir ComingSoon.tsx pt-20, qui repousse le contenu/slide sous cette zone,
                 donc pas de superposition). Desktop inchangé : n'existe qu'en mobile (md:hidden). */}
             <div className={`md:hidden fixed top-6 left-4 right-4 z-[100] flex items-center justify-between gap-2 transition-all duration-500 ease-in-out will-change-transform ${hideOnScroll ? "-translate-y-24 opacity-0 pointer-events-none" : "translate-y-0 opacity-100"}`}>
-                <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-9 h-9 bg-primary/20 rounded-full flex items-center justify-center overflow-hidden relative border-2 border-primary/10 shrink-0 shadow-md">
-                        {images.map((img, index) => (
-                            <Image key={img} src={img} alt="Avatar" width={36} height={36} priority={index === 0 && !isDesktop} unoptimized
-                                onClick={() => handleProtectedNavigation("/akwaba")} className={`object-cover w-full h-full absolute top-0 left-0 transition-opacity duration-500 ease-in-out cursor-pointer ${index === currentImageIndex ? "opacity-100" : "opacity-0"}`} />
-                        ))}
-                    </div>
-                    <div className="min-w-0">
-                        <p className="text-[9px] text-muted-foreground dark:text-zinc-400 leading-tight">Salut, 👋</p>
-                        <p className="font-bold text-foreground dark:text-white text-xs truncate max-w-[110px]">
-                            {userName ? (userName.length > 14 ? userName.substring(0, 12) + '..' : userName) : "Explorateur"}
-                        </p>
+                <div className="flex items-center gap-2 min-w-0">
+                    {showBackButton && (
+                        <button onClick={handleBack} aria-label="Retour" className="w-9 h-9 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-lg border border-white/40 dark:border-white/10 rounded-full flex items-center justify-center shadow-md active:scale-90 transition-transform shrink-0">
+                            <Icon icon="solar:alt-arrow-left-bold" className="w-5 h-5 text-foreground" />
+                        </button>
+                    )}
+                    <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-9 h-9 bg-primary/20 rounded-full flex items-center justify-center overflow-hidden relative border-2 border-primary/10 shrink-0 shadow-md">
+                            {images.map((img, index) => (
+                                <Image key={img} src={img} alt="Avatar" width={36} height={36} priority={index === 0 && !isDesktop} unoptimized
+                                    onClick={() => handleProtectedNavigation("/akwaba")} className={`object-cover w-full h-full absolute top-0 left-0 transition-opacity duration-500 ease-in-out cursor-pointer ${index === currentImageIndex ? "opacity-100" : "opacity-0"}`} />
+                            ))}
+                        </div>
+                        <div className="min-w-0">
+                            <p className="text-[9px] text-muted-foreground dark:text-zinc-400 leading-tight">Salut, 👋</p>
+                            <p className="font-bold text-foreground dark:text-white text-xs truncate max-w-[110px]">
+                                {userName ? (userName.length > 14 ? userName.substring(0, 12) + '..' : userName) : "Explorateur"}
+                            </p>
+                        </div>
                     </div>
                 </div>
 

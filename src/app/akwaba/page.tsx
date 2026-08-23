@@ -175,14 +175,6 @@ export default function Page() {
     // bouton retour) quand on arrive sur Commandes via la Sidebar.
     const [commandesOrigin, setCommandesOrigin] = useState<TabType | null>(null);
 
-    // Libellé du bouton "Retour" affiché dans <Commandes />, par onglet d'origine possible.
-    const COMMANDES_ORIGIN_LABELS: Partial<Record<TabType, string>> = {
-        'Boutique': 'Retour à la boutique',
-        'Produits-fournisseur': 'Retour à mon espace fournisseur',
-        'Restaurants-gestion': 'Retour à mes restaurants',
-        'Menus-restaurant': 'Retour à mes restaurants',
-    };
-
     // React Query for global data
     // bookingScope fait partie de la clé pour relire la liste à chaque changement
     // d'onglet Reçues/Mes réservations (données toujours à jour).
@@ -363,8 +355,9 @@ export default function Page() {
                 return <Store onNavigateToOrders={handleNavigateToOrders} onBack={onBackToHome} />;
             case 'Commandes':
                 return (
-                    <Commandes onSuccess={() => { void refetch(); }}  backLabel={commandesOrigin ? COMMANDES_ORIGIN_LABELS[commandesOrigin] : undefined}
-                        onBack={commandesOrigin ? handleBackFromOrders : undefined} /> );
+                    <Commandes onSuccess={() => { void refetch(); }}
+                        onBack={commandesOrigin ? handleBackFromOrders : undefined}
+                        onBackHome={onBackToHome} /> );
             case 'Services-logistiques':
                 return (<LogisticsServicesList mode="marketplace" onRequestQuote={(service) => { setSelectedServiceForQuote(service); setIsQuoteModalOpen(true); }} onBack={onBackToHome} />);
             case 'Mes-services-logistiques':

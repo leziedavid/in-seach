@@ -114,17 +114,11 @@ export default function DashMenu({ onNavigate }: DashMenuProps) {
             {/* Gains totaux — masqués par défaut (points), révélés à la bascule de l'œil */}
             <div className="flex items-center justify-center gap-1.5 min-h-[20px]">
                 {showBalance ? (
-                    <span className="text-sm font-black text-green-500 tabular-nums">
-                        {`${totalGains.toLocaleString()} FCFA`}
+                    <span className="text-2xl font-black text-secondary tabular-nums">
+                        {`${totalGains.toLocaleString()} F`}
                     </span>
                 ) : (
-                    Array.from({ length: 8 }).map((_, i) => (
-                        <span
-                            key={i}
-                            className={`rounded-full transition-all ${i === 0 ? "w-4 h-1.5 bg-primary" : "w-1.5 h-1.5 bg-muted-foreground/30"
-                                }`}
-                        />
-                    ))
+                    Array.from({ length: 8 }).map((_, i) => ( <span key={i}  className={`rounded-full transition-all ${i === 0 ? "w-4 h-1.5 bg-primary" : "w-1.5 h-1.5 bg-muted-foreground/30" }`} />  ))
                 )}
                 <button
                     onClick={() => setShowBalance((v) => !v)}

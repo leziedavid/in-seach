@@ -129,12 +129,14 @@ export default function RestaurantMenuPage(props: Props) {
                             </div>
                         )}
                     </div>
-                    <div className="min-w-0 pb-1">
-                        <h1 className="text-xl md:text-3xl font-black text-foreground truncate">{restaurant.name}</h1>
-                        <p className="text-xs md:text-sm font-bold text-muted-foreground truncate">
-                            {(restaurant.types || []).map(t => t.name).join(" • ") || "Restaurant"}
-                        </p>
-                    </div>
+                </div>
+                {/* Nom du restaurant — en flux normal (pas dans la rangée qui chevauche la cover)
+                    pour ne jamais se retrouver masqué derrière la photo de couverture. */}
+                <div className="min-w-0 px-4 mt-3">
+                    <h1 className="text-xl md:text-3xl font-black text-foreground truncate">{restaurant.name}</h1>
+                    <p className="text-xs md:text-sm font-bold text-muted-foreground truncate">
+                        {(restaurant.types || []).map(t => t.name).join(" • ") || "Restaurant"}
+                    </p>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3 mt-4 px-4">

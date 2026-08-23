@@ -154,38 +154,47 @@ export default function StorePage(props: Props) {
 
     return (
         <div className="flex flex-col items-center w-full max-w-7xl mx-auto px-4 py-8 md:py-12">
-            {/* Store Header */}
-            <div className="flex flex-col items-center text-center w-full max-w-4xl mb-12 space-y-4">
-                <div className="relative w-24 h-24 md:w-32 md:h-32 rounded-full bg-card border-4 border-background shadow-xl overflow-hidden mb-2">
-                    {publicStore?.storeLogo ? (
-                        <Image
-                            src={publicStore.storeLogo}
-                            alt={publicStore.storeName || "Boutique"}
-                            fill
-                            className="object-cover"
-                            unoptimized />
-                    ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-primary/10">
-                            <Icon icon="solar:shop-bold-duotone" className="w-12 h-12 md:w-16 md:h-16 text-primary" />
-                        </div>
-                    )}
+            {/* Store Header — même UI que /restaurant/[slug] (cover + logo "chapeau" + nom en dessous) */}
+            <div className="w-full max-w-4xl mb-8">
+                <div className="relative w-full aspect-[21/9] rounded-3xl overflow-hidden bg-muted mb-[-3rem]">
+                    <div className="w-full h-full flex items-center justify-center bg-primary/10">
+                        <Icon icon="solar:shop-bold-duotone" className="w-16 h-16 text-primary" />
+                    </div>
                 </div>
-
-                <div className="space-y-1">
-                    <h1 className="text-2xl md:text-4xl font-black text-foreground uppercase tracking-tight leading-none">
-                        {publicStore?.storeName || restoredStoreName}
-                    </h1>
-                    <p className="text-xs md:text-sm font-black text-muted-foreground uppercase tracking-[0.2em]">
+                <div className="flex items-end gap-4 px-4">
+                    <div className="relative w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-card border-4 border-background shadow-xl overflow-hidden shrink-0">
+                        {publicStore?.storeLogo ? (
+                            <Image src={publicStore.storeLogo} alt={publicStore.storeName || "Boutique"} fill className="object-cover" unoptimized />
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-primary/10">
+                                <Icon icon="solar:shop-bold-duotone" className="w-8 h-8 text-primary" />
+                            </div>
+                        )}
+                    </div>
+                </div>
+                {/* Nom de la boutique — en flux normal (pas dans la rangée qui chevauche la cover)
+                    pour ne jamais se retrouver masqué derrière la photo de couverture. */}
+                <div className="min-w-0 px-4 mt-3">
+                    <h1 className="text-xl md:text-3xl font-black text-foreground truncate">{publicStore?.storeName || restoredStoreName}</h1>
+                    <p className="text-xs md:text-sm font-bold text-muted-foreground truncate">
                         {publicStore?.productCount || 0} Produits
                     </p>
                 </div>
 
-                <div className="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-4 px-4 max-w-3xl">
-                    <p className="text-[10px] md:text-xs text-muted-foreground font-bold uppercase tracking-wider leading-relaxed">
-                        {publicStore?.companyName || "Partenaire Tarafé"}
-                    </p>
+                <div className="flex flex-wrap items-center gap-3 mt-4 px-4">
+                    {publicStore?.companyName && (
+                        <span className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground bg-muted/50 px-3 py-1.5 rounded-full">
+                            <Icon icon="solar:buildings-2-bold-duotone" className="w-4 h-4 text-primary" />
+                            {publicStore.companyName}
+                        </span>
+                    )}
+                    {publicStore?.phone && (
+                        <span className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground bg-muted/50 px-3 py-1.5 rounded-full">
+                            <Icon icon="solar:phone-bold-duotone" className="w-4 h-4 text-primary" />
+                            {publicStore.indicatif ? `${publicStore.indicatif} ` : ''}{publicStore.phone}
+                        </span>
+                    )}
                 </div>
-
             </div>
             {/* Search Input */}
             <div className="w-full mb-2">

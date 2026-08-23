@@ -14,7 +14,7 @@ import { useNotification } from "@/components/notifications/NotificationProvider
 import { Button } from "@/components/ui/button";
 import { getUserId } from "@/lib/auth";
 import { useRealTimeUpdate } from "@/hooks/useRealTimeUpdate";
-import { SectionHeader } from "@/components/shared/SectionHeader";
+import OnBack from "@/components/shared/OnBack";
 import DriverSelectorModal from "@/components/delivery/modals/DriverSelectorModal";
 import { useSubscriptionCheck } from "@/hooks/useSubscriptionCheck";
 import ConfirmAction, { ConfirmVariant } from "@/components/ui/ConfirmAction";
@@ -29,17 +29,16 @@ interface CommandesProps {
     onPageChange?: (page: number) => void;
     onSuccess?: () => void;
     /**
-     * Libellé du bouton de retour — affiché uniquement si défini. Ce composant est partagé
-     * par plusieurs espaces de gestion (Boutique, Fournisseur, Restaurants...) ; le parent
-     * (akwaba/page.tsx) qui a déclenché l'affichage de Commandes fournit son propre libellé,
-     * jamais figé sur "boutique" ici.
+     * Callback pour revenir à l'espace d'origine (Boutique, Fournisseur, Restaurants...) —
+     * fourni par akwaba/page.tsx uniquement quand Commandes a été ouvert depuis un de ces
+     * espaces de gestion. Absent (arrivée directe via la Sidebar) → repli sur onBackHome.
      */
-    backLabel?: string;
-    /** Callback pour revenir à l'espace d'origine — requis si backLabel est défini */
     onBack?: () => void;
+    /** Retour générique vers l'accueil du rôle — utilisé quand onBack (origine) n'est pas défini */
+    onBackHome: () => void;
 }
 
-export default function Commandes({ data: propData, page: propPage, limit: propLimit = 6, total: propTotal, totalPages: propTotalPages, loading: propLoading, onPageChange, onSuccess, backLabel, onBack }: CommandesProps) {
+export default function Commandes({ data: propData, page: propPage, limit: propLimit = 6, total: propTotal, totalPages: propTotalPages, loading: propLoading, onPageChange, onSuccess, onBack, onBackHome }: CommandesProps) {
 
     const [internalPage, setInternalPage] = useState(1);
     const page = propPage ?? internalPage;
@@ -171,18 +170,9 @@ export default function Commandes({ data: propData, page: propPage, limit: propL
     return (
         <div className="w-full mx-auto py-4">
 
-            {backLabel && onBack && (
-                <button
-                    onClick={onBack}
-                    className="flex items-center gap-2 mb-4 text-xs font-black text-primary hover:underline"
-                >
-                    <Icon icon="solar:alt-arrow-left-bold-duotone" className="w-4 h-4" />
-                    {backLabel}
-                </button>
-            )}
-
-            <SectionHeader
-                title="Mes Commandes"
+            <OnBack
+                label="Mes Commandes"
+                onBack={onBack ?? onBackHome}
                 subtitle="Consultez et suivez l'historique de vos commandes passées et reçues."
                 className="mb-8"
             />
