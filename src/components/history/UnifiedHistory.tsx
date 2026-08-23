@@ -6,7 +6,7 @@ import { Order, OrderStatus, Booking, BookingStatus, GasDelivery, GasDeliverySta
 import { getMyActivityHistory, ActivityHistoryType, ActivityHistoryBookingType } from "@/api/api";
 import AccountBookingRowSkeleton from "@/components/bookings/ui/AccountBookingRowSkeleton";
 import { TablePagination } from "@/components/ui/table/Pagination";
-import { SectionHeader } from "@/components/shared/SectionHeader";
+import OnBack from "@/components/shared/OnBack";
 import OrderDetailModal from "@/components/orders/modals/OrderDetailModal";
 import BookingDetail from "@/components/bookings/sections/BookingDetail";
 
@@ -63,7 +63,11 @@ const GAS_STATUS_LABEL: Record<string, string> = {
     PENDING: "EN ATTENTE", ACCEPTED: "ACCEPTÉE", DELIVERED: "LIVRÉE", CANCELED: "ANNULÉE",
 };
 
-export default function UnifiedHistory() {
+interface UnifiedHistoryProps {
+    onBack: () => void;
+}
+
+export default function UnifiedHistory({ onBack }: UnifiedHistoryProps) {
     const [filterType, setFilterType] = useState<ActivityHistoryType>("commandes");
     const [bookingSubType, setBookingSubType] = useState<ActivityHistoryBookingType>("SERVICE");
     const [page, setPage] = useState(1);
@@ -115,8 +119,9 @@ export default function UnifiedHistory() {
 
     return (
         <div className="w-full mx-auto py-4">
-            <SectionHeader
-                title="Mes courses et commandes"
+            <OnBack
+                label="Mes courses et commandes"
+                onBack={onBack}
                 subtitle="Retrouvez l'historique de toutes vos activités : commandes, réservations et livraisons de gaz."
                 className="mb-6"
             />

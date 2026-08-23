@@ -8,7 +8,7 @@ import { getServiceStats, getMyBookings } from "@/api/api"
 import { AccordionSection } from "@/components/ui/AccordionSection"
 import BoostedEntityList from "@/components/boost/BoostedEntityList"
 import BookingDetailModal from "@/components/bookings/sections/BookingDetail"
-import { SectionHeader } from "@/components/shared/SectionHeader"
+import OnBack from "@/components/shared/OnBack"
 import { useRealTimeUpdate } from "@/hooks/useRealTimeUpdate"
 
 import ServicesManagementContent from "./components/ServicesManagementContent"
@@ -28,9 +28,10 @@ interface AccountServicesListProps {
     user?: UserProfile;
     /** Permet de naviguer vers l'onglet "Rendez-vous" du dashboard (optionnel) */
     onNavigateToBookings?: () => void;
+    onBack: () => void;
 }
 
-export default function AccountServicesList({ data, page, limit, total, totalPages, loading, onPageChange, onSuccess, user, onNavigateToBookings }: AccountServicesListProps) {
+export default function AccountServicesList({ data, page, limit, total, totalPages, loading, onPageChange, onSuccess, user, onNavigateToBookings, onBack }: AccountServicesListProps) {
 
     // KPI Stats
     const [serviceStats, setServiceStats] = useState<ServiceStats | null>(null)
@@ -88,8 +89,9 @@ export default function AccountServicesList({ data, page, limit, total, totalPag
 
     return (
         <div className="flex flex-col items-center w-full max-w-7xl mx-auto px-0 md:px-4 py-2">
-            <SectionHeader
-                title="Développez votre activité de services"
+            <OnBack
+                label="Développez votre activité de services"
+                onBack={onBack}
                 subtitle="Publiez vos services, gérez vos réservations et boostez votre visibilité auprès des clients."
                 className="mb-6"
             />

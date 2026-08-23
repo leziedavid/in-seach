@@ -22,14 +22,18 @@ import { fr } from "date-fns/locale";
 import { Switch } from "@/components/ui/switch";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useTranslation } from "@/utils/langue/hooks";
-import { SectionHeader } from "@/components/shared/SectionHeader";
+import OnBack from "@/components/shared/OnBack";
 import { InputPhone } from "@/components/ui/InputPhone";
 import { useBiometrics } from "@/hooks/useBiometrics";
 import { webAuthnListCredentials, webAuthnDeleteCredential } from "@/api/api";
 
 // AccordionSection — extrait dans @/components/ui/AccordionSection pour être réutilisé (ex: Store.tsx)
 
-export default function AccountSettings() {
+interface AccountSettingsProps {
+    onBack: () => void;
+}
+
+export default function AccountSettings({ onBack }: AccountSettingsProps) {
     const { t } = useTranslation();
 
     const { permission, subscribe, unsubscribe, loading, isNotificationsEnabled, isPushSupported, lastError } = useNotifications();
@@ -352,10 +356,10 @@ export default function AccountSettings() {
 
     return (
         <div className="max-w-4xl mx-auto space-y-8 pb-12">
-            <SectionHeader
-                title={t("akwaba.settings.title")}
+            <OnBack
+                label={t("akwaba.settings.title")}
+                onBack={onBack}
                 subtitle={t("akwaba.settings.subtitle")}
-                className="!text-left"
             />
             <div className="flex flex-col gap-4">
 

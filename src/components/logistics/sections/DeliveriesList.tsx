@@ -11,9 +11,12 @@ import TrackingCard from "@/components/logistics/cards/TrackingCard";
 import DeliveryAssignmentModal from "@/components/logistics/modals/DeliveryAssignmentModal";
 import DocumentPreviewModal from "@/components/logistics/modals/DocumentPreviewModal";
 import { useSubscriptionCheck } from "@/hooks/useSubscriptionCheck";
+import OnBack from "@/components/shared/OnBack";
 
 interface DeliveriesListProps {
     role: "CLIENT" | "ENTREPRISE" | "CHAUFFEUR";
+    /** Absent quand cet onglet est l'accueil du rôle courant (ex: CHAUFFEUR sur "Mes-livraisons") */
+    onBack?: () => void;
 }
 
 const STATUS_CONFIG: Record<DeliveryStatus, { label: string; color: string; icon: string }> = {
@@ -25,7 +28,7 @@ const STATUS_CONFIG: Record<DeliveryStatus, { label: string; color: string; icon
     [DeliveryStatus.CANCELLED]: { label: "Annulé", color: "text-red-500 bg-red-500/10", icon: "solar:close-circle-bold-duotone" },
 };
 
-export default function DeliveriesList({ role }: DeliveriesListProps) {
+export default function DeliveriesList({ role, onBack }: DeliveriesListProps) {
 
     const [deliveries, setDeliveries] = useState<Delivery[]>([]);
     const [loading, setLoading] = useState(true);
@@ -91,6 +94,9 @@ export default function DeliveriesList({ role }: DeliveriesListProps) {
 
     return (
         <div className="space-y-4">
+            {onBack && (
+                <OnBack label={role === "ENTREPRISE" ? "Livraisons" : "Mes livraisons"} onBack={onBack} />
+            )}
             {deliveries.length > 0 ? (
                 deliveries.map((delivery) => {
                     const status = STATUS_CONFIG[delivery.status];

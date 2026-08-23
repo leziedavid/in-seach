@@ -34,7 +34,7 @@ const ApiDocumentation = dynamic(() => import('@/components/profile/ApiDocumenta
 const ChatWidget = dynamic(() => import("@/components/ai/ChatWidget"), { ssr: false })
 
 import { Modal } from '@/components/ui/MotionModal';
-import Overview from '@/components/profile/Overview';
+import DashMenu from '@/components/profile/DashMenu';
 import { BiometricSetupModal } from '@/components/auth/BiometricSetupModal';
 import InstallPWA from '@/components/pwa/InstallPWA';
 import MyLivesList from '@/components/lives/MyLivesList';
@@ -48,6 +48,7 @@ import FournisseurQuotesList from '@/components/fournisseur/sections/Fournisseur
 import RestaurantManagement from '@/components/restaurant/sections/RestaurantManagement';
 import { useTranslation } from '@/utils/langue/hooks';
 import { Icon } from '@iconify/react';
+import Overview from '@/components/profile/Overview';
 
 
 export default function Page() {
@@ -140,10 +141,24 @@ export default function Page() {
             } else if (userRole === Role.RESTAURANT) {
                 setActiveTab('Restaurants-gestion');
             } else {
-                setActiveTab('Overview');
+                setActiveTab('DashMenu');
             }
         }
     }, [userRole]);
+
+    // Onglet "accueil" par rôle — même mapping que l'effect ci-dessus, réutilisé pour calculer
+    // la cible du bouton retour (OnBack) : jamais de flèche retour sur son propre accueil.
+    const getHomeTab = (role: Role | null): TabType => {
+        if (role === Role.LIVREUR) return 'Livreur-dashboard';
+        if (role === Role.CHAUFFEUR) return 'Mes-livraisons';
+        if (role === Role.GAZIER) return 'Mes-bouteilles-gaz';
+        if (role === Role.GARAGISTE_VENTE_PIECE_AUTO) return 'Mon-Garage';
+        if (role === Role.FOURNISSEUR) return 'Produits-fournisseur';
+        if (role === Role.RESTAURANT) return 'Restaurants-gestion';
+        return 'DashMenu';
+    };
+    const homeTab = getHomeTab(userRole);
+    const onBackToHome = () => handleTabChange(homeTab);
 
     const [open, setOpen] = useState(false);
     const [stats, setStats] = useState<GlobalStats>({} as GlobalStats)
@@ -305,80 +320,79 @@ export default function Page() {
     const renderContent = () => {
         switch (activeTab) {
             case 'Overview':
-                return <Overview />;
 
+                return <Overview/>;
+
+            case 'DashMenu':
+                return <DashMenu onNavigate={handleTabChange} />;
             case 'Calendrier':
-                return <BookingCalendar />;
+                return <BookingCalendar onBack={onBackToHome} />;
 
             case 'Services':
                 return (
-                    <AccountServicesList data={tabData.items as Service[]} page={page} limit={limit} total={tabData.total} totalPages={tabData.totalPages} loading={isLoading} onPageChange={setPage} onSuccess={() => { void refetch(); }} user={data?.user} onNavigateToBookings={() => setActiveTab('Rendez-vous')} />
+                    <AccountServicesList data={tabData.items as Service[]} page={page} limit={limit} total={tabData.total} totalPages={tabData.totalPages} loading={isLoading} onPageChange={setPage} onSuccess={() => { void refetch(); }} user={data?.user} onNavigateToBookings={() => setActiveTab('Rendez-vous')} onBack={onBackToHome} />
                 );
             case 'Annonces':
                 return (
-                    <AccountAnnonces data={tabData.items as Annonce[]} page={page} limit={limit} total={tabData.total} totalPages={tabData.totalPages} loading={isLoading} onPageChange={setPage} onSuccess={() => { void refetch(); }} user={data?.user} onNavigateToBookings={() => setActiveTab('Rendez-vous-annonces')} />
+                    <AccountAnnonces data={tabData.items as Annonce[]} page={page} limit={limit} total={tabData.total} totalPages={tabData.totalPages} loading={isLoading} onPageChange={setPage} onSuccess={() => { void refetch(); }} user={data?.user} onNavigateToBookings={() => setActiveTab('Rendez-vous-annonces')} onBack={onBackToHome} />
                 );
             case 'Rendez-vous':
                 return (
                     <>
                         {renderBookingScopeToggle()}
-                        <AccountBookings type="active" data={tabData.items as Booking[]} page={page} limit={limit} total={tabData.total} totalPages={tabData.totalPages} loading={isLoading} onPageChange={setPage} onSuccess={() => { void refetch(); }} scope={bookingScope === 'received' ? 'recues' : 'passees'} />
+                        <AccountBookings type="active" data={tabData.items as Booking[]} page={page} limit={limit} total={tabData.total} totalPages={tabData.totalPages} loading={isLoading} onPageChange={setPage} onSuccess={() => { void refetch(); }} scope={bookingScope === 'received' ? 'recues' : 'passees'} onBack={onBackToHome} />
                     </>
                 );
             case 'Rendez-vous-annonces':
                 return (
                     <>
                         {renderBookingScopeToggle()}
-                        <AnnoncesBookings type="active" data={tabData.items as Booking[]} page={page} limit={limit} total={tabData.total} totalPages={tabData.totalPages} loading={isLoading} onPageChange={setPage} onSuccess={() => { void refetch(); }} scope={bookingScope === 'received' ? 'recues' : 'passees'} />
+                        <AnnoncesBookings type="active" data={tabData.items as Booking[]} page={page} limit={limit} total={tabData.total} totalPages={tabData.totalPages} loading={isLoading} onPageChange={setPage} onSuccess={() => { void refetch(); }} scope={bookingScope === 'received' ? 'recues' : 'passees'} onBack={onBackToHome} />
                     </>
                 );
             case 'Historique-rdv':
                 return (
                     <>
                         {renderBookingScopeToggle()}
-                        <HistoriqueRdv type="history" data={tabData.items as Booking[]} page={page} limit={limit} total={tabData.total} totalPages={tabData.totalPages} loading={isLoading} onPageChange={setPage} onSuccess={() => { void refetch(); }} scope={bookingScope === 'received' ? 'recues' : 'passees'} />
+                        <HistoriqueRdv type="history" data={tabData.items as Booking[]} page={page} limit={limit} total={tabData.total} totalPages={tabData.totalPages} loading={isLoading} onPageChange={setPage} onSuccess={() => { void refetch(); }} scope={bookingScope === 'received' ? 'recues' : 'passees'} onBack={onBackToHome} />
                     </>
                 );
             case 'Historique-commandes':
-                return <HistoriqueCommandes />;
+                return <HistoriqueCommandes onBack={onBackToHome} />;
             case 'Boutique':
-                return <Store onNavigateToOrders={handleNavigateToOrders} />;
+                return <Store onNavigateToOrders={handleNavigateToOrders} onBack={onBackToHome} />;
             case 'Commandes':
                 return (
-                    <Commandes
-                        onSuccess={() => { void refetch(); }}
-                        backLabel={commandesOrigin ? COMMANDES_ORIGIN_LABELS[commandesOrigin] : undefined}
-                        onBack={commandesOrigin ? handleBackFromOrders : undefined}
-                    />
-                );
+                    <Commandes onSuccess={() => { void refetch(); }}  backLabel={commandesOrigin ? COMMANDES_ORIGIN_LABELS[commandesOrigin] : undefined}
+                        onBack={commandesOrigin ? handleBackFromOrders : undefined} /> );
             case 'Services-logistiques':
-                return (<LogisticsServicesList mode="marketplace" onRequestQuote={(service) => { setSelectedServiceForQuote(service); setIsQuoteModalOpen(true); }} />);
+                return (<LogisticsServicesList mode="marketplace" onRequestQuote={(service) => { setSelectedServiceForQuote(service); setIsQuoteModalOpen(true); }} onBack={onBackToHome} />);
             case 'Mes-services-logistiques':
-                return <LogisticsServicesList mode="management" onNavigateToQuotes={() => setActiveTab('Devis-recus')} onNavigateToDeliveries={() => setActiveTab('Livraisons')} />;
+                return <LogisticsServicesList mode="management" onNavigateToQuotes={() => setActiveTab('Devis-recus')} onNavigateToDeliveries={() => setActiveTab('Livraisons')} onBack={onBackToHome} />;
             case 'Mes-devis':
-                return <QuotesList role="CLIENT" />;
+                return <QuotesList role="CLIENT" onBack={onBackToHome} />;
             case 'Devis-recus':
-                return <QuotesList role="ENTREPRISE" />;
+                return <QuotesList role="ENTREPRISE" onBack={onBackToHome} />;
             case 'Mes-livraisons':
-                return <DeliveriesList role="CLIENT" />;
+                return <DeliveriesList role="CLIENT" onBack={activeTab === homeTab ? undefined : onBackToHome} />;
             case 'Livraisons':
-                return <DeliveriesList role="ENTREPRISE" />;
+                return <DeliveriesList role="ENTREPRISE" onBack={onBackToHome} />;
             case 'Livraisons-chauffeur':
-                return <DeliveriesList role="CHAUFFEUR" />;
+                return <DeliveriesList role="CHAUFFEUR" onBack={onBackToHome} />;
             case 'Ma-flotte':
-                return <FloteManager />;
+                return <FloteManager onBack={onBackToHome} />;
             case 'Paramètres':
-                return <AccountSettings />;
+                return <AccountSettings onBack={onBackToHome} />;
             case 'Documentation-API':
-                return <ApiDocumentation />;
+                return <ApiDocumentation onBack={onBackToHome} />;
             case 'Mes-lives':
-                return <MyLivesList />;
+                return <MyLivesList onBack={onBackToHome} />;
             case 'Livreur-dashboard':
                 return <EasyDeliveryPage />;
             case 'Retours-SAV':
-                return <RetoursSAV />;
+                return <RetoursSAV onBack={onBackToHome} />;
             case 'Recharge-gaz':
-                return <GasRefillRequest />;
+                return <GasRefillRequest onBack={onBackToHome} />;
             case 'Mes-bouteilles-gaz':
                 return <GasProviderDashboard />;
             case 'Mon-Garage':
@@ -386,12 +400,12 @@ export default function Page() {
             case 'Produits-fournisseur':
                 return <FournisseurBoutique onNavigateToOrders={handleNavigateToOrders} />;
             case 'Devis-fournisseur':
-                return <FournisseurQuotesList />;
+                return <FournisseurQuotesList onBack={onBackToHome} />;
             case 'Restaurants-gestion':
             case 'Menus-restaurant':
                 return <RestaurantManagement onNavigateToOrders={handleNavigateToOrders} />;
             case 'Historique':
-                return <UnifiedHistory />;
+                return <UnifiedHistory onBack={onBackToHome} />;
             default:
                 return null;
         }

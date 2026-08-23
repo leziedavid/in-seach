@@ -8,7 +8,7 @@ import { getAnnonceStats, getMyBookings } from "@/api/api"
 import { AccordionSection } from "@/components/ui/AccordionSection"
 import BoostedEntityList from "@/components/boost/BoostedEntityList"
 import BookingDetailModal from "@/components/bookings/sections/BookingDetail"
-import { SectionHeader } from "@/components/shared/SectionHeader"
+import OnBack from "@/components/shared/OnBack"
 import { useRealTimeUpdate } from "@/hooks/useRealTimeUpdate"
 
 import AnnoncesManagementContent from "./components/AnnoncesManagementContent"
@@ -28,9 +28,10 @@ interface AccountAnnoncesProps {
     user?: UserProfile;
     /** Permet de naviguer vers l'onglet "Rendez-vous-annonces" du dashboard (optionnel) */
     onNavigateToBookings?: () => void;
+    onBack: () => void;
 }
 
-export default function AccountAnnonces({ data = [], page = 1, limit = 6, total = 0, totalPages = 0, loading = false, onPageChange, onSuccess, user, onNavigateToBookings }: AccountAnnoncesProps) {
+export default function AccountAnnonces({ data = [], page = 1, limit = 6, total = 0, totalPages = 0, loading = false, onPageChange, onSuccess, user, onNavigateToBookings, onBack }: AccountAnnoncesProps) {
 
     // KPI Stats
     const [annonceStats, setAnnonceStats] = useState<AnnonceStats | null>(null)
@@ -88,8 +89,9 @@ export default function AccountAnnonces({ data = [], page = 1, limit = 6, total 
 
     return (
         <div className="flex flex-col items-center w-full max-w-7xl mx-auto px-0 md:px-4 py-2">
-            <SectionHeader
-                title="Développez la visibilité de vos annonces"
+            <OnBack
+                label="Développez la visibilité de vos annonces"
+                onBack={onBack}
                 subtitle="Publiez vos annonces, gérez vos réservations et boostez votre visibilité auprès des clients."
                 className="mb-6"
             />

@@ -13,7 +13,7 @@ import { useNotification } from "@/components/notifications/NotificationProvider
 import BookingModal from "@/components/bookings/modals/BookingModal";
 import AnnonceBookingModal from "@/components/bookings/modals/AnnonceBookingModal";
 import { isReservationAnnonce } from "@/utils/annonceBooking";
-import { SectionHeader } from "@/components/shared/SectionHeader";
+import OnBack from "@/components/shared/OnBack";
 import { useRealTimeUpdate } from "@/hooks/useRealTimeUpdate";
 
 interface HistoriqueRdvProps {
@@ -29,9 +29,10 @@ interface HistoriqueRdvProps {
     /** Portée effective en mode contrôlé — reflète le sélecteur Reçues/Mes réservations
      * du parent (akwaba/page.tsx) ; l'état interne ci-dessous ne sert qu'en mode autonome. */
     scope?: 'recues' | 'passees';
+    onBack: () => void;
 }
 
-export default function HistoriqueRdv({ data: propData, page: propPage, limit: propLimit = 6, total: propTotal, totalPages: propTotalPages, loading: propLoading, onPageChange, onSuccess: _onSuccess, scope: propScope }: HistoriqueRdvProps) {
+export default function HistoriqueRdv({ data: propData, page: propPage, limit: propLimit = 6, total: propTotal, totalPages: propTotalPages, loading: propLoading, onPageChange, onSuccess: _onSuccess, scope: propScope, onBack }: HistoriqueRdvProps) {
 
     const [internalActiveTab, setActiveTab] = useState<'recues' | 'passees'>('recues');
     const activeTab = propData ? (propScope ?? internalActiveTab) : internalActiveTab;
@@ -138,10 +139,10 @@ export default function HistoriqueRdv({ data: propData, page: propPage, limit: p
     return (
         <div className="w-full mx-auto py-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                <SectionHeader 
-                    title="Historique des Rendez-vous"
+                <OnBack
+                    label="Historique des Rendez-vous"
+                    onBack={onBack}
                     subtitle="Consultez l'historique complet de vos prestations passées et archivées."
-                    className="!text-left"
                 />
 
                 {isPrestataire && !propData && (

@@ -14,10 +14,12 @@ import ConfirmAction, { ConfirmVariant } from "@/components/ui/ConfirmAction";
 
 import ClientsManager from "@/components/logistics/sections/ClientsManager";
 import ManualQuoteModal from "@/components/logistics/modals/ManualQuoteModal";
+import OnBack from "@/components/shared/OnBack";
 
 
 interface QuotesListProps {
     role: "CLIENT" | "ENTREPRISE";
+    onBack: () => void;
 }
 
 const STATUS_CONFIG: Record<QuoteStatus, { label: string; color: string; icon: string }> = {
@@ -29,7 +31,7 @@ const STATUS_CONFIG: Record<QuoteStatus, { label: string; color: string; icon: s
     [QuoteStatus.CANCELLED]: { label: "Annulé", color: "bg-slate-100 text-slate-700 dark:bg-slate-500/10 dark:text-slate-400", icon: "solar:forbidden-bold-duotone" },
 };
 
-export default function QuotesList({ role }: QuotesListProps) {
+export default function QuotesList({ role, onBack }: QuotesListProps) {
     const [activeTab, setActiveTab] = useState<"quotes" | "clients">("quotes");
     const [isManualModalOpen, setIsManualModalOpen] = useState(false);
     const [editingQuote, setEditingQuote] = useState<Quote | null>(null);
@@ -213,6 +215,8 @@ export default function QuotesList({ role }: QuotesListProps) {
 
     return (
         <div className="space-y-6">
+            <OnBack label={role === "ENTREPRISE" ? "Devis reçus" : "Mes devis"} onBack={onBack} />
+
             {/* Enterprise Tabs & Action Header */}
             {role === "ENTREPRISE" && (
                 <div className="flex flex-col md:flex-row justify-between items-center gap-6 bg-card/50 backdrop-blur-md p-2 rounded-[2.5rem] border border-border/50 sticky top-4 z-40 shadow-xl shadow-black/5">

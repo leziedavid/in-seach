@@ -5,9 +5,13 @@ import { Icon } from "@iconify/react";
 import { getFleet, deleteFleetItem, toggleFleetStatus } from "@/api/api";
 import { useNotification } from "@/components/notifications/NotificationProvider";
 import FloteFormModal from "@/components/logistics/modals/FloteFormModal";
-import { SectionHeader } from "@/components/shared/SectionHeader";
+import OnBack from "@/components/shared/OnBack";
 
-export default function FloteManager() {
+interface FloteManagerProps {
+    onBack: () => void;
+}
+
+export default function FloteManager({ onBack }: FloteManagerProps) {
     const [fleet, setFleet] = useState<any[]>([]);
     const [pagination, setPagination] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -90,7 +94,7 @@ export default function FloteManager() {
     return (
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-card p-6 rounded-[2rem] border border-border shadow-sm">
-                <SectionHeader title="Ma Flotte" subtitle="Gérez vos véhicules, camions et autres engins logistiques" className="!text-left" />
+                <OnBack label="Ma Flotte" onBack={onBack} subtitle="Gérez vos véhicules, camions et autres engins logistiques" />
                 <button onClick={handleAdd} className="w-full md:w-auto bg-primary text-white px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-primary/20 hover:scale-105 transition-all flex items-center justify-center gap-2">
                     <Icon icon="solar:add-circle-bold" className="w-4 h-4" />
                     Ajouter

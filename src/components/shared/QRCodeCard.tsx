@@ -178,34 +178,40 @@ export default function QRCodeCard({
     return (
         <div className="w-full max-w-4xl mx-auto flex flex-col md:flex-row items-stretch gap-6 md:gap-10">
 
-            {/* ── Carte style Wave ── */}
+            {/* ── Carte QR — même style que le raccourci d'accueil (DashMenu) : QR nu + logo "chapeau" ── */}
             <div className="w-full md:flex-[3]">
-                <div className="w-full h-full rounded-3xl overflow-hidden shadow-lg flex flex-col items-center py-8 px-3 md:px-6 gap-3" style={{ backgroundColor: SECONDARY_HEX }} >
-                    {/* Logo — sans fond, taille généreuse */}
-                    <div className="w-28 h-28 relative shrink-0">
-                        <Image src={logo} alt={displayName} fill className="object-contain" unoptimized />
+                <div className="w-full h-full rounded-3xl border border-border bg-card shadow-sm flex flex-col items-center py-8 px-3 md:px-6 gap-4">
+                    <div className="relative pt-6">
+                        <div className="p-2 rounded-2xl bg-background border border-border shadow-sm">
+                            <QRCodeCanvas
+                                id={canvasId}
+                                value={qrUrl}
+                                size={196}
+                                level="H"
+                                bgColor="#ffffff"
+                                fgColor="#111111"
+                            />
+                        </div>
+                        {/* Logo "chapeau" — chevauche le bord supérieur du QR */}
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-14 h-14 rounded-full bg-card border-2 border-background shadow-md flex items-center justify-center overflow-hidden">
+                            <Image
+                                src={logo}
+                                alt={displayName}
+                                width={logoSrc ? 56 : 32}
+                                height={logoSrc ? 56 : 32}
+                                className={logoSrc ? "w-full h-full object-cover" : "object-contain"}
+                                unoptimized
+                            />
+                        </div>
                     </div>
 
                     {/* Nom */}
-                    <p className="text-white font-black text-lg uppercase tracking-wide text-center leading-tight line-clamp-2">
+                    <p className="text-foreground font-black text-lg uppercase tracking-wide text-center leading-tight line-clamp-2">
                         {displayName}
                     </p>
 
-                    {/* QR noir sur fond blanc — occupe tout l'espace dispo */}
-                    <div className="bg-white rounded-2xl p-2 md:p-4 w-full flex items-center justify-center">
-                        <QRCodeCanvas
-                            id={canvasId}
-                            value={qrUrl}
-                            size={260}
-                            level="H"
-                            bgColor="#ffffff"
-                            fgColor="#111111"
-                            style={{ display: "block", width: "100%", height: "auto" }}
-                        />
-                    </div>
-
                     {/* Tagline */}
-                    <p className="text-white/80 text-[11px] font-bold uppercase tracking-widest text-center">
+                    <p className="text-muted-foreground text-[11px] font-bold uppercase tracking-widest text-center">
                         {tagline}
                     </p>
                 </div>

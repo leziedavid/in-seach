@@ -14,9 +14,10 @@ interface AccountBookingsProps {
     onPageChange?: (page: number) => void;
     onSuccess?: () => void;
     scope?: 'recues' | 'passees';
+    onBack: () => void;
 }
 
-export default function AccountBookings({ type, data, page, limit, total, totalPages, loading, onPageChange, onSuccess, scope }: AccountBookingsProps) {
+export default function AccountBookings({ type, data, page, limit, total, totalPages, loading, onPageChange, onSuccess, scope, onBack }: AccountBookingsProps) {
 
     return (
         <div>
@@ -31,6 +32,7 @@ export default function AccountBookings({ type, data, page, limit, total, totalP
                 onSuccess={onSuccess}
                 bookingType="SERVICE"
                 scope={scope}
+                onBack={onBack}
             />
         </div>
     );

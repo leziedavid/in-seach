@@ -8,7 +8,7 @@ import { GasBottle, GasDelivery, GasDeliveryStatus } from "@/types/interface";
 import { useUserLocation } from "@/utils/location";
 import { Modal } from "@/components/ui/MotionModal";
 import ConfirmAction, { ConfirmVariant } from "@/components/ui/ConfirmAction";
-import { SectionHeader } from "@/components/shared/SectionHeader";
+import OnBack from "@/components/shared/OnBack";
 import { useNotification } from "@/components/notifications/NotificationProvider";
 import { GAS_BOTTLE_FORMAT_CONFIG } from "@/components/gas-delivery/gasBottleFormat";
 import InfiniteScroll from "@/components/ui/InfiniteScroll";
@@ -51,7 +51,11 @@ const distanceKm = (lat1: number, lon1: number, lat2: number, lon2: number) => {
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 };
 
-export default function GasRefillRequest() {
+interface GasRefillRequestProps {
+    onBack: () => void;
+}
+
+export default function GasRefillRequest({ onBack }: GasRefillRequestProps) {
     const { addNotification } = useNotification();
     const { getUserLocation } = useUserLocation();
 
@@ -239,8 +243,9 @@ export default function GasRefillRequest() {
 
     return (
         <div className="flex flex-col items-center w-full max-w-4xl mx-auto px-2 md:px-4 py-2">
-            <SectionHeader
-                title="Recharge de gaz à domicile"
+            <OnBack
+                label="Recharge de gaz à domicile"
+                onBack={onBack}
                 subtitle="Choisissez une bouteille et faites-vous livrer directement chez vous, ou contactez un prestataire en direct."
                 className="mb-6"
             />

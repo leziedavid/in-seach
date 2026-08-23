@@ -14,7 +14,7 @@ import { isReservationAnnonce } from "@/utils/annonceBooking";
 import { getUserId, getUserRole } from "@/lib/auth";
 import { Role } from "@/types/interface";
 import { useRealTimeUpdate } from "@/hooks/useRealTimeUpdate";
-import { SectionHeader } from "@/components/shared/SectionHeader";
+import OnBack from "@/components/shared/OnBack";
 import { useTranslation } from "@/utils/langue/hooks";
 import { useBookingStatusAction } from "@/hooks/useBookingStatusAction";
 import ConfirmAction from "@/components/ui/ConfirmAction";
@@ -34,6 +34,7 @@ interface BookingsPageProps {
      * réservations du parent (akwaba/page.tsx), puisque le toggle interne ci-dessous est
      * alors masqué et son propre état ne reflète jamais le bon onglet. */
     scope?: 'recues' | 'passees';
+    onBack: () => void;
 }
 
 export default function BookingsPage({
@@ -46,7 +47,8 @@ export default function BookingsPage({
     onPageChange,
     onSuccess,
     bookingType,
-    scope: propScope }: BookingsPageProps) {
+    scope: propScope,
+    onBack }: BookingsPageProps) {
     const { t } = useTranslation();
 
     const [internalPage, setInternalPage] = useState(1);
@@ -156,9 +158,9 @@ export default function BookingsPage({
     return (
         <div className="w-full mx-auto py-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                <SectionHeader title={bookingType === 'ANNONCE' ? t("akwaba.bookings.title_annonces") : t("akwaba.bookings.title_services")}
+                <OnBack label={bookingType === 'ANNONCE' ? t("akwaba.bookings.title_annonces") : t("akwaba.bookings.title_services")}
+                    onBack={onBack}
                     subtitle={t("akwaba.bookings.subtitle")}
-                    className="!text-left"
                 />
 
                 {/* <pre>{JSON.stringify(userRole, null, 2)}</pre> */}

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import ConfirmAction, { ConfirmVariant } from "@/components/ui/ConfirmAction";
 import { useSubscriptionCheck } from "@/hooks/useSubscriptionCheck";
+import OnBack from "@/components/shared/OnBack";
 
 const STATUS_CONFIG: Record<SupplierQuoteStatus, { label: string; color: string; icon: string }> = {
     PENDING: { label: "En attente", color: "bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400", icon: "solar:clock-circle-bold-duotone" },
@@ -17,8 +18,12 @@ const STATUS_CONFIG: Record<SupplierQuoteStatus, { label: string; color: string;
     CANCELLED: { label: "Annulé", color: "bg-slate-100 text-slate-700 dark:bg-slate-500/10 dark:text-slate-400", icon: "solar:forbidden-bold-duotone" },
 };
 
+interface FournisseurQuotesListProps {
+    onBack: () => void;
+}
+
 /** "Demandes de devis" reçues côté Fournisseur — ajuste quantité/prix, contacte le client, valide/refuse. */
-export default function FournisseurQuotesList() {
+export default function FournisseurQuotesList({ onBack }: FournisseurQuotesListProps) {
     const [quotes, setQuotes] = useState<SupplierQuote[]>([]);
     const [loading, setLoading] = useState(true);
     const [editingId, setEditingId] = useState<string | null>(null);
@@ -156,6 +161,7 @@ export default function FournisseurQuotesList() {
 
     return (
         <div className="space-y-4 w-full max-w-4xl mx-auto px-2 md:px-4">
+            <OnBack label="Devis fournisseur" onBack={onBack} />
             {quotes.length > 0 ? (
                 quotes.map((quote) => {
                     const status = STATUS_CONFIG[quote.status];

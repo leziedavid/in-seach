@@ -9,11 +9,15 @@ import { TablePagination } from "@/components/ui/table/Pagination";
 import OrderDetailModal from "@/components/orders/modals/OrderDetailModal";
 import ReceiptModal, { ReceiptData } from "@/components/shared/ReceiptModal";
 import { useRealTimeUpdate } from "@/hooks/useRealTimeUpdate";
-import { SectionHeader } from "@/components/shared/SectionHeader";
+import OnBack from "@/components/shared/OnBack";
 import { getUserId } from "@/lib/auth";
 import { getOrderStatusStyle, getOrderStatusStyleObj, getOrderStatusBadgeLabel } from "@/components/orders/utils/orderStatus";
 
-export default function HistoriqueCommandes() {
+interface HistoriqueCommandesProps {
+    onBack: () => void;
+}
+
+export default function HistoriqueCommandes({ onBack }: HistoriqueCommandesProps) {
     const [page, setPage] = useState(1);
     const [limit] = useState(6);
     const [orders, setOrders] = useState<Order[]>([]);
@@ -99,8 +103,9 @@ export default function HistoriqueCommandes() {
 
     return (
         <div className="w-full mx-auto py-4">
-            <SectionHeader 
-                title="Historique des Commandes" 
+            <OnBack
+                label="Historique des Commandes"
+                onBack={onBack}
                 subtitle="Retrouvez ici tous les détails de vos transactions passées."
                 className="mb-8"
             />

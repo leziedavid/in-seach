@@ -12,7 +12,7 @@ import { Modal } from "@/components/ui/MotionModal"
 import FormsProduit from "@/components/products/forms/FormsProduit"
 import { useSubscriptionCheck } from "@/hooks/useSubscriptionCheck"
 import VoiceSearchModal from "@/components/services/sections/VoiceSearchModal"
-import { SectionHeader } from "@/components/shared/SectionHeader"
+import OnBack from "@/components/shared/OnBack"
 
 import CreateButton from "@/components/ui/CreateButton"
 import LiveFormModal from "@/components/lives/LiveFormModal"
@@ -35,9 +35,10 @@ const ITEMS_PER_PAGE = 10
 interface StoreProps {
     /** Permet de naviguer vers l'onglet "Commandes" du dashboard (optionnel — reçu depuis akwaba/page.tsx) */
     onNavigateToOrders?: () => void
+    onBack: () => void
 }
 
-export default function Store({ onNavigateToOrders }: StoreProps) {
+export default function Store({ onNavigateToOrders, onBack }: StoreProps) {
 
     const [search, setSearch] = useState("")
     // [PERF] Debounce 400ms : évite une requête API à chaque frappe clavier
@@ -318,7 +319,8 @@ export default function Store({ onNavigateToOrders }: StoreProps) {
 
     return (
         <div className="flex flex-col items-center w-full max-w-7xl mx-auto px-0 md:px-4 py-2">
-            <SectionHeader title="La vente en ligne n'a jamais été aussi facile"
+            <OnBack label="La vente en ligne n'a jamais été aussi facile"
+                onBack={onBack}
                 subtitle="Montez votre boutique en ligne en quelques clics et bénéficiez de tous les outils essentiels pour reussir dans l'e-commerce : , Achetez, vendez ou échangez tous types de produits d'occasion en toute simplicité"
                 className="mb-6"
             />

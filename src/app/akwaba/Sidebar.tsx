@@ -18,6 +18,7 @@ const ADMIN_WHATSAPP_NUMBER = "2250153686819";
 
 export type TabType =
     | "Overview"
+    | "DashMenu"
     | "Calendrier"
     | "Services"
     | "Rendez-vous"

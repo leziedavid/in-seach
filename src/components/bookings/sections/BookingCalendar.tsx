@@ -14,10 +14,14 @@ import { cn } from "@/lib/utils";
 import BookingDetailModal from "../sections/BookingDetail";
 import BookingModal from "../modals/BookingModal";
 import { motion, AnimatePresence } from "framer-motion";
-import { SectionHeader } from "@/components/shared/SectionHeader";
+import OnBack from "@/components/shared/OnBack";
 import { createPortal } from "react-dom";
 
-const BookingCalendar: React.FC = () => {
+interface BookingCalendarProps {
+    onBack: () => void;
+}
+
+const BookingCalendar: React.FC<BookingCalendarProps> = ({ onBack }) => {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
     const [selectedBooking, setSelectedBooking] = useState<BookingsCalendar | null>(null);
@@ -238,10 +242,11 @@ const BookingCalendar: React.FC = () => {
     // ===============================
     return (
         <div className="w-full max-w-4xl mx-auto mt-4">
-            <SectionHeader
-                title="Calendrier des Réservations"
+            <OnBack
+                label="Calendrier des Réservations"
+                onBack={onBack}
                 subtitle="Visualisez et organisez vos rendez-vous sur une vue mensuelle interactive."
-                className="!text-left mb-8"
+                className="mb-8"
             />
             {/* Filtre par intervalle de dates */}
             <div className="mb-4 flex items-center gap-2">

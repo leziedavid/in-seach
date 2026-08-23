@@ -7,7 +7,7 @@ import { getMyProductReturns, updateProductReturnStatus, confirmReturnReception 
 import { ProductReturn, ProductReturnStatus, ProductReturnReason, Role } from "@/types/interface";
 import { getUserRole } from "@/lib/auth";
 import { useNotification } from "@/components/notifications/NotificationProvider";
-import { SectionHeader } from "@/components/shared/SectionHeader";
+import OnBack from "@/components/shared/OnBack";
 import AccountBookingRowSkeleton from "@/components/bookings/ui/AccountBookingRowSkeleton";
 import ConfirmAction, { ConfirmVariant } from "@/components/ui/ConfirmAction";
 
@@ -261,7 +261,11 @@ function ReturnCard({ ret, role, onRefresh }: { ret: ProductReturn; role: Role; 
 }
 
 // ─── Section principale ───────────────────────────────────────────────────────
-export default function RetoursSAV() {
+interface RetoursSAVProps {
+    onBack: () => void;
+}
+
+export default function RetoursSAV({ onBack }: RetoursSAVProps) {
     const [returns, setReturns] = useState<ProductReturn[]>([]);
     const [loading, setLoading] = useState(false);
     const [activeFilter, setActiveFilter] = useState<ProductReturnStatus | "ALL">("ALL");
@@ -311,8 +315,9 @@ export default function RetoursSAV() {
 
     return (
         <div className="flex flex-col w-full max-w-4xl mx-auto gap-4">
-            <SectionHeader
-                title="Retours & SAV"
+            <OnBack
+                label="Retours & SAV"
+                onBack={onBack}
                 subtitle="Gérez vos demandes de retour et suivez leur évolution"
                 className="mb-2"
             />

@@ -5,7 +5,7 @@ import { Icon } from '@iconify/react';
 import { Button } from '@/components/ui/button';
 import { getApiKeyAuth } from '@/lib/auth';
 import { getBaseUrl } from '@/api/api';
-import { SectionHeader } from '@/components/shared/SectionHeader';
+import OnBack from '@/components/shared/OnBack';
 import { useTranslation } from '@/utils/langue/hooks';
 import { XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, } from 'recharts';
 
@@ -48,7 +48,11 @@ print(response.json())
 
 const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
 
-export default function ApiDocumentation() {
+interface ApiDocumentationProps {
+  onBack: () => void;
+}
+
+export default function ApiDocumentation({ onBack }: ApiDocumentationProps) {
   const { t } = useTranslation();
 
   const ENDPOINTS = [
@@ -196,10 +200,10 @@ export default function ApiDocumentation() {
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-        <SectionHeader
-          title={t('api.title')}
+        <OnBack
+          label={t('api.title')}
+          onBack={onBack}
           subtitle={t('api.subtitle')}
-          className="!text-left"
         />
         <div className="flex bg-muted p-1 rounded-xl">
           <button

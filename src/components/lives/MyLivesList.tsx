@@ -8,7 +8,7 @@ import { Live, LiveStatus, LiveEntityType, LiveStats } from "@/types/interface";
 import { useNotification } from "@/components/notifications/NotificationProvider";
 import { Button } from "@/components/ui/button";
 import { TablePagination } from "@/components/ui/table/Pagination";
-import { SectionHeader } from "@/components/shared/SectionHeader";
+import OnBack from "@/components/shared/OnBack";
 import LiveFormModal from "./LiveFormModal";
 import CreateButton from "@/components/ui/CreateButton";
 import LiveStatCard from "./components/LiveStatCard";
@@ -50,7 +50,11 @@ function detectSource(url: string) {
 
 // ─── COMPONENT ───────────────────────────────────────────────────────────────
 
-export default function MyLivesList() {
+interface MyLivesListProps {
+    onBack: () => void;
+}
+
+export default function MyLivesList({ onBack }: MyLivesListProps) {
     const { showNotification } = useNotification();
     const router = useRouter();
 
@@ -140,10 +144,10 @@ export default function MyLivesList() {
 
             {/* Header */}
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <SectionHeader
-                    title="Mes Lives"
+                <OnBack
+                    label="Mes Lives"
+                    onBack={onBack}
                     subtitle="Publiez des courtes vidéos pour promouvoir vos produits, services et annonces."
-                    className="!text-left"
                 />
                 <div className="w-full sm:w-auto sm:shrink-0">
                     <CreateButton

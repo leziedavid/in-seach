@@ -8,7 +8,7 @@ import { getLogisticServices, getMyLogisticServices, createLogisticService, upda
 import { useNotification } from "@/components/notifications/NotificationProvider";
 import { Modal } from "@/components/ui/MotionModal";
 import { useSubscriptionCheck } from "@/hooks/useSubscriptionCheck";
-import { SectionHeader } from "@/components/shared/SectionHeader";
+import OnBack from "@/components/shared/OnBack";
 import Delete from "@/components/logistics/modals/Delete";
 import CreateButton from "@/components/ui/CreateButton";
 import dynamic from "next/dynamic";
@@ -40,9 +40,11 @@ interface LogisticsServicesListProps {
     onNavigateToQuotes?: () => void;
     /** Permet de naviguer vers l'onglet "Livraisons" du dashboard (optionnel — mode management) */
     onNavigateToDeliveries?: () => void;
+    /** Non fourni sur la page publique /logistics/[companyName] — uniquement présent depuis akwaba/page.tsx */
+    onBack?: () => void;
 }
 
-export default function LogisticsServicesList({ mode = "marketplace", companyName, onRequestQuote, onNavigateToQuotes, onNavigateToDeliveries }: LogisticsServicesListProps) {
+export default function LogisticsServicesList({ mode = "marketplace", companyName, onRequestQuote, onNavigateToQuotes, onNavigateToDeliveries, onBack }: LogisticsServicesListProps) {
 
     const [services, setServices] = useState<LogisticService[]>([]);
     const [loading, setLoading] = useState(false);
@@ -292,6 +294,15 @@ export default function LogisticsServicesList({ mode = "marketplace", companyNam
 
     return (
         <div className="flex flex-col items-center w-full max-w-7xl mx-auto px-4 py-1">
+            {/* En-tête retour — présent uniquement depuis akwaba/page.tsx (absent sur la page publique /logistics/[companyName]) */}
+            {onBack && (
+                <OnBack
+                    label={mode === "management" ? "Mes Services Logistiques" : "Services logistiques"}
+                    onBack={onBack}
+                    subtitle={mode === "management" ? "Gérez vos offres de transport et de logistique publiées sur la plateforme." : undefined}
+                    className="w-full max-w-6xl mb-4"
+                />
+            )}
             {/* Search Input - Matching Boutique Style - Hidden on Akwaba */}
             {!isAkwaba && (
                 <div className="flex flex-col md:flex-row items-center justify-center gap-4 w-full max-w-2xl mb-2">
@@ -322,12 +333,7 @@ export default function LogisticsServicesList({ mode = "marketplace", companyNam
             {isManagement && (
                 <>
                     <div className="w-full max-w-6xl mb-8">
-                        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                            <SectionHeader
-                                title="Mes Services Logistiques"
-                                subtitle="Gérez vos offres de transport et de logistique publiées sur la plateforme."
-                                className="!text-left"
-                            />
+                        <div className="flex flex-col md:flex-row items-start md:items-center justify-end gap-4">
                             <div className="flex flex-col gap-2">
                                 <CreateButton
                                     label="Publier un service"
