@@ -14,15 +14,15 @@ export default function ComingSoon({ children }: { children: React.ReactNode }) 
 
             <div className="relative z-10 flex flex-col justify-between h-full">
                 <Header />
-                <main className="flex-1 flex flex-col pt-[4.5rem] md:pt-20 pb-20 md:pb-0">
+                {/* Le footer est désormais toujours visible et fixe (fini le glissement en vue
+                    déclenché par le scroll) — le contenu réserve donc en permanence l'espace de
+                    sa vraie hauteur (--footer-reserved-height) en bas, sinon le footer fixe
+                    recouvrirait la fin du contenu. Le "5rem" mobile reste la clearance pour la
+                    pilule de nav de Header.tsx (fixed bottom-4 seulement en mobile — en desktop
+                    elle est en haut, md:top-6/md:bottom-auto, donc pas de clearance équivalente
+                    à ajouter côté desktop). */}
+                <main className="flex-1 flex flex-col pt-[4.5rem] md:pt-20 pb-[calc(5rem+var(--footer-reserved-height,60px))] md:pb-[var(--footer-reserved-height,60px)]">
                     {children}
-                    {/* Sentinelle de fin de page — observée par Footer.tsx (IntersectionObserver) : le
-                        footer ne s'affiche que lorsqu'on scrolle jusqu'ici, seul SearchInput est visible
-                        par défaut. Réserve l'espace de SearchInput (+ marge pour les tabs/icônes juste
-                        au-dessus) en permanence, et celui du footer (--footer-reserved-height, toujours
-                        sa vraie hauteur que le footer soit affiché ou non) pour qu'il ait la place de se
-                        révéler sans jamais recouvrir le contenu réel. */}
-                    <div id="page-end-sentinel" aria-hidden style={{ height: "calc(var(--footer-reserved-height, 60px) + var(--searchinput-height, 0px) + 3rem)" }} />
                 </main>
                 <Footer />
             </div>

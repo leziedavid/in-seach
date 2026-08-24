@@ -170,7 +170,7 @@ export default function RestaurantMenuPage(props: Props) {
                 <SearchInput
                     value={search}
                     onChange={setSearch}
-                    placeholder="Rechercher un plat..."
+                    placeholder="Rechercher un plat"
                 />
             </div>
 

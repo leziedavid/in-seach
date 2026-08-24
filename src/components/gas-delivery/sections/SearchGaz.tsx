@@ -129,7 +129,7 @@ export default function SearchGaz() {
                     value={query}
                     onChange={setQuery}
                     onSubmit={handleSearchSubmit}
-                    placeholder="Rechercher un prestataire de gaz..."
+                    placeholder="Rechercher du gaz"
                     enableVoice
                     onVoiceOpen={() => setIsVoiceModalOpen(true)}
                     enableMap

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useLayoutEffect, useState, useRef } from "react";
 import { Icon } from "@iconify/react";
 import Link from "next/link";
 import Image from "next/image";
@@ -75,6 +75,35 @@ export default function Header() {
     const [hideOnScroll, setHideOnScroll] = useState(false);
     const lastScrollY = useRef(0);
     const scrollTicking = useRef(false);
+
+    // Verrou clavier iOS — même technique que Footer.tsx (voir ses commentaires pour le détail
+    // du problème et pourquoi on compare à la plus grande hauteur observée plutôt qu'à
+    // window.innerHeight en direct) : la pilule de nav mobile ne doit jamais être poussée par
+    // le clavier virtuel, il doit simplement passer par-dessus.
+    const mobileNavPillRef = useRef<HTMLDivElement>(null);
+    useLayoutEffect(() => {
+        const el = mobileNavPillRef.current
+        if (!el) return
+        const vv = window.visualViewport
+        let maxHeight = window.innerHeight
+
+        const pin = () => {
+            const liveHeight = vv ? Math.min(window.innerHeight, vv.height + vv.offsetTop) : window.innerHeight
+            maxHeight = Math.max(maxHeight, liveHeight)
+            const gap = maxHeight - liveHeight
+            el.style.transform = gap > 1 ? `translateY(${gap}px)` : ""
+        }
+
+        pin()
+        window.addEventListener("resize", pin)
+        vv?.addEventListener("resize", pin)
+        vv?.addEventListener("scroll", pin)
+        return () => {
+            window.removeEventListener("resize", pin)
+            vv?.removeEventListener("resize", pin)
+            vv?.removeEventListener("scroll", pin)
+        }
+    }, [])
 
     useEffect(() => {
         if (isDesktop) {
@@ -255,7 +284,13 @@ export default function Header() {
                 </div>
             </div>
 
-            <header className={`fixed left-4 right-4 md:right-auto z-[100] bottom-4 ${isMenuOpen ? "w-auto" : "w-fit"} max-w-[800px] md:top-6 md:bottom-auto md:left-1/2 md:-translate-x-1/2 md:w-fit md:px-6 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-lg border border-white/40 dark:border-white/10 rounded-full shadow-lg px-2 py-2 flex items-center justify-start gap-1 md:gap-4 transition-all duration-500 ease-in-out will-change-transform ${hideOnScroll ? "translate-y-32 opacity-0 pointer-events-none" : "translate-y-0 opacity-100"} md:translate-y-0 md:opacity-100 md:pointer-events-auto`}>
+            {/* Wrapper séparé pour le positionnement : porte le verrou clavier (translateY inline,
+                voir l'effet plus haut) indépendamment du <header> qui garde son propre transform
+                d'apparition/disparition au scroll (translate-y-32/0 selon hideOnScroll) — les deux
+                transforms sur un même élément se seraient écrasés l'un l'autre (l'inline gagne
+                toujours). Même principe que Footer.tsx pour le clavier iOS. */}
+            <div ref={mobileNavPillRef} className={`fixed left-4 right-4 md:right-auto z-[100] bottom-4 ${isMenuOpen ? "w-auto" : "w-fit"} max-w-[800px] md:top-6 md:bottom-auto md:left-1/2 md:-translate-x-1/2 md:w-fit`}>
+            <header className={`md:px-6 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-lg border border-white/40 dark:border-white/10 rounded-full shadow-lg px-2 py-2 flex items-center justify-start gap-1 md:gap-4 transition-all duration-500 ease-in-out will-change-transform ${hideOnScroll ? "translate-y-32 opacity-0 pointer-events-none" : "translate-y-0 opacity-100"} md:translate-y-0 md:opacity-100 md:pointer-events-auto`}>
                 {/* User Section - Desktop: avatar+nom inchangés | Mobile: bouton Menu (photo/nom déplacés en haut) */}
                 <div className="flex items-center gap-1 md:gap-4 shrink-0">
                     {/* Desktop uniquement : avatar identique à avant */}
@@ -433,6 +468,7 @@ export default function Header() {
                 </AnimatePresence>
                 <CartDetailModal isOpen={isCartModalOpen} onClose={() => setIsCartModalOpen(false)} />
             </header>
+            </div>
         </>
     );
 }

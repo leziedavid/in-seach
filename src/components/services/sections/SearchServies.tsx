@@ -277,6 +277,51 @@ export default function SearchServies() {
 
     return (
         <div className="flex flex-col items-center w-full max-w-7xl mx-auto px-4 py-2">
+            {/* Search Input - Centered (avant les catégories, comportement pré-migration) */}
+            <div className="w-full mb-2">
+                <SearchInput
+                    value={query}
+                    onChange={setQuery}
+                    onSubmit={handleSearchSubmit}
+                    onDraftChange={setDraftQuery}
+                    // SearchInput appelle onChange("") puis onClear dans le même gestionnaire
+                    // d'événement (donc le même batch React) — en réinitialisant isSearching
+                    // ici plutôt que de compter sur l'effet séparé qui l'observe, on évite un
+                    // rendu intermédiaire où cet effet le verrait encore à `true` et lancerait
+                    // un fetch inutile. Comportement du bouton "effacer" d'origine, avant migration.
+                    onClear={() => { if (!lat && !lng && !selectedCategoryId) setIsSearching(false); }}
+                    placeholder={t("services.search_placeholder")}
+                    enableVoice
+                    onVoiceOpen={() => setIsVoiceModalOpen(true)}
+                    enableImage
+                    onImageOpen={() => setIsImageModalOpen(true)}
+                    enableMap
+                    onMapClick={handleUseMyLocation}
+                    addressLabel={address}
+                    labels={{
+                        clear: t("common.clear_search"),
+                        voice: t("common.voice_search"),
+                        image: t("common.image_search"),
+                        location: t("common.my_location"),
+                    }}
+                    suggestionsSlot={showSuggestions && (
+                        <div ref={suggestionRef} className="absolute z-50 top-full mt-2 w-full bg-card border border-border/40 rounded-xl shadow-lg overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                            {isSearchingSuggestions ? (
+                                <div className="p-4 text-center text-sm text-muted-foreground">Recherche...</div>
+                            ) : suggestions.length > 0 ? (
+                                <ul className="max-h-60 overflow-y-auto">
+                                    {suggestions.map((suggestion) => (
+                                        <li key={suggestion.id} onClick={() => handleSuggestionClick(suggestion)} className="px-4 py-3 flex items-center gap-3 hover:bg-primary/10 cursor-pointer transition-colors border-b border-border/20 last:border-0" >
+                                            <Icon icon="solar:magnifer-outline" className="w-4 h-4 text-muted-foreground" />
+                                            <span className="text-foreground text-sm font-medium">{suggestion.label}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            ) : null}
+                        </div>
+                    )}
+                />
+            </div>
             {/* Catégories — filtre horizontal scrollable, indépendant du texte de recherche */}
             {categoriesLoading ? (
                 <div className="flex flex-col items-center w-full max-w-2xl mb-3">
@@ -333,51 +378,6 @@ export default function SearchServies() {
                     )}
                 </div>
             )}
-            {/* Search Input - Centered */}
-            <div className="w-full mb-2">
-                <SearchInput
-                    value={query}
-                    onChange={setQuery}
-                    onSubmit={handleSearchSubmit}
-                    onDraftChange={setDraftQuery}
-                    // SearchInput appelle onChange("") puis onClear dans le même gestionnaire
-                    // d'événement (donc le même batch React) — en réinitialisant isSearching
-                    // ici plutôt que de compter sur l'effet séparé qui l'observe, on évite un
-                    // rendu intermédiaire où cet effet le verrait encore à `true` et lancerait
-                    // un fetch inutile. Comportement du bouton "effacer" d'origine, avant migration.
-                    onClear={() => { if (!lat && !lng && !selectedCategoryId) setIsSearching(false); }}
-                    placeholder={t("services.search_placeholder")}
-                    enableVoice
-                    onVoiceOpen={() => setIsVoiceModalOpen(true)}
-                    enableImage
-                    onImageOpen={() => setIsImageModalOpen(true)}
-                    enableMap
-                    onMapClick={handleUseMyLocation}
-                    addressLabel={address}
-                    labels={{
-                        clear: t("common.clear_search"),
-                        voice: t("common.voice_search"),
-                        image: t("common.image_search"),
-                        location: t("common.my_location"),
-                    }}
-                    suggestionsSlot={showSuggestions && (
-                        <div ref={suggestionRef} className="absolute z-50 top-full mt-2 w-full bg-card border border-border/40 rounded-xl shadow-lg overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-                            {isSearchingSuggestions ? (
-                                <div className="p-4 text-center text-sm text-muted-foreground">Recherche...</div>
-                            ) : suggestions.length > 0 ? (
-                                <ul className="max-h-60 overflow-y-auto">
-                                    {suggestions.map((suggestion) => (
-                                        <li key={suggestion.id} onClick={() => handleSuggestionClick(suggestion)} className="px-4 py-3 flex items-center gap-3 hover:bg-primary/10 cursor-pointer transition-colors border-b border-border/20 last:border-0" >
-                                            <Icon icon="solar:magnifer-outline" className="w-4 h-4 text-muted-foreground" />
-                                            <span className="text-foreground text-sm font-medium">{suggestion.label}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            ) : null}
-                        </div>
-                    )}
-                />
-            </div>
             {/* Dynamic Results or Initial Steps */}
             {isSearching && (
                 <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-1">

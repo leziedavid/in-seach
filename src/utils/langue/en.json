@@ -165,7 +165,7 @@
         }
     },
     "services": {
-        "search_placeholder": "What service are you looking for?",
+        "search_placeholder": "Search a service",
         "ai_loading_title": "AI analysis in progress...",
         "ai_loading_description": "Our AI is analyzing your image to find matching services.",
         "search_loading_title": "Searching for services...",

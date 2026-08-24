@@ -119,7 +119,7 @@ export default function SearchGarage() {
                     value={query}
                     onChange={setQuery}
                     onSubmit={handleSearchSubmit}
-                    placeholder="Rechercher un garage..."
+                    placeholder="Rechercher un garage"
                     enableMap
                     onMapClick={handleUseMyLocation}
                     addressLabel={address}

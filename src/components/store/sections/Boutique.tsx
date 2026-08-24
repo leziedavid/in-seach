@@ -105,7 +105,7 @@ export default function ProductsPage() {
                 <SearchInput
                     value={search}
                     onChange={setSearch}
-                    placeholder="Quel produit recherchez-vous ?"
+                    placeholder="Rechercher un produit"
                     enableVoice
                     onVoiceOpen={() => setIsVoiceModalOpen(true)}
                 />

@@ -221,6 +221,37 @@ export default function SearchAnnonces() {
 
     return (
         <div className="flex flex-col items-center w-full max-w-7xl mx-auto px-4 py-2">
+            {/* Search Input - Centered (avant les catégories, comportement pré-migration) */}
+            <div className="w-full mb-2">
+                <SearchInput
+                    value={query}
+                    onChange={setQuery}
+                    onSubmit={handleSearchSubmit}
+                    placeholder="Rechercher une annonce"
+                    enableVoice
+                    onVoiceOpen={() => setIsVoiceModalOpen(true)}
+                    enableMap
+                    onMapClick={handleUseMyLocation}
+                    addressLabel={address}
+                    labels={{ location: "Ma position" }}
+                    suggestionsSlot={showSuggestions && (
+                        <div ref={suggestionRef} className="absolute z-50 top-full mt-2 w-full bg-card border border-border/40 rounded-xl shadow-lg overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                            {isSearchingSuggestions ? (
+                                <div className="p-4 text-center text-sm text-muted-foreground">Recherche...</div>
+                            ) : suggestions.length > 0 ? (
+                                <ul className="max-h-60 overflow-y-auto">
+                                    {suggestions.map((suggestion) => (
+                                        <li key={suggestion.id} onClick={() => handleSuggestionClick(suggestion)} className="px-4 py-3 flex items-center gap-3 hover:bg-primary/10 cursor-pointer transition-colors border-b border-border/20 last:border-0" >
+                                            <Icon icon="solar:magnifer-outline" className="w-4 h-4 text-muted-foreground" />
+                                            <span className="text-foreground text-sm font-medium">{suggestion.name}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            ) : null}
+                        </div>
+                    )}
+                />
+            </div>
             {/* Catégories — filtre horizontal scrollable, indépendant du texte de recherche */}
             {categoriesLoading ? (
                 <div className="flex flex-col items-center w-full max-w-2xl mb-3">
@@ -274,37 +305,6 @@ export default function SearchAnnonces() {
                     )}
                 </div>
             )}
-            {/* Search Input - Centered */}
-            <div className="w-full mb-2">
-                <SearchInput
-                    value={query}
-                    onChange={setQuery}
-                    onSubmit={handleSearchSubmit}
-                    placeholder="Quelle annonce recherchez-vous ?"
-                    enableVoice
-                    onVoiceOpen={() => setIsVoiceModalOpen(true)}
-                    enableMap
-                    onMapClick={handleUseMyLocation}
-                    addressLabel={address}
-                    labels={{ location: "Ma position" }}
-                    suggestionsSlot={showSuggestions && (
-                        <div ref={suggestionRef} className="absolute z-50 top-full mt-2 w-full bg-card border border-border/40 rounded-xl shadow-lg overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-                            {isSearchingSuggestions ? (
-                                <div className="p-4 text-center text-sm text-muted-foreground">Recherche...</div>
-                            ) : suggestions.length > 0 ? (
-                                <ul className="max-h-60 overflow-y-auto">
-                                    {suggestions.map((suggestion) => (
-                                        <li key={suggestion.id} onClick={() => handleSuggestionClick(suggestion)} className="px-4 py-3 flex items-center gap-3 hover:bg-primary/10 cursor-pointer transition-colors border-b border-border/20 last:border-0" >
-                                            <Icon icon="solar:magnifer-outline" className="w-4 h-4 text-muted-foreground" />
-                                            <span className="text-foreground text-sm font-medium">{suggestion.name}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            ) : null}
-                        </div>
-                    )}
-                />
-            </div>
             {/* Résultats de recherche */}
             {/* {isSearching && ( */}
             <div className="flex flex-col w-full max-w-4xl mx-auto px-0 md:px-4 py-1">

@@ -177,7 +177,7 @@ export default function ShopSellersContent() {
                 </div>
                 <div className="px-4 pt-4 pb-2 flex items-center gap-2">
                     <div className="flex-1">
-                        <SearchInput value={search} onChange={setSearch} placeholder="Rechercher une boutique..." sticky={false} />
+                        <SearchInput value={search} onChange={setSearch} placeholder="Rechercher une boutique" sticky={false} />
                     </div>
                     <ViewToggle viewMode={viewMode} setViewMode={setViewMode} />
                 </div>
@@ -194,7 +194,7 @@ export default function ShopSellersContent() {
                         <ViewToggle viewMode={viewMode} setViewMode={setViewMode} />
                     </div>
                     <div className="px-6 pb-4">
-                        <SearchInput value={search} onChange={setSearch} placeholder="Rechercher une boutique..." sticky={false} />
+                        <SearchInput value={search} onChange={setSearch} placeholder="Rechercher une boutique" sticky={false} />
                     </div>
                     <div className="px-6 pb-6">
                         {grid("grid grid-cols-2 gap-4", "flex flex-col gap-2")}

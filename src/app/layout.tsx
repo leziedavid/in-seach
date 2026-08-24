@@ -135,7 +135,14 @@ export const viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
-};
+  // Sans ce réglage, iOS/Android redimensionnent le viewport quand le clavier virtuel
+  // s'ouvre — ce qui fait "remonter" tout élément `position: fixed` collé au bas de
+  // l'écran (Footer.tsx, la pilule de nav mobile de Header.tsx) pour rester juste
+  // au-dessus du clavier, au lieu de rester en place comme dans une app native. Avec
+  // `overlays-content`, le clavier se pose PAR-DESSUS le contenu sans redimensionner le
+  // viewport : ces éléments fixes restent exactement où ils sont sur tout l'écran.
+  interactiveWidget: "overlays-content",
+} as const;
 
 export default function RootLayout({ children, }: Readonly<{ children: React.ReactNode; }>) {
   return (

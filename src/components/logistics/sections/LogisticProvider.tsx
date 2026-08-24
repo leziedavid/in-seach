@@ -85,7 +85,7 @@ export default function LogisticProviderList() {
                 <SearchInput
                     value={searchTerm}
                     onChange={setSearchTerm}
-                    placeholder="Rechercher une compagnie logistique..."
+                    placeholder="Rechercher une compagnie"
                     enableVoice
                     onVoiceOpen={() => setIsVoiceModalOpen(true)}
                 />

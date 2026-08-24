@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState, useLayoutEffect, useEffect } from "react"
+import { useRef, useLayoutEffect } from "react"
 import FooterInstallButton from "@/components/pwa/FooterInstallButton"
 import Image from "next/image"
 import Link from "next/link"
@@ -13,50 +13,72 @@ const socialLinks = [
 
 export default function SocialFollow() {
     const footerRef = useRef<HTMLElement>(null)
-    // Le footer ne s'affiche que lorsqu'on atteint réellement la fin de la page (sentinelle
-    // "page-end-sentinel", voir ComingSoon.tsx) — le reste du temps il reste hors écran, pour
-    // laisser tout l'espace disponible au contenu et à SearchInput (seul visible par défaut).
-    const [isNearBottom, setIsNearBottom] = useState(false)
 
-    useEffect(() => {
-        const sentinel = document.getElementById("page-end-sentinel")
-        if (!sentinel) return
-        const observer = new IntersectionObserver(
-            ([entry]) => setIsNearBottom(entry.isIntersecting),
-            { threshold: 0 }
-        )
-        observer.observe(sentinel)
-        return () => observer.disconnect()
-    }, [])
-
-    // Rapporte sa propre hauteur dans deux variables CSS :
-    // - --footer-height : hauteur "active" (0 quand caché, réelle quand affiché) — lue par
-    //   SearchInput.tsx pour s'empiler juste au-dessus, uniquement quand le footer est visible.
-    // - --footer-reserved-height : toujours la hauteur réelle — lue par ComingSoon.tsx pour
-    //   réserver assez d'espace en fin de page pour accueillir le footer une fois révélé.
+    // Rapporte sa propre hauteur (toujours réelle, le footer est désormais toujours visible —
+    // fini le glissement en vue déclenché par le scroll, qui donnait l'impression que le
+    // footer "bougeait") dans deux variables CSS :
+    // - --footer-height : lue par SearchInput.tsx pour s'empiler juste au-dessus en mode sticky.
+    // - --footer-reserved-height : lue par ComingSoon.tsx pour réserver en permanence assez
+    //   d'espace en bas de page, sinon le footer fixe recouvrirait la fin du contenu.
+    // ResizeObserver uniquement (pas de listener `window resize`) : un `resize` se déclenche
+    // aussi quand la barre d'adresse mobile se replie/déplie pendant le scroll — l'écouter ici
+    // ne fait que recalculer une hauteur qui n'a pas changé, sans aucun bénéfice.
     useLayoutEffect(() => {
         const el = footerRef.current
         if (!el) return
         const update = () => {
             const h = el.offsetHeight
-            document.documentElement.style.setProperty("--footer-height", isNearBottom ? `${h}px` : "0px")
+            document.documentElement.style.setProperty("--footer-height", `${h}px`)
             document.documentElement.style.setProperty("--footer-reserved-height", `${h}px`)
         }
         update()
         const ro = new ResizeObserver(update)
         ro.observe(el)
-        window.addEventListener("resize", update)
-        return () => {
-            ro.disconnect()
-            window.removeEventListener("resize", update)
+        return () => ro.disconnect()
+    }, [])
+
+    // Verrou clavier iOS : `interactive-widget=overlays-content` (voir layout.tsx) est censé
+    // suffire seul, mais s'est révélé pas fiable en pratique (Chrome iOS notamment, qui utilise
+    // WKWebView plutôt que le vrai moteur Safari — support de cette directive incertain). Sur
+    // ces navigateurs, `window.innerHeight` RÉTRÉCIT aussi avec le clavier (pas seulement
+    // visualViewport) : comparer les deux en direct donnait alors un écart quasi nul et ne
+    // corrigeait rien, alors même que le CSS `bottom: 0` — lui recalé sur ce viewport devenu
+    // plus court — poussait bien le footer vers le haut. Le vrai fixe : ne JAMAIS se fier à la
+    // valeur courante de innerHeight pendant que le clavier peut être ouvert. On mémorise la
+    // plus grande hauteur observée (= l'état "clavier fermé", puisque le clavier ne peut que
+    // réduire l'espace, jamais l'agrandir) et on compare le viewport actuel — le plus petit des
+    // deux, layout ou visuel, selon celui que CE navigateur rétrécit réellement — à cette
+    // référence figée. Le footer est alors retranslaté vers le bas de tout l'écart, quelle que
+    // soit la mécanique de repli utilisée par le navigateur.
+    useLayoutEffect(() => {
+        const el = footerRef.current
+        if (!el) return
+        const vv = window.visualViewport
+        let maxHeight = window.innerHeight
+
+        const pin = () => {
+            const liveHeight = vv ? Math.min(window.innerHeight, vv.height + vv.offsetTop) : window.innerHeight
+            maxHeight = Math.max(maxHeight, liveHeight)
+            const gap = maxHeight - liveHeight
+            el.style.transform = gap > 1 ? `translateY(${gap}px)` : ""
         }
-    }, [isNearBottom])
+
+        pin()
+        window.addEventListener("resize", pin)
+        vv?.addEventListener("resize", pin)
+        vv?.addEventListener("scroll", pin)
+        return () => {
+            window.removeEventListener("resize", pin)
+            vv?.removeEventListener("resize", pin)
+            vv?.removeEventListener("scroll", pin)
+        }
+    }, [])
 
     return (
         <footer
             ref={footerRef}
             id="site-footer"
-            className={`fixed inset-x-0 bottom-0 z-30 w-full bg-background transition-transform duration-300 ease-out ${isNearBottom ? "translate-y-0" : "translate-y-full pointer-events-none"}`}
+            className="fixed inset-x-0 bottom-0 z-30 w-full bg-background"
         >
             <div className="container mx-auto">
                 <div className="flex flex-col items-center gap-2 w-full max-w-3xl mx-auto px-4 py-3">

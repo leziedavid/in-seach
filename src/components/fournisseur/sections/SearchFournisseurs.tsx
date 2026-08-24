@@ -79,7 +79,7 @@ export default function SearchFournisseurs() {
                     value={query}
                     onChange={setQuery}
                     leadingIcon="mdi:warehouse"
-                    placeholder="Rechercher un fournisseur ou grossiste..."
+                    placeholder="Rechercher un fournisseur"
                     labels={{ clear: "Effacer la recherche" }}
                 />
             </div>

@@ -48,8 +48,10 @@ export interface SearchInputProps {
     };
 
     // Ancre la barre en bas de l'écran façon composer IA (ChatGPT/Claude), toujours visible
-    // pendant que le contenu défile derrière elle. Défaut true — passer false pour un rendu
-    // classique en flux normal, à l'endroit où le composant est appelé.
+    // pendant que le contenu défile derrière elle. Défaut false (rendu classique en flux
+    // normal, à l'endroit où le composant est appelé) — passer true pour l'ancrer en bas.
+    // Gardé disponible pour un futur écran type "composer" ; aucun des 12 écrans actuels
+    // n'en a besoin (retours utilisateurs : la barre fixe gênait la navigation).
     sticky?: boolean;
     maxRows?: number;
     autoFocus?: boolean;
@@ -83,7 +85,7 @@ export default function SearchInput({
     suggestionsSlot,
     leadingIcon = "solar:magnifer-bold-duotone",
     labels,
-    sticky = true,
+    sticky = false,
     maxRows = 4,
     autoFocus,
     className = "",
@@ -176,25 +178,36 @@ export default function SearchInput({
     // brouillon diverge de `value` et le bouton redevient "envoyer".
     const isClearMode = enableClear && !!draft && draft === value;
 
+    // Une seule rangée (icône, champ, actions, envoi), alignée en BAS (items-end) plutôt
+    // qu'au centre : quand le texte grandit sur plusieurs lignes, l'icône et les boutons
+    // restent ancrés en bas — comme le composer ChatGPT/Claude/Claude Code — au lieu de se
+    // recentrer et donner une impression de "déformation". `rounded-3xl` (rayon fixe) et
+    // non `rounded-full` : sur une pilule pleinement ronde, une boîte haute (texte multi-
+    // lignes) prendrait une forme de stade étirée au lieu d'un rectangle arrondi propre.
     const bar = (
-        <div className={`flex flex-col w-full bg-card border border-primary rounded-xl shadow-lg hover:border-secondary focus-within:border-secondary transition-colors ${disabled ? "opacity-60" : ""}`}>
-            <div className="flex items-start gap-2 pl-4 pr-3 pt-1.5">
-                {/* <Icon icon={leadingIcon} className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" /> */}
-                <textarea
-                    ref={textareaRef}
-                    value={draft}
-                    onChange={(e) => { setDraft(e.target.value); onDraftChange?.(e.target.value); }}
-                    onKeyDown={handleKeyDown}
-                    placeholder={labels?.placeholder ?? placeholder}
-                    disabled={disabled}
-                    autoFocus={autoFocus}
-                    rows={1}
-                    className="flex-1 bg-transparent text-foreground outline-none text-sm min-w-0 placeholder:text-muted-foreground resize-none py-0 leading-4"
-                />
-            </div>
+        <div className={`flex items-end w-full gap-2 bg-card border border-border rounded-xl shadow-sm hover:border-primary/40 focus-within:border-primary transition-colors pl-4 pr-1.5 py-2 ${disabled ? "opacity-60" : ""}`}>
+            <Icon icon={leadingIcon} className="w-5 h-5 text-muted-foreground flex-shrink-0 mb-1" />
+
+            <textarea
+                ref={textareaRef}
+                value={draft}
+                onChange={(e) => { setDraft(e.target.value); onDraftChange?.(e.target.value); }}
+                onKeyDown={handleKeyDown}
+                placeholder={labels?.placeholder ?? placeholder}
+                disabled={disabled}
+                autoFocus={autoFocus}
+                rows={1}
+                // placeholder:whitespace-nowrap (+ ellipsis) : un placeholder long ne doit
+                // JAMAIS retourner à la ligne — sinon son propre scrollHeight (mesuré même
+                // quand le champ est vide) gonfle la hauteur auto-grow, et la barre paraît
+                // "déformée" dès que l'utilisateur efface sa saisie. Ne touche pas au retour
+                // à la ligne du texte réellement tapé (résout la cause, pas juste le symptôme
+                // — en complément du raccourcissement des placeholders eux-mêmes).
+                className="flex-1 bg-transparent text-foreground outline-none text-sm min-w-0 placeholder:text-muted-foreground placeholder:truncate resize-none py-1.5 leading-5"
+            />
 
             {hasActions && (
-                <div className="flex items-center justify-end gap-0.5 px-1.5 pb-1 pt-0">
+                <div className="flex items-center gap-0.5 flex-shrink-0">
                     {enableVoice && (
                         <button type="button" onClick={onVoiceOpen} disabled={disabled} className="p-1.5 text-muted-foreground hover:text-primary transition-colors hover:scale-110 active:scale-90 rounded-full hover:bg-primary/5" title={L.voice}>
                             <Icon icon="solar:microphone-bold-duotone" className="w-4 h-4" />

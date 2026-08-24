@@ -83,7 +83,7 @@ export default function SearchRestaurants() {
                     value={search}
                     onChange={setSearch}
                     leadingIcon="solar:chef-hat-bold-duotone"
-                    placeholder="Rechercher un restaurant..."
+                    placeholder="Rechercher un restaurant"
                 />
             </div>
 
