@@ -1,11 +1,10 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Icon } from "@iconify/react";
 import { useSpeechToText } from "@/hooks/useSpeechToText";
-import { useTextToSpeech } from "@/hooks/useTextToSpeech";
 
 interface VoiceSearchModalProps {
     isOpen: boolean;
@@ -13,103 +12,71 @@ interface VoiceSearchModalProps {
     onResult: (text: string) => void;
 }
 
-interface Message {
-    id: string;
-    role: "user" | "assistant";
-    content: string;
-}
+const ERROR_MESSAGES: Record<string, string> = {
+    "no-speech": "Je n'ai rien entendu. Réessayez.",
+    "not-allowed": "Autorisez l'accès au micro pour utiliser la recherche vocale.",
+    "audio-capture": "Aucun micro détecté sur cet appareil.",
+    network: "Problème de connexion. Réessayez.",
+};
 
+/**
+ * Recherche vocale — flux à un seul tour (écoute → transcription → résultat), façon barre de
+ * recherche vocale d'une IA (pas un assistant conversationnel) : minimal, léger, sans historique
+ * de messages à conserver ni synthèse vocale de réponse.
+ */
 export default function VoiceSearchModal({ isOpen, onClose, onResult }: VoiceSearchModalProps) {
-    const [messages, setMessages] = useState<Message[]>([]);
-    const [isProcessing, setIsProcessing] = useState(false);
     const [mounted, setMounted] = useState(false);
-    const scrollRef = useRef<HTMLDivElement>(null);
+    const [confirming, setConfirming] = useState(false);
+    const confirmTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
         setMounted(true);
     }, []);
 
-    const { speak, stop: stopSpeaking, isSpeaking } = useTextToSpeech({
-        onEnd: () => {
-            // Start listening after the assistant finishes speaking
-            if (!isProcessing) {
-                startListening();
-            }
-        }
-    });
-
     const { isListening, transcript, error, isSupported, startListening, stopListening } = useSpeechToText({
-        onResult: (text) => {
-            handleUserMessage(text);
-        },
-        onError: (e) => {
-            if (e.error === 'no-speech') {
-                handleAssistantResponse("Je n'ai pas bien entendu, pouvez-vous répéter ?");
+        onResult: (text, isFinal) => {
+            if (isFinal && text.trim()) {
+                setConfirming(true);
+                confirmTimerRef.current = setTimeout(() => {
+                    onResult(text.trim());
+                    onClose();
+                }, 550);
             }
-        }
+        },
     });
 
     useEffect(() => {
         if (isOpen) {
-            // Prevent scrolling on body
-            document.body.style.overflow = 'hidden';
-            // Reset conversation
-            setMessages([]);
-            setIsProcessing(false);
-            // Initial greeting
-            const welcomeMsg = "Comment puis-je vous aider ?";
-            addMessage("assistant", welcomeMsg);
-            speak(welcomeMsg);
+            setConfirming(false);
+            startListening();
         } else {
-            document.body.style.overflow = 'unset';
             stopListening();
-            stopSpeaking();
+            if (confirmTimerRef.current) clearTimeout(confirmTimerRef.current);
         }
         return () => {
-            document.body.style.overflow = 'unset';
+            if (confirmTimerRef.current) clearTimeout(confirmTimerRef.current);
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOpen]);
 
-    // Auto-scroll to bottom of messages
-    useEffect(() => {
-        if (scrollRef.current) {
-            scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-        }
-    }, [messages, transcript]);
+    if (!mounted) return null;
 
-    const addMessage = (role: "user" | "assistant", content: string) => {
-        setMessages(prev => [...prev, { id: Math.random().toString(36), role, content }]);
+    const errorMessage = error ? (ERROR_MESSAGES[error] || "Une erreur est survenue. Réessayez.") : null;
+    const statusLabel = confirming
+        ? "C'est noté !"
+        : isListening
+            ? "Je vous écoute…"
+            : errorMessage
+                ? errorMessage
+                : isSupported
+                    ? "Prêt à vous écouter"
+                    : "Recherche vocale non disponible sur ce navigateur.";
+
+    const handleOrbClick = () => {
+        if (confirming) return;
+        if (isListening) stopListening();
+        else if (isSupported) startListening();
     };
-
-    const handleUserMessage = (text: string) => {
-        if (!text.trim()) return;
-        
-        stopListening();
-        addMessage("user", text);
-        setIsProcessing(true);
-
-        // Simple logic to determine next step
-        setTimeout(() => {
-            if (text.length < 3) {
-                handleAssistantResponse("Pouvez-vous reformuler votre demande ?");
-            } else {
-                handleAssistantResponse("Recherche en cours...");
-                // Final action
-                setTimeout(() => {
-                    onResult(text);
-                    onClose();
-                }, 1500);
-            }
-        }, 800);
-    };
-
-    const handleAssistantResponse = (text: string) => {
-        addMessage("assistant", text);
-        speak(text);
-        setIsProcessing(false);
-    };
-
-    if (!isSupported || !mounted) return null;
 
     const modalContent = (
         <AnimatePresence>
@@ -118,139 +85,101 @@ export default function VoiceSearchModal({ isOpen, onClose, onResult }: VoiceSea
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#0F2944]/40 backdrop-blur-sm p-4 md:p-6"
+                    onClick={onClose}
+                    className="fixed inset-0 z-[9999] flex items-center justify-center bg-background/80 backdrop-blur-md p-4"
                 >
                     <motion.div
-                        initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                        initial={{ scale: 0.92, opacity: 0, y: 12 }}
                         animate={{ scale: 1, opacity: 1, y: 0 }}
-                        exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                        transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                        className="relative w-full max-w-lg bg-[#FBFAF6] text-[#0F2944] border border-[#EEF1F4] rounded-[2.5rem] shadow-[0_20px_50px_rgba(15,41,68,0.13)] overflow-hidden flex flex-col h-auto max-h-[90vh]"
+                        exit={{ scale: 0.92, opacity: 0, y: 12 }}
+                        transition={{ type: "spring", damping: 26, stiffness: 320 }}
                         onClick={(e) => e.stopPropagation()}
+                        className="relative w-full max-w-xs flex flex-col items-center gap-5 py-6"
                     >
-                        {/* Header */}
-                        <div className="p-6 border-b border-border flex items-center justify-between bg-card/50 backdrop-blur-sm">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                                    <Icon icon="solar:mask-h-bold-duotone" className="w-6 h-6 text-primary" />
-                                </div>
-                                <div>
-                                    <h3 className="font-bold text-foreground">Assistant Vocal</h3>
-                                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black">Siri Mode Active</p>
-                                </div>
-                            </div>
-                            <button
-                                onClick={onClose}
-                                className="p-2 rounded-full hover:bg-muted transition-colors"
+                        <button
+                            onClick={onClose}
+                            aria-label="Fermer"
+                            className="absolute -top-2 right-0 w-8 h-8 rounded-full bg-muted hover:bg-muted/70 flex items-center justify-center transition-colors active:scale-90"
+                        >
+                            <Icon icon="solar:close-circle-bold" width={18} className="text-muted-foreground" />
+                        </button>
+
+                        {/* Orbe animé */}
+                        <div className="relative flex items-center justify-center w-28 h-28">
+                            {isListening && !confirming && (
+                                <>
+                                    <motion.span
+                                        animate={{ scale: [1, 1.6, 1], opacity: [0.35, 0, 0.35] }}
+                                        transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+                                        className="absolute inset-0 rounded-full bg-primary/30"
+                                    />
+                                    <motion.span
+                                        animate={{ scale: [1, 1.35, 1], opacity: [0.25, 0, 0.25] }}
+                                        transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
+                                        className="absolute inset-0 rounded-full bg-primary/20"
+                                    />
+                                </>
+                            )}
+                            <motion.button
+                                onClick={handleOrbClick}
+                                aria-label={isListening ? "Arrêter l'écoute" : "Démarrer l'écoute"}
+                                animate={
+                                    confirming
+                                        ? { scale: [1, 1.15, 1] }
+                                        : isListening
+                                            ? { scale: [1, 1.05, 1] }
+                                            : { scale: 1 }
+                                }
+                                transition={{
+                                    duration: isListening ? 1.1 : 0.3,
+                                    repeat: isListening && !confirming ? Infinity : 0,
+                                    ease: "easeInOut",
+                                }}
+                                className={`relative z-10 w-20 h-20 rounded-full flex items-center justify-center shadow-lg transition-colors duration-300 ${confirming
+                                        ? "bg-emerald-500"
+                                        : errorMessage
+                                            ? "bg-red-500/90"
+                                            : isListening
+                                                ? "bg-primary"
+                                                : "bg-muted"
+                                    }`}
                             >
-                                <Icon icon="solar:close-circle-bold-duotone" className="w-6 h-6 text-muted-foreground" />
-                            </button>
+                                <Icon
+                                    icon={
+                                        confirming
+                                            ? "solar:check-circle-bold"
+                                            : errorMessage
+                                                ? "solar:microphone-off-bold"
+                                                : "solar:microphone-bold"
+                                    }
+                                    width={32}
+                                    className={confirming || errorMessage || isListening ? "text-white" : "text-muted-foreground"}
+                                />
+                            </motion.button>
                         </div>
 
-                        {/* Conversation Area */}
-                        <div 
-                            ref={scrollRef}
-                            className="overflow-y-auto p-6 space-y-4 scroll-smooth max-h-[400px]"
-                        >
-                            {messages.map((msg) => (
-                                <motion.div
-                                    key={msg.id}
-                                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                                    className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                                >
-                                    <div className={`max-w-[80%] p-4 rounded-2xl ${
-                                        msg.role === 'user' 
-                                            ? 'bg-primary text-primary-foreground rounded-tr-none shadow-lg' 
-                                            : 'bg-muted text-foreground rounded-tl-none border border-border/50'
-                                    }`}>
-                                        <p className="text-sm font-medium leading-relaxed italic">
-                                            {msg.content}
-                                        </p>
-                                    </div>
-                                </motion.div>
-                            ))}
-
-                            {/* Current Transcript */}
-                            {isListening && transcript && (
-                                <motion.div
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    className="flex justify-end"
-                                >
-                                    <div className="max-w-[80%] p-4 rounded-2xl bg-primary/50 text-primary-foreground/90 rounded-tr-none italic border border-primary/20 backdrop-blur-sm">
-                                        <p className="text-sm font-medium">
-                                            "{transcript}..."
-                                        </p>
-                                    </div>
-                                </motion.div>
+                        {/* Transcript en direct, ou statut */}
+                        <div className="min-h-14 flex items-center justify-center px-2">
+                            {transcript && !confirming ? (
+                                <p className="text-foreground text-lg font-semibold text-center leading-snug">
+                                    {transcript}
+                                </p>
+                            ) : (
+                                <p className={`text-sm font-medium text-center ${errorMessage ? "text-red-500" : "text-muted-foreground"}`}>
+                                    {statusLabel}
+                                </p>
                             )}
                         </div>
 
-                        {/* Footer / Interaction Area */}
-                        <div className="p-8 border-t border-border bg-card/50 flex flex-col items-center">
-                            <div className="relative mb-6 flex items-center justify-center">
-                                {/* Listening/Speaking Waves */}
-                                {(isListening || isSpeaking || isProcessing) && (
-                                    <>
-                                        <motion.div
-                                            animate={{ scale: [1, 1.8, 1], opacity: [0.3, 0, 0.3] }}
-                                            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                                            className={`absolute w-20 h-20 rounded-full ${isSpeaking ? 'bg-secondary/20' : isProcessing ? 'bg-accent/20' : 'bg-primary/20'}`}
-                                        />
-                                        <motion.div
-                                            animate={{ scale: [1, 2.2, 1], opacity: [0.2, 0, 0.2] }}
-                                            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-                                            className={`absolute w-20 h-20 rounded-full ${isSpeaking ? 'bg-secondary/10' : isProcessing ? 'bg-accent/10' : 'bg-primary/10'}`}
-                                        />
-                                    </>
-                                )}
-
-                                <div className={`relative z-10 w-16 h-16 rounded-full flex items-center justify-center transition-all duration-500 ${
-                                    isListening 
-                                        ? 'bg-primary text-primary-foreground scale-110 shadow-lg' 
-                                        : isSpeaking 
-                                            ? 'bg-secondary text-secondary-foreground scale-105'
-                                            : isProcessing
-                                                ? 'bg-accent text-accent-foreground animate-bounce'
-                                                : 'bg-muted text-muted-foreground'
-                                }`}>
-                                    <Icon 
-                                        icon={isListening ? "solar:microphone-bold-duotone" : isSpeaking ? "solar:soundwave-bold-duotone" : isProcessing ? "solar:refresh-circle-bold-duotone" : "solar:microphone-bold"} 
-                                        className={`w-8 h-8 ${isListening || isSpeaking || isProcessing ? 'animate-pulse' : ''}`} 
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="flex flex-col items-center">
-                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-4 h-4">
-                                    {isListening ? "Je vous écoute..." : isSpeaking ? "L'assistant parle..." : isProcessing ? "Traitement..." : "Prêt"}
-                                </p>
-
-                                {/* Siri-style Visualizer */}
-                                <div className="flex gap-1.5 items-center h-4">
-                                    {[0, 1, 2, 3, 4, 5, 6].map((i) => (
-                                        <motion.div
-                                            key={i}
-                                            animate={(isListening || isSpeaking || isProcessing) ? {
-                                                height: [4, 16, 4],
-                                                opacity: [0.5, 1, 0.5]
-                                            } : {
-                                                height: 4,
-                                                opacity: 0.3
-                                            }}
-                                            transition={{
-                                                duration: 0.4,
-                                                repeat: Infinity,
-                                                delay: i * 0.05,
-                                                ease: "easeInOut"
-                                            }}
-                                            className={`w-1 rounded-full ${isSpeaking ? 'bg-secondary' : isProcessing ? 'bg-accent' : 'bg-primary'}`}
-                                        />
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
+                        {(errorMessage || !isSupported) && (
+                            <button
+                                onClick={isSupported ? startListening : onClose}
+                                className="flex items-center gap-2 bg-primary text-white font-bold text-sm px-5 py-2.5 rounded-2xl active:scale-95 transition-transform"
+                            >
+                                <Icon icon={isSupported ? "solar:refresh-bold-duotone" : "solar:close-circle-bold-duotone"} width={18} />
+                                {isSupported ? "Réessayer" : "Fermer"}
+                            </button>
+                        )}
                     </motion.div>
                 </motion.div>
             )}
@@ -259,5 +188,3 @@ export default function VoiceSearchModal({ isOpen, onClose, onResult }: VoiceSea
 
     return createPortal(modalContent, document.body);
 }
-
-

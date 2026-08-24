@@ -12,6 +12,13 @@ interface UseTextToSpeechOptions {
 export const useTextToSpeech = (options: UseTextToSpeechOptions = {}) => {
     const [isSpeaking, setIsSpeaking] = useState(false);
     const synthRef = useRef<SpeechSynthesis | null>(null);
+    // Réf toujours à jour, pour que `speak`/`stop` gardent une identité stable (évite de
+    // recréer inutilement les callbacks — et donc de re-render les composants qui les
+    // utilisent en dépendance — à chaque rendu du composant appelant).
+    const optionsRef = useRef(options);
+    useEffect(() => {
+        optionsRef.current = options;
+    });
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -21,6 +28,7 @@ export const useTextToSpeech = (options: UseTextToSpeechOptions = {}) => {
 
     const speak = useCallback((text: string) => {
         if (!synthRef.current) return;
+        const options = optionsRef.current;
 
         // Cancel any ongoing speech
         synthRef.current.cancel();
@@ -51,7 +59,7 @@ export const useTextToSpeech = (options: UseTextToSpeechOptions = {}) => {
         };
 
         synthRef.current.speak(utterance);
-    }, [options]);
+    }, []);
 
     const stop = useCallback(() => {
         if (synthRef.current) {
