@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { Icon } from "@iconify/react";
 
@@ -139,6 +140,15 @@ const STEPS = [
 export default function IOSInstallGuide({ open, onClose, startAt = "confirm" }: IOSInstallGuideProps) {
     const [screen, setScreen] = useState<Screen>(startAt);
     const [stepIndex, setStepIndex] = useState(0);
+    // Portail vers document.body — nécessaire ici même si InstallPWA.tsx (un des appelants)
+    // porte déjà ce composant lui-même : FooterInstallButton.tsx (le bouton "Télécharger
+    // l'application" du footer) le rend directement, sans portail, à l'intérieur du
+    // motion.div de PageTransition — même piège `transform` que documenté dans
+    // InstallPWA.tsx/CookieConsentModal.tsx. Le portail doit donc vivre ici, pas chez chaque
+    // appelant, pour que ce guide s'affiche correctement au premier plan quel que soit
+    // l'endroit d'où il est ouvert.
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => { setMounted(true); }, []);
 
     useEffect(() => {
         if (open) {
@@ -167,7 +177,9 @@ export default function IOSInstallGuide({ open, onClose, startAt = "confirm" }: 
 
     const CurrentIllustration = STEPS[stepIndex].Illustration;
 
-    return (
+    if (!mounted) return null;
+
+    return createPortal(
         <AnimatePresence>
             {open && (
                 // z-[10001] : ce wizard peut s'ouvrir par-dessus la carte "Installer l'application"
@@ -289,6 +301,7 @@ export default function IOSInstallGuide({ open, onClose, startAt = "confirm" }: 
                     </motion.div>
                 </div>
             )}
-        </AnimatePresence>
+        </AnimatePresence>,
+        document.body
     );
 }
