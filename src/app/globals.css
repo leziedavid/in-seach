@@ -346,3 +346,61 @@
   /* hover states */
   .dark .hover\:bg-\[\#E8E2D6\]:hover { background-color: oklch(0.32 0 0) !important; }
 }
+
+/* ─── Leaflet maps — theme-aware chrome ──────────────────────────────────────
+   Leaflet injects its own DOM (popups, attribution) styled by leaflet.css
+   with hardcoded white backgrounds, outside of Tailwind. Rebind it to the
+   design system tokens so every map (Maps.tsx, ServicesMap.tsx) looks
+   correct in both light and dark mode. */
+.leaflet-popup-content-wrapper {
+  background: var(--card);
+  color: var(--foreground);
+  border-radius: 1rem;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.18);
+}
+.leaflet-popup-tip {
+  background: var(--card);
+}
+.leaflet-popup-close-button {
+  color: var(--muted-foreground) !important;
+}
+.leaflet-control-attribution {
+  background: color-mix(in oklch, var(--card) 85%, transparent) !important;
+  color: var(--muted-foreground) !important;
+}
+.leaflet-control-attribution a {
+  color: var(--muted-foreground) !important;
+}
+.dark .leaflet-tile-pane {
+  filter: brightness(0.96) contrast(1.02);
+}
+
+/* ─── Wallet QR card texture ──────────────────────────────────────────────────
+   Subtle diagonal hatch used behind the QR card (DashMenu shortcut + its
+   full-screen modal) — same pattern in both so the two read as one design. */
+.qr-card-pattern {
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.07) 0px,
+    rgba(255, 255, 255, 0.07) 2px,
+    transparent 2px,
+    transparent 14px
+  );
+}
+
+/* Wallet QR card surface — brand `secondary`, kept genuinely translucent (not
+   flattened to a solid color) but backed by an opaque `background-color` on
+   this same element. The two are separate CSS layers (background-color paints
+   below background-image), so the transparency only ever blends with that
+   opaque navy — never with whatever happens to sit behind the card (page bg,
+   modal backdrop). That's what caused white-on-white in light mode: with no
+   backing color, `to-secondary/90`'s 10% see-through let the light-mode page
+   bleed all the way through the backdrop into the card. */
+.qr-card-surface {
+  background-color: #092e40;
+  background-image: linear-gradient(
+    to bottom right,
+    transparent,
+    color-mix(in oklab, var(--secondary) 88%, transparent)
+  );
+}

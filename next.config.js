@@ -50,6 +50,7 @@ const nextConfig = {
         "https://w0.peakpx.com",
         "https://tile.openstreetmap.org",
         "https://server.arcgisonline.com",  // tuiles satellite Esri
+        "https://*.basemaps.cartocdn.com",  // tuiles carte sombre + labels satellite (CARTO)
         "https://www.gstatic.com",     // Firebase / Google icons
       ].join(" "),
 

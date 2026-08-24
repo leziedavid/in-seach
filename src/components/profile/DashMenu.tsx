@@ -7,10 +7,10 @@ import { Icon } from "@iconify/react";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { QRCodeCanvas } from "qrcode.react";
-import { useNotification } from "@/components/notifications/NotificationProvider";
 import { getStoreUserInfo, getOverview } from "@/api/api";
 import { StoreUserInfo } from "@/types/interface";
 import Wallet from "@/components/shared/Wallet";
+import QrWalletModal from "@/components/profile/QrWalletModal";
 import type { TabType } from "@/app/akwaba/Sidebar";
 
 interface DashMenuProps {
@@ -165,10 +165,10 @@ const MENU_ITEMS: MenuItem[] = [
 
 export default function DashMenu({ onNavigate }: DashMenuProps) {
     const router = useRouter();
-    const { addNotification } = useNotification();
     const [showBalance, setShowBalance] = useState(false);
     const [showPromo, setShowPromo] = useState(true);
     const [walletOpen, setWalletOpen] = useState(false);
+    const [qrModalOpen, setQrModalOpen] = useState(false);
     const [promoIndex, setPromoIndex] = useState(0);
     const currentPromo = PROMO_MESSAGES[promoIndex];
 
@@ -227,10 +227,11 @@ export default function DashMenu({ onNavigate }: DashMenuProps) {
         ? `${baseUrl}/qr/store/${storeInfo!.id}`
         : `${baseUrl}/guide#installation`;
     const qrLogoSrc = hasStore && storeInfo?.storeLogo ? storeInfo.storeLogo : "/logo.png";
-
-    const handleScanClick = () => {
-        addNotification("Scanner : bientôt disponible", "info");
-    };
+    const qrTitle = hasStore ? (storeInfo?.storeName || "Ma boutique") : "Djamko";
+    const qrSubtitle = hasStore
+        ? "Présentez ce code à un client : il accède directement à votre boutique"
+        : "Scannez ce code pour installer l'application Djamko";
+    const hasLogoImage = !!(hasStore && storeInfo?.storeLogo);
 
     return (
         <div className="space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -255,8 +256,10 @@ export default function DashMenu({ onNavigate }: DashMenuProps) {
 
             <Wallet isOpen={walletOpen} onClose={() => setWalletOpen(false)} />
 
-            {/* Carte gains + QR — fond dégradé façon "portefeuille" (teinte secondary du projet) */}
-            <div className="relative rounded-3xl bg-gradient-to-br from-[#092E40] to-secondary p-3.5 shadow-lg shadow-secondary/20 overflow-hidden">
+            {/* Carte gains + QR — fond dégradé façon "portefeuille" (teinte secondary du projet,
+                volontairement mêlée à du navy pour ne pas être trop pure/saturée — voir
+                .qr-card-surface, identique dans QrWalletModal) */}
+            <div className="relative rounded-3xl qr-card-surface qr-card-pattern p-3.5 shadow-lg shadow-secondary/20 overflow-hidden">
 
                 {/* Gains totaux — masqués par défaut (points), révélés à la bascule de l'œil */}
                 <div className="flex items-center justify-center gap-1.5">
@@ -282,53 +285,59 @@ export default function DashMenu({ onNavigate }: DashMenuProps) {
 
                 <div className="h-px bg-white/15 my-2" />
 
-                {/* Bloc QR / Scanner — logo "chapeau" au-dessus du QR (boutique si dispo, sinon logo de l'app), boutique si elle existe sinon lien d'installation PWA */}
-                <div className="flex flex-col items-center gap-1">
-                    {storeLoading ? (
-                        <div className="relative">
-                            <div className="w-24 h-24 rounded-2xl bg-white/10 animate-pulse" />
-                            <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-white/10 animate-pulse border-2 border-white/20" />
-                        </div>
-                    ) : (
+                {/* Bloc QR — toute la zone est cliquable : ouvre la version plein écran
+                    (QrWalletModal), plus confortable à scanner. "Scanner" en pied de la
+                    carte QR blanche (comme la référence Wave), logo en coin bas-droit de
+                    la carte colorée — pas de texte/pastille en plus, la carte se suffit. */}
+                {storeLoading ? (
+                    <div className="flex flex-col items-center py-1">
+                        <div className="w-full h-36 rounded-2xl bg-white/10 animate-pulse" />
+                    </div>
+                ) : (
+                    <button
+                        onClick={() => setQrModalOpen(true)}
+                        className="relative w-full flex flex-col items-center py-1 group active:scale-[0.98] transition-transform"
+                    >
                         <motion.div
                             key="qr"
                             initial={{ opacity: 0, scale: 0.96 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ duration: 0.3 }}
-                            className="relative"
+                            className="rounded-2xl bg-white shadow-sm overflow-hidden transition-transform group-hover:scale-[1.02]"
                         >
-                            <div className="p-1 rounded-2xl bg-white shadow-sm">
-                                <QRCodeCanvas value={qrValue} size={96} level="H" bgColor="#ffffff" fgColor="#111111" />
+                            <div className="p-2.5 pb-1.5">
+                                <QRCodeCanvas value={qrValue} size={112} level="H" bgColor="#ffffff" fgColor="#111111" />
                             </div>
-                            {/* Logo "chapeau" — chevauche le bord supérieur du QR */}
-                            <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-white border-2 border-white/30 shadow-md flex items-center justify-center overflow-hidden">
-                                <Image
-                                    src={qrLogoSrc}
-                                    alt={hasStore ? (storeInfo?.storeName || "Boutique") : "Djamko"}
-                                    width={hasStore && storeInfo?.storeLogo ? 40 : 22}
-                                    height={hasStore && storeInfo?.storeLogo ? 40 : 22}
-                                    className={hasStore && storeInfo?.storeLogo ? "w-full h-full object-cover" : "object-contain"}
-                                    unoptimized
-                                />
+                            <div className="flex items-center justify-center gap-1 pb-1.5">
+                                <Icon icon="solar:camera-bold" width={12} className="text-[#0F172A]" />
+                                <span className="text-[#0F172A] text-xs font-bold">Scanner</span>
                             </div>
                         </motion.div>
-                    )}
 
-                    <p className="text-[10px] font-semibold text-white/70 text-center px-6 leading-tight">
-                        {hasStore
-                            ? "Présentez ce code à un client : il accède directement à votre boutique"
-                            : "Scannez ce code pour installer l'application Djamko"}
-                    </p>
-
-                    <button
-                        onClick={handleScanClick}
-                        className="flex items-center gap-1.5 bg-white/15 hover:bg-white/25 text-white font-bold text-xs px-4 py-1 rounded-2xl transition-all active:scale-95"
-                    >
-                        <Icon icon="solar:camera-bold-duotone" width={14} className="text-white" />
-                        Scanner
+                        {/* Logo — coin bas-droit de la carte colorée */}
+                        <div className="absolute -bottom-2 -right-1 w-10 h-10 rounded-full bg-white border-[3px] border-white shadow-md flex items-center justify-center overflow-hidden">
+                            <Image
+                                src={qrLogoSrc}
+                                alt={qrTitle}
+                                width={hasLogoImage ? 40 : 22}
+                                height={hasLogoImage ? 40 : 22}
+                                className={hasLogoImage ? "w-full h-full object-cover" : "object-contain"}
+                                unoptimized
+                            />
+                        </div>
                     </button>
-                </div>
+                )}
             </div>
+
+            <QrWalletModal
+                isOpen={qrModalOpen}
+                onClose={() => setQrModalOpen(false)}
+                qrValue={qrValue}
+                title={qrTitle}
+                subtitle={qrSubtitle}
+                logoSrc={qrLogoSrc}
+                hasLogoImage={hasLogoImage}
+            />
 
             {/* Grille des raccourcis — une couleur distincte par tuile */}
             <div className="grid grid-cols-3 gap-y-4 gap-x-2">

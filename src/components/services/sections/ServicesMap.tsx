@@ -3,42 +3,16 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
-import "leaflet/dist/leaflet.css";
 import { Service, UserLocation } from "@/types/interface";
 import { Icon } from "@iconify/react";
 import { calculateDistance } from "@/utils/calculateDistance";
 import { hasValidPrice } from "@/utils/price";
 import { motion, AnimatePresence } from "framer-motion";
-
-// Fix for default Leaflet icons in Next.js
-const fixLeafletIcon = () => {
-    // @ts-ignore
-    delete L.Icon.Default.prototype._getIconUrl;
-    L.Icon.Default.mergeOptions({
-        iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-        iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-    });
-};
-
-type LayerMode = 'street' | 'satellite';
-
-const TILE_LAYERS: Record<LayerMode, { url: string; attribution: string; maxZoom: number; bg: string }> = {
-    street: {
-        url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        maxZoom: 19,
-        bg: '#f2efe9',
-    },
-    satellite: {
-        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-        attribution: 'Tiles &copy; Esri &mdash; Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, GIS User Community',
-        maxZoom: 19,
-        bg: '#1a1a2e',
-    },
-};
-
-const SATELLITE_LABELS_URL = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png';
+import { getTileConfig, SATELLITE_LABELS_URL, type MapLayerMode } from "@/components/ui/map/mapTheme";
+import { useMapTheme } from "@/components/ui/map/useMapTheme";
+import { MapLayerToggle, MapRecenterButton, MapLoadingSkeleton } from "@/components/ui/map/MapChrome";
+import { fixLeafletIcon } from "@/components/ui/map/leafletSetup";
+import { createPinIcon } from "@/components/ui/map/markerPin";
 
 // Component to handle map resizing, fitting bounds, and bg sync
 function MapAutoFunctions({ userLocation, services, activeServiceId, bg }: {
@@ -78,50 +52,50 @@ function MapAutoFunctions({ userLocation, services, activeServiceId, bg }: {
     return null;
 }
 
-// Custom markers
-const createServiceIcon = (isActive: boolean = false, isClosest: boolean = false) => {
-    const size = isActive ? 48 : isClosest ? 42 : 36;
-    const color = isActive ? "#E11D48" : isClosest ? "#EF4444" : "#F43F5E"; // primary/secondary shades
+const USER_PIN_GLYPH = `<svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M12 12c2.7 0 4.9-2.2 4.9-4.9S14.7 2.2 12 2.2 7.1 4.4 7.1 7.1 9.3 12 12 12zm0 2.4c-3.3 0-9.8 1.6-9.8 4.9V21h19.6v-1.7c0-3.3-6.5-4.9-9.8-4.9z"/></svg>`;
+const userIcon = createPinIcon({ color: '#3B82F6', glyph: USER_PIN_GLYPH, size: 38 });
+
+// Service listings often return imageUrls as a single string instead of an
+// array (same defensive extraction as the grid view in SearchServies.tsx).
+function getServiceImageUrl(service: Service): string | null {
+    const raw = service.imageUrls as unknown;
+    if (typeof raw === 'string' && raw !== '') return raw;
+    if (Array.isArray(raw) && raw[0]) return raw[0];
+    if (Array.isArray(service.images) && service.images[0]) return service.images[0];
+    return null;
+}
+
+const SHOP_FALLBACK_GLYPH = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 9l1-5h14l1 5M4 9v10a1 1 0 001 1h14a1 1 0 001-1V9M4 9h16M9 20v-6h6v6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+// Circular "brand logo" marker + small distance pill underneath — the pin
+// shape used everywhere else (markerPin.ts) doesn't fit a photo well, so
+// services get their own round avatar marker instead.
+const createServiceIcon = (service: Service & { distance: number | null }, isActive: boolean, isClosest: boolean) => {
+    const size = isActive ? 52 : isClosest ? 46 : 40;
+    const ring = isActive ? "#E11D48" : isClosest ? "#EF4444" : "#F43F5E";
+    const imageUrl = getServiceImageUrl(service);
+    const total = size + 14;
+    const badge = service.distance !== null
+        ? `<div style="position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:3px;background:#0f172a;color:white;font-size:9.5px;font-weight:800;padding:2px 7px;border-radius:999px;box-shadow:0 2px 6px rgba(0,0,0,.35);white-space:nowrap;border:1.5px solid rgba(255,255,255,.85)">${service.distance} km</div>`
+        : '';
+
+    const html = `
+      <div style="position:relative;width:${total}px;height:${total}px;">
+        <div style="width:${size}px;height:${size}px;margin:${(total - size) / 2}px;border-radius:9999px;background:white;border:3px solid ${ring};box-shadow:0 4px 10px rgba(0,0,0,.28);overflow:hidden;display:flex;align-items:center;justify-content:center;color:${ring}">
+          ${imageUrl ? `<img src="${imageUrl}" style="width:100%;height:100%;object-fit:cover" />` : SHOP_FALLBACK_GLYPH}
+        </div>
+        ${badge}
+      </div>
+    `;
 
     return L.divIcon({
-        className: 'custom-service-marker',
-        html: `
-            <div class="flex items-center justify-center" style="width: ${size}px; height: ${size}px;">
-                <div class="relative flex items-center justify-center transition-all duration-300" 
-                     style="width: ${size}px; height: ${size}px; transform: scale(${isActive ? 1.2 : 1});">
-                    <div class="absolute inset-0 bg-white rounded-full shadow-lg border-2" style="border-color: ${color};"></div>
-                    <div class="z-10" style="color: ${color};">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="${size / 1.8}" height="${size / 1.8}" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-3.13-7zM7 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 2.88-2.88 7.19-5 9.88C9.92 16.21 7 11.85 7 9z"/>
-                            <circle cx="12" cy="9" r="2.5"/>
-                        </svg>
-                    </div>
-                    ${isActive ? `<div class="absolute -inset-1 border-2 border-red-500 rounded-full animate-ping opacity-20"></div>` : ''}
-                </div>
-            </div>
-        `,
-        iconSize: [size, size],
-        iconAnchor: [size / 2, size],
-        popupAnchor: [0, -size],
+        className: '',
+        html,
+        iconSize: [total, total],
+        iconAnchor: [total / 2, total / 2 + 6],
+        popupAnchor: [0, -(total / 2) - 4],
     });
 };
-
-const userIcon = L.divIcon({
-    className: 'user-marker',
-    html: `
-        <div class="flex items-center justify-center" style="width: 40px; height: 40px;">
-            <div class="relative">
-                <div class="w-4 h-4 bg-primary rounded-full border-2 border-white shadow-md z-10 relative"></div>
-                <div class="absolute top-0 left-0 w-4 h-4 bg-primary rounded-full animate-ping opacity-40"></div>
-                <div class="absolute -top-12 -left-8 bg-black/80 text-white text-[10px] px-2 py-1 rounded-lg whitespace-nowrap opacity-0 transition-opacity hover:opacity-100">
-                    Moi
-                </div>
-            </div>
-        </div>
-    `,
-    iconSize: [40, 40],
-    iconAnchor: [20, 20],
-});
 
 interface ServicesMapProps {
     services: Service[];
@@ -132,7 +106,8 @@ interface ServicesMapProps {
 export default function ServicesMap({ services, userLocation, onSelectService }: ServicesMapProps) {
     const [activeServiceId, setActiveServiceId] = useState<string | null>(null);
     const [mounted, setMounted] = useState(false);
-    const [layer, setLayer] = useState<LayerMode>('street');
+    const [layer, setLayer] = useState<MapLayerMode>('street');
+    const colorScheme = useMapTheme();
 
     useEffect(() => {
         fixLeafletIcon();
@@ -167,198 +142,154 @@ export default function ServicesMap({ services, userLocation, onSelectService }:
     const closestServiceId = servicesWithDistance.length > 0 ? servicesWithDistance[0].id : null;
 
     if (!mounted) {
-        return (
-            <div className="w-full h-[600px] bg-muted/20 animate-pulse rounded-3xl flex flex-col items-center justify-center gap-4 border border-border">
-                <Icon icon="solar:map-bold-duotone" className="w-12 h-12 text-muted-foreground/30" />
-                <p className="text-sm text-muted-foreground font-medium">Initialisation de la carte...</p>
-            </div>
-        );
+        return <MapLoadingSkeleton label="Initialisation de la carte..." />;
     }
 
     const mapCenter: [number, number] = userLocation?.lat && userLocation?.lng ? [userLocation.lat, userLocation.lng] : servicesWithDistance.length > 0 && servicesWithDistance[0].latitude && servicesWithDistance[0].longitude
         ? [servicesWithDistance[0].latitude, servicesWithDistance[0].longitude]
         : [0, 0];
 
-    const tl = TILE_LAYERS[layer];
+    const tl = getTileConfig(layer, colorScheme);
+    const activeService = servicesWithDistance.find(s => s.id === activeServiceId) ?? null;
 
     return (
-        <div className="relative w-full h-[600px] overflow-hidden md:border border-border group">
-            <MapContainer center={mapCenter} zoom={14} scrollWheelZoom zoomControl={false} className="w-full h-full z-0" style={{ background: tl.bg }}>
-                <TileLayer url={tl.url} attribution={tl.attribution} maxZoom={tl.maxZoom} />
-                {layer === 'satellite' && (
-                    <TileLayer url={SATELLITE_LABELS_URL} maxZoom={19} opacity={0.85} />
-                )}
-
-                <MapAutoFunctions userLocation={userLocation} services={servicesWithDistance} activeServiceId={activeServiceId} bg={tl.bg} />
-
-                {/* User Location */}
-                {userLocation?.lat && userLocation?.lng && (
-                    <Marker position={[userLocation.lat, userLocation.lng]} icon={userIcon}>
-                        <Popup>
-                            <div className="p-1">
-                                <p className="font-bold text-xs">Ma Position</p>
-                            </div>
-                        </Popup>
-                    </Marker>
-                )}
-
-                {/* Service Markers */}
-                {servicesWithDistance.map((service) => (
-                    <Marker
-                        key={service.id}
-                        position={[service.latitude!, service.longitude!]}
-                        icon={createServiceIcon(activeServiceId === service.id, service.id === closestServiceId)}
-                        eventHandlers={{
-                            click: () => {
-                                setActiveServiceId(service.id);
-                                onSelectService(service);
-                            },
-                            mouseover: () => setActiveServiceId(service.id),
-                            // mouseout: () => setActiveServiceId(null)
-                        }}
-                    >
-                        <Popup className="service-popup">
-                            <div className="min-w-[180px] p-2">
-                                <h4 className="font-black text-sm text-foreground mb-1 leading-tight">{service.title}</h4>
-                                <div className="flex items-center gap-1.5 mb-2">
-                                    <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-bold uppercase">
-                                        {service.category?.label || 'Expert'}
-                                    </span>
-                                    {service.distance !== null && (
-                                        <span className="text-[10px] text-muted-foreground font-medium">
-                                            • {service.distance} km
-                                        </span>
-                                    )}
-                                </div>
-                                <div className="flex items-center justify-between gap-4 border-t pt-2">
-                                    {hasValidPrice(service.price) ? (
-                                        <p className="font-black text-secondary text-sm">
-                                            {service.price.toLocaleString()} <span className="text-[9px]">CFA</span>
-                                        </p>
-                                    ) : <span />}
-                                    <button
-                                        onClick={() => onSelectService(service)}
-                                        className="bg-primary text-white p-1.5 rounded-full hover:bg-secondary transition-colors"
-                                    >
-                                        <Icon icon="solar:arrow-right-bold" className="w-3 h-3" />
-                                    </button>
-                                </div>
-                            </div>
-                        </Popup>
-                    </Marker>
-                ))}
-            </MapContainer>
-
-            {/* Layer toggle */}
-            <div className="absolute top-4 right-4 z-[999]">
-                <button
-                    onClick={() => setLayer(l => l === 'street' ? 'satellite' : 'street')}
-                    className="flex items-center gap-2 bg-white/95 backdrop-blur-sm text-slate-800 text-xs font-bold px-3 py-2 rounded-xl shadow-xl border border-white/60 hover:bg-white transition-all active:scale-95"
-                    title={layer === 'street' ? 'Vue satellite' : 'Vue plan'}
-                >
-                    <Icon icon={layer === 'street' ? 'solar:satellite-bold-duotone' : 'solar:map-bold-duotone'} className="w-4 h-4" />
-                    {layer === 'street' ? 'Satellite' : 'Plan'}
-                </button>
-            </div>
-
-            {/* Recenter Button */}
-            <div className="absolute bottom-6 right-6 z-[999] flex flex-col gap-3">
-                <button
-                    onClick={() => setActiveServiceId(null)}
-                    className="bg-white/95 backdrop-blur-sm text-slate-800 p-3 rounded-2xl shadow-xl border border-white/60 hover:bg-white transition-all active:scale-95"
-                    title="Recentrer sur moi"
-                >
-                    <Icon icon="solar:gps-bold-duotone" className="w-5 h-5 text-blue-500" />
-                </button>
-            </div>
-            <div className="absolute top-6 left-6 z-10 hidden md:flex flex-col gap-3 max-h-[calc(100%-3rem)] overflow-y-auto scrollbar-hide">
-                <AnimatePresence mode="popLayout">
-                    {servicesWithDistance.slice(0, 5).map((service, index) => {
+        <div className="flex w-full h-[600px] rounded-3xl overflow-hidden border border-border">
+            {/* ── Results list ─────────────────────────────────────────── */}
+            <aside className="hidden md:flex flex-col w-80 shrink-0 bg-card border-r border-border">
+                <div className="px-4 py-3 border-b border-border shrink-0">
+                    <p className="text-xs font-black text-muted-foreground uppercase tracking-widest">
+                        {servicesWithDistance.length} résultat{servicesWithDistance.length > 1 ? 's' : ''}
+                    </p>
+                </div>
+                <div className="flex-1 overflow-y-auto divide-y divide-border">
+                    {servicesWithDistance.map((service) => {
                         const isActive = activeServiceId === service.id;
-
+                        const imageUrl = getServiceImageUrl(service);
                         return (
-                            <motion.div
+                            <button
                                 key={service.id}
-                                layout
-                                initial={{ x: -100, opacity: 0 }}
-                                animate={{
-                                    x: 0,
-                                    opacity: 1,
-                                    width: isActive ? "280px" : "48px",
-                                }}
-                                transition={{
-                                    type: "spring",
-                                    stiffness: 300,
-                                    damping: 30,
-                                    layout: { type: "spring", stiffness: 300, damping: 30 }
-                                }}
-                                onClick={() => {
-                                    setActiveServiceId(service.id);
-                                    onSelectService(service);
-                                }}
-                                className={`group relative h-12 bg-card/90 backdrop-blur-md rounded-2xl border cursor-pointer transition-all flex items-center overflow-hidden shadow-lg ${isActive ? 'border-primary ring-2 ring-primary/20' : 'border-border hover:border-primary/50'}`}
+                                onClick={() => setActiveServiceId(service.id)}
+                                className={`w-full flex items-center gap-3 p-3 text-left transition-colors ${isActive ? 'bg-primary/5' : 'hover:bg-muted/50'}`}
                             >
-                                {/* Icon container (Fixed size) */}
-                                <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center relative z-10">
-                                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-colors ${isActive ? 'bg-primary text-white' : 'bg-primary/5 text-primary group-hover:bg-primary/10'}`}>
-                                        <Icon
-                                            icon={isActive ? "solar:user-bold-duotone" : "solar:user-broken"}
-                                            className="w-5 h-5 transition-transform duration-300 group-hover:scale-110"
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* Content container (Hidden when not active) */}
-                                <AnimatePresence>
-                                    {isActive && (
-                                        <motion.div
-                                            initial={{ opacity: 0, x: -10 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            exit={{ opacity: 0, x: -10 }}
-                                            transition={{ duration: 0.2, delay: 0.1 }}
-                                            className="flex-1 pr-4 flex items-center justify-between min-w-0"
-                                        >
-                                            <div className="flex-1 min-w-0 pr-2">
-                                                <p className="text-[12px] font-black text-foreground truncate">{service.title}</p>
-                                                <div className="flex items-center gap-2">
-                                                    <div className="flex items-center gap-0.5">
-                                                        <Icon icon="solar:star-bold" className="w-2.5 h-2.5 text-yellow-500" />
-                                                        <span className="text-[10px] text-muted-foreground font-bold">4.9</span>
-                                                    </div>
-                                                    {service.distance !== null && (
-                                                        <span className="text-[10px] text-primary font-black uppercase tracking-tighter">{service.distance} km</span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            <div className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                                                <Icon icon="solar:arrow-right-bold" className="w-3 h-3" />
-                                            </div>
-                                        </motion.div>
+                                <div className="w-11 h-11 rounded-full overflow-hidden bg-muted border border-border shrink-0 relative flex items-center justify-center text-muted-foreground">
+                                    {imageUrl ? (
+                                        // eslint-disable-next-line @next/next/no-img-element
+                                        <img src={imageUrl} alt={service.title} className="w-full h-full object-cover" />
+                                    ) : (
+                                        <Icon icon="solar:shop-bold-duotone" className="w-5 h-5" />
                                     )}
-                                </AnimatePresence>
-
-                                {/* Background glow for active */}
-                                {isActive && (
-                                    <motion.div
-                                        layoutId="glow"
-                                        className="absolute inset-0 bg-primary/5 blur-xl -z-10"
-                                    />
-                                )}
-                            </motion.div>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-black text-foreground truncate">{service.title}</p>
+                                    <p className="text-xs text-muted-foreground truncate">
+                                        {service.distance !== null ? `${service.distance} km` : null}
+                                        {service.distance !== null && service.category?.label ? ' • ' : ''}
+                                        {service.category?.label}
+                                    </p>
+                                </div>
+                                <div className="flex items-center gap-1 shrink-0">
+                                    <Icon icon="solar:star-bold" className="w-3.5 h-3.5 text-yellow-500" />
+                                    <span className="text-[11px] font-black text-foreground">4.9</span>
+                                </div>
+                            </button>
                         );
                     })}
-                </AnimatePresence>
+                </div>
+            </aside>
 
-                {/* Other experts count badge */}
-                {servicesWithDistance.length > 5 && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="bg-card/50 backdrop-blur-md px-3 py-1.5 rounded-xl text-center text-[9px] text-muted-foreground font-bold uppercase tracking-widest border border-border/50 w-fit"
-                    >
-                        + {servicesWithDistance.length - 5} experts
-                    </motion.div>
-                )}
+            {/* ── Map ───────────────────────────────────────────────────── */}
+            <div className="relative flex-1 min-w-0 group">
+                <MapContainer center={mapCenter} zoom={14} scrollWheelZoom zoomControl={false} className="w-full h-full z-0" style={{ background: tl.bg }}>
+                    <TileLayer url={tl.url} attribution={tl.attribution} maxZoom={tl.maxZoom} />
+                    {layer === 'satellite' && (
+                        <TileLayer url={SATELLITE_LABELS_URL[colorScheme]} maxZoom={19} opacity={0.85} />
+                    )}
+
+                    <MapAutoFunctions userLocation={userLocation} services={servicesWithDistance} activeServiceId={activeServiceId} bg={tl.bg} />
+
+                    {/* User Location */}
+                    {userLocation?.lat && userLocation?.lng && (
+                        <Marker position={[userLocation.lat, userLocation.lng]} icon={userIcon}>
+                            <Popup>
+                                <div className="p-1">
+                                    <p className="font-bold text-xs">Ma Position</p>
+                                </div>
+                            </Popup>
+                        </Marker>
+                    )}
+
+                    {/* Service Markers */}
+                    {servicesWithDistance.map((service) => (
+                        <Marker
+                            key={service.id}
+                            position={[service.latitude!, service.longitude!]}
+                            icon={createServiceIcon(service, activeServiceId === service.id, service.id === closestServiceId)}
+                            eventHandlers={{
+                                click: () => setActiveServiceId(service.id),
+                                mouseover: () => setActiveServiceId(service.id),
+                            }}
+                        />
+                    ))}
+                </MapContainer>
+
+                {/* Layer toggle */}
+                <div className="absolute top-4 right-4 z-[999]">
+                    <MapLayerToggle layer={layer} onToggle={() => setLayer(l => l === 'street' ? 'satellite' : 'street')} />
+                </div>
+
+                {/* Recenter Button */}
+                <div className="absolute bottom-6 right-6 z-[999] flex flex-col gap-3">
+                    <MapRecenterButton onClick={() => setActiveServiceId(null)} title="Recentrer sur moi" />
+                </div>
+
+                {/* ── Selected service detail card (compact — several providers can be
+                     selected in a row, a tall card gets cluttered fast) ──────────── */}
+                <AnimatePresence>
+                    {activeService && (
+                        <motion.div
+                            key={activeService.id}
+                            initial={{ opacity: 0, y: 12 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 12 }}
+                            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                            className="absolute left-1/2 -translate-x-1/2 bottom-6 z-[999] w-[calc(100%-2rem)] max-w-xs bg-card/95 backdrop-blur-md border border-border/60 shadow-xl shadow-black/10 rounded-2xl pl-2.5 pr-2 py-2 flex items-center gap-2.5"
+                        >
+                            <div className="w-9 h-9 rounded-full overflow-hidden bg-muted border border-border shrink-0 relative flex items-center justify-center text-muted-foreground">
+                                {getServiceImageUrl(activeService) ? (
+                                    // eslint-disable-next-line @next/next/no-img-element
+                                    <img src={getServiceImageUrl(activeService)!} alt={activeService.title} className="w-full h-full object-cover" />
+                                ) : (
+                                    <Icon icon="solar:shop-bold-duotone" className="w-4 h-4" />
+                                )}
+                            </div>
+
+                            <div className="min-w-0 flex-1">
+                                <p className="font-black text-xs text-foreground truncate">{activeService.title}</p>
+                                <p className="text-[10px] text-muted-foreground truncate">
+                                    {activeService.distance !== null ? `${activeService.distance} km` : null}
+                                    {activeService.distance !== null && activeService.category?.label ? ' • ' : ''}
+                                    {activeService.category?.label || 'Expert'}
+                                    {hasValidPrice(activeService.price) ? ` • ${activeService.price.toLocaleString()} CFA` : ''}
+                                </p>
+                            </div>
+
+                            <button
+                                onClick={() => onSelectService(activeService)}
+                                className="shrink-0 w-8 h-8 rounded-full bg-primary hover:bg-secondary text-white flex items-center justify-center transition-colors"
+                                title="Voir plus de détails"
+                            >
+                                <Icon icon="solar:arrow-right-bold" className="w-4 h-4" />
+                            </button>
+
+                            <button
+                                onClick={() => setActiveServiceId(null)}
+                                className="shrink-0 w-6 h-6 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+                            >
+                                <Icon icon="solar:close-circle-bold" className="w-3.5 h-3.5" />
+                            </button>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
         </div>
     );
