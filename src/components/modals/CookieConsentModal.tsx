@@ -11,9 +11,16 @@ export const CookieConsentModal = () => {
     const [isVisible, setIsVisible] = useState(false);
     // Portail vers document.body : ce composant est monté à l'intérieur du motion.div de
     // PageTransition, qui applique un `transform` Framer Motion — celui-ci crée un nouveau
-    // contexte d'empilement pour tout ce qu'il contient, donc son z-[101] ne peut plus
-    // l'emporter sur des éléments fixes portés directement sur document.body (SearchInput,
-    // etc.), quelle que soit sa valeur. Même contournement que FullScreenOverlayPortal.tsx.
+    // contexte d'empilement pour tout ce qu'il contient, donc son z-index ne peut plus
+    // l'emporter sur des éléments fixes portés directement sur document.body, quelle que
+    // soit sa valeur. Même contournement que FullScreenOverlayPortal.tsx.
+    //
+    // Le portail ne suffit pas à lui seul : le Header (mobile ET desktop, voir Header.tsx)
+    // est fixed en z-[100] — la valeur utilisée ici avant ce correctif (z-[101]) était trop
+    // proche pour rester fiable dès qu'un autre élément à z-index élevé apparaît. z-[10002]
+    // dépasse largement tout le reste de l'app (voir InstallPWA.tsx, même correctif) — et
+    // reste au-dessus de son rappel d'installation (z-[10000]/[10001]) puisque ce consentement
+    // est prioritaire (obligation légale) s'il apparaît en même temps.
     const [mounted, setMounted] = useState(false);
     useEffect(() => { setMounted(true); }, []);
     const [preferences, setPreferences] = useState({
@@ -60,7 +67,7 @@ export const CookieConsentModal = () => {
     return createPortal(
         <AnimatePresence>
             {isVisible && (
-                <div className="fixed inset-0 z-[101] flex items-center justify-center p-4 sm:p-6">
+                <div className="fixed inset-0 z-[10002] flex items-center justify-center p-4 sm:p-6">
                     {/* Backdrop */}
                     <motion.div 
                         initial={{ opacity: 0 }} 

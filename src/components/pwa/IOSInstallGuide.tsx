@@ -170,7 +170,10 @@ export default function IOSInstallGuide({ open, onClose, startAt = "confirm" }: 
     return (
         <AnimatePresence>
             {open && (
-                <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 sm:p-6">
+                // z-[10001] : ce wizard peut s'ouvrir par-dessus la carte "Installer l'application"
+                // (InstallPWA.tsx, z-[10000]) sans qu'elle se ferme — voir son commentaire pour
+                // le contexte complet (Header fixed en z-[100], portail document.body requis).
+                <div className="fixed inset-0 z-[10001] flex items-center justify-center p-4 sm:p-6">
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}

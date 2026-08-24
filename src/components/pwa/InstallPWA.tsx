@@ -14,9 +14,16 @@ export default function InstallPWA() {
     const [showIOSGuide, setShowIOSGuide] = useState(false);
     // Portail vers document.body : ce composant est monté à l'intérieur du motion.div de
     // PageTransition, qui applique un `transform` Framer Motion — celui-ci crée un nouveau
-    // contexte d'empilement pour tout ce qu'il contient, donc son z-[100] ne peut plus
-    // l'emporter sur des éléments fixes portés directement sur document.body (SearchInput,
-    // etc.), quelle que soit sa valeur. Même contournement que FullScreenOverlayPortal.tsx.
+    // contexte d'empilement pour tout ce qu'il contient, donc son z-index ne peut plus
+    // l'emporter sur des éléments fixes portés directement sur document.body, quelle que
+    // soit sa valeur. Même contournement que FullScreenOverlayPortal.tsx.
+    //
+    // Le portail ne suffit pas à lui seul : le Header (mobile ET desktop, voir Header.tsx)
+    // est fixed en z-[100] — exactement la même valeur qu'ici utilisée avant ce correctif,
+    // ce qui les mettait à égalité et laissait l'ordre DOM trancher (le Header gagnait).
+    // z-[10000] dépasse largement tout le reste de l'app, y compris le seuil "au-dessus de
+    // tout : header, footer, inputs, modales" déjà établi par FullScreenOverlayPortal
+    // (z-[9999], voir son commentaire et celui d'AppTabs.tsx).
     const [mounted, setMounted] = useState(false);
     useEffect(() => { setMounted(true); }, []);
 
@@ -72,7 +79,7 @@ export default function InstallPWA() {
                         }
                     }}
                         exit={{ opacity: 0, y: 50, scale: 0.9, transition: { duration: 0.2 } }}
-                        className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[92%] max-w-sm z-[100] p-6 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-2xl border border-white/20 dark:border-zinc-800/50 rounded-[40px] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] flex flex-col items-center">
+                        className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[92%] max-w-sm z-[10000] p-6 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-2xl border border-white/20 dark:border-zinc-800/50 rounded-[40px] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] flex flex-col items-center">
                         <div className="flex flex-col items-center text-center gap-4">
                             <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary shadow-inner">
                                 <Icon icon="solar:download-square-bold-duotone" className="w-10 h-10" />
