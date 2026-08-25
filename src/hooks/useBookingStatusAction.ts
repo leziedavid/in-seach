@@ -3,12 +3,13 @@
 import { useState } from "react";
 import { BookingStatus } from "@/types/interface";
 import { updateBookingStatus } from "@/api/api";
+import { checkWalletBalance } from "@/api/wallet-api";
 import { useNotification } from "@/components/notifications/NotificationProvider";
 import { useSubscriptionCheck } from "@/hooks/useSubscriptionCheck";
 import { useTranslation } from "@/utils/langue/hooks";
 import { ConfirmVariant } from "@/components/ui/ConfirmAction";
 
-export type BookingAction = "validate" | "start" | "finish" | "cancel";
+export type BookingAction = "validate" | "start" | "finish" | "cancel" | "pay";
 
 interface ActionConfig {
     status: BookingStatus;
@@ -30,6 +31,7 @@ interface ConfirmState {
     confirmLabel: string;
     variant: ConfirmVariant;
     icon: string;
+    paymentMethod?: 'WALLET';
 }
 
 interface UseBookingStatusActionOptions {
@@ -92,6 +94,16 @@ export function useBookingStatusAction({ onChanged }: UseBookingStatusActionOpti
                     variant: "success",
                     icon: "solar:check-read-bold-duotone",
                 };
+            case "pay":
+                return {
+                    status: BookingStatus.PAID,
+                    requiresSubscription: false,
+                    title: "Payer le rendez-vous",
+                    message: "Confirmez-vous le paiement de ce rendez-vous avec votre Wallet ? Le montant sera débité immédiatement.",
+                    confirmLabel: "Payer",
+                    variant: "success",
+                    icon: "solar:wallet-money-bold-duotone",
+                };
             case "cancel":
             default:
                 return {
@@ -106,8 +118,26 @@ export function useBookingStatusAction({ onChanged }: UseBookingStatusActionOpti
         }
     };
 
-    const requestAction = (bookingId: string, action: BookingAction) => {
+    /**
+     * `amount` n'est requis que pour l'action "pay" — vérifie le solde Wallet avant même
+     * d'ouvrir la confirmation ; en cas de solde insuffisant, informe l'utilisateur et
+     * l'invite à recharger (accessible depuis l'icône Wallet du Sidebar/DashMenu) plutôt
+     * que d'ouvrir une confirmation qui échouerait de toute façon au moment du paiement.
+     */
+    const requestAction = async (bookingId: string, action: BookingAction, amount?: number) => {
         const cfg = actionConfig(action);
+
+        if (action === "pay" && amount) {
+            const res = await checkWalletBalance(amount);
+            if (res.statusCode === 200 && res.data && !res.data.sufficient) {
+                showNotification(
+                    `Solde Wallet insuffisant (${res.data.balance.toLocaleString()} FCFA disponible, ${amount.toLocaleString()} FCFA requis). Rechargez votre Wallet pour payer ce rendez-vous.`,
+                    "warning",
+                );
+                return;
+            }
+        }
+
         setConfirmState({
             isOpen: true,
             bookingId,
@@ -118,6 +148,7 @@ export function useBookingStatusAction({ onChanged }: UseBookingStatusActionOpti
             confirmLabel: cfg.confirmLabel,
             variant: cfg.variant,
             icon: cfg.icon,
+            paymentMethod: action === "pay" ? "WALLET" : undefined,
         });
     };
 
@@ -131,7 +162,7 @@ export function useBookingStatusAction({ onChanged }: UseBookingStatusActionOpti
                 const canProceed = await checkFeatureAccess();
                 if (!canProceed) return;
             }
-            const response = await updateBookingStatus(confirmState.bookingId, confirmState.newStatus);
+            const response = await updateBookingStatus(confirmState.bookingId, confirmState.newStatus, confirmState.paymentMethod);
             if (response.statusCode === 200 || response.statusCode === 201) {
                 showNotification(t("akwaba.bookings.success_update"), "success");
                 onChanged?.();

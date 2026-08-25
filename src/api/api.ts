@@ -685,10 +685,10 @@ export const getBookingById = async (id: string): Promise<BaseResponse<Booking>>
 };
 
 // Update booking status
-export const updateBookingStatus = async (id: string, status: string): Promise<BaseResponse<any>> => {
+export const updateBookingStatus = async (id: string, status: string, paymentMethod?: 'WALLET'): Promise<BaseResponse<any>> => {
     const response = await secureFetch(`${getBaseUrl()}/bookings/${id}/status`, {
         method: 'PATCH',
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({ status, ...(paymentMethod && { paymentMethod }) }),
     });
     return await response.json();
 };

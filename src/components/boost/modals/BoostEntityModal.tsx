@@ -4,6 +4,8 @@ import React, { useState, useEffect } from "react";
 import { Icon } from "@iconify/react";
 import { Modal } from "@/components/ui/MotionModal";
 import { useBoost } from "@/hooks/useBoost";
+import { checkWalletBalance } from "@/api/wallet-api";
+import Wallet from "@/components/shared/Wallet";
 import { BoostEntityType, BoostPaymentMethod, BoostPricingOption } from "@/types/interface";
 import { toast } from "sonner";
 
@@ -16,7 +18,7 @@ interface BoostEntityModalProps {
     onSuccess?: () => void;
 }
 
-type PaymentTab = "proof" | "mobile" | "card";
+type PaymentTab = "wallet" | "proof" | "mobile" | "card";
 
 const ENTITY_LABELS: Record<BoostEntityType, string> = {
     PRODUCT: "Produit",
@@ -38,9 +40,13 @@ export default function BoostEntityModal({
 
     const [step, setStep] = useState<"duration" | "payment" | "success">("duration");
     const [selectedOption, setSelectedOption] = useState<BoostPricingOption | null>(null);
-    const [paymentTab, setPaymentTab] = useState<PaymentTab>("proof");
+    const [paymentTab, setPaymentTab] = useState<PaymentTab>("wallet");
     const [selectedOperator, setSelectedOperator] = useState<BoostPaymentMethod | null>(null);
     const [proof, setProof] = useState<File | null>(null);
+    const [walletBalance, setWalletBalance] = useState(0);
+    const [walletSufficient, setWalletSufficient] = useState<boolean | null>(null);
+    const [rechargeModalOpen, setRechargeModalOpen] = useState(false);
+    const [paidWithWallet, setPaidWithWallet] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
@@ -48,11 +54,24 @@ export default function BoostEntityModal({
             setStep("duration");
             setSelectedOption(null);
             setProof(null);
+            setPaidWithWallet(false);
         }
     }, [isOpen]);
 
+    useEffect(() => {
+        if (step === "payment" && paymentTab === "wallet" && selectedOption) {
+            checkWalletBalance(selectedOption.total).then((res) => {
+                if (res.statusCode === 200 && res.data) {
+                    setWalletBalance(res.data.balance);
+                    setWalletSufficient(res.data.sufficient);
+                }
+            });
+        }
+    }, [step, paymentTab, selectedOption]);
+
     const isFormValid = () => {
         if (!selectedOption) return false;
+        if (paymentTab === "wallet") return walletSufficient === true;
         if (paymentTab === "proof") return !!proof;
         if (paymentTab === "mobile") return !!selectedOperator;
         return false;
@@ -69,9 +88,11 @@ export default function BoostEntityModal({
             proofUrl = url;
         }
 
-        const method: BoostPaymentMethod = paymentTab === "proof"
-            ? "PAYMENT_PROOF"
-            : (selectedOperator ?? "ORANGE_MONEY");
+        const method: BoostPaymentMethod = paymentTab === "wallet"
+            ? "WALLET"
+            : paymentTab === "proof"
+                ? "PAYMENT_PROOF"
+                : (selectedOperator ?? "ORANGE_MONEY");
 
         const ok = await boost({
             entityType,
@@ -82,6 +103,7 @@ export default function BoostEntityModal({
         });
 
         if (ok) {
+            setPaidWithWallet(paymentTab === "wallet");
             setStep("success");
             onSuccess?.();
         } else {
@@ -115,9 +137,11 @@ export default function BoostEntityModal({
                             <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center shadow-lg shadow-green-500/20">
                                 <Icon icon="solar:rocket-bold-duotone" className="w-10 h-10 text-white" />
                             </div>
-                            <h3 className="text-2xl font-black">Demande envoyée !</h3>
+                            <h3 className="text-2xl font-black">{paidWithWallet ? "Boost activé !" : "Demande envoyée !"}</h3>
                             <p className="text-center text-muted-foreground font-medium max-w-xs text-sm">
-                                Votre demande de boost a été enregistrée. Notre équipe va valider votre paiement et activer votre boost dans les plus brefs délais.
+                                {paidWithWallet
+                                    ? "Paiement effectué avec votre Wallet — votre boost est actif immédiatement."
+                                    : "Votre demande de boost a été enregistrée. Notre équipe va valider votre paiement et activer votre boost dans les plus brefs délais."}
                             </p>
                             <button onClick={onClose} className="mt-4 px-6 py-3 bg-primary text-primary-foreground rounded-2xl font-black text-sm active:scale-95 transition-all">
                                 Fermer
@@ -188,6 +212,7 @@ export default function BoostEntityModal({
                                 <h3 className="text-sm font-black uppercase tracking-wider mb-3">Moyen de paiement</h3>
                                 <div className="flex gap-2 p-1 bg-muted rounded-2xl mb-4">
                                     {([
+                                        { id: "wallet" as PaymentTab, label: "Wallet", available: true },
                                         { id: "proof" as PaymentTab, label: "Preuve", available: true },
                                         { id: "mobile" as PaymentTab, label: "Mobile Money", available: true },
                                         { id: "card" as PaymentTab, label: "Carte", available: false },
@@ -203,6 +228,31 @@ export default function BoostEntityModal({
                                         </button>
                                     ))}
                                 </div>
+
+                                {paymentTab === "wallet" && (
+                                    <div className="space-y-4">
+                                        <div className="bg-primary/5 border border-primary/10 p-5 rounded-2xl flex items-center justify-between">
+                                            <div>
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Solde Wallet</p>
+                                                <p className="text-2xl font-black text-foreground">{walletBalance.toLocaleString()} FCFA</p>
+                                            </div>
+                                            <Icon icon="solar:wallet-money-bold-duotone" className="w-9 h-9 text-primary" />
+                                        </div>
+                                        {walletSufficient === false && (
+                                            <div className="p-4 rounded-2xl bg-red-500/5 border border-red-500/20 space-y-3">
+                                                <p className="text-[11px] font-bold text-red-600 text-center">Solde Wallet insuffisant pour ce boost</p>
+                                                <div className="flex gap-2">
+                                                    <button onClick={() => setRechargeModalOpen(true)} className="flex-1 py-2.5 rounded-xl bg-primary text-white text-[10px] font-black uppercase active:scale-95 transition-all">
+                                                        Recharger
+                                                    </button>
+                                                    <button onClick={() => setPaymentTab("proof")} className="flex-1 py-2.5 rounded-xl bg-muted text-[10px] font-black uppercase active:scale-95 transition-all">
+                                                        Autre moyen de paiement
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
 
                                 {paymentTab === "proof" && (
                                     <div className="space-y-4">
@@ -287,6 +337,8 @@ export default function BoostEntityModal({
                     </div>
                 )}
             </div>
+
+            <Wallet isOpen={rechargeModalOpen} onClose={() => setRechargeModalOpen(false)} initialTab="recharger" />
         </Modal>
     );
 }

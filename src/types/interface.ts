@@ -162,7 +162,8 @@ export enum SubscriptionStatus {
 export enum PaymentMethod {
     CARD = 'CARD',
     MOBILE_MONEY = 'MOBILE_MONEY',
-    ADMIN = 'ADMIN'
+    ADMIN = 'ADMIN',
+    WALLET = 'WALLET'
 }
 
 export enum PaymentStatus {
@@ -176,7 +177,8 @@ export enum OrderPaymentMethod {
     WAVE = 'WAVE',
     ORANGE = 'ORANGE',
     MTN = 'MTN',
-    MOOV = 'MOOV'
+    MOOV = 'MOOV',
+    WALLET = 'WALLET'
 }
 
 export enum ServiceType {
@@ -1542,7 +1544,7 @@ export interface ProductReturn {
 
 export type BoostEntityType = 'PRODUCT' | 'SERVICE' | 'ANNONCE' | 'LOGISTIC_SERVICE';
 export type BoostStatus = 'PENDING' | 'WAITING_PAYMENT_VALIDATION' | 'ACTIVE' | 'EXPIRED' | 'REJECTED' | 'CANCELLED';
-export type BoostPaymentMethod = 'ORANGE_MONEY' | 'MTN_MONEY' | 'WAVE' | 'CARD' | 'BANK_TRANSFER' | 'PAYMENT_PROOF';
+export type BoostPaymentMethod = 'ORANGE_MONEY' | 'MTN_MONEY' | 'WAVE' | 'CARD' | 'BANK_TRANSFER' | 'PAYMENT_PROOF' | 'WALLET';
 export type BoostPaymentStatus = 'PENDING' | 'WAITING_VALIDATION' | 'PAID' | 'REJECTED' | 'REFUNDED';
 
 export interface BoostTransaction {
@@ -1611,6 +1613,56 @@ export interface BoostPricingOption {
 export interface BoostPricing {
     options: BoostPricingOption[];
     currency: string;
+}
+
+// ─────────────────────────────────────────
+// WALLET
+// ─────────────────────────────────────────
+
+export type WalletPaymentMethod = 'WAVE' | 'ORANGE' | 'MTN' | 'MOOV' | 'CARD';
+export type WalletTransactionType =
+    | 'WALLET_CREATED'
+    | 'WELCOME_BONUS'
+    | 'RECHARGE'
+    | 'ORDER_PAYMENT'
+    | 'SERVICE_PAYMENT'
+    | 'BOOST_PAYMENT'
+    | 'SUBSCRIPTION_PAYMENT'
+    | 'REFUND'
+    | 'ADMIN_ADJUSTMENT'
+    | 'OTHER';
+export type WalletTransactionDirection = 'CREDIT' | 'DEBIT';
+export type WalletTransactionStatus = 'PENDING' | 'WAITING_VALIDATION' | 'SUCCESS' | 'REJECTED';
+
+export interface Wallet {
+    id: string;
+    userId: string;
+    balance: number;
+    pendingBalance: number;
+    isSuspended: boolean;
+    welcomeBonusVisible: boolean;
+    createdAt: string;
+    updatedAt: string;
+    user?: { id: string; fullName?: string; email?: string; phone?: string };
+}
+
+export interface WalletTransaction {
+    id: string;
+    walletId: string;
+    userId: string;
+    type: WalletTransactionType;
+    direction: WalletTransactionDirection;
+    amount: number;
+    balanceAfter?: number | null;
+    status: WalletTransactionStatus;
+    paymentMethod?: WalletPaymentMethod;
+    proofUrl?: string;
+    reference?: string;
+    relatedEntityType?: string;
+    relatedEntityId?: string;
+    note?: string;
+    createdAt: string;
+    updatedAt: string;
 }
 
 export type WebPushNotifStatus = 'PENDING' | 'SENT' | 'READ' | 'FAILED';

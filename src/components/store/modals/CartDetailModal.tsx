@@ -4,14 +4,17 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Icon } from "@iconify/react";
 import Image from "next/image";
+import { useQuery } from "@tanstack/react-query";
 import { useCart } from "@/components/providers/CartProvider";
 import { useNotification } from "@/components/notifications/NotificationProvider";
 import { createPortal } from "react-dom";
 import { createOrder } from "@/api/api";
+import { checkWalletBalance, getMyWallet } from "@/api/wallet-api";
 import { useRouter } from "next/navigation";
 import { isAuthenticated } from "@/lib/auth";
 import { useDeliveryInfo, hasMinimalDeliveryInfo } from "@/hooks/useDeliveryInfo";
 import DeliveryInfoModal from "@/components/delivery/modals/DeliveryInfoModal";
+import Wallet from "@/components/shared/Wallet";
 
 interface CartDetailModalProps {
     isOpen: boolean;
@@ -32,12 +35,21 @@ export default function CartDetailModal({ isOpen, onClose }: CartDetailModalProp
     const router = useRouter();
 
     const [showPaymentSection, setShowPaymentSection] = useState(false);
-    const [paymentType, setPaymentType] = useState<"LIVRAISON" | "MOBILE_MONEY">("LIVRAISON");
+    const [paymentType, setPaymentType] = useState<"LIVRAISON" | "MOBILE_MONEY" | "WALLET">("LIVRAISON");
     const [selectedMobileProvider, setSelectedMobileProvider] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [showDeliveryModal, setShowDeliveryModal] = useState(false);
+    const [insufficientBalance, setInsufficientBalance] = useState(false);
+    const [rechargeModalOpen, setRechargeModalOpen] = useState(false);
 
     const { info: deliveryInfo, loading: deliveryLoading, saving: deliverySaving, fetch: fetchDelivery, save: saveDelivery } = useDeliveryInfo();
+
+    const { data: walletRes } = useQuery({
+        queryKey: ["wallet"],
+        queryFn: getMyWallet,
+        enabled: isOpen && isAuthenticated(),
+    });
+    const walletBalance = walletRes?.statusCode === 200 ? walletRes.data?.balance ?? 0 : 0;
 
     useEffect(() => { setMounted(true); }, []);
 
@@ -69,11 +81,20 @@ export default function CartDetailModal({ isOpen, onClose }: CartDetailModalProp
     const handleValidateOrder = async () => {
         if (cart.length === 0) return;
 
-        const paymentMethod = paymentType === "LIVRAISON" ? "LIVRAISON" : selectedMobileProvider;
+        const paymentMethod = paymentType === "LIVRAISON" ? "LIVRAISON" : paymentType === "WALLET" ? "WALLET" : selectedMobileProvider;
 
         if (paymentType === "MOBILE_MONEY" && !selectedMobileProvider) {
             addNotification("Veuillez sélectionner un opérateur Mobile Money", "warning");
             return;
+        }
+
+        setInsufficientBalance(false);
+        if (paymentType === "WALLET") {
+            const check = await checkWalletBalance(totalAmount);
+            if (check.statusCode !== 200 || !check.data?.sufficient) {
+                setInsufficientBalance(true);
+                return;
+            }
         }
 
         setIsLoading(true);
@@ -142,8 +163,7 @@ export default function CartDetailModal({ isOpen, onClose }: CartDetailModalProp
                                                 <div key={item.id} className="flex items-center gap-4 p-4 rounded-2xl bg-muted/20 border border-border/50 group">
                                                     <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-muted shrink-0 shadow-sm border border-border/10">
                                                         {item.imageUrl ? (
-                                                            <Image
-                                                                src={item.imageUrl}
+                                                            <Image src={item.imageUrl}
                                                                 fill
                                                                 className="object-cover"
                                                                 alt={item.name}
@@ -320,6 +340,36 @@ export default function CartDetailModal({ isOpen, onClose }: CartDetailModalProp
                                                         {paymentType === "MOBILE_MONEY" && <div className="w-2.5 h-2.5 bg-primary rounded-full transition-all" />}
                                                     </div>
                                                 </button>
+
+                                                <button onClick={() => { setPaymentType("WALLET"); setSelectedMobileProvider(null); setInsufficientBalance(false); }}
+                                                    className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all duration-300 ${paymentType === "WALLET" ? "border-primary bg-primary/5 shadow-sm" : "border-border bg-muted/20 hover:border-primary/50"}`}>
+                                                    <div className="flex items-center gap-3">
+                                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${paymentType === "WALLET" ? "bg-primary text-white" : "bg-muted text-muted-foreground"}`}>
+                                                            <Icon icon="solar:wallet-money-bold-duotone" width={24} />
+                                                        </div>
+                                                        <div className="text-left">
+                                                            <p className="text-sm font-black italic">Payer avec mon Wallet</p>
+                                                            <p className="text-[10px] text-muted-foreground">Solde : {walletBalance.toLocaleString()} FCFA</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentType === "WALLET" ? "border-primary" : "border-muted-foreground/30"}`}>
+                                                        {paymentType === "WALLET" && <div className="w-2.5 h-2.5 bg-primary rounded-full transition-all" />}
+                                                    </div>
+                                                </button>
+
+                                                {paymentType === "WALLET" && insufficientBalance && (
+                                                    <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="p-3 rounded-2xl bg-red-500/5 border border-red-500/20 space-y-2">
+                                                        <p className="text-[11px] font-bold text-red-600 text-center">Solde Wallet insuffisant pour cette commande</p>
+                                                        <div className="flex gap-2">
+                                                            <button onClick={() => setRechargeModalOpen(true)} className="flex-1 py-2 rounded-xl bg-primary text-white text-[10px] font-black uppercase active:scale-95 transition-all">
+                                                                Recharger
+                                                            </button>
+                                                            <button onClick={() => { setPaymentType("LIVRAISON"); setInsufficientBalance(false); }} className="flex-1 py-2 rounded-xl bg-muted text-[10px] font-black uppercase active:scale-95 transition-all">
+                                                                Autre moyen de paiement
+                                                            </button>
+                                                        </div>
+                                                    </motion.div>
+                                                )}
                                             </div>
 
                                             <AnimatePresence>
@@ -381,12 +431,13 @@ export default function CartDetailModal({ isOpen, onClose }: CartDetailModalProp
                 onClose={() => setShowDeliveryModal(false)}
                 initial={deliveryInfo}
                 saving={deliverySaving}
-                onSave={async (data) => {
-                    const ok = await saveDelivery(data);
+                onSave={async (data) => { const ok = await saveDelivery(data);
                     if (ok) setShowDeliveryModal(false);
                     return ok;
                 }}
             />
+
+            <Wallet isOpen={rechargeModalOpen} onClose={() => setRechargeModalOpen(false)} initialTab="recharger" />
         </>,
         document.body
     );
