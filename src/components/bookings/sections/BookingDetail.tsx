@@ -496,7 +496,7 @@ export default function BookingDetailModal({ isOpen, onClose, booking: initialBo
                         {/* Paiement Wallet — client, uniquement une fois la prestation terminée */}
                         {isBookingClient && booking.status === BookingStatus.COMPLETED && !!booking.price && (
                             <Button size="sm" className="h-9 px-3 text-xs font-black bg-emerald-600 hover:bg-emerald-700 flex items-center gap-1.5"
-                                onClick={() => requestAction(booking.id, 'pay', booking.price)}>
+                                onClick={() => requestAction(booking.id, 'pay', booking.price ?? undefined)}>
                                 <Icon icon="solar:wallet-money-bold" className="w-4 h-4" />
                                 <span className="hidden sm:inline">Payer avec mon Wallet</span>
                             </Button>
