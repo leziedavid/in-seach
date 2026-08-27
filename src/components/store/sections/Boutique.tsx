@@ -8,7 +8,6 @@ import CategoryButton from "@/components/products/sections/CategoryButton"
 import ProductCard from "@/components/products/cards/ProductCard"
 import { Icon } from "@iconify/react"
 import NotFound from "@/components/common/NotFound"
-import Loader from "@/components/common/Loader"
 import VoiceSearchModal from "@/components/services/sections/VoiceSearchModal"
 
 import InfiniteScroll from "@/components/ui/InfiniteScroll"
@@ -102,13 +101,7 @@ export default function ProductsPage() {
         <div className="flex flex-col items-center w-full max-w-7xl mx-auto px-4 py-2">
             {/* Search Input */}
             <div className="w-full mb-2">
-                <SearchInput
-                    value={search}
-                    onChange={setSearch}
-                    placeholder="Rechercher un produit"
-                    enableVoice
-                    onVoiceOpen={() => setIsVoiceModalOpen(true)}
-                />
+                <SearchInput  value={search}   onChange={setSearch}   placeholder="Rechercher un produit"   enableVoice   onVoiceOpen={() => setIsVoiceModalOpen(true)}  />
             </div>
 
             {/* CATEGORIES & SUB-CATEGORIES FILTERS */}
@@ -119,8 +112,7 @@ export default function ProductsPage() {
                     onCategoryChange={(id) => { setSelectedCategory(id); setSelectedSubCategory("all"); }}
                     onSubCategoryChange={setSelectedSubCategory}
                     hasSubCategories={true}
-                    variant="cards"
-                />
+                    variant="cards"/>
             </div>
 
             {/* NEW FILTERS & VIEW TOGGLE */}

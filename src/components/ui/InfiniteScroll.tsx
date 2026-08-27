@@ -1,9 +1,7 @@
 "use client";
 
-import React, {
-    useEffect, useRef, useState, useMemo, useCallback, useLayoutEffect,
-} from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useEffect, useRef, useState, useMemo, useCallback, useLayoutEffect } from 'react';
+import { motion } from 'framer-motion';
 
 export type SkeletonType = 'product' | 'service' | 'annonce' | 'logistics' | 'default';
 
@@ -13,10 +11,8 @@ interface InfiniteScrollProps<T> {
     loadMore: () => Promise<void> | void;
     hasMore: boolean;
     isLoading: boolean;
-    /** Nb max d'items réels dans le DOM en même temps (défaut 20) */
-    windowSize?: number;
-    /** Nb d'items purgés / restaurés par lot (défaut 10) */
-    batchSize?: number;
+    /** Marge de préchargement en pixels au-dessus/en dessous du viewport (défaut 800) */
+    overscanPx?: number;
     skeletonType?: SkeletonType;
     skeletonCount?: number;
     SkeletonComponent?: React.ReactNode;
@@ -54,10 +50,10 @@ const SkeletonCard = ({ viewMode = 'grid' }: { viewMode?: 'grid' | 'list' }) => 
     );
 };
 
-// ─── Helpers mesure DOM ───────────────────────────────────────────────────────
+// ─── Helper mesure DOM : détecte le nb de colonnes et la hauteur de ligne ───
 function measureGrid(gridEl: HTMLDivElement): { cols: number; rowHeight: number } {
     const children = Array.from(gridEl.children) as HTMLElement[];
-    if (children.length < 2) return { cols: 2, rowHeight: 320 };
+    if (children.length < 2) return { cols: 1, rowHeight: 320 };
 
     let cols = 1;
     const firstTop = children[0].offsetTop;
@@ -66,7 +62,6 @@ function measureGrid(gridEl: HTMLDivElement): { cols: number; rowHeight: number 
         else break;
     }
 
-    // Hauteur d'une ligne = offsetTop de la 2ème ligne - offsetTop de la 1ère
     let rowHeight = 320;
     for (let i = 1; i < children.length; i++) {
         if (children[i].offsetTop !== firstTop) {
@@ -75,18 +70,25 @@ function measureGrid(gridEl: HTMLDivElement): { cols: number; rowHeight: number 
         }
     }
 
-    return { cols, rowHeight };
+    return { cols: Math.max(1, cols), rowHeight: Math.max(40, rowHeight) };
 }
 
-// ─── Composant principal ──────────────────────────────────────────────────────
+/**
+ * Liste virtualisée : dans l'esprit de Facebook/X/Instagram — les données déjà
+ * récupérées restent en mémoire (aucune perte, aucun refetch au retour en arrière),
+ * seul le DOM est fenêtré autour de la zone visible (+ overscanPx de marge) via
+ * deux spacers (haut/bas) qui préservent la hauteur totale scrollable. La fenêtre
+ * suit en continu la position de scroll — elle ne dépend plus d'un seuil de nombre
+ * d'items, ce qui élimine le bug où les derniers items chargés (souvent toute la
+ * dernière page API) restaient invisibles faute d'avoir dépassé ce seuil.
+ */
 export default function InfiniteScroll<T extends { id: string | number }>({
     items: rawItems = [],
     renderItem,
     loadMore,
     hasMore,
     isLoading,
-    windowSize = 20,
-    batchSize = 10,
+    overscanPx = 800,
     skeletonCount = 6,
     SkeletonComponent,
     endMessage = "Fin du catalogue",
@@ -108,33 +110,33 @@ export default function InfiniteScroll<T extends { id: string | number }>({
         return deduped;
     }, [rawItems]);
 
-    // ── Fenêtre glissante ───────────────────────────────────────────────────
-    const [startIndex, setStartIndex] = useState(0);
-    const startIndexRef = useRef(0); // ref synchrone pour les callbacks
-    const [topSpacerPx, setTopSpacerPx] = useState(0);
-
-    const endIndex = useMemo(
-        () => Math.min(startIndex + windowSize, items.length),
-        [startIndex, windowSize, items.length],
-    );
-    const visibleItems = useMemo(
-        () => items.slice(startIndex, endIndex),
-        [items, startIndex, endIndex],
-    );
+    // ── Fenêtre visible (pilotée par le scroll, pas par un compteur d'items) ──
+    const [range, setRange] = useState({ start: 0, end: Math.min(items.length, 20) });
+    const [measurements, setMeasurements] = useState({ cols: 1, rowHeight: 320 });
 
     // ── Refs ────────────────────────────────────────────────────────────────
     const gridRef = useRef<HTMLDivElement>(null);
-    const topSentinelRef = useRef<HTMLDivElement>(null);
+    const topAnchorRef = useRef<HTMLDivElement>(null);
     const bottomSentinelRef = useRef<HTMLDivElement>(null);
     const loadMoreRef = useRef(loadMore);
     const hasMoreRef = useRef(hasMore);
     const isLoadingRef = useRef(isLoading);
-    const isPurgingRef = useRef(false);
+    const itemsLengthRef = useRef(items.length);
+    const measurementsRef = useRef(measurements);
+    const overscanPxRef = useRef(overscanPx);
+    // Items déjà rendus au moins une fois : ré-entrer dans la fenêtre (scroll haut/bas)
+    // ne rejoue pas l'animation d'apparition — seule la toute première apparition anime.
+    const seenIdsRef = useRef<Set<string | number>>(new Set());
 
-    // Garder les refs à jour sans recréer les observers
-    useEffect(() => { loadMoreRef.current = loadMore; }, [loadMore]);
-    useEffect(() => { hasMoreRef.current = hasMore; }, [hasMore]);
-    useEffect(() => { isLoadingRef.current = isLoading; }, [isLoading]);
+    // Assignation directe pendant le rendu (pas via useEffect) : un useLayoutEffect
+    // plus bas lit ces refs de façon synchrone, avant qu'un useEffect n'ait la
+    // moindre chance de tourner — un miroir en useEffect les verrait toujours périmés.
+    loadMoreRef.current = loadMore;
+    hasMoreRef.current = hasMore;
+    isLoadingRef.current = isLoading;
+    itemsLengthRef.current = items.length;
+    measurementsRef.current = measurements;
+    overscanPxRef.current = overscanPx;
 
     // ── Skeletons ───────────────────────────────────────────────────────────
     const skeletons = useMemo(() => {
@@ -144,78 +146,111 @@ export default function InfiniteScroll<T extends { id: string | number }>({
         ));
     }, [SkeletonComponent, skeletonCount, viewMode]);
 
-    // ── tryLoadMore : déclenche loadMore si les conditions sont réunies ─────
-    // Appelé manuellement après chaque purge pour éviter le "stuck"
+    // ── tryLoadMore ──────────────────────────────────────────────────────────
     const tryLoadMore = useCallback(() => {
         if (hasMoreRef.current && !isLoadingRef.current) {
             loadMoreRef.current();
         }
     }, []);
 
-    // ── PURGE VERS LE BAS ───────────────────────────────────────────────────
-    // Règle : on purge batchSize items du haut SEULEMENT quand
-    // items.length > startIndex + windowSize + batchSize
-    // (on attend d'avoir un lot complet de buffer avant de purger)
-    useLayoutEffect(() => {
-        if (isPurgingRef.current) return;
+    // ── Recalcule la fenêtre visible à partir de la position de scroll réelle ─
+    // `overrideMeasurements` permet d'utiliser une mesure fraîche sans attendre le
+    // prochain render (measurementsRef n'est synchronisé qu'après commit + effet).
+    const recomputeRange = useCallback((overrideMeasurements?: { cols: number; rowHeight: number }) => {
+        const anchor = topAnchorRef.current;
+        if (!anchor || typeof window === 'undefined') return;
+
+        const { cols, rowHeight } = overrideMeasurements ?? measurementsRef.current;
+        const overscan = overscanPxRef.current;
+        const listTop = anchor.getBoundingClientRect().top + window.scrollY;
+        const viewTop = window.scrollY;
+        const viewBottom = window.scrollY + window.innerHeight;
+
+        const firstRow = Math.max(0, Math.floor((viewTop - listTop - overscan) / rowHeight));
+        const lastRow = Math.ceil((viewBottom - listTop + overscan) / rowHeight);
+
+        const start = firstRow * cols;
+        const end = Math.min(itemsLengthRef.current, Math.max(start + cols, lastRow * cols));
+
+        setRange(prev => (prev.start === start && prev.end === end) ? prev : { start, end });
+    }, []);
+    const recomputeRangeRef = useRef(recomputeRange);
+    useEffect(() => { recomputeRangeRef.current = recomputeRange; }, [recomputeRange]);
+
+    // ── Mesure cols/rowHeight (grille responsive, bascule grid/list, resize) ──
+    const measure = useCallback(() => {
         if (!gridRef.current) return;
+        if (gridRef.current.children.length < 2) {
+            // Pas assez d'éléments rendus pour mesurer fiablement (état transitoire) —
+            // on garde la dernière mesure connue plutôt que de régresser vers le fallback.
+            recomputeRangeRef.current();
+            return;
+        }
+        const next = measureGrid(gridRef.current);
+        measurementsRef.current = next;
+        setMeasurements(prev => (prev.cols === next.cols && prev.rowHeight === next.rowHeight) ? prev : next);
+        // Recalcule immédiatement avec la mesure fraîche (pas besoin d'attendre le
+        // prochain render pour que measurementsRef se resynchronise).
+        recomputeRangeRef.current(next);
+    }, []);
+    const measureRef = useRef(measure);
+    useEffect(() => { measureRef.current = measure; }, [measure]);
 
-        const currentStart = startIndexRef.current;
-        const threshold = currentStart + windowSize + batchSize;
+    // Mesure initiale + à chaque fois que la grille change de forme (resize, grid/list)
+    useLayoutEffect(() => {
+        measureRef.current();
+    }, [viewMode, gridClassName]);
 
-        if (items.length <= threshold) return;
-
-        isPurgingRef.current = true;
-
-        const { cols, rowHeight } = measureGrid(gridRef.current);
-        const purgingRows = Math.ceil(batchSize / cols);
-        const addedPx = purgingRows * rowHeight;
-        const scrollBefore = window.scrollY;
-
-        const nextStart = currentStart + batchSize;
-        startIndexRef.current = nextStart;
-        setStartIndex(nextStart);
-        setTopSpacerPx(prev => prev + addedPx);
-
-        requestAnimationFrame(() => {
-            window.scrollTo({ top: scrollBefore, behavior: 'instant' });
-            isPurgingRef.current = false;
-
-            // ⚡ Après la purge, re-check si la sentinelle bas est encore visible
-            // pour relancer loadMore si nécessaire (cas où l'observer ne re-fire pas)
-            const sentinel = bottomSentinelRef.current;
-            if (sentinel) {
-                const rect = sentinel.getBoundingClientRect();
-                const inView = rect.top < window.innerHeight + 400;
-                if (inView) tryLoadMore();
-            }
-        });
-
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Ré-évalue la fenêtre quand le nombre d'items change (nouvelle page chargée,
+    // filtre appliqué...) — permet aussi d'affiner rowHeight une fois que 2+ lignes existent.
+    useLayoutEffect(() => {
+        measureRef.current();
     }, [items.length]);
 
-    // ── Observer BAS : loadMore ─────────────────────────────────────────────
-    // Créé UNE SEULE FOIS — utilise les refs pour hasMore/isLoading
-    // pour éviter la recréation qui casse le re-fire
+    // ── Scroll & resize : throttlés via setTimeout (pas requestAnimationFrame —
+    // rAF est suspendu quand l'onglet n'est pas au premier plan/composité, ce qui
+    // gèlerait le calcul de la fenêtre ; setTimeout reste fiable dans tous les cas) ──
+    useEffect(() => {
+        let scheduled = false;
+        const onScroll = () => {
+            if (scheduled) return;
+            scheduled = true;
+            setTimeout(() => {
+                // Remesure à chaque tick (coût négligeable : quelques offsetTop sur les
+                // ~10-20 nœuds déjà rendus) — évite que cols/rowHeight restent figés sur
+                // une valeur obtenue pendant un état transitoire (peu d'items rendus, etc.)
+                measureRef.current();
+                scheduled = false;
+            }, 50);
+        };
+        const onResize = () => {
+            measureRef.current();
+        };
+        window.addEventListener('scroll', onScroll, { passive: true });
+        window.addEventListener('resize', onResize, { passive: true });
+        // Premier calcul dès le montage
+        measureRef.current();
+        return () => {
+            window.removeEventListener('scroll', onScroll);
+            window.removeEventListener('resize', onResize);
+        };
+    }, []);
+
+    // ── Observer BAS : déclenche loadMore quand on approche de la fin du contenu
+    // déjà chargé (le spacer bas garantit qu'on n'y arrive qu'une fois les items
+    // en mémoire réellement épuisés à l'écran) ─────────────────────────────────
     useEffect(() => {
         const el = bottomSentinelRef.current;
         if (!el) return;
-
         const observer = new IntersectionObserver(
-            ([entry]) => {
-                if (entry.isIntersecting) tryLoadMore();
-            },
+            ([entry]) => { if (entry.isIntersecting) tryLoadMore(); },
             { rootMargin: '400px', threshold: 0 },
         );
-
         observer.observe(el);
         return () => observer.disconnect();
-        // tryLoadMore est stable (useCallback sans deps)
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [tryLoadMore]);
 
-    // ── Quand isLoading passe à false : re-check si on doit charger plus ────
-    // Couvre le cas où la sentinelle était déjà visible pendant le chargement
+    // ── Quand isLoading passe à false : re-check si on doit charger plus ─────
     useEffect(() => {
         if (!isLoading) {
             const sentinel = bottomSentinelRef.current;
@@ -228,70 +263,51 @@ export default function InfiniteScroll<T extends { id: string | number }>({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoading]);
 
-    // ── Observer HAUT : restaurer items quand l'user remonte ───────────────
-    const restoreTop = useCallback(() => {
-        const currentStart = startIndexRef.current;
-        if (currentStart === 0) return;
-        if (!gridRef.current) return;
+    // ── Items réellement rendus dans le DOM ────────────────────────────────────
+    const start = Math.min(range.start, items.length);
+    const end = Math.min(range.end, items.length);
+    const visibleItems = useMemo(() => items.slice(start, end), [items, start, end]);
 
-        const restoreCount = Math.min(batchSize, currentStart);
-        const { cols, rowHeight } = measureGrid(gridRef.current);
-        const restoreRows = Math.ceil(restoreCount / cols);
-        const removedPx = restoreRows * rowHeight;
-        const scrollBefore = window.scrollY;
-
-        const nextStart = currentStart - restoreCount;
-        startIndexRef.current = nextStart;
-        setStartIndex(nextStart);
-        setTopSpacerPx(prev => Math.max(0, prev - removedPx));
-
-        requestAnimationFrame(() => {
-            window.scrollTo({ top: scrollBefore + removedPx, behavior: 'instant' });
-        });
-    }, [batchSize]);
-
-    useEffect(() => {
-        const el = topSentinelRef.current;
-        if (!el) return;
-        const observer = new IntersectionObserver(
-            ([entry]) => { if (entry.isIntersecting) restoreTop(); },
-            { rootMargin: '300px', threshold: 0 },
-        );
-        observer.observe(el);
-        return () => observer.disconnect();
-    }, [restoreTop]);
+    // ── Spacers haut/bas : préservent la hauteur totale scrollable sans avoir
+    // à garder les items hors-fenêtre dans le DOM ─────────────────────────────
+    const { cols, rowHeight } = measurements;
+    const topRows = Math.floor(start / cols);
+    const topSpacerPx = topRows * rowHeight;
+    const totalRows = Math.ceil(items.length / cols);
+    const endRow = Math.ceil(end / cols);
+    const bottomSpacerPx = Math.max(0, (totalRows - endRow) * rowHeight);
 
     return (
         <div className={`w-full ${className}`}>
 
-            {/* Spacer haut */}
-            {topSpacerPx > 0 && (
-                <div style={{ height: topSpacerPx }} aria-hidden="true" />
-            )}
+            {/* Ancre haute : point de référence stable pour calculer la position de
+                scroll dans la liste, indépendant des spacers eux-mêmes */}
+            <div ref={topAnchorRef} aria-hidden="true" />
 
-            {/* Sentinelle haut */}
-            <div ref={topSentinelRef} aria-hidden="true" />
+            {topSpacerPx > 0 && <div style={{ height: topSpacerPx }} aria-hidden="true" />}
 
-            {/* Grille unique : items + skeletons collés */}
+            {/* Grille unique : items fenêtrés + skeletons collés */}
             <div ref={gridRef} className={gridClassName}>
-                <AnimatePresence mode="popLayout" initial={false}>
-                    {visibleItems.map((item, index) => (
+                {visibleItems.map((item, index) => {
+                    const firstSeen = seenIdsRef.current.has(item.id);
+                    if (!firstSeen) seenIdsRef.current.add(item.id);
+                    return (
                         <motion.div
                             key={item.id}
-                            layout="position"
-                            initial={{ opacity: 0, y: 12 }}
+                            layout={false}
+                            initial={firstSeen ? false : { opacity: 0, y: 12 }}
                             animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.96 }}
-                            transition={{ duration: 0.25, delay: Math.min(index % batchSize, 5) * 0.04 }}
+                            transition={{ duration: 0.25, delay: Math.min(index % 10, 5) * 0.03 }}
                         >
-                            {renderItem(item, startIndex + index)}
+                            {renderItem(item, start + index)}
                         </motion.div>
-                    ))}
-                </AnimatePresence>
+                    );
+                })}
 
-                {/* Skeletons dans la même grille = zéro espace blanc */}
                 {isLoading && skeletons}
             </div>
+
+            {bottomSpacerPx > 0 && <div style={{ height: bottomSpacerPx }} aria-hidden="true" />}
 
             {/* Sentinelle bas + fin de catalogue */}
             <div ref={bottomSentinelRef} className="w-full flex flex-col items-center justify-center py-6">

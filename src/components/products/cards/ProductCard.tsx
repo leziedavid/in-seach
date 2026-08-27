@@ -32,6 +32,10 @@ const ProductCard = memo(function ProductCard({ product, onEdit, onDelete, onSta
 
 
     const [isModalOpen, setIsModalOpen] = useState(false);
+    // Une fois ouvert, on garde le composant monté (pour l'animation de fermeture) —
+    // mais tant qu'on n'a jamais cliqué, on ne le monte pas du tout : évite que
+    // chaque carte de la liste déclenche le fetch storeInfo/produit au simple scroll.
+    const [hasOpenedModal, setHasOpenedModal] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isShareOpen, setIsShareOpen] = useState(false);
     const [isBoostOpen, setIsBoostOpen] = useState(false);
@@ -81,7 +85,7 @@ const ProductCard = memo(function ProductCard({ product, onEdit, onDelete, onSta
         <>
             {/* <div onClick={() => setIsModalOpen(true)} className={`group rounded-xl p-2 md:p-4 bg-card w-full transition-all duration-300 cursor-pointer  flex ${isList ? 'flex-row items-center gap-3 md:gap-4 text-left' : 'flex-col md:items-center text-left md:text-center'}`}> */}
             {/* Image - Scaling on hover */}
-            <div onClick={() => setIsModalOpen(true)} className={`group rounded-xl transition-all duration-300 cursor-pointer overflow-hidden ${viewMode === 'grid' ? "p-0 md:p-4 flex flex-col md:items-center text-left md:text-center" : "p-2 md:p-4 flex flex-row items-center gap-4 text-left"}`}>
+            <div onClick={() => { setHasOpenedModal(true); setIsModalOpen(true); }} className={`group rounded-xl transition-all duration-300 cursor-pointer overflow-hidden ${viewMode === 'grid' ? "p-0 md:p-4 flex flex-col md:items-center text-left md:text-center" : "p-2 md:p-4 flex flex-row items-center gap-4 text-left"}`}>
 
                 <div className={`relative shrink-0 overflow-hidden rounded-lg md:rounded-2xl ${isList ? 'w-24 h-24 md:w-32 md:h-32' : 'w-full aspect-square mb-2 md:mb-3'}`}>
                     {(() => {
@@ -185,7 +189,9 @@ const ProductCard = memo(function ProductCard({ product, onEdit, onDelete, onSta
                 </div>
 
             </div>
-            <ProductDetailModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} product={product} />
+            {hasOpenedModal && (
+                <ProductDetailModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} product={product} />
+            )}
             {FEATURES.showBoostButton && (
                 <BoostEntityModal isOpen={isBoostOpen} onClose={() => setIsBoostOpen(false)} entityType="PRODUCT" entityId={product.id} entityName={product.name} />
             )}

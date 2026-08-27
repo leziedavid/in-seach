@@ -77,9 +77,12 @@ export function useProductDetail(id: string | undefined, initialProduct?: Produc
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id]);
 
+    // Gardé par `id` (et non juste storeName) : `product` peut déjà être rempli via
+    // `initialProduct` (ProductCard -> ProductDetailModal) alors que la modale est encore
+    // fermée — sans ce garde, chaque card de la liste déclenchait l'appel au montage.
     useEffect(() => {
         const storeName = product?.user?.storeName;
-        if (!storeName) return;
+        if (!id || !storeName) return;
         let cancelled = false;
         (async () => {
             try {
@@ -88,7 +91,7 @@ export function useProductDetail(id: string | undefined, initialProduct?: Produc
             } catch { /* silent */ }
         })();
         return () => { cancelled = true; };
-    }, [product?.user?.storeName]);
+    }, [id, product?.user?.storeName]);
 
     const handleAddToCart = useCallback(() => {
         if (!product) return;
