@@ -3,7 +3,7 @@ import { Product } from "@/types/interface";
 const SENSITIVE_KEYWORDS = [
     "sexy", "lingerie", "culotte",
     "boxer", "sous-vêtement", "tanga",
-    "slip", "maillot de bain"
+    "slip", "maillot de bain","Nuisette"
 ];
 
 function normalize(value?: string | null): string {
