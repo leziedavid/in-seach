@@ -8,6 +8,14 @@ import ImageUploadGrid from "@/components/ui/ImageUploadGrid";
 import dynamic from 'next/dynamic';
 const RichTextEditor = dynamic(() => import("@/components/ui/editor"), { ssr: false, loading: () => <div className="min-h-[200px] border rounded-lg animate-pulse bg-muted" /> });
 import { Product, CategoryProd, ProductCondition, productConditionLabels, SubCategoryProd } from "@/types/interface";
+import ProductVariantsOptionsSection, {
+    VariantRow,
+    OptionRow,
+    toVariantRow,
+    toOptionRow,
+    variantRowsToPayload,
+    optionRowsToPayload,
+} from "./ProductVariantsOptionsSection";
 
 interface FormsProduitProps {
     initialData?: Product;
@@ -37,6 +45,10 @@ export default function FormsProduit({
     const [categoryId, setCategoryId] = useState<string | null>(initialData?.categoryId || null);
     const [subCategoryId, setSubCategoryId] = useState<string | null>(initialData?.subCategoryId || null);
     const selectedCategory = React.useMemo(() => categories.find(c => c.id === categoryId), [categories, categoryId]);
+    const [hasVariants, setHasVariants] = useState<boolean>(!!initialData?.hasVariants);
+    const [variants, setVariants] = useState<VariantRow[]>(initialData?.variants?.map(toVariantRow) || []);
+    const [hasOptions, setHasOptions] = useState<boolean>(!!initialData?.hasOptions);
+    const [options, setOptions] = useState<OptionRow[]>(initialData?.options?.map(toOptionRow) || []);
     const [images, setImages] = useState<File[]>([]);
     const [imagePreviews, setImagePreviews] = useState<string[]>(
         initialData?.files?.map(f => f.fileUrl) ||
@@ -74,6 +86,10 @@ export default function FormsProduit({
             setPrixVenteGros(initialData.prixVenteGros?.toString() || "");
             setCategoryId(initialData.categoryId || null);
             setSubCategoryId(initialData.subCategoryId || null);
+            setHasVariants(!!initialData.hasVariants);
+            setVariants(initialData.variants?.map(toVariantRow) || []);
+            setHasOptions(!!initialData.hasOptions);
+            setOptions(initialData.options?.map(toOptionRow) || []);
             setImagePreviews(
                 initialData.files?.map(f => f.fileUrl) ||
                 initialData.imageUrls ||
@@ -128,6 +144,13 @@ export default function FormsProduit({
         if (typeVente === 'GROS' && prixVenteGros) formData.append("prixVenteGros", prixVenteGros);
         formData.append("categoryId", categoryId || "");
         if (subCategoryId) formData.append("subCategoryId", subCategoryId);
+        // hasVariants/hasOptions ne sont jamais envoyés au backend (dérivés côté serveur depuis
+        // variants/options — les inclure ferait échouer la requête, le ValidationPipe rejette
+        // tout champ non déclaré dans le DTO). Envoyé systématiquement, même "[]" quand le
+        // switch correspondant est désactivé, pour que désactiver un switch en édition efface
+        // bien les variantes/options existantes côté serveur.
+        formData.append("variants", JSON.stringify(hasVariants ? variantRowsToPayload(variants) : []));
+        formData.append("options", JSON.stringify(hasOptions ? optionRowsToPayload(options) : []));
         images.forEach(file => formData.append("files", file));
 
         await onSubmit(formData);
@@ -304,6 +327,19 @@ export default function FormsProduit({
                         {errors.stock && <p className="text-[10px] text-red-500 font-bold mt-1">{errors.stock}</p>}
                     </div>
                 </div>
+
+                {/* Variantes & Options */}
+                <ProductVariantsOptionsSection
+                    hasVariants={hasVariants}
+                    onHasVariantsChange={setHasVariants}
+                    variants={variants}
+                    onVariantsChange={setVariants}
+                    hasOptions={hasOptions}
+                    onHasOptionsChange={setHasOptions}
+                    options={options}
+                    onOptionsChange={setOptions}
+                    defaultPrice={price}
+                />
 
                 {/* 4. Description */}
                 <div className="bg-card rounded-2xl border border-border p-6 shadow-sm space-y-4">

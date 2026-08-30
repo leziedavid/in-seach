@@ -4,11 +4,10 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Icon } from "@iconify/react";
 import Image from "next/image";
-import { getServices, searchServiceIA, searchServiceCategories, getAllCategories } from "@/api/api";
+import { getServices, searchServiceCategories, getAllCategories } from "@/api/api";
 import { UserLocation, Service, Category } from "@/types/interface";
 import { useUserLocation } from "@/utils/location";
 import BookingModal from "@/components/bookings/modals/BookingModal";
-import ImageSearchModal from "@/components/services/sections/ImageSearchModal";
 import SearchInput from "@/components/shared/SearchInput";
 import InfiniteScroll from "@/components/ui/InfiniteScroll";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
@@ -42,11 +41,6 @@ export default function SearchServies() {
     const [lat, setLat] = useState<number | null>(null);
     const [lng, setLng] = useState<number | null>(null);
     const [address, setAddress] = useState<string>("");
-    const [isImageModalOpen, setIsImageModalOpen] = useState(false);
-    const [isAiLoading, setIsAiLoading] = useState(false);
-    const [aiResults, setAiResults] = useState<Service[]>([]);
-    const [aiSearchEmpty, setAiSearchEmpty] = useState(false);
-    const [aiMessage, setAiMessage] = useState("");
     const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
 
     // Filtre par catégorie — liste horizontale au-dessus de la recherche (voir maquette).
@@ -140,18 +134,18 @@ export default function SearchServies() {
 
     // Reset and fetch when filters change
     useEffect(() => {
-        if (isSearching && aiResults.length === 0) {
+        if (isSearching) {
             setPage(1);
             fetchServices(1, true);
         }
-    }, [isSearching, query, lat, lng, selectedCategoryId, fetchServices, aiResults.length]);
+    }, [isSearching, query, lat, lng, selectedCategoryId, fetchServices]);
 
     // Load more when page changes
     useEffect(() => {
-        if (page > 1 && aiResults.length === 0) {
+        if (page > 1) {
             fetchServices(page, false);
         }
-    }, [page, fetchServices, aiResults.length]);
+    }, [page, fetchServices]);
 
     // Fetch suggestions — reste en auto-search sur `draftQuery` (texte tapé en temps réel),
     // indépendamment de `query` (qui ne bouge qu'à la soumission de la recherche principale).
@@ -195,8 +189,6 @@ export default function SearchServies() {
     // lance/actualise la recherche, seule ou combinée au texte déjà saisi.
     const handleCategoryClick = (categoryId: string) => {
         const next = selectedCategoryId === categoryId ? null : categoryId;
-        setAiResults([]);
-        setAiSearchEmpty(false);
         setSelectedCategoryId(next);
         if (next || query.trim() || lat || lng) {
             setIsSearching(true);
@@ -210,8 +202,6 @@ export default function SearchServies() {
     const handleSearchSubmit = (submitted: string) => {
         setShowSuggestions(false);
         if (submitted.trim() || lat || lng) {
-            setAiResults([]);
-            setAiSearchEmpty(false);
             setIsSearching(true);
         }
     };
@@ -220,8 +210,6 @@ export default function SearchServies() {
         setQuery(suggestion.label);
         setDraftQuery(suggestion.label);
         setShowSuggestions(false);
-        setAiResults([]);
-        setAiSearchEmpty(false);
         setIsSearching(true);
     };
 
@@ -233,44 +221,16 @@ export default function SearchServies() {
             setLng(location.lng);
             setAddress(`${location.city}, ${location.country}`);
             // Automatically trigger search if location is updated
-            setAiResults([]);
             setIsSearching(true);
         }
     };
 
-    const handleImageSearch = async (file: File) => {
-        setIsAiLoading(true);
-        setAiSearchEmpty(false);
-        setAiResults([]);
-        setServices([]); // Clear manual search results when using AI
-        try {
-            const res = await searchServiceIA(file);
-            if (res.data?.data && res.data.data.length > 0) {
-                setAiResults(res.data.data);
-                setAiSearchEmpty(false);
-                setAiMessage("");
-            } else {
-                setAiSearchEmpty(true);
-                setAiMessage(res.message || "Nous n’avons pas trouvé de service correspondant à cette image. Veuillez réessayer avec une autre photo ou saisir le nom du service dans la barre de recherche.");
-            }
-            setIsSearching(true);
-        } catch (err) {
-            console.error("AI search error:", err);
-        } finally {
-            setIsAiLoading(false);
-            setIsImageModalOpen(false);
-        }
-    };
-
-    const displayedServices = aiResults.length > 0 ? aiResults : services;
-    const totalResults = aiResults.length > 0 ? aiResults.length : total;
+    const displayedServices = services;
 
     const handleVoiceResult = (text: string) => {
         setQuery(text);
         setDraftQuery(text);
         if (text.trim()) {
-            setAiResults([]);
-            setAiSearchEmpty(false);
             setIsSearching(true);
         }
     };
@@ -293,15 +253,12 @@ export default function SearchServies() {
                     placeholder={t("services.search_placeholder")}
                     enableVoice
                     onVoiceOpen={() => setIsVoiceModalOpen(true)}
-                    enableImage
-                    onImageOpen={() => setIsImageModalOpen(true)}
                     enableMap
                     onMapClick={handleUseMyLocation}
                     addressLabel={address}
                     labels={{
                         clear: t("common.clear_search"),
                         voice: t("common.voice_search"),
-                        image: t("common.image_search"),
                         location: t("common.my_location"),
                     }}
                     suggestionsSlot={showSuggestions && (
@@ -402,16 +359,16 @@ export default function SearchServies() {
                         )}
                     </div>
 
-                    {isAiLoading || (loading && displayedServices.length === 0) ? (
+                    {loading && displayedServices.length === 0 ? (
                         <Loader
-                            title={isAiLoading ? t("services.ai_loading_title") : t("services.search_loading_title")}
-                            description={isAiLoading ? t("services.ai_loading_description") : t("services.search_loading_description")}
+                            title={t("services.search_loading_title")}
+                            description={t("services.search_loading_description")}
                             icon="solar:case-round-minimalistic-bold-duotone"
                         />
                     ) : displayedServices.length === 0 ? (
                         <NotFound
                             title={t("services.not_found_title")}
-                            description={aiSearchEmpty ? (aiMessage || t("services.ai_not_found_description")) : t("services.not_found_description")}
+                            description={t("services.not_found_description")}
                             icon="solar:case-round-minimalistic-bold-duotone"
                         />
                     ) : (
@@ -423,7 +380,7 @@ export default function SearchServies() {
                             <InfiniteScroll
                                 items={displayedServices}
                                 loadMore={() => setPage(prev => prev + 1)}
-                                hasMore={hasMore && aiResults.length === 0}
+                                hasMore={hasMore}
                                 isLoading={loading}
                                 skeletonType="service"
                                 skeletonCount={3}
@@ -480,12 +437,6 @@ export default function SearchServies() {
                 onClose={() => setSelectedService(null)}
                 item={selectedService}
                 type="SERVICE" />
-            <ImageSearchModal
-                isOpen={isImageModalOpen}
-                onClose={() => setIsImageModalOpen(false)}
-                onSearch={handleImageSearch}
-                isLoading={isAiLoading}
-            />
             <VoiceSearchModal
                 isOpen={isVoiceModalOpen}
                 onClose={() => setIsVoiceModalOpen(false)}

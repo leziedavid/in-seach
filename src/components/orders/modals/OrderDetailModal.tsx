@@ -8,7 +8,7 @@ import ReturnRequestModal from "@/components/returns/modals/ReturnRequestModal";
 import { Modal } from "@/components/ui/MotionModal";
 import { ORDER_STATUS_DETAIL_CONFIG } from "@/components/orders/utils/orderStatus";
 import { getUserId } from "@/lib/auth";
-import { removeSubOrderItems } from "@/api/api";
+import { removeSubOrderItems, removeOrderItemSelection, getOrderById } from "@/api/api";
 import { useNotification } from "@/components/notifications/NotificationProvider";
 import ConfirmAction from "@/components/ui/ConfirmAction";
 
@@ -32,14 +32,20 @@ function InfoRow({ label, value }: { icon?: string; label: string; value?: strin
     );
 }
 
-export default function OrderDetailModal({ isOpen, onClose, order, onItemRemoved }: OrderDetailModalProps) {
+export default function OrderDetailModal({ isOpen, onClose, order: orderProp, onItemRemoved }: OrderDetailModalProps) {
     const [mounted, setMounted] = useState(false);
     const [returnItem, setReturnItem] = useState<OrderItem | null>(null);
     const [removingItem, setRemovingItem] = useState<{ subOrderId: string; item: OrderItem } | null>(null);
     const [isRemoving, setIsRemoving] = useState(false);
+    // Copie locale de `order`, resynchronisée quand le parent fournit une nouvelle référence —
+    // permet à handleRemoveSelection (retrait d'une variante/option) de mettre à jour l'affichage
+    // immédiatement après l'appel API, sans dépendre d'un refetch de la liste par le parent.
+    const [order, setOrder] = useState<Order | null>(orderProp);
+    const [removingSelectionId, setRemovingSelectionId] = useState<string | null>(null);
     const { showNotification } = useNotification();
 
     useEffect(() => { setMounted(true); }, []);
+    useEffect(() => { setOrder(orderProp); }, [orderProp]);
 
     if (!order || !mounted) return null;
 
@@ -67,6 +73,35 @@ export default function OrderDetailModal({ isOpen, onClose, order, onItemRemoved
         }
     };
 
+    // Retrait d'une variante/option (rupture de stock découverte à la préparation) — le
+    // backend recalcule quantité/montants avec exactement la même règle que le panier (voir
+    // CartProvider.removeSelectionFromCartItem). On appelle explicitement getOrderById juste
+    // après pour resynchroniser la vue depuis l'id de la commande, sans jamais fermer/rouvrir
+    // le modal — setOrder ne fait que re-render son propre contenu à l'intérieur.
+    const handleRemoveSelection = async (item: OrderItem, kind: 'variant' | 'option', selectionId: string) => {
+        if (removingSelectionId) return;
+        setRemovingSelectionId(selectionId);
+        try {
+            const res = await removeOrderItemSelection(item.id, kind, selectionId);
+            if (res.statusCode === 200) {
+                const fresh = await getOrderById(order.id);
+                if (fresh.statusCode === 200 && fresh.data) {
+                    setOrder(fresh.data);
+                } else if (res.data) {
+                    setOrder(res.data);
+                }
+                showNotification("Sélection retirée avec succès", "success");
+                onItemRemoved?.();
+            } else {
+                showNotification(res.message || "Erreur lors du retrait", "error");
+            }
+        } catch (error: any) {
+            showNotification(error.message || "Erreur de connexion", "error");
+        } finally {
+            setRemovingSelectionId(null);
+        }
+    };
+
     const renderItemRow = (item: OrderItem, canReturnItem: boolean, canRemoveItem: boolean = false, subOrderId?: string) => (
         <div key={item.id} className="py-4 first:pt-0 last:pb-0">
             <div className="flex items-center gap-3">
@@ -90,6 +125,49 @@ export default function OrderDetailModal({ isOpen, onClose, order, onItemRemoved
                         <p className="text-xs text-neutral-400 mt-0.5">
                             {item.extras.map(e => `+ ${e.name} (+${e.supplementPrice.toLocaleString()} FCFA)`).join(', ')}
                         </p>
+                    )}
+                    {/* Retrait individuel réservé au vendeur propriétaire (canRemoveItem — mêmes
+                        conditions que "Retirer l'article" ci-dessous : vendeur + Commande ni
+                        annulée ni livrée), jamais visible/actionnable pour le client. */}
+                    {!!item.selectedVariants?.length && (
+                        <div className="mt-1">
+                            <span className="text-xs text-neutral-400">Variantes :</span>{' '}
+                            <span className="inline-flex flex-wrap gap-1 align-middle">
+                                {item.selectedVariants.map(v => (
+                                    <span key={v.id} className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-neutral-100 dark:bg-neutral-800 rounded text-[11px] text-neutral-600 dark:text-neutral-300">
+                                        {v.label}
+                                        {canRemoveItem && !item.removed && (
+                                            <Icon
+                                                icon="solar:close-circle-bold"
+                                                width={11}
+                                                className={`cursor-pointer text-neutral-400 hover:text-red-500 transition-colors ${removingSelectionId === v.id ? 'opacity-30 pointer-events-none' : ''}`}
+                                                onClick={() => handleRemoveSelection(item, 'variant', v.id)}
+                                            />
+                                        )}
+                                    </span>
+                                ))}
+                            </span>
+                        </div>
+                    )}
+                    {!!item.selectedOptions?.length && (
+                        <div className="mt-1">
+                            <span className="text-xs text-neutral-400">Options :</span>{' '}
+                            <span className="inline-flex flex-wrap gap-1 align-middle">
+                                {item.selectedOptions.map(o => (
+                                    <span key={o.id} className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-neutral-100 dark:bg-neutral-800 rounded text-[11px] text-neutral-600 dark:text-neutral-300">
+                                        {o.label}
+                                        {canRemoveItem && !item.removed && (
+                                            <Icon
+                                                icon="solar:close-circle-bold"
+                                                width={11}
+                                                className={`cursor-pointer text-neutral-400 hover:text-red-500 transition-colors ${removingSelectionId === o.id ? 'opacity-30 pointer-events-none' : ''}`}
+                                                onClick={() => handleRemoveSelection(item, 'option', o.id)}
+                                            />
+                                        )}
+                                    </span>
+                                ))}
+                            </span>
+                        </div>
                     )}
                 </div>
                 <span className={`text-sm font-medium shrink-0 ${item.removed ? "line-through text-neutral-400" : "text-neutral-900 dark:text-neutral-50"}`}>{(item.price * item.quantity).toLocaleString()} FCFA</span>

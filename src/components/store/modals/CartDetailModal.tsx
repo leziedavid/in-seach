@@ -30,7 +30,7 @@ const MOBILE_PROVIDERS = [
 
 export default function CartDetailModal({ isOpen, onClose }: CartDetailModalProps) {
     const [mounted, setMounted] = useState(false);
-    const { cart, updateQuantity, removeFromCart, totalAmount, clearCart } = useCart();
+    const { cart, updateQuantity, removeFromCart, removeSelectionFromCartItem, totalAmount, clearCart } = useCart();
     const { addNotification } = useNotification();
     const router = useRouter();
 
@@ -105,6 +105,10 @@ export default function CartDetailModal({ isOpen, onClose }: CartDetailModalProp
                 achatType: item.achatType,
                 ...(item.accompagnementId && { accompagnementId: item.accompagnementId }),
                 ...(item.selectedExtras?.length && { extraAccompagnementIds: item.selectedExtras.map(e => e.id) }),
+                // Variantes/options Marketplace sélectionnées — voir CartProvider.tsx. Persistées
+                // côté commande (OrderItemVariant/OrderItemOption) pour que le vendeur les voie.
+                ...(item.selectedVariants?.length && { selectedVariantIds: item.selectedVariants.map(v => v.id) }),
+                ...(item.selectedOptions?.length && { selectedOptions: item.selectedOptions.map(o => ({ optionId: o.id, label: o.label })) }),
             }));
 
             const res = await createOrder({ items, paymentMethod: paymentMethod! });
@@ -181,7 +185,7 @@ export default function CartDetailModal({ isOpen, onClose }: CartDetailModalProp
                                                                     <span className="text-[10px] font-black text-primary bg-primary/10 px-2 py-0.5 rounded w-fit mt-1">Vente en Gros</span>
                                                                 )}
                                                             </div>
-                                                            <button onClick={() => removeFromCart(item.id, item.achatType, item.accompagnementId, item.selectedExtras)} className="text-muted-foreground hover:text-red-500 transition-colors p-1">
+                                                            <button onClick={() => removeFromCart(item.id, item.achatType, item.accompagnementId, item.selectedExtras, item.selectedVariants, item.selectedOptions)} className="text-muted-foreground hover:text-red-500 transition-colors p-1">
                                                                 <Icon icon="solar:trash-bin-trash-bold-duotone" width={18} />
                                                             </button>
                                                         </div>
@@ -197,13 +201,42 @@ export default function CartDetailModal({ isOpen, onClose }: CartDetailModalProp
                                                                 {item.selectedExtras.map(e => `+ ${e.name} (+${e.supplementPrice.toLocaleString()} FCFA)`).join(', ')}
                                                             </p>
                                                         )}
+                                                        {/* Variantes/options Marketplace choisies — informatif pour le vendeur uniquement
+                                                            (aucun impact sur le prix, voir CartProvider.tsx). Suppression individuelle : la
+                                                            quantité et le total de la ligne se recalculent aussitôt (removeSelectionFromCartItem). */}
+                                                        {!!item.selectedVariants?.length && (
+                                                            <div className="mb-2">
+                                                                <p className="text-[11px] font-bold text-muted-foreground mb-1">Variantes :</p>
+                                                                <div className="flex flex-wrap gap-1">
+                                                                    {item.selectedVariants.map(v => (
+                                                                        <span key={v.id} className="inline-flex items-center gap-1 px-2 py-0.5 bg-muted/60 rounded-lg text-[10px] font-bold text-foreground">
+                                                                            {v.label}
+                                                                            <Icon icon="solar:close-circle-bold" width={12} className="cursor-pointer text-muted-foreground hover:text-red-500" onClick={() => removeSelectionFromCartItem(item, 'variant', v)} />
+                                                                        </span>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                        {!!item.selectedOptions?.length && (
+                                                            <div className="mb-2">
+                                                                <p className="text-[11px] font-bold text-muted-foreground mb-1">Options :</p>
+                                                                <div className="flex flex-wrap gap-1">
+                                                                    {item.selectedOptions.map((o, idx) => (
+                                                                        <span key={`${o.id}-${idx}`} className="inline-flex items-center gap-1 px-2 py-0.5 bg-muted/60 rounded-lg text-[10px] font-bold text-foreground">
+                                                                            {o.label}
+                                                                            <Icon icon="solar:close-circle-bold" width={12} className="cursor-pointer text-muted-foreground hover:text-red-500" onClick={() => removeSelectionFromCartItem(item, 'option', o)} />
+                                                                        </span>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        )}
                                                         <div className="flex items-center justify-between">
                                                             <div className="flex items-center bg-background rounded-lg border border-border/50 p-1">
-                                                                <button onClick={() => updateQuantity(item.id, item.quantity - 1, item.achatType, item.accompagnementId, item.selectedExtras)} className="w-7 h-7 text-muted-foreground flex items-center justify-center rounded-md hover:bg-secondary hover:text-white transition-colors">
+                                                                <button onClick={() => updateQuantity(item.id, item.quantity - 1, item.achatType, item.accompagnementId, item.selectedExtras, item.selectedVariants, item.selectedOptions)} className="w-7 h-7 text-muted-foreground flex items-center justify-center rounded-md hover:bg-secondary hover:text-white transition-colors">
                                                                     <Icon icon="iconamoon:sign-minus-bold" width={18} />
                                                                 </button>
                                                                 <span className="w-8 text-center text-xs font-black">{item.quantity}</span>
-                                                                <button onClick={() => updateQuantity(item.id, item.quantity + 1, item.achatType, item.accompagnementId, item.selectedExtras)} className="w-7 h-7 text-muted-foreground flex items-center justify-center rounded-md hover:bg-secondary hover:text-white transition-colors">
+                                                                <button onClick={() => updateQuantity(item.id, item.quantity + 1, item.achatType, item.accompagnementId, item.selectedExtras, item.selectedVariants, item.selectedOptions)} className="w-7 h-7 text-muted-foreground flex items-center justify-center rounded-md hover:bg-secondary hover:text-white transition-colors">
                                                                     <Icon icon="iconamoon:sign-plus-bold" width={18} />
                                                                 </button>
                                                             </div>

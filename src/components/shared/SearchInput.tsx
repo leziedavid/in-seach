@@ -32,9 +32,6 @@ export interface SearchInputProps {
     addressLabel?: string;
     onClearAddress?: () => void;
 
-    enableImage?: boolean;
-    onImageOpen?: () => void;
-
     suggestionsSlot?: React.ReactNode;
 
     leadingIcon?: string;
@@ -42,7 +39,6 @@ export interface SearchInputProps {
         clear?: string;
         voice?: string;
         location?: string;
-        image?: string;
         submit?: string;
         placeholder?: string;
     };
@@ -80,8 +76,6 @@ export default function SearchInput({
     isMapLoading = false,
     addressLabel,
     onClearAddress,
-    enableImage = false,
-    onImageOpen,
     suggestionsSlot,
     leadingIcon = "solar:magnifer-bold-duotone",
     labels,
@@ -165,11 +159,10 @@ export default function SearchInput({
         clear: labels?.clear ?? "Effacer la recherche",
         voice: labels?.voice ?? "Recherche vocale",
         location: labels?.location ?? "Ma position",
-        image: labels?.image ?? "Recherche par image",
         submit: labels?.submit ?? "Rechercher",
     };
 
-    const hasActions = enableVoice || enableMap || enableImage || enableSubmitButton;
+    const hasActions = enableVoice || enableMap || enableSubmitButton;
 
     // Le bouton d'envoi se transforme en bouton "effacer" tant que le brouillon correspond
     // exactement à la dernière recherche commise (donc juste après une soumission, tant que
@@ -216,11 +209,6 @@ export default function SearchInput({
                     {enableMap && (
                         <button type="button" onClick={onMapClick} disabled={disabled || isMapLoading} className="p-1.5 text-muted-foreground hover:text-primary transition-colors rounded-full hover:bg-primary/5" title={L.location}>
                             <Icon icon="solar:gps-bold-duotone" className={`w-4 h-4 ${isMapLoading ? "animate-spin" : ""}`} />
-                        </button>
-                    )}
-                    {enableImage && (
-                        <button type="button" onClick={onImageOpen} disabled={disabled} className="p-1.5 text-muted-foreground hover:text-primary transition-colors rounded-full hover:bg-primary/5" title={L.image}>
-                            <Icon icon="solar:camera-bold-duotone" className="w-4 h-4" />
                         </button>
                     )}
                     {enableSubmitButton && (

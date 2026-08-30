@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Product, StoreUserInfo } from "@/types/interface";
+import { Product, StoreUserInfo, CartSelection } from "@/types/interface";
 import { useCart } from "@/components/providers/CartProvider";
 import { useNotification } from "@/components/notifications/NotificationProvider";
 import { isAuthenticated, getUserId } from "@/lib/auth";
@@ -33,7 +33,16 @@ export function useProductDetail(id: string | undefined, initialProduct?: Produc
     // en sélection multiple, quantité. Aucun effet sur les autres ProductType : leur
     // handleAddToCart continue d'envoyer une quantité de 1 comme aujourd'hui.
     const [selectedExtraIds, setSelectedExtraIds] = useState<Set<string>>(new Set());
+    // `quantity` sert aussi bien le stepper RESTAURANT ci-dessus que celui d'un produit
+    // Marketplace générique avec hasVariants/hasOptions (voir handleAddToCart) — inchangé
+    // pour tout produit sans variante/option (comportement actuel : quantité fixe à 1).
     const [quantity, setQuantity] = useState(1);
+    // Variantes/options génériques (hasVariants/hasOptions — indépendant de productType,
+    // jamais combiné avec les accompagnements ci-dessus). Sélection multiple, id de variante
+    // pour selectedVariantIds ; clé `${optionId}::${valeur}` pour selectedOptionKeys car une
+    // valeur seule n'est pas unique entre deux options différentes du même produit.
+    const [selectedVariantIds, setSelectedVariantIds] = useState<Set<string>>(new Set());
+    const [selectedOptionKeys, setSelectedOptionKeys] = useState<Set<string>>(new Set());
 
     const { addToCart } = useCart();
     const { addNotification } = useNotification();
@@ -57,6 +66,47 @@ export function useProductDetail(id: string | undefined, initialProduct?: Produc
     );
     const extrasTotal = useMemo(() => selectedExtras.reduce((s, e) => s + e.supplementPrice, 0), [selectedExtras]);
 
+    const toggleVariant = useCallback((variantId: string) => {
+        setSelectedVariantIds(prev => {
+            const next = new Set(prev);
+            if (next.has(variantId)) next.delete(variantId); else next.add(variantId);
+            return next;
+        });
+    }, []);
+    const toggleOptionValue = useCallback((key: string) => {
+        setSelectedOptionKeys(prev => {
+            const next = new Set(prev);
+            if (next.has(key)) next.delete(key); else next.add(key);
+            return next;
+        });
+    }, []);
+    // {id, label} — id réel en base (ProductVariant.id / ProductOption.id), pas du texte libre,
+    // pour la cohérence des données (voir CartSelection). Le prix d'une variante
+    // (Product.variants[].price) n'est jamais répercuté ici : purement indicatif côté vendeur
+    // (voir la mention dans le formulaire produit).
+    const selectedVariantSelections = useMemo<CartSelection[]>(
+        () => (product?.variants || [])
+            .filter(v => v.id && selectedVariantIds.has(v.id))
+            .map(v => ({ id: v.id!, label: v.title?.trim() || [v.option1, v.option2, v.option3].filter(Boolean).join(' / ') || 'Variante' })),
+        [product, selectedVariantIds],
+    );
+    const selectedOptionSelections = useMemo<CartSelection[]>(() => {
+        const selections: CartSelection[] = [];
+        (product?.options || []).forEach(o => {
+            if (!o.id) return;
+            (o.values || []).forEach(val => {
+                if (selectedOptionKeys.has(`${o.id}::${val}`)) selections.push({ id: o.id!, label: val });
+            });
+        });
+        return selections;
+    }, [product, selectedOptionKeys]);
+    const hasMarketplaceSelectionActive = selectedVariantSelections.length > 0 || selectedOptionSelections.length > 0;
+    // Quantité effectivement ajoutée au panier ET affichée au footer — jamais la valeur brute
+    // du stepper pendant qu'une sélection est active (évite l'incohérence "le footer affiche 1
+    // mais handleAddToCart en ajoute 3"). Voir MarketplaceProductFooter (stepper désactivé
+    // pendant ce temps, ProductDetailShared.tsx).
+    const effectiveQuantity = hasMarketplaceSelectionActive ? Math.max(selectedVariantSelections.length, selectedOptionSelections.length) : quantity;
+
     // Reset (nouvel id) + fetch de la version à jour du produit.
     useEffect(() => {
         if (!id) return;
@@ -64,6 +114,8 @@ export function useProductDetail(id: string | undefined, initialProduct?: Produc
         setAchatType('UNITE');
         setIsRevealed(false);
         setSelectedExtraIds(new Set());
+        setSelectedVariantIds(new Set());
+        setSelectedOptionKeys(new Set());
         setQuantity(1);
         setLoading(!initialProduct);
         (async () => {
@@ -105,11 +157,19 @@ export function useProductDetail(id: string | undefined, initialProduct?: Produc
                 accompagnementSupplement: 0,
                 extras: selectedExtras,
             });
+        } else if (product.hasVariants || product.hasOptions) {
+            // effectiveQuantity = max(variantes, options) sélectionnées, ou la quantité choisie
+            // manuellement si rien n'est sélectionné — comportement identique à avant
+            // l'introduction de ces champs pour un produit qui n'a ni variante ni option.
+            addToCart(product, effectiveQuantity, achatType, {
+                selectedVariants: selectedVariantSelections,
+                selectedOptions: selectedOptionSelections,
+            });
         } else {
             addToCart(product, 1, achatType);
         }
         addNotification(`"${product.name}" ajouté au panier${achatType === 'GROS' ? ' (Gros)' : ''}`, "success");
-    }, [product, achatType, quantity, includedAccompagnement, selectedExtras, addToCart, addNotification]);
+    }, [product, achatType, effectiveQuantity, includedAccompagnement, selectedExtras, selectedVariantSelections, selectedOptionSelections, quantity, addToCart, addNotification]);
 
     const handleNegotiate = useCallback(async () => {
         if (!product) return;
@@ -154,6 +214,9 @@ export function useProductDetail(id: string | undefined, initialProduct?: Produc
         handleAddToCart, handleNegotiate,
         // RESTAURANT uniquement
         includedAccompagnement, extraOptions, selectedExtraIds, toggleExtra, selectedExtras, extrasTotal,
+        // Marketplace générique (hasVariants/hasOptions)
+        selectedVariantIds, toggleVariant, selectedOptionKeys, toggleOptionValue, selectedVariantSelections, selectedOptionSelections,
+        hasMarketplaceSelectionActive, effectiveQuantity,
         quantity, setQuantity,
     };
 }

@@ -1427,20 +1427,6 @@ export const getApiRoot = async (): Promise<BaseResponse<string>> => {
 
 
 /* =======================================================
-   AI SERVICE API
-======================================================= */
-export const searchServiceIA = async (image: File): Promise<BaseResponse<any>> => {
-    const formData = new FormData();
-    formData.append('image', image);
-
-    const response = await fetch(`${getBaseUrl()}/search-service-ia`, {
-        method: 'POST',
-        body: formData,
-    });
-    return await response.json();
-};
-
-/* =======================================================
    ADMIN - SUBSCRIPTION ENTITIES API
    ======================================================= */
 export const adminGetPlanEntities = async (): Promise<BaseResponse<PlanEntity[]>> => {
@@ -1866,7 +1852,7 @@ export const handleToggleProductActive = async (id: string, isActive: boolean): 
     return await response.json();
 };
 
-export const createOrder = async (data: { items: { productId: string; quantity: number; achatType?: 'UNITE' | 'GROS'; accompagnementId?: string; extraAccompagnementIds?: string[] }[]; paymentMethod: string }): Promise<BaseResponse<Order>> => {
+export const createOrder = async (data: { items: { productId: string; quantity: number; achatType?: 'UNITE' | 'GROS'; accompagnementId?: string; extraAccompagnementIds?: string[]; selectedVariantIds?: string[]; selectedOptions?: { optionId: string; label: string }[] }[]; paymentMethod: string }): Promise<BaseResponse<Order>> => {
     const response = await secureFetch(`${getBaseUrl()}/orders`, {
         method: 'POST',
         body: JSON.stringify(data),
@@ -1883,8 +1869,13 @@ export const getMyOrders = async (params: { page?: number; limit?: number } = {}
 };
 
 export const getOrderById = async (id: string): Promise<BaseResponse<Order>> => {
+    // cache: 'no-store' — cette même URL est réappelée plusieurs fois de suite avec le même id
+    // (voir OrderDetailModal.handleRemoveSelection, appelé à chaque retrait de variante/option) ;
+    // sans ça, le navigateur peut servir une réponse HTTP mise en cache pour un GET identique
+    // au lieu de relire l'état réellement à jour côté serveur.
     const response = await secureFetch(`${getBaseUrl()}/orders/${id}`, {
         method: 'GET',
+        cache: 'no-store',
     });
     return await response.json();
 };
@@ -1916,6 +1907,47 @@ export const removeSubOrderItems = async (subOrderId: string, orderItemIds: stri
     const response = await secureFetch(`${getBaseUrl()}/orders/sub-orders/${subOrderId}/remove-items`, {
         method: 'POST',
         body: JSON.stringify({ orderItemIds }),
+    });
+    return await response.json();
+};
+
+/** Retire une variante/option sélectionnée d'un article de commande (vendeur propriétaire uniquement) — recalcule quantité et montants côté serveur. `selectionId` = l'id de la ligne selectedVariants/selectedOptions renvoyée par l'API (voir OrderItem.selectedVariants/selectedOptions), pas l'id de la variante/option produit source. */
+export const removeOrderItemSelection = async (orderItemId: string, kind: 'variant' | 'option', selectionId: string): Promise<BaseResponse<Order>> => {
+    const response = await secureFetch(`${getBaseUrl()}/orders/items/${orderItemId}/remove-selection`, {
+        method: 'POST',
+        body: JSON.stringify({ kind, selectionId }),
+    });
+    return await response.json();
+};
+
+/* =======================================================
+   SHOPIFY IMPORT API
+======================================================= */
+export interface ShopifyImportPayload {
+    phone: string;
+    storeName?: string;
+    storeEmail?: string;
+    storeProductUrl: string;
+    category?: string;
+    /** Id généré côté client (UUID) — permet au backend d'émettre la progression en temps réel via le socket connecté avec le même id en query `jobId`. */
+    importId?: string;
+}
+
+export interface ShopifyImportResult {
+    vendorId: string;
+    vendorCreated: boolean;
+    totalFetched: number;
+    totalImported: number;
+    totalSkipped: number;
+}
+
+// Pas de secureFetch : endpoint public, le vendeur n'a par définition pas encore de compte/token
+// au moment de l'appel (voir backend ShopifyController, même logique que /auth/register).
+export const importShopifyStore = async (data: ShopifyImportPayload): Promise<BaseResponse<ShopifyImportResult>> => {
+    const response = await fetch(`${getBaseUrl()}/shopify/import`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
     });
     return await response.json();
 };

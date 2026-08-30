@@ -13,7 +13,7 @@ import { useProductDetail } from "@/components/products/detail/useProductDetail"
 import ProductImageGallery from "@/components/products/detail/ProductImageGallery";
 import ProductSellerCard from "@/components/products/detail/ProductSellerCard";
 import SimilarProducts from "@/components/products/detail/SimilarProducts";
-import { CategoryChip, PriceBlock, DetailAccordions, ProductFooter, RestaurantAccompagnementSection, RestaurantProductFooter } from "@/components/products/detail/ProductDetailShared";
+import { CategoryChip, PriceBlock, DetailAccordions, ProductFooter, RestaurantAccompagnementSection, RestaurantProductFooter, MarketplaceVariantsOptionsSection, MarketplaceProductFooter } from "@/components/products/detail/ProductDetailShared";
 
 interface ProductDetailModalProps {
     isOpen: boolean;
@@ -39,6 +39,8 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
         displayPrice, originalPrice, discount,
         handleAddToCart, handleNegotiate,
         includedAccompagnement, extraOptions, selectedExtraIds, toggleExtra,
+        selectedVariantIds, toggleVariant, selectedOptionKeys, toggleOptionValue,
+        hasMarketplaceSelectionActive, effectiveQuantity,
         quantity, setQuantity,
     } = useProductDetail(isOpen ? product?.id : undefined, product);
 
@@ -46,6 +48,9 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
 
     const isSupplierProduct = displayProduct.productType === 'SUPPLIER';
     const isRestaurantProduct = displayProduct.productType === 'RESTAURANT';
+    // Produit Marketplace générique avec variantes/options — jamais combiné avec le flux
+    // accompagnements RESTAURANT ci-dessus (voir MarketplaceVariantsOptionsSection).
+    const hasMarketplaceSelection = !isRestaurantProduct && !!(displayProduct.hasVariants || displayProduct.hasOptions);
     const isSensitive = isSensitiveProduct(displayProduct);
     const toggleAccordion = (id: string) => setActiveAccordion(prev => prev === id ? null : id);
 
@@ -110,6 +115,18 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                                                 onToggleExtra={toggleExtra}
                                             />
                                         )}
+                                        {hasMarketplaceSelection && (
+                                            <MarketplaceVariantsOptionsSection
+                                                variants={displayProduct.variants}
+                                                options={displayProduct.options}
+                                                selectedVariantIds={selectedVariantIds}
+                                                onToggleVariant={toggleVariant}
+                                                selectedOptionKeys={selectedOptionKeys}
+                                                onToggleOptionValue={toggleOptionValue}
+                                                activeAccordion={activeAccordion}
+                                                onToggle={toggleAccordion}
+                                            />
+                                        )}
                                     </div>
                                 </div>
 
@@ -150,6 +167,18 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                                                 onToggleExtra={toggleExtra}
                                             />
                                         )}
+                                        {hasMarketplaceSelection && (
+                                            <MarketplaceVariantsOptionsSection
+                                                variants={displayProduct.variants}
+                                                options={displayProduct.options}
+                                                selectedVariantIds={selectedVariantIds}
+                                                onToggleVariant={toggleVariant}
+                                                selectedOptionKeys={selectedOptionKeys}
+                                                onToggleOptionValue={toggleOptionValue}
+                                                activeAccordion={activeAccordion}
+                                                onToggle={toggleAccordion}
+                                            />
+                                        )}
 
                                         <div className="pt-2">
                                             <SimilarProducts productId={displayProduct.id} />
@@ -167,6 +196,15 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                                 <RestaurantProductFooter
                                     displayPrice={displayPrice}
                                     quantity={quantity}
+                                    onIncrement={() => setQuantity(q => q + 1)}
+                                    onDecrement={() => setQuantity(q => Math.max(1, q - 1))}
+                                    onAddToCart={handleAddToCart}
+                                />
+                            ) : hasMarketplaceSelection ? (
+                                <MarketplaceProductFooter
+                                    displayPrice={displayPrice}
+                                    quantity={effectiveQuantity}
+                                    hasSelection={hasMarketplaceSelectionActive}
                                     onIncrement={() => setQuantity(q => q + 1)}
                                     onDecrement={() => setQuantity(q => Math.max(1, q - 1))}
                                     onAddToCart={handleAddToCart}

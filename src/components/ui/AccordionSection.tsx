@@ -43,6 +43,7 @@ export function AccordionSection({
                 : "border-border/60 hover:border-border bg-card shadow-sm"}
         `}>
             <button
+                type="button"
                 onClick={() => onToggle(id)}
                 className="w-full flex items-center justify-between p-5 text-left transition-colors"
             >

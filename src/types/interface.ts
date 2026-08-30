@@ -715,6 +715,40 @@ export const productConditionLabels: Record<ProductCondition, string> = {
     [ProductCondition.POUR_PIECES]: "Pour pièces",
 };
 
+/** Variante d'un produit (ex. couleur/taille avec son propre SKU/prix) — générique, indépendante de productType. */
+export interface ProductVariant {
+    id?: string
+    title?: string
+    sku?: string | null
+    price?: number | null
+    option1?: string | null
+    option2?: string | null
+    option3?: string | null
+    position?: number | null
+}
+
+/** Option d'un produit (ex. "Couleur" -> ["Noir", "Bleu clair", "Gris"]) — voir ProductVariant. */
+export interface ProductOption {
+    id?: string
+    name?: string
+    values: string[]
+    position?: number | null
+}
+
+/**
+ * Une variante ou une option choisie par le client (panier, commande) — s'appuie sur
+ * l'identifiant réel en base plutôt que sur du texte libre, pour la cohérence des données.
+ * Pour une variante : `id` = ProductVariant.id (unique par sélection). Pour une option : `id` =
+ * ProductOption.id (l'id du GROUPE, ex. "Couleur") — plusieurs sélections peuvent partager le
+ * même `id` si le client choisit plusieurs valeurs du même groupe (ex. Noir ET Bleu), car une
+ * valeur individuelle n'a pas d'id propre en base (ProductOption.values est un simple JSON).
+ * `label` reste le texte affiché/figé (ex. "Noir", "Grande taille").
+ */
+export interface CartSelection {
+    id: string
+    label: string
+}
+
 export interface Product {
     id: string
     name: string
@@ -735,6 +769,13 @@ export interface Product {
     preparationTime?: number | null
     /** Accompagnements proposés pour ce plat (plats de restaurant uniquement) — voir ProductAccompagnementOption. */
     accompagnements?: ProductAccompagnementOption[]
+    /** Indique si des variantes/options existent pour ce produit (générique — indépendant de productType). */
+    hasVariants?: boolean
+    hasOptions?: boolean
+    /** Variantes du produit (ex. couleur/taille avec SKU/prix propres). */
+    variants?: ProductVariant[]
+    /** Options du produit (ex. Couleur -> [Noir, Bleu clair, Gris]). */
+    options?: ProductOption[]
     imageUrl?: string | null
     imageUrls?: string[]
     images?: string[]
@@ -749,6 +790,34 @@ export interface Product {
     createdAt: string
     updatedAt: string
 }
+
+/** Payload de création produit — reflète CreateProductDto du backend (multipart/form-data). */
+export interface CreateProductDto {
+    name: string
+    description?: string
+    price: number
+    stock: number
+    categoryId: string
+    subCategoryId?: string
+    discountPercent?: number
+    sku?: string
+    isActive?: boolean
+    etat?: ProductCondition
+    typeVente?: 'UNITE' | 'GROS'
+    prixVenteGros?: number
+    restaurantId?: string
+    preparationTime?: number
+    /** JSON stringifié: [{accompagnementId, supplementPrice, isDefault}] — plats de restaurant uniquement. */
+    accompagnements?: string
+    variants?: ProductVariant[]
+    options?: ProductOption[]
+    hasVariants?: boolean
+    hasOptions?: boolean
+    files?: File[]
+}
+
+/** Payload de modification produit — reflète UpdateProductDto du backend (mêmes champs, tous optionnels). */
+export interface UpdateProductDto extends Partial<CreateProductDto> { }
 
 /** Type de cuisine (Ivoirien, Libanais, Asiatique...) — un restaurant peut en avoir plusieurs. */
 export interface RestaurantType {
@@ -849,6 +918,9 @@ export interface OrderItem {
     accompagnementSupplement?: number | null
     /** Suppléments additionnels choisis en plus de l'accompagnement inclus (sélection multiple), figés au moment de la commande. */
     extras?: { id: string; accompagnementId: string | null; name: string; supplementPrice: number }[]
+    /** Variantes/options Marketplace choisies, figées au moment de la commande. `id` = clé primaire de la ligne OrderItemVariant/OrderItemOption elle-même (jamais null, jamais celle de la ProductVariant/ProductOption source) — c'est ce qui identifie une sélection précise pour un retrait via removeOrderItemSelection (voir orders-api.ts). `label` reste toujours correct même si la variante/option source a depuis été supprimée. */
+    selectedVariants?: { id: string; label: string }[]
+    selectedOptions?: { id: string; label: string }[]
     product?: Product
 }
 

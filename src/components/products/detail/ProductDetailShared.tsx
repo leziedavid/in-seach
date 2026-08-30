@@ -150,6 +150,94 @@ export function RestaurantAccompagnementSection({ includedAccompagnement, extraO
     );
 }
 
+// Sélection des variantes/options d'un produit Marketplace générique (hasVariants/hasOptions —
+// indépendant de productType, jamais affiché en même temps que RestaurantAccompagnementSection
+// ci-dessus). Même style de ligne pleine largeur que "Ajouter un supplément" ci-dessus (Checkbox
+// + libellé, pas de chip compact) : le titre d'une variante ou la valeur d'une option peut être
+// long, une pastille étroite le tronquerait — une ligne complète laisse le texte s'étaler/
+// retourner à la ligne proprement. Sélection multiple libre sur les deux : ni la variante ni
+// l'option ne changent le prix affiché (voir ProductVariant.price — purement indicatif pour le
+// vendeur, jamais facturé). Chaque section repliable via AccordionSection, dans le même groupe
+// (activeSection/onToggle partagés) que Description/Détails du produit — voir DetailAccordions.
+export function MarketplaceVariantsOptionsSection({ variants, options, selectedVariantIds, onToggleVariant, selectedOptionKeys, onToggleOptionValue, activeAccordion, onToggle }: {
+    variants: Product['variants'];
+    options: Product['options'];
+    selectedVariantIds: Set<string>;
+    onToggleVariant: (id: string) => void;
+    selectedOptionKeys: Set<string>;
+    onToggleOptionValue: (key: string) => void;
+    activeAccordion: string | null;
+    onToggle: (id: string) => void;
+}) {
+    const variantList = variants || [];
+    const optionList = options || [];
+    if (variantList.length === 0 && optionList.length === 0) return null;
+
+    return (
+        <div className="space-y-2">
+            {variantList.length > 0 && (
+                <AccordionSection id="variants" title="Variantes" icon="solar:layers-minimalistic-bold-duotone" activeSection={activeAccordion} onToggle={onToggle}>
+                    <div className="space-y-2">
+                        {variantList.filter(v => v.id).map(v => {
+                            const isSelected = selectedVariantIds.has(v.id!);
+                            const label = v.title?.trim() || [v.option1, v.option2, v.option3].filter(Boolean).join(' / ') || 'Variante';
+                            return (
+                                // div[role=button] et non <button> : Checkbox (Radix) rend lui-même un
+                                // <button role="checkbox">, un <button> imbriqué dans un <button> est
+                                // invalide en HTML et casse l'hydratation React.
+                                <div
+                                    key={v.id}
+                                    role="button"
+                                    tabIndex={0}
+                                    onClick={() => onToggleVariant(v.id!)}
+                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onToggleVariant(v.id!); } }}
+                                    className={`w-full flex items-center gap-3 p-3.5 rounded-2xl border-2 transition-all text-left cursor-pointer ${isSelected ? 'border-primary bg-primary/5' : 'border-border bg-muted/20 hover:border-primary/30'}`}
+                                >
+                                    <Checkbox checked={isSelected} className="pointer-events-none shrink-0" />
+                                    <span className="text-sm font-bold text-foreground">{label}</span>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </AccordionSection>
+            )}
+
+            {optionList.length > 0 && (
+                <AccordionSection id="options" title="Options" icon="solar:list-bold-duotone" activeSection={activeAccordion} onToggle={onToggle}>
+                    <div className="space-y-3">
+                        {optionList.filter(o => o.id).map(o => (
+                            <div key={o.id} className="space-y-1.5">
+                                {o.name && <p className="text-[11px] font-bold text-muted-foreground">{o.name}</p>}
+                                <div className="space-y-2">
+                                    {(o.values || []).map(val => {
+                                        const key = `${o.id}::${val}`;
+                                        const isSelected = selectedOptionKeys.has(key);
+                                        return (
+                                            // Idem : div[role=button], pas <button> (Checkbox rend son propre
+                                            // <button role="checkbox"> — bouton imbriqué invalide sinon).
+                                            <div
+                                                key={key}
+                                                role="button"
+                                                tabIndex={0}
+                                                onClick={() => onToggleOptionValue(key)}
+                                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onToggleOptionValue(key); } }}
+                                                className={`w-full flex items-center gap-3 p-3.5 rounded-2xl border-2 transition-all text-left cursor-pointer ${isSelected ? 'border-primary bg-primary/5' : 'border-border bg-muted/20 hover:border-primary/30'}`}
+                                            >
+                                                <Checkbox checked={isSelected} className="pointer-events-none shrink-0" />
+                                                <span className="text-sm font-bold text-foreground">{val}</span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </AccordionSection>
+            )}
+        </div>
+    );
+}
+
 // Barre inférieure collante spécifique aux plats RESTAURANT (stepper quantité + bouton total
 // dynamique) — ProductFooter reste inchangé pour tous les autres ProductType.
 export function RestaurantProductFooter({ displayPrice, quantity, onIncrement, onDecrement, onAddToCart }: {
@@ -165,6 +253,38 @@ export function RestaurantProductFooter({ displayPrice, quantity, onIncrement, o
                 <button type="button" onClick={onIncrement} className="w-9 h-9 flex items-center justify-center rounded-xl text-foreground hover:bg-background transition-colors">
                     <Icon icon="iconamoon:sign-plus-bold" width={18} />
                 </button>
+            </div>
+            <button onClick={onAddToCart}
+                className="flex-1 min-w-0 py-3.5 px-5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl font-black text-sm active:scale-95 transition-all shadow-lg shadow-primary/30 flex items-center justify-center gap-2">
+                <Icon icon="solar:cart-large-minimalistic-bold-duotone" width={20} />
+                <span className="truncate">Ajouter {(displayPrice * quantity).toLocaleString()} FCFA</span>
+            </button>
+        </div>
+    );
+}
+
+// Barre inférieure collante pour un produit Marketplace avec variantes/options — inspirée du
+// style de RestaurantProductFooter (stepper + bouton total dynamique) sans le réutiliser
+// directement, pour ne prendre aucun risque sur le flux RESTAURANT existant. Le stepper est
+// désactivé pendant qu'une sélection de variante/option est active : la quantité est alors
+// calculée automatiquement (voir useProductDetail.effectiveQuantity), le stepper manuel n'a
+// plus de sens tant que ce n'est pas le cas.
+export function MarketplaceProductFooter({ displayPrice, quantity, hasSelection, onIncrement, onDecrement, onAddToCart }: {
+    displayPrice: number; quantity: number; hasSelection: boolean; onIncrement: () => void; onDecrement: () => void; onAddToCart: () => void;
+}) {
+    return (
+        <div className="shrink-0 px-4 py-3 bg-[#FBFAF6] dark:bg-zinc-900 border-t border-[#EEF1F4] dark:border-zinc-800 flex items-center gap-3">
+            <div className="flex flex-col items-center gap-0.5 shrink-0">
+                <div className="flex items-center bg-muted/40 rounded-2xl border border-border/50 p-1">
+                    <button type="button" onClick={onDecrement} disabled={hasSelection || quantity <= 1} className="w-9 h-9 flex items-center justify-center rounded-xl text-foreground hover:bg-background transition-colors disabled:opacity-30">
+                        <Icon icon="iconamoon:sign-minus-bold" width={18} />
+                    </button>
+                    <span className="w-8 text-center text-sm font-black">{quantity}</span>
+                    <button type="button" onClick={onIncrement} disabled={hasSelection} className="w-9 h-9 flex items-center justify-center rounded-xl text-foreground hover:bg-background transition-colors disabled:opacity-30">
+                        <Icon icon="iconamoon:sign-plus-bold" width={18} />
+                    </button>
+                </div>
+                {hasSelection && <span className="text-[9px] font-bold text-muted-foreground">Auto</span>}
             </div>
             <button onClick={onAddToCart}
                 className="flex-1 min-w-0 py-3.5 px-5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl font-black text-sm active:scale-95 transition-all shadow-lg shadow-primary/30 flex items-center justify-center gap-2">

@@ -11,7 +11,7 @@ import { useProductDetail } from "@/components/products/detail/useProductDetail"
 import ProductImageGallery from "@/components/products/detail/ProductImageGallery";
 import ProductSellerCard from "@/components/products/detail/ProductSellerCard";
 import SimilarProducts from "@/components/products/detail/SimilarProducts";
-import { CategoryChip, PriceBlock, DetailAccordions, ProductFooter, RestaurantAccompagnementSection, RestaurantProductFooter } from "@/components/products/detail/ProductDetailShared";
+import { CategoryChip, PriceBlock, DetailAccordions, ProductFooter, RestaurantAccompagnementSection, RestaurantProductFooter, MarketplaceVariantsOptionsSection, MarketplaceProductFooter } from "@/components/products/detail/ProductDetailShared";
 import NotFound from "@/components/common/NotFound";
 
 export default function ProductDetailPage() {
@@ -29,6 +29,8 @@ export default function ProductDetailPage() {
         displayPrice, originalPrice, discount,
         handleAddToCart, handleNegotiate,
         includedAccompagnement, extraOptions, selectedExtraIds, toggleExtra,
+        selectedVariantIds, toggleVariant, selectedOptionKeys, toggleOptionValue,
+        hasMarketplaceSelectionActive, effectiveQuantity,
         quantity, setQuantity,
     } = useProductDetail(id);
 
@@ -94,6 +96,9 @@ export default function ProductDetailPage() {
 
     const isSupplierProduct = product.productType === 'SUPPLIER';
     const isRestaurantProduct = product.productType === 'RESTAURANT';
+    // Produit Marketplace générique avec variantes/options — jamais combiné avec le flux
+    // accompagnements RESTAURANT ci-dessus (voir MarketplaceVariantsOptionsSection).
+    const hasMarketplaceSelection = !isRestaurantProduct && !!(product.hasVariants || product.hasOptions);
     const isSensitive = isSensitiveProduct(product);
 
     return (
@@ -133,6 +138,18 @@ export default function ProductDetailPage() {
                             onToggleExtra={toggleExtra}
                         />
                     )}
+                    {hasMarketplaceSelection && (
+                        <MarketplaceVariantsOptionsSection
+                            variants={product.variants}
+                            options={product.options}
+                            selectedVariantIds={selectedVariantIds}
+                            onToggleVariant={toggleVariant}
+                            selectedOptionKeys={selectedOptionKeys}
+                            onToggleOptionValue={toggleOptionValue}
+                            activeAccordion={activeAccordion}
+                            onToggle={toggleAccordion}
+                        />
+                    )}
 
                     <div className="pt-2">
                         <SimilarProducts productId={product.id} />
@@ -148,6 +165,15 @@ export default function ProductDetailPage() {
                         <RestaurantProductFooter
                             displayPrice={displayPrice}
                             quantity={quantity}
+                            onIncrement={() => setQuantity(q => q + 1)}
+                            onDecrement={() => setQuantity(q => Math.max(1, q - 1))}
+                            onAddToCart={handleAddToCart}
+                        />
+                    ) : hasMarketplaceSelection ? (
+                        <MarketplaceProductFooter
+                            displayPrice={displayPrice}
+                            quantity={effectiveQuantity}
+                            hasSelection={hasMarketplaceSelectionActive}
                             onIncrement={() => setQuantity(q => q + 1)}
                             onDecrement={() => setQuantity(q => Math.max(1, q - 1))}
                             onAddToCart={handleAddToCart}
@@ -206,6 +232,18 @@ export default function ProductDetailPage() {
                                     onToggleExtra={toggleExtra}
                                 />
                             )}
+                            {hasMarketplaceSelection && (
+                                <MarketplaceVariantsOptionsSection
+                                    variants={product.variants}
+                                    options={product.options}
+                                    selectedVariantIds={selectedVariantIds}
+                                    onToggleVariant={toggleVariant}
+                                    selectedOptionKeys={selectedOptionKeys}
+                                    onToggleOptionValue={toggleOptionValue}
+                                    activeAccordion={activeAccordion}
+                                    onToggle={toggleAccordion}
+                                />
+                            )}
                         </div>
                     </div>
 
@@ -213,6 +251,15 @@ export default function ProductDetailPage() {
                         <RestaurantProductFooter
                             displayPrice={displayPrice}
                             quantity={quantity}
+                            onIncrement={() => setQuantity(q => q + 1)}
+                            onDecrement={() => setQuantity(q => Math.max(1, q - 1))}
+                            onAddToCart={handleAddToCart}
+                        />
+                    ) : hasMarketplaceSelection ? (
+                        <MarketplaceProductFooter
+                            displayPrice={displayPrice}
+                            quantity={effectiveQuantity}
+                            hasSelection={hasMarketplaceSelectionActive}
                             onIncrement={() => setQuantity(q => q + 1)}
                             onDecrement={() => setQuantity(q => Math.max(1, q - 1))}
                             onAddToCart={handleAddToCart}

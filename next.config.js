@@ -40,6 +40,7 @@ const nextConfig = {
       // Images
       [
         "img-src 'self' data: blob:",
+        "http://localhost:4000/",
         "https://api.djamko.com",
         "https://static.vagueapp.com",
         "https://images.unsplash.com",
@@ -60,6 +61,7 @@ const nextConfig = {
       // Connexions réseau
       [
         "connect-src 'self'",
+        "http://localhost:4000/",
         "https://api.djamko.com",
         "wss://api.djamko.com",                          // Socket.IO WebSocket
         "https://nominatim.openstreetmap.org",            // reverse geocoding
@@ -148,6 +150,7 @@ const nextConfig = {
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "api.djamko.com" },
+      { protocol: "http", hostname: "http://localhost:400" },
       { protocol: "https", hostname: "static.vagueapp.com" },
       { protocol: "https", hostname: "images.unsplash.com" },
       { protocol: "https", hostname: "i.pravatar.cc" },
