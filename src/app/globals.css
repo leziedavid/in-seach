@@ -172,6 +172,30 @@
     transition: background-color 0.5s ease, background-image 0.5s ease;
   }
 
+  /* Portfolio-only ambient background: subtle brand glows + dot grid.
+     Scoped to .portfolio-bg (not the shared --bg-gradient var) so it never
+     leaks into the rest of the app. */
+  .portfolio-bg {
+    background-color: var(--background);
+    background-image:
+      radial-gradient(circle at 12% -10%, var(--glow-primary), transparent 45%),
+      radial-gradient(circle at 88% 10%, var(--glow-secondary), transparent 40%),
+      radial-gradient(var(--grid-color) 1px, transparent 1px);
+    background-size: auto, auto, 24px 24px;
+    background-attachment: fixed;
+  }
+
+  /* Card glow ring used on hover for project/experience cards */
+  .glow-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .glow-card:hover {
+    border-color: color-mix(in oklch, var(--primary) 45%, transparent);
+    box-shadow: 0 12px 30px -8px color-mix(in oklch, var(--primary) 25%, transparent);
+    transform: translateY(-3px);
+  }
+
   /* Professional Hover & Lift Effects */
   .hover-lift {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);

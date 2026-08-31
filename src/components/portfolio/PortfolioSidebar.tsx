@@ -11,8 +11,8 @@ export default function PortfolioSidebar() {
 
     const SECTIONS = [
         { label: t("portfolio.sidebar.introduction"), href: "#hero", icon: "solar:user-bold" },
-        { label: t("portfolio.sidebar.experience"), href: "#experience", icon: "solar:case-minimalistic-bold" },
         { label: t("portfolio.sidebar.skills"), href: "#expertise", icon: "solar:code-bold" },
+        { label: t("portfolio.sidebar.experience"), href: "#experience", icon: "solar:case-minimalistic-bold" },
         { label: t("portfolio.sidebar.projects"), href: "#projects", icon: "solar:folder-bold" },
     ];
     return (

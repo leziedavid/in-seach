@@ -16,13 +16,13 @@ export const metadata: Metadata = {
 
 export default function PortfolioPage() {
     return (
-        <div className="bg-background text-foreground selection:bg-primary selection:text-primary-foreground font-sans relative">
+        <div className="portfolio-bg text-foreground selection:bg-primary selection:text-primary-foreground font-sans relative">
             <PortfolioNavbar />
             <PortfolioSidebar />
             <main className="relative">
                 <PortfolioHero />
-                <PortfolioExperience />
                 <PortfolioExpertise />
+                <PortfolioExperience />
                 <PortfolioProjects />
                 <PortfolioContact />
             </main>

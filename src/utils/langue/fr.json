@@ -79,6 +79,7 @@
             "subtitle": "Ingénieur Full-Stack & Mobile Senior | Java Spring Boot | Nest.js | Next.js | Python/Flask",
             "location": "Abidjan, Côte d'Ivoire",
             "schedule": "Planifier un appel",
+            "available": "Disponible pour de nouvelles missions",
             "bio": "Passionné par le développement moderne, je conçois et déploie des applications web et mobiles performantes.",
             "languages": {
                 "fr": "Français",
@@ -86,15 +87,19 @@
             }
         },
         "experience": {
+            "eyebrow": "02 — Parcours",
             "title": "Expérience professionnelle"
         },
         "skills": {
+            "eyebrow": "01 — Savoir-faire",
             "title": "Compétences techniques"
         },
         "projects": {
+            "eyebrow": "03 — Réalisations",
             "title": "Projets"
         },
         "contact": {
+            "eyebrow": "04 — Contact",
             "title": "TRAVAILLONS ENSEMBLE.",
             "subtitle": "POUR CONSTRUIRE L'AVENIR.",
             "description": "Disponible pour des missions freelances ou des collaborations passionnantes.",

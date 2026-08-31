@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Icon } from "@iconify/react";
 import Image from "next/image";
 import { useTranslation } from "@/utils/langue/hooks";
+import PortfolioSectionHeading from "./PortfolioSectionHeading";
 
 const EXPERIENCES = [
     {
@@ -73,11 +74,11 @@ export default function PortfolioExperience() {
     const { t } = useTranslation();
 
     return (
-        <section id="experience" className="py-20 px-6 max-w-5xl mx-auto border-t border-border/40">
-            <h2 className="text-4xl font-black mb-12 tracking-tight">{t("portfolio.experience.title")}</h2>
+        <section id="experience" className="py-10 px-6 max-w-5xl mx-auto border-t border-border/40">
+            <PortfolioSectionHeading eyebrow={t("portfolio.experience.eyebrow")} title={t("portfolio.experience.title")} />
             <div className="flex flex-col gap-4">
                 {EXPERIENCES.map((exp) => (
-                    <div key={`${exp.company}-${exp.role}`} className="flex gap-3 md:gap-4 bg-muted/30 rounded-xl p-4 md:p-5 border border-border/40">
+                    <div key={`${exp.company}-${exp.role}`} className="glow-card flex gap-3 md:gap-4 bg-muted/30 rounded-xl p-4 md:p-5 border border-border/40">
                         <div className="shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-lg border border-border/50 flex items-center justify-center overflow-hidden relative">
                             {exp.logo ? (
                                 <div className="absolute inset-0 bg-background">
