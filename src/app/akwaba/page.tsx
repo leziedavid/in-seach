@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, Suspense } from 'react';
 
 import FloteManager from '@/components/logistics/sections/FloteManager';
 import Sidebar, { TabType } from './Sidebar';
@@ -51,7 +51,18 @@ import { Icon } from '@iconify/react';
 import Overview from '@/components/profile/Overview';
 
 
+// `useSearchParams()` (lecture de ?tab=X, voir plus bas) exige une frontière Suspense en build
+// de production — sans elle, Next.js échoue au prerendering statique de la page ("should be
+// wrapped in a suspense boundary"), même si la page est en réalité toujours rendue côté client.
 export default function Page() {
+    return (
+        <Suspense fallback={<AppEntrySkeleton />}>
+            <AkwabaContent />
+        </Suspense>
+    );
+}
+
+function AkwabaContent() {
     const { t } = useTranslation();
     const router = useRouter();
     const searchParams = useSearchParams();
