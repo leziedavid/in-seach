@@ -139,12 +139,12 @@ const PROMO_MESSAGES: PromoMessage[] = [
         url: null,
     },
     {
-        id: "promo-tarifs",
-        title: "Découvrez nos tarifs",
-        subtitle: "Comparez les formules et choisissez celle qui vous convient.",
-        icon: "solar:tag-price-bold-duotone",
+        id: "promo-facturation",
+        title: "Comprenez la facturation",
+        subtitle: "Le fonctionnement du Wallet et de vos crédits, expliqué simplement.",
+        icon: "solar:wallet-money-bold-duotone",
         color: "secondary",
-        tab: "Tarifs",
+        tab: "Facturation",
         url: null,
     },
 ];
@@ -160,7 +160,7 @@ const MENU_ITEMS: MenuItem[] = [
     { label: "Annonces", tab: "Annonces", icon: "solar:document-text-bold-duotone", color: "fuchsia" },
     { label: "Rendez-vous service", tab: "Rendez-vous", icon: "solar:calendar-mark-bold-duotone", color: "rose" },
     { label: "Rendez-vous annonce", tab: "Rendez-vous-annonces", icon: "solar:calendar-search-bold-duotone", color: "amber" },
-    { label: "Tarifs", tab: "Tarifs", icon: "solar:tag-price-bold-duotone", color: "secondary" },
+    { label: "Facturation", tab: "Facturation", icon: "solar:wallet-money-bold-duotone", color: "secondary" },
 ];
 
 export default function DashMenu({ onNavigate }: DashMenuProps) {
@@ -339,8 +339,9 @@ export default function DashMenu({ onNavigate }: DashMenuProps) {
                 hasLogoImage={hasLogoImage}
             />
 
-            {/* Grille des raccourcis — une couleur distincte par tuile */}
-            <div className="grid grid-cols-3 gap-y-4 gap-x-2">
+            {/* Grille des raccourcis — cartes bordées avec badge icône en carré arrondi, même
+                langage visuel que le lexique de la page Facturation (BillingGuide.tsx). */}
+            <div className="grid grid-cols-3 gap-2.5">
                 {MENU_ITEMS.map((item, i) => {
                     const variant = COLOR_VARIANTS[item.color];
                     return (
@@ -349,14 +350,14 @@ export default function DashMenu({ onNavigate }: DashMenuProps) {
                             initial={{ opacity: 0, y: 8 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: i * 0.03 }}
-                            whileTap={{ scale: 0.92 }}
+                            whileTap={{ scale: 0.96 }}
                             onClick={() => onNavigate(item.tab)}
-                            className="flex flex-col items-center gap-2 group"
+                            className="flex flex-col items-center gap-2.5 p-4 rounded-2xl bg-card border border-border/60 hover:border-primary/30 transition-colors group"
                         >
-                            <div className={`w-14 h-14 rounded-full flex items-center justify-center transition-transform group-hover:scale-105 ${variant.bg}`}>
-                                <Icon icon={item.icon} width={26} className={variant.text} />
+                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-105 ${variant.bg}`}>
+                                <Icon icon={item.icon} width={28} className={variant.text} />
                             </div>
-                            <span className="text-[11px] font-semibold text-foreground text-center leading-tight px-1">
+                            <span className="text-[12px] font-bold text-foreground text-center leading-tight">
                                 {item.label}
                             </span>
                         </motion.button>
