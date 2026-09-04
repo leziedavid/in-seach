@@ -58,7 +58,7 @@ export default function BookingDetailModal({ isOpen, onClose, booking: initialBo
             .catch(() => { /* on garde le dernier état connu */ });
     });
 
-    const { confirmState, isConfirming, subscriptionLoading, requestAction, closeConfirm, execute } = useBookingStatusAction({
+    const { confirmState, isConfirming, requestAction, closeConfirm, execute } = useBookingStatusAction({
         onChanged: () => onClose(),
     });
 
@@ -496,7 +496,7 @@ export default function BookingDetailModal({ isOpen, onClose, booking: initialBo
                         {/* Paiement Wallet — client, uniquement une fois la prestation terminée */}
                         {isBookingClient && booking.status === BookingStatus.COMPLETED && !!booking.price && (
                             <Button size="sm" className="h-9 px-3 text-xs font-black bg-emerald-600 hover:bg-emerald-700 flex items-center gap-1.5"
-                                onClick={() => requestAction(booking.id, 'pay', booking.price ?? undefined)}>
+                                onClick={() => requestAction(booking.id, 'pay')}>
                                 <Icon icon="solar:wallet-money-bold" className="w-4 h-4" />
                                 <span className="hidden sm:inline">Payer avec mon Wallet</span>
                             </Button>
@@ -504,23 +504,23 @@ export default function BookingDetailModal({ isOpen, onClose, booking: initialBo
 
                         {/* Actions prestataire */}
                         {isBookingProvider && booking.status === BookingStatus.PENDING && (
-                            <Button size="sm" disabled={subscriptionLoading} className="h-9 px-3 text-xs font-black bg-blue-600 hover:bg-blue-700 flex items-center gap-1.5"
+                            <Button size="sm" disabled={isConfirming} className="h-9 px-3 text-xs font-black bg-blue-600 hover:bg-blue-700 flex items-center gap-1.5"
                                 onClick={() => requestAction(booking.id, 'validate')}>
-                                {subscriptionLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:check-circle-bold" className="w-4 h-4" />}
+                                {isConfirming ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:check-circle-bold" className="w-4 h-4" />}
                                 <span className="hidden sm:inline">{t("akwaba.bookings.actions.accept")}</span>
                             </Button>
                         )}
                         {isBookingProvider && booking.status === BookingStatus.ACCEPTED && (
-                            <Button size="sm" disabled={subscriptionLoading} className="h-9 px-3 text-xs font-black bg-indigo-600 hover:bg-indigo-700 flex items-center gap-1.5"
+                            <Button size="sm" disabled={isConfirming} className="h-9 px-3 text-xs font-black bg-indigo-600 hover:bg-indigo-700 flex items-center gap-1.5"
                                 onClick={() => requestAction(booking.id, 'start')}>
-                                {subscriptionLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:play-bold" className="w-4 h-4" />}
+                                {isConfirming ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:play-bold" className="w-4 h-4" />}
                                 <span className="hidden sm:inline">{t("akwaba.bookings.actions.start")}</span>
                             </Button>
                         )}
                         {isBookingProvider && booking.status === BookingStatus.IN_PROGRESS && (
-                            <Button size="sm" disabled={subscriptionLoading} className="h-9 px-3 text-xs font-black bg-green-600 hover:bg-green-700 flex items-center gap-1.5"
+                            <Button size="sm" disabled={isConfirming} className="h-9 px-3 text-xs font-black bg-green-600 hover:bg-green-700 flex items-center gap-1.5"
                                 onClick={() => requestAction(booking.id, 'finish')}>
-                                {subscriptionLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:check-read-bold" className="w-4 h-4" />}
+                                {isConfirming ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:check-read-bold" className="w-4 h-4" />}
                                 <span className="hidden sm:inline">{t("akwaba.bookings.actions.finish")}</span>
                             </Button>
                         )}

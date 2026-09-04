@@ -11,7 +11,6 @@ import { createAnnonce, getAnnonces, handleToggleAnnonceActive, updateAnnonce, d
 import { Modal } from "@/components/ui/MotionModal"
 import { Switch } from "@/components/ui/switch"
 import { useNotification } from "@/components/notifications/NotificationProvider"
-import { useSubscriptionCheck } from "@/hooks/useSubscriptionCheck"
 import Delete from "@/components/logistics/modals/Delete"
 import { SectionHeader } from "@/components/shared/SectionHeader"
 import ViewToggle, { ViewMode } from "@/components/shared/ViewToggle"
@@ -222,8 +221,6 @@ export default function AnnoncesCard({
         (page - 1) * limit,
         page * limit
     )
-    const { checkEligibility, loading: checkLoading } = useSubscriptionCheck();
-
     return (
         <>
             <div className="flex flex-col w-full px-0">
@@ -238,14 +235,11 @@ export default function AnnoncesCard({
                         <div className="flex flex-col md:flex-row w-full md:w-auto gap-2 md:gap-4">
 
                             <div className="w-full md:min-w-[240px]">
-                                <CreateButton label={t("akwaba.annonces.publish_button")} loading={checkLoading}
-                                    onClick={async () => {
-                                        const canCreate = await checkEligibility('Annonce');
-                                        if (canCreate) {
-                                            setIsOpen(true);
-                                            setIsEditing(false);
-                                            setSelectedAnnonce(null);
-                                        }
+                                <CreateButton label={t("akwaba.annonces.publish_button")}
+                                    onClick={() => {
+                                        setIsOpen(true);
+                                        setIsEditing(false);
+                                        setSelectedAnnonce(null);
                                     }}
                                 />
                             </div>

@@ -10,7 +10,6 @@ import { Modal } from "@/components/ui/MotionModal"
 import Image from "next/image"
 import { Switch } from "@/components/ui/switch"
 import { useNotification } from "@/components/notifications/NotificationProvider"
-import { useSubscriptionCheck } from "@/hooks/useSubscriptionCheck"
 import Delete from "@/components/logistics/modals/Delete"
 import { deleteService as apiDeleteService } from "@/api/api"
 import { SectionHeader } from "@/components/shared/SectionHeader"
@@ -248,8 +247,6 @@ export default function ServicesCard({ data: propData, page: propPage, limit: pr
         page * limit
     )
 
-    const { checkEligibility, loading: checkLoading } = useSubscriptionCheck();
-
     return (
         <>
             <div className="flex flex-col w-full md:max-w-5xl max-w-full px-0">
@@ -279,14 +276,10 @@ export default function ServicesCard({ data: propData, page: propPage, limit: pr
                             <div className="w-full md:min-w-[240px]">
                                 <CreateButton
                                     label={t("akwaba.services.publish_button")}
-                                    loading={checkLoading}
-                                    onClick={async () => {
-                                        const canCreate = await checkEligibility('Service');
-                                        if (canCreate) {
-                                            setIsOpen(true);
-                                            setIsEditing(false);
-                                            setSelectedService(null);
-                                        }
+                                    onClick={() => {
+                                        setIsOpen(true);
+                                        setIsEditing(false);
+                                        setSelectedService(null);
                                     }}
                                 />
                             </div>

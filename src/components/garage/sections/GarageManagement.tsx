@@ -18,7 +18,6 @@ import { Select2 } from "@/components/ui/Select2";
 import CreateButton from "@/components/ui/CreateButton";
 import ConfirmAction, { ConfirmVariant } from "@/components/ui/ConfirmAction";
 import { useNotification } from "@/components/notifications/NotificationProvider";
-import { useSubscriptionCheck } from "@/hooks/useSubscriptionCheck";
 import { InputPhone, countries } from "@/components/ui/InputPhone";
 import ImageUploadGrid from "@/components/ui/ImageUploadGrid";
 
@@ -96,7 +95,6 @@ const emptyPieceForm = (): PieceFormState => ({
 export default function GarageManagement() {
     const { addNotification } = useNotification();
     const { getUserLocation } = useUserLocation();
-    const { checkEligibility, loading: checkLoading } = useSubscriptionCheck();
 
     const [garages, setGarages] = useState<Garage[]>([]);
     const [loading, setLoading] = useState(true);
@@ -159,9 +157,7 @@ export default function GarageManagement() {
 
     // ── Garage: création / édition ──
 
-    const openCreateGarage = async () => {
-        const canCreate = await checkEligibility('Garage');
-        if (!canCreate) return;
+    const openCreateGarage = () => {
         setEditingGarage(null);
         setGarageForm(emptyGarageForm());
         setCoords(null);
@@ -304,9 +300,7 @@ export default function GarageManagement() {
 
     // ── Catalogue: création / édition ──
 
-    const openCreatePiece = async () => {
-        const canCreate = await checkEligibility('GaragePiece');
-        if (!canCreate) return;
+    const openCreatePiece = () => {
         setEditingPiece(null);
         setPieceForm(emptyPieceForm());
         setIsPieceModalOpen(true);
@@ -439,7 +433,7 @@ export default function GarageManagement() {
 
                     <AccordionSection id="catalogue" title="Catalogue de pièces" subtitle="Consultatif uniquement — aucune vente en ligne" icon="solar:box-bold-duotone" activeSection={activeSection} onToggle={toggleSection}>
                         <div className="mb-4">
-                            <CreateButton label="Ajouter une pièce" loading={checkLoading} onClick={openCreatePiece} />
+                            <CreateButton label="Ajouter une pièce" onClick={openCreatePiece} />
                         </div>
                         {loadingPieces ? (
                             <div className="space-y-2">{Array.from({ length: 2 }).map((_, i) => <div key={i} className="h-16 rounded-2xl bg-muted/40 animate-pulse" />)}</div>
@@ -499,7 +493,7 @@ export default function GarageManagement() {
             <SectionHeader title="Mon Garage" subtitle="Gérez vos implantations, leurs informations et leur catalogue de pièces." className="mb-6" />
 
             <div className="w-full mb-4">
-                <CreateButton label="Ajouter un garage" loading={checkLoading} onClick={openCreateGarage} />
+                <CreateButton label="Ajouter un garage" onClick={openCreateGarage} />
             </div>
 
             {loading ? (

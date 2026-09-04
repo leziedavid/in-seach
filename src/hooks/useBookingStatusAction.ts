@@ -3,9 +3,7 @@
 import { useState } from "react";
 import { BookingStatus } from "@/types/interface";
 import { updateBookingStatus } from "@/api/api";
-import { checkWalletBalance } from "@/api/wallet-api";
 import { useNotification } from "@/components/notifications/NotificationProvider";
-import { useSubscriptionCheck } from "@/hooks/useSubscriptionCheck";
 import { useTranslation } from "@/utils/langue/hooks";
 import { ConfirmVariant } from "@/components/ui/ConfirmAction";
 
@@ -13,7 +11,6 @@ export type BookingAction = "validate" | "start" | "finish" | "cancel" | "pay";
 
 interface ActionConfig {
     status: BookingStatus;
-    requiresSubscription: boolean;
     title: string;
     message: string;
     confirmLabel: string;
@@ -25,13 +22,11 @@ interface ConfirmState {
     isOpen: boolean;
     bookingId: string;
     newStatus: BookingStatus;
-    requiresSubscription: boolean;
     title: string;
     message: string;
     confirmLabel: string;
     variant: ConfirmVariant;
     icon: string;
-    paymentMethod?: 'WALLET';
 }
 
 interface UseBookingStatusActionOptions {
@@ -40,20 +35,23 @@ interface UseBookingStatusActionOptions {
 
 /**
  * Logique partagée de changement de statut d'une réservation (validation, démarrage,
- * fin, annulation) avec confirmation et contrôle d'abonnement.
+ * fin, annulation) avec confirmation.
  * Utilisé par la liste (BookingsPage) et le détail (BookingDetail) pour garantir
  * un comportement strictement identique entre les deux points d'entrée.
+ *
+ * Le prestataire ne pré-vérifie plus rien côté client avant de valider/démarrer/terminer : le
+ * Wallet (frais `validate_booking`) est vérifié et débité côté serveur au moment de l'appel —
+ * un solde insuffisant renvoie une erreur ("Solde insuffisant") gérée par le catch ci-dessous,
+ * invitant le prestataire à recharger son Wallet.
  */
 export function useBookingStatusAction({ onChanged }: UseBookingStatusActionOptions = {}) {
     const { t } = useTranslation();
     const { showNotification } = useNotification();
-    const { checkFeatureAccess, loading: subscriptionLoading } = useSubscriptionCheck();
 
     const [confirmState, setConfirmState] = useState<ConfirmState>({
         isOpen: false,
         bookingId: "",
         newStatus: BookingStatus.CANCELLED,
-        requiresSubscription: false,
         title: "",
         message: "",
         confirmLabel: t("akwaba.bookings.actions.accept"),
@@ -67,9 +65,8 @@ export function useBookingStatusAction({ onChanged }: UseBookingStatusActionOpti
             case "validate":
                 return {
                     status: BookingStatus.ACCEPTED,
-                    requiresSubscription: true,
                     title: "Valider le rendez-vous",
-                    message: "Confirmez-vous la validation de ce rendez-vous ? Le client sera notifié.",
+                    message: "Confirmez-vous la validation de ce rendez-vous ? Les frais de validation seront débités de votre Wallet et le client sera notifié.",
                     confirmLabel: t("akwaba.bookings.actions.accept"),
                     variant: "info",
                     icon: "solar:check-circle-bold-duotone",
@@ -77,7 +74,6 @@ export function useBookingStatusAction({ onChanged }: UseBookingStatusActionOpti
             case "start":
                 return {
                     status: BookingStatus.IN_PROGRESS,
-                    requiresSubscription: true,
                     title: "Démarrer le rendez-vous",
                     message: "Confirmez-vous le démarrage de cette prestation ? Le client sera informé.",
                     confirmLabel: t("akwaba.bookings.actions.start"),
@@ -87,7 +83,6 @@ export function useBookingStatusAction({ onChanged }: UseBookingStatusActionOpti
             case "finish":
                 return {
                     status: BookingStatus.COMPLETED,
-                    requiresSubscription: true,
                     title: "Terminer la prestation",
                     message: "Confirmez-vous la fin de cette prestation ? Le client sera notifié de la complétion.",
                     confirmLabel: t("akwaba.bookings.actions.finish"),
@@ -97,10 +92,9 @@ export function useBookingStatusAction({ onChanged }: UseBookingStatusActionOpti
             case "pay":
                 return {
                     status: BookingStatus.PAID,
-                    requiresSubscription: false,
-                    title: "Payer le rendez-vous",
-                    message: "Confirmez-vous le paiement de ce rendez-vous avec votre Wallet ? Le montant sera débité immédiatement.",
-                    confirmLabel: "Payer",
+                    title: "Confirmer le paiement",
+                    message: "Confirmez-vous avoir reçu le paiement de ce rendez-vous (à la prestation ou selon le mode convenu avec le client) ?",
+                    confirmLabel: "Confirmer",
                     variant: "success",
                     icon: "solar:wallet-money-bold-duotone",
                 };
@@ -108,7 +102,6 @@ export function useBookingStatusAction({ onChanged }: UseBookingStatusActionOpti
             default:
                 return {
                     status: BookingStatus.CANCELLED,
-                    requiresSubscription: false,
                     title: "Annuler le rendez-vous",
                     message: "Êtes-vous sûr de vouloir annuler ce rendez-vous ? Cette action ne peut pas être défaite.",
                     confirmLabel: t("akwaba.bookings.actions.cancel"),
@@ -118,37 +111,18 @@ export function useBookingStatusAction({ onChanged }: UseBookingStatusActionOpti
         }
     };
 
-    /**
-     * `amount` n'est requis que pour l'action "pay" — vérifie le solde Wallet avant même
-     * d'ouvrir la confirmation ; en cas de solde insuffisant, informe l'utilisateur et
-     * l'invite à recharger (accessible depuis l'icône Wallet du Sidebar/DashMenu) plutôt
-     * que d'ouvrir une confirmation qui échouerait de toute façon au moment du paiement.
-     */
-    const requestAction = async (bookingId: string, action: BookingAction, amount?: number) => {
+    const requestAction = async (bookingId: string, action: BookingAction) => {
         const cfg = actionConfig(action);
-
-        if (action === "pay" && amount) {
-            const res = await checkWalletBalance(amount);
-            if (res.statusCode === 200 && res.data && !res.data.sufficient) {
-                showNotification(
-                    `Solde Wallet insuffisant (${res.data.balance.toLocaleString()} FCFA disponible, ${amount.toLocaleString()} FCFA requis). Rechargez votre Wallet pour payer ce rendez-vous.`,
-                    "warning",
-                );
-                return;
-            }
-        }
 
         setConfirmState({
             isOpen: true,
             bookingId,
             newStatus: cfg.status,
-            requiresSubscription: cfg.requiresSubscription,
             title: cfg.title,
             message: cfg.message,
             confirmLabel: cfg.confirmLabel,
             variant: cfg.variant,
             icon: cfg.icon,
-            paymentMethod: action === "pay" ? "WALLET" : undefined,
         });
     };
 
@@ -158,11 +132,7 @@ export function useBookingStatusAction({ onChanged }: UseBookingStatusActionOpti
         if (isConfirming || !confirmState.isOpen || !confirmState.bookingId) return;
         setIsConfirming(true);
         try {
-            if (confirmState.requiresSubscription) {
-                const canProceed = await checkFeatureAccess();
-                if (!canProceed) return;
-            }
-            const response = await updateBookingStatus(confirmState.bookingId, confirmState.newStatus, confirmState.paymentMethod);
+            const response = await updateBookingStatus(confirmState.bookingId, confirmState.newStatus);
             if (response.statusCode === 200 || response.statusCode === 201) {
                 showNotification(t("akwaba.bookings.success_update"), "success");
                 onChanged?.();
@@ -180,7 +150,6 @@ export function useBookingStatusAction({ onChanged }: UseBookingStatusActionOpti
     return {
         confirmState,
         isConfirming,
-        subscriptionLoading,
         requestAction,
         closeConfirm,
         execute,

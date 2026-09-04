@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { getUserId } from '@/lib/auth';
+import { getUserId, isAuthenticated } from '@/lib/auth';
 import { notificationService } from '@/services/notification.service';
 import { useNotification as useToast } from '@/components/notifications/NotificationProvider';
 import { getPushSubscriptions, unsubscribePush } from '@/api/api';
@@ -52,7 +52,11 @@ export const useNotifications = () => {
         setPermission(Notification.permission);
       }
 
-      if (userId) {
+      // `getUserId()` décode le JWT stocké mais ne vérifie pas son expiration (contrairement à
+      // `isAuthenticated()`) — un token expiré resté en localStorage renverrait quand même un
+      // userId ici, déclenchant un appel voué à échouer (401 / hors ligne) tant que l'utilisateur
+      // n'est pas réellement connecté.
+      if (userId && isAuthenticated()) {
         try {
           // Vérifier si une subscription active existe sur le backend
           const res = await getPushSubscriptions(userId);

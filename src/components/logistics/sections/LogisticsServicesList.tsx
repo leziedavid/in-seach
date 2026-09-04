@@ -7,7 +7,6 @@ import { LogisticProvider, LogisticService, TransportType, LogisticStats, Quote 
 import { getLogisticServices, getMyLogisticServices, createLogisticService, updateLogisticService, deleteLogisticService, patchLogisticServiceStatus, findAllPrestataire, getLogisticInfoDatas, getLogisticStats, getReceivedQuotes } from "@/api/api";
 import { useNotification } from "@/components/notifications/NotificationProvider";
 import { Modal } from "@/components/ui/MotionModal";
-import { useSubscriptionCheck } from "@/hooks/useSubscriptionCheck";
 import OnBack from "@/components/shared/OnBack";
 import Delete from "@/components/logistics/modals/Delete";
 import CreateButton from "@/components/ui/CreateButton";
@@ -67,7 +66,6 @@ export default function LogisticsServicesList({ mode = "marketplace", companyNam
     const [viewMode, setViewMode] = useState<ViewMode>("grid");
     const { addNotification } = useNotification();
 
-    const { checkEligibility, loading: checkLoading } = useSubscriptionCheck()
     const [providerInfo, setProviderInfo] = useState<LogisticProvider | null>(null)
     const [isLiveModalOpen, setIsLiveModalOpen] = useState(false)
     const [liveLogisticService, setLiveLogisticService] = useState<LogisticService | null>(null)
@@ -284,12 +282,9 @@ export default function LogisticsServicesList({ mode = "marketplace", companyNam
         setSearchTerm(text);
     };
 
-    const openCreateModal = async () => {
-        const canCreate = await checkEligibility('LogisticService')
-        if (canCreate) {
-            setEditingService(null);
-            setIsCreateModalOpen(true)
-        }
+    const openCreateModal = () => {
+        setEditingService(null);
+        setIsCreateModalOpen(true)
     }
 
     return (

@@ -1,14 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Icon } from '@iconify/react';
 import { Modal } from "@/components/ui/MotionModal"
 import { SubscriptionPlan, PaymentMethod as PaymentMethodEnum } from '@/types/interface';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { subscribeToPlan, uploadSubscriptionProof } from '@/api/api';
-import { checkWalletBalance } from '@/api/wallet-api';
-import Wallet from '@/components/shared/Wallet';
 import { toast } from 'sonner';
 
 interface SubscriptionPaymentModalProps {
@@ -17,30 +15,20 @@ interface SubscriptionPaymentModalProps {
     plan: SubscriptionPlan | null;
 }
 
-type PaymentMethod = 'wallet' | 'card' | 'mobile' | 'admin';
+// Le Wallet n'est plus une méthode de paiement valide pour un pack de rechargement — payer un
+// pack EN débitant le Wallet n'aurait aucun sens, puisque c'est justement ce paiement qui
+// recrédite le Wallet (voir subscription.service.ts). Seul "admin" (preuve de paiement) est
+// aujourd'hui opérationnel ; mobile/carte restent des méthodes à venir.
+type PaymentMethod = 'card' | 'mobile' | 'admin';
 
 export default function SubscriptionPaymentModal({ isOpen, onClose, plan }: SubscriptionPaymentModalProps) {
-    const [activeTab, setActiveTab] = useState<PaymentMethod>('wallet');
+    const [activeTab, setActiveTab] = useState<PaymentMethod>('admin');
     const [selectedOperator, setSelectedOperator] = useState<string>('');
     const [phoneNumber, setPhoneNumber] = useState('');
     const [cardData, setCardData] = useState({ number: '', name: '', expiry: '', cvv: '' });
     const [proof, setProof] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
-    const [walletBalance, setWalletBalance] = useState(0);
-    const [walletSufficient, setWalletSufficient] = useState<boolean | null>(null);
-    const [rechargeModalOpen, setRechargeModalOpen] = useState(false);
-
-    useEffect(() => {
-        if (isOpen && activeTab === 'wallet' && plan && plan.price > 0) {
-            checkWalletBalance(plan.price).then((res) => {
-                if (res.statusCode === 200 && res.data) {
-                    setWalletBalance(res.data.balance);
-                    setWalletSufficient(res.data.sufficient);
-                }
-            });
-        }
-    }, [isOpen, activeTab, plan]);
 
     if (!plan) return null;
     const isFree = plan.price === 0;
@@ -54,7 +42,6 @@ export default function SubscriptionPaymentModal({ isOpen, onClose, plan }: Subs
 
     const getHelpMessage = () => {
         switch (activeTab) {
-            case 'wallet': return "Le montant sera débité immédiatement de votre Wallet — activation instantanée, sans validation admin.";
             case 'card': return "Veuillez entrer vos informations de carte pour effectuer le paiement sécurisé.";
             case 'mobile': return "Sélectionnez votre opérateur et saisissez votre numéro pour recevoir une demande de paiement.";
             case 'admin': return "Effectuez le paiement sur le numéro ci-dessous, puis ajoutez une preuve de transaction pour validation.";
@@ -65,9 +52,6 @@ export default function SubscriptionPaymentModal({ isOpen, onClose, plan }: Subs
     const isFormValid = () => {
         if (loading) return false;
         if (isFree) return true;
-        if (activeTab === 'wallet') {
-            return walletSufficient === true;
-        }
         if (activeTab === 'card') {
             return cardData.number && cardData.name && cardData.expiry && cardData.cvv;
         }
@@ -98,7 +82,6 @@ export default function SubscriptionPaymentModal({ isOpen, onClose, plan }: Subs
             }
 
             const paymentMethodMap: Record<PaymentMethod, PaymentMethodEnum> = {
-                wallet: PaymentMethodEnum.WALLET,
                 card: PaymentMethodEnum.CARD,
                 mobile: PaymentMethodEnum.MOBILE_MONEY,
                 admin: PaymentMethodEnum.ADMIN
@@ -135,7 +118,7 @@ export default function SubscriptionPaymentModal({ isOpen, onClose, plan }: Subs
                 <div className="p-6 bg-muted/30 border-b border-border space-y-4">
                     <div className="flex justify-between items-start">
                         <div>
-                            <h2 className="text-2xl font-black text-foreground">Détails du Plan</h2>
+                            <h2 className="text-2xl font-black text-foreground">Détails du pack</h2>
                             <p className="text-muted-foreground text-sm font-medium">Récapitulatif de votre sélection</p>
                         </div>
                         <Badge variant="default" className="px-3 py-1 text-xs font-black uppercase tracking-widest bg-primary/10 text-primary border-primary/20">
@@ -143,15 +126,9 @@ export default function SubscriptionPaymentModal({ isOpen, onClose, plan }: Subs
                         </Badge>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-card p-4 rounded-2xl border border-border shadow-xs">
-                            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Prix & Durée</p>
-                            <p className="font-black text-lg">{plan.price} CFA <span className="text-xs text-muted-foreground font-bold">/ {plan.durationDays} jours</span></p>
-                        </div>
-                        <div className="bg-card p-4 rounded-2xl border border-border shadow-xs">
-                            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Limites</p>
-                            <p className="font-black text-lg">{plan.serviceLimit === 999999 ? 'ILIMITÉ' : `${plan.serviceLimit} unités`}</p>
-                        </div>
+                    <div className="bg-card p-4 rounded-2xl border border-border shadow-xs">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Montant crédité & fréquence</p>
+                        <p className="font-black text-lg">{plan.price.toLocaleString()} FCFA <span className="text-xs text-muted-foreground font-bold">/ {plan.durationDays} jours</span></p>
                     </div>
                 </div>
 
@@ -165,8 +142,8 @@ export default function SubscriptionPaymentModal({ isOpen, onClose, plan }: Subs
                             <h3 className="text-2xl font-black text-foreground">Félicitations !</h3>
                             <p className="text-center text-muted-foreground font-medium max-w-xs">
                                 {activeTab === 'admin'
-                                    ? "Votre demande a été envoyée. Un administrateur validera votre paiement sous peu."
-                                    : "Votre abonnement est maintenant actif. Profitez de vos nouveaux avantages !"}
+                                    ? "Votre demande a été envoyée. Un administrateur validera votre paiement sous peu, puis votre Wallet sera crédité."
+                                    : "Votre pack est activé. Votre Wallet sera crédité dès validation du paiement."}
                             </p>
                         </div>
                     ) : (
@@ -179,7 +156,6 @@ export default function SubscriptionPaymentModal({ isOpen, onClose, plan }: Subs
                                     {/* Tab Switcher */}
                                     <div className="flex gap-2 p-1 bg-muted rounded-2xl mb-6">
                                         {[
-                                            { id: 'wallet' as PaymentMethod, label: 'Wallet', isAvailable: true },
                                             { id: 'admin' as PaymentMethod, label: 'Admin', isAvailable: true },
                                             { id: 'mobile' as PaymentMethod, label: 'Mobile Money', isAvailable: false },
                                             { id: 'card' as PaymentMethod, label: 'Carte', isAvailable: false }
@@ -203,31 +179,6 @@ export default function SubscriptionPaymentModal({ isOpen, onClose, plan }: Subs
 
                                     {/* Tab Content */}
                                     <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                        {activeTab === 'wallet' && (
-                                            <div className="space-y-4">
-                                                <div className="bg-primary/5 border border-primary/10 p-5 rounded-3xl flex items-center justify-between">
-                                                    <div>
-                                                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Solde Wallet</p>
-                                                        <p className="text-2xl font-black text-foreground">{walletBalance.toLocaleString()} FCFA</p>
-                                                    </div>
-                                                    <Icon icon="solar:wallet-money-bold-duotone" className="w-10 h-10 text-primary" />
-                                                </div>
-                                                {walletSufficient === false && (
-                                                    <div className="p-4 rounded-2xl bg-red-500/5 border border-red-500/20 space-y-3">
-                                                        <p className="text-[11px] font-bold text-red-600 text-center">Solde Wallet insuffisant pour cet abonnement</p>
-                                                        <div className="flex gap-2">
-                                                            <button onClick={() => setRechargeModalOpen(true)} className="flex-1 py-2.5 rounded-xl bg-primary text-white text-[10px] font-black uppercase active:scale-95 transition-all">
-                                                                Recharger
-                                                            </button>
-                                                            <button onClick={() => setActiveTab('admin')} className="flex-1 py-2.5 rounded-xl bg-muted text-[10px] font-black uppercase active:scale-95 transition-all">
-                                                                Autre moyen de paiement
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
-
                                         {activeTab === 'card' && (
                                             <div className="space-y-4">
                                                 <div className="space-y-1">
@@ -318,8 +269,8 @@ export default function SubscriptionPaymentModal({ isOpen, onClose, plan }: Subs
                                     <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
                                         <Icon icon="solar:gift-bold-duotone" className="w-8 h-8 text-primary" />
                                     </div>
-                                    <h3 className="text-xl font-black">Plan Gratuit</h3>
-                                    <p className="text-sm text-muted-foreground max-w-xs">Ce plan est entièrement gratuit. Cliquez sur confirmer pour activer votre abonnement immédiatement.</p>
+                                    <h3 className="text-xl font-black">Pack gratuit</h3>
+                                    <p className="text-sm text-muted-foreground max-w-xs">Ce pack est entièrement gratuit, sans rechargement programmé. Cliquez sur confirmer pour l'activer immédiatement.</p>
                                 </div>
                             )}
                         </div>
@@ -351,8 +302,6 @@ export default function SubscriptionPaymentModal({ isOpen, onClose, plan }: Subs
                     </div>
                 )}
             </div>
-
-            <Wallet isOpen={rechargeModalOpen} onClose={() => setRechargeModalOpen(false)} initialTab="recharger" />
         </Modal>
     );
 }

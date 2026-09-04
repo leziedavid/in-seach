@@ -1,51 +1,52 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { Icon } from '@iconify/react';
 import { useQuery } from '@tanstack/react-query';
 import { getPlans } from '@/api/api';
 import SubscriptionPaymentModal from '@/components/subscription/modals/SubscriptionPaymentModal';
 import { SubscriptionPlan } from '@/types/interface';
 
-interface Feature {
+interface Advantage {
     text: string;
-    included: boolean;
 }
 
 interface Plan {
     id?: string;
     name: string;
     price: string | number;
+    durationDays: number;
     description: string;
-    features: Feature[];
+    advantages: Advantage[];
     cta: string;
     highlight: boolean;
 }
 
 const faqs = [
     {
-        q: 'Puis-je changer de plan à tout moment ?',
-        a: "Oui, vous pouvez passer à un plan supérieur ou inférieur à tout moment depuis votre espace abonné. La facturation est ajustée au prorata.",
+        q: 'Un pack donne-t-il accès à des fonctionnalités supplémentaires ?',
+        a: "Non. Un pack ne débloque rien : il crédite simplement votre Wallet, automatiquement, à la fréquence choisie. Les actions payantes de la plateforme (publier, valider, booster...) restent les mêmes pour tout le monde.",
     },
     {
-        q: 'Y a-t-il des frais cachés ?',
-        a: "Aucun. Le prix affiché est le prix final. Aucun frais de mise en place, aucune commission sur vos transactions.",
+        q: 'Le montant du pack sert-il à payer mes achats ?',
+        a: "Non, jamais. Vos achats en tant que client se règlent toujours directement au vendeur ou à la livraison. Le Wallet ne sert qu'à régler les actions professionnelles de la plateforme.",
     },
     {
-        q: 'Comment fonctionne la résiliation ?',
-        a: "Vous pouvez résilier à tout moment en un clic. Votre accès reste actif jusqu'à la fin de la période déjà payée.",
+        q: 'Que se passe-t-il à chaque échéance ?',
+        a: "Si le renouvellement automatique est actif, votre Wallet est recrédité du montant du pack à chaque échéance, sans action de votre part. Sinon, le pack s'arrête simplement.",
     },
     {
-        q: 'Le plan FREE est-il vraiment gratuit ?',
-        a: "Oui, le plan FREE est gratuit sans limite de durée. Pas de carte bancaire requise pour commencer.",
+        q: 'Puis-je arrêter un pack à tout moment ?',
+        a: "Oui. Arrêter un pack n'affecte jamais votre solde déjà crédité — vous pouvez toujours recharger votre Wallet manuellement à tout moment depuis « Mon Portefeuille ».",
     },
     {
-        q: 'Quels moyens de paiement acceptez-vous ?',
-        a: "Nous acceptons les cartes bancaires (Visa, Mastercard), Mobile Money (Orange Money, MTN, Wave) et les virements bancaires.",
+        q: 'Le pack FREE sert-il à quelque chose ?',
+        a: "Le pack FREE ne programme aucun rechargement — c'est l'option par défaut si vous préférez recharger votre Wallet manuellement, quand vous en avez besoin.",
     },
     {
-        q: "Le badge 'Expert Certifié' est-il visible par les clients ?",
-        a: "Oui, ce badge apparaît directement sur votre profil et dans les résultats de recherche, renforçant la confiance des clients potentiels.",
+        q: 'Quels moyens de paiement acceptez-vous pour un pack ?',
+        a: "Aujourd'hui, le paiement se fait par preuve de transaction (Mobile Money ou virement) validée par un administrateur. La carte bancaire et le paiement mobile automatique arrivent bientôt.",
     },
 ];
 
@@ -105,17 +106,18 @@ export default function PricingPage() {
             const isPremium = p.name.toUpperCase().includes('PREMIUM');
             const isLogistic = p.name.toUpperCase().includes('LOGISTIC');
 
-            const mappedFeatures = (p.defaultFeatures && p.defaultFeatures.length > 0)
-                ? p.defaultFeatures.map((f: any) => ({ text: f.label, included: true }))
+            const advantages = (p.defaultFeatures && p.defaultFeatures.length > 0)
+                ? p.defaultFeatures.map((f: any) => ({ text: f.label }))
                 : [];
 
             return {
                 id: p.id,
                 name: p.name,
                 price: p.price,
-                description: p.description || (isFree ? 'Idéal pour commencer et tester la plateforme.' : 'Pour les professionnels qui veulent booster leur activité.'),
-                features: mappedFeatures,
-                cta: isFree ? 'Commencer gratuitement' : "S'abonner maintenant",
+                durationDays: p.durationDays,
+                description: p.description || (isFree ? 'Aucun rechargement programmé — rechargez votre Wallet manuellement quand vous le souhaitez.' : 'Rechargement automatique et récurrent de votre Wallet.'),
+                advantages,
+                cta: isFree ? 'Continuer sans pack' : 'Recharger via ce pack',
                 highlight: isPremium || isLogistic,
             };
         });
@@ -134,15 +136,22 @@ export default function PricingPage() {
             <section className="pt-20 pb-16 px-6 text-center">
                 <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-primary/25 dark:border-primary/30 text-[12px] font-medium text-primary mb-8">
                     <span className="w-1.5 h-1.5 rounded-full bg-primary inline-block" />
-                    Tarifs simples et transparents
+                    Packs de rechargement Wallet
                 </div>
 
                 <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-zinc-900 dark:text-white mb-5 leading-tight">
-                    Choisissez votre plan
+                    Programmez le rechargement de votre Wallet
                 </h1>
 
-                <p className="text-base sm:text-lg text-zinc-500 dark:text-zinc-400 max-w-xl mx-auto leading-relaxed">
-                    Pas de frais cachés. Pas d&apos;engagement. Résiliable à tout moment.
+                <p className="text-base sm:text-lg text-zinc-500 dark:text-zinc-400 max-w-xl mx-auto leading-relaxed mb-4">
+                    Un pack recrédite automatiquement votre Wallet à intervalles réguliers — pratique pour les vendeurs et prestataires actifs. Aucun frais caché, aucun engagement.
+                </p>
+
+                <p className="text-xs text-zinc-400 dark:text-zinc-500 max-w-md mx-auto leading-relaxed">
+                    Le Wallet sert uniquement à régler vos actions professionnelles sur la plateforme — jamais vos achats.{' '}
+                    <Link href="/akwaba?tab=Facturation" className="text-secondary dark:text-primary hover:underline font-medium">
+                        Comprendre le fonctionnement du Wallet
+                    </Link>
                 </p>
             </section>
 
@@ -164,16 +173,16 @@ export default function PricingPage() {
                                     ${plan.highlight ? 'text-primary' : 'text-secondary dark:text-secondary'}`}>
                                     {plan.name}
                                 </p>
-                                <div className="flex items-baseline gap-1.5 mb-3">
+                                <div className="flex items-baseline gap-1.5 mb-1">
                                     <span className={`text-5xl font-bold tracking-tight
                                         ${plan.highlight ? 'text-white' : 'text-zinc-900 dark:text-white'}`}>
-                                        {plan.price} FCFA
-                                    </span>
-                                    <span className={`text-sm
-                                        ${plan.highlight ? 'text-white/50' : 'text-zinc-400 dark:text-zinc-500'}`}>
-                                        /mois
+                                        {plan.price.toLocaleString()} FCFA
                                     </span>
                                 </div>
+                                <p className={`text-[11px] font-semibold uppercase tracking-wide mb-3
+                                    ${plan.highlight ? 'text-white/50' : 'text-zinc-400 dark:text-zinc-500'}`}>
+                                    {plan.price === 0 ? 'Sans rechargement programmé' : `crédités au Wallet tous les ${plan.durationDays} jours`}
+                                </p>
                                 <p className={`text-[13px] leading-relaxed
                                     ${plan.highlight ? 'text-white/70' : 'text-zinc-500 dark:text-zinc-400'}`}>
                                     {plan.description}
@@ -184,17 +193,13 @@ export default function PricingPage() {
                             <div className={`h-px mb-6
                                 ${plan.highlight ? 'bg-white/10' : 'bg-zinc-100 dark:bg-zinc-700/50'}`} />
 
-                            {/* Features */}
+                            {/* Avantages */}
                             <ul className="space-y-3.5 flex-1 mb-8">
-                                {plan.features.map((feature: Feature, j: number) => (
+                                {plan.advantages.map((advantage: Advantage, j: number) => (
                                     <li key={j} className="flex items-start gap-3">
-                                        {feature.included ? (
-                                            <Icon icon="solar:check-circle-bold" width={17} className={`shrink-0 mt-0.5 ${plan.highlight ? 'text-primary' : 'text-secondary dark:text-secondary'}`} />
-                                        ) : (
-                                            <Icon icon="solar:close-circle-linear" width={17} className={`shrink-0 mt-0.5 ${plan.highlight ? 'text-white/25' : 'text-zinc-300 dark:text-zinc-600'}`} />
-                                        )}
-                                        <span className={`text-[13px] leading-snug ${feature.included ? plan.highlight ? 'text-white/90' : 'text-zinc-700 dark:text-zinc-300' : plan.highlight ? 'text-white/30 line-through' : 'text-zinc-300 dark:text-zinc-600 line-through'}`}>
-                                            {feature.text}
+                                        <Icon icon="solar:check-circle-bold" width={17} className={`shrink-0 mt-0.5 ${plan.highlight ? 'text-primary' : 'text-secondary dark:text-secondary'}`} />
+                                        <span className={`text-[13px] leading-snug ${plan.highlight ? 'text-white/90' : 'text-zinc-700 dark:text-zinc-300'}`}>
+                                            {advantage.text}
                                         </span>
                                     </li>
                                 ))}

@@ -17,7 +17,6 @@ import { Select2 } from "@/components/ui/Select2";
 import CreateButton from "@/components/ui/CreateButton";
 import ConfirmAction, { ConfirmVariant } from "@/components/ui/ConfirmAction";
 import { useNotification } from "@/components/notifications/NotificationProvider";
-import { useSubscriptionCheck } from "@/hooks/useSubscriptionCheck";
 import { InputPhone, countries } from "@/components/ui/InputPhone";
 import ImageUploadGrid from "@/components/ui/ImageUploadGrid";
 import ProductsManagementContent from "@/components/store/sections/components/ProductsManagementContent";
@@ -99,7 +98,6 @@ interface RestaurantManagementProps {
 export default function RestaurantManagement({ onNavigateToOrders }: RestaurantManagementProps) {
     const { addNotification } = useNotification();
     const { getUserLocation } = useUserLocation();
-    const { checkEligibility, loading: checkLoading } = useSubscriptionCheck();
 
     const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
     const [loading, setLoading] = useState(true);
@@ -357,9 +355,7 @@ export default function RestaurantManagement({ onNavigateToOrders }: RestaurantM
 
     // ── Menu: création / édition ──
 
-    const openCreateMenuItem = async () => {
-        const canCreate = await checkEligibility('Product');
-        if (!canCreate) return;
+    const openCreateMenuItem = () => {
         setEditingMenuItem(null);
         setIsMenuModalOpen(true);
     };
@@ -490,7 +486,7 @@ export default function RestaurantManagement({ onNavigateToOrders }: RestaurantM
 
                     <AccordionSection id="menu" title="Menu" subtitle="Gérez les plats proposés par ce restaurant" icon="solar:chef-hat-bold-duotone" activeSection={activeSection} onToggle={toggleSection}>
                         <div className="mb-4">
-                            <CreateButton label="Ajouter un plat" loading={checkLoading} onClick={openCreateMenuItem} />
+                            <CreateButton label="Ajouter un plat" onClick={openCreateMenuItem} />
                         </div>
                         <ProductsManagementContent
                             loading={menuLoading}
@@ -583,7 +579,7 @@ export default function RestaurantManagement({ onNavigateToOrders }: RestaurantM
             <SectionHeader title="Mes restaurants" subtitle="Gérez vos établissements, leurs informations et leurs menus." className="mb-6" />
 
             <div className="w-full mb-4">
-                <CreateButton label="Ajouter un restaurant" loading={checkLoading} onClick={openCreateRestaurant} />
+                <CreateButton label="Ajouter un restaurant" onClick={openCreateRestaurant} />
             </div>
 
             {loading ? (

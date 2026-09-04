@@ -9,7 +9,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { getUserId, isAuthenticated } from "@/lib/auth";
-import { useSubscriptionCheck } from "@/hooks/useSubscriptionCheck";
 import ConfirmAction, { ConfirmVariant } from "@/components/ui/ConfirmAction";
 
 import ClientsManager from "@/components/logistics/sections/ClientsManager";
@@ -78,7 +77,6 @@ export default function QuotesList({ role, onBack }: QuotesListProps) {
 
     const { addNotification } = useNotification();
     const router = useRouter();
-    const { checkEligibility, loading: checkLoading } = useSubscriptionCheck();
 
     const fetchQuotes = async () => {
         setLoading(true);
@@ -231,16 +229,10 @@ export default function QuotesList({ role, onBack }: QuotesListProps) {
                     </div>
 
                     <button
-                        disabled={checkLoading}
-                        onClick={async () => {
-                            const canAction = await checkEligibility('LogisticService');
-                            if (canAction) {
-                                setIsManualModalOpen(true);
-                            }
-                        }}
+                        onClick={() => setIsManualModalOpen(true)}
                         className="w-full md:w-auto h-14 bg-primary text-white pl-6 pr-8 rounded-[1.8rem] font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 group disabled:opacity-50" >
                         <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center group-hover:rotate-90 transition-transform">
-                            {checkLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-5 h-5" /> : <Icon icon="solar:add-circle-bold" className="w-5 h-5" />}
+                            <Icon icon="solar:add-circle-bold" className="w-5 h-5" />
                         </div>
                         Créer un devis
                     </button>
@@ -372,15 +364,10 @@ export default function QuotesList({ role, onBack }: QuotesListProps) {
                                                             <Button
                                                                 size="sm"
                                                                 className="rounded-xl h-10 bg-primary hover:bg-secondary text-white font-black text-[10px] gap-2 px-6 shadow-lg shadow-primary/20 disabled:opacity-50"
-                                                                disabled={checkLoading}
-                                                                onClick={async () => {
-                                                                    const canAction = await checkEligibility('LogisticService');
-                                                                    if (canAction) {
-                                                                        setProposingPriceId(quote.id);
-                                                                        if (quote.montantTransac) setTempPrice(quote.montantTransac.toString());
-                                                                    }
+                                                                onClick={() => {
+                                                                    setProposingPriceId(quote.id);
+                                                                    if (quote.montantTransac) setTempPrice(quote.montantTransac.toString());
                                                                 }}>
-                                                                {checkLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : null}
                                                                 {quote.status === QuoteStatus.PROPOSED ? "MODIFIER LE PRIX" : "PROPOSER UN PRIX"}
                                                             </Button>
 
@@ -389,14 +376,9 @@ export default function QuotesList({ role, onBack }: QuotesListProps) {
                                                                     variant="outline"
                                                                     size="sm"
                                                                     className="rounded-xl h-10 border-primary/20 text-primary hover:bg-primary/5 font-black text-[10px] gap-2 disabled:opacity-50"
-                                                                    disabled={isNegotiating[quote.id] || checkLoading}
-                                                                    onClick={async () => {
-                                                                        const canAction = await checkEligibility('LogisticService');
-                                                                        if (canAction) {
-                                                                            handleNegotiate(quote);
-                                                                        }
-                                                                    }} >
-                                                                    {isNegotiating[quote.id] || checkLoading ? (
+                                                                    disabled={isNegotiating[quote.id]}
+                                                                    onClick={() => handleNegotiate(quote)} >
+                                                                    {isNegotiating[quote.id] ? (
                                                                         <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" />
                                                                     ) : (
                                                                         <Icon icon="solar:chat-round-dots-bold-duotone" className="w-4 h-4" />

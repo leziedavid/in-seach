@@ -14,7 +14,6 @@ import CreateButton from "@/components/ui/CreateButton";
 import ConfirmAction, { ConfirmVariant } from "@/components/ui/ConfirmAction";
 import { useNotification } from "@/components/notifications/NotificationProvider";
 import { GAS_BOTTLE_FORMAT_CONFIG } from "@/components/gas-delivery/gasBottleFormat";
-import { useSubscriptionCheck } from "@/hooks/useSubscriptionCheck";
 
 const UserMap = dynamic(() => import("@/components/ui/Maps"), {
     ssr: false,
@@ -43,7 +42,6 @@ const STATUS_LABEL: Record<string, string> = {
 export default function GasProviderDashboard() {
     const { addNotification } = useNotification();
     const { getUserLocation } = useUserLocation();
-    const { checkEligibility, checkFeatureAccess, loading: checkLoading } = useSubscriptionCheck();
 
     const [activeSection, setActiveSection] = useState<string | null>("profil");
     const toggleSection = (id: string) => setActiveSection(prev => prev === id ? null : id);
@@ -195,9 +193,7 @@ export default function GasProviderDashboard() {
         }
     };
 
-    const openCreateBottle = async () => {
-        const canCreate = await checkEligibility('GasBottle');
-        if (!canCreate) return;
+    const openCreateBottle = () => {
         setEditingBottle(null);
         setBottleForm({ brand: "", format: GasBottleFormat.B12, weight: "", price: "", isAvailable: true });
         setIsBottleModalOpen(true);
@@ -246,8 +242,6 @@ export default function GasProviderDashboard() {
 
     const confirmAccept = (delivery: GasDelivery) => {
         openConfirm(async () => {
-            const canProceed = await checkFeatureAccess();
-            if (!canProceed) return;
             const res = await acceptGasDelivery(delivery.id);
             if (res.statusCode === 200) {
                 addNotification("Demande acceptée — les coordonnées du client sont maintenant visibles", "success");
@@ -261,8 +255,6 @@ export default function GasProviderDashboard() {
 
     const confirmStatusChange = (delivery: GasDelivery, status: GasDeliveryStatus, label: string) => {
         openConfirm(async () => {
-            const canProceed = await checkFeatureAccess();
-            if (!canProceed) return;
             const res = await updateGasDeliveryStatus(delivery.id, status);
             if (res.statusCode === 200) {
                 addNotification("Statut mis à jour", "success");
@@ -358,7 +350,7 @@ export default function GasProviderDashboard() {
                     onToggle={toggleSection}
                 >
                     <div className="mb-4">
-                        <CreateButton label="Ajouter une bouteille" loading={checkLoading} onClick={openCreateBottle} />
+                        <CreateButton label="Ajouter une bouteille" onClick={openCreateBottle} />
                     </div>
 
                     {bottles.length === 0 ? (

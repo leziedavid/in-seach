@@ -25,7 +25,6 @@ const ROLE_LABELS: Record<string, string> = {
     PRESTATAIRE: 'Prestataire',
     ENTREPRISE: 'Entreprise',
     CHAUFFEUR: 'Chauffeur',
-    LIVREUR: 'Livreur',
     GAZIER: 'Gazier',
 };
 

@@ -188,10 +188,9 @@
             "products": "Produits",
             "services": "Services",
             "annonces": "Annonces",
-            "subscriptions": "Abonnements",
+            "subscriptions": "Packs de rechargement",
             "videos": "Vidéos",
             "sliders": "Sliders",
-            "easy_delivery": "Easy-Delivery",
             "logistics": "Logistique",
             "settings": "Paramètres",
             "location_logs": "Logs location",
@@ -400,83 +399,42 @@
             "status_update_success": "Statut administratif mis à jour",
             "active_update_success": "Activation frontend mise à jour"
         },
-        "easy_delivery": {
-            "title": "Gestion Easy-Delivery",
-            "subtitle": "Gérez tous les profils de livreurs de la plateforme",
-            "search_placeholder": "Rechercher par nom, entreprise, email...",
-            "total_profiles": "{count} Profils au total",
-            "delivery_man": "Livreur",
-            "type_engin": "Type / Engin",
-            "pricing": "Tarification",
-            "base_price": "Base + {price} / km",
-            "collective": "Collectif",
-            "individual": "Individuel",
-            "independent": "Indépendant",
-            "success_update": "Profil mis à jour par l'administrateur",
-            "success_delete": "Profil supprimé avec succès",
-            "error_load": "Erreur lors du chargement des profils",
-            "confirm_delete": "Êtes-vous sûr de vouloir supprimer ce profil de livraison ?",
-            "engines": {
-                "VELO": "Vélo",
-                "VOITURE": "Voiture",
-                "MOTO": "Moto",
-                "CAMION": "Camion"
-            }
-        },
         "subscriptions": {
-            "title": "Abonnements",
-            "subtitle": "Gestion des revenus, plans tarifaires et limitations système.",
+            "title": "Packs de rechargement",
+            "subtitle": "Gestion des packs de rechargement programmé du Wallet.",
             "error_load": "Erreur lors du chargement des données",
             "tabs": {
                 "overview": "Overview",
-                "plans": "Plans",
-                "entities": "Entités",
-                "users": "Souscriptions"
+                "plans": "Packs",
+                "users": "Recharges"
             },
             "system": {
-                "title": "Système de Restriction",
-                "desc": "Une fois activé, les quotas définis dans les plans s'appliquent automatiquement.",
+                "title": "Facturation Wallet",
+                "desc": "Interrupteur global de la facturation Wallet (recharges, débits) pour toute la plateforme — même réglage que « Facturation » dans les paramètres.",
                 "active": "Activé",
                 "inactive": "Désactivé",
-                "success_toggle": "Système d'abonnement {status}"
+                "success_toggle": "Facturation Wallet {status}"
             },
             "stats": {
-                "active_plans": "Plans Actifs",
-                "entities": "Entités",
-                "subscribers": "Abonnés",
+                "active_plans": "Packs Actifs",
+                "subscribers": "Recharges programmées",
                 "revenue": "Chiffre d'Affaires"
             },
             "plans": {
-                "new": "Nouveau Plan",
-                "edit": "Éditer le Plan",
-                "success_create": "Plan créé",
-                "success_update": "Plan mis à jour",
-                "success_delete": "Plan supprimé",
-                "confirm_delete": "Supprimer ce plan ?",
+                "new": "Nouveau Pack",
+                "edit": "Éditer le Pack",
+                "success_create": "Pack créé",
+                "success_update": "Pack mis à jour",
+                "success_delete": "Pack supprimé",
+                "confirm_delete": "Supprimer ce pack ?",
                 "active": "Actif",
                 "inactive": "Inactif",
-                "unlimited": "ILLIMITÉ",
-                "limit_desc": "Limite: {count} unités",
                 "period": "{days}j",
-                "desc": "Gérez les offres d'abonnement et leurs limitations."
-            },
-            "entities": {
-                "title": "Modèles Restreints",
-                "subtitle": "Configurez les tables Prisma soumises aux quotas.",
-                "new": "Nouvelle Entité",
-                "edit": "Éditer l'Entité",
-                "success_create": "Entité créée",
-                "success_update": "Entité mise à jour",
-                "success_delete": "Entité supprimée",
-                "confirm_delete": "Supprimer cette entité ? Cela pourrait impacter les plans existants.",
-                "linked_plans": "{count} Plans Liés",
-                "model_id": "Identifiant du modèle",
-                "model_desc": "Nom technique du modèle (ex: Service, Annonce).",
-                "placeholder": "ex: Service"
+                "desc": "Montant crédité au Wallet et fréquence de rechargement automatique."
             },
             "users": {
-                "title": "Clients & Souscriptions",
-                "subtitle": "Historique et statut des abonnements utilisateurs.",
+                "title": "Recharges programmées",
+                "subtitle": "Historique et statut des recharges programmées par pack.",
                 "assign_manual": "Attribution Manuelle",
                 "success_assign": "Plan assigné avec succès",
                 "error_load": "Erreur lors du chargement des abonnements",
@@ -496,11 +454,11 @@
                     "reject": "REJETER"
                 },
                 "modal": {
-                    "title": "Assignation Manuelle",
-                    "desc": "Forcer l'abonnement d'un utilisateur à un plan spécifique.",
+                    "title": "Attribution Manuelle",
+                    "desc": "Attribuer manuellement un pack de rechargement à un utilisateur.",
                     "user_id": "UUID Utilisateur",
-                    "plan_select": "Sélection du Plan",
-                    "plan_placeholder": "Choisir un plan..."
+                    "plan_select": "Sélection du Pack",
+                    "plan_placeholder": "Choisir un pack..."
                 }
             }
         },
@@ -694,7 +652,6 @@
             "role_particular": "Particulier",
             "role_professional": "Professionnel",
             "role_logistician": "Logisticien",
-            "role_deliverer": "Livreur",
             "role_gas_provider": "Fournisseur de gaz",
             "role_garagiste": "Garagiste",
             "role_modal": {
@@ -703,7 +660,6 @@
                 "desc_particular": "Achetez et réservez des services facilement.",
                 "desc_professional": "Proposez vos services et vendez vos produits.",
                 "desc_logistician": "Gérez le transport et la logistique de marchandises.",
-                "desc_deliverer": "Effectuez des livraisons pour vos clients.",
                 "desc_gas_provider": "Vendez et livrez des bouteilles de gaz.",
                 "desc_garagiste": "Référencez votre garage et son catalogue de pièces auto."
             },
@@ -755,7 +711,6 @@
             "pricing": "Tarifs",
             "api_doc": "Documentation API",
             "settings": "Paramètres",
-            "deliverer_space": "Mon Espace Livreur",
             "gas_refill": "Recharge de gaz",
             "my_gas_bottles": "Mon espace gaz",
             "my_garages": "Mon Garage",
@@ -771,7 +726,6 @@
                 "prestataire": "Prestataire",
                 "entreprise": "Entreprise Logistique",
                 "chauffeur": "Chauffeur",
-                "livreur": "Livreur EasyDelivery",
                 "gazier": "Fournisseur de gaz",
                 "garagiste": "Garagiste",
                 "client": "Client"
@@ -849,13 +803,13 @@
             "legal_consent": "Consentement légal",
             "legal_desc": "Obligatoire pour utiliser les services",
             "privacy_info": "Conformément à la loi n°2013-450 sur la protection des données en Côte d'Ivoire, vos données sont protégées.",
-            "subscriptions": "Mes abonnements",
-            "subscriptions_subtitle": "Gestion de vos forfaits et renouvellements",
-            "no_active_plan": "Aucun plan actif",
-            "premium_unlock": "Passez au premium pour débloquer toutes les fonctionnalités.",
-            "view_pricing": "Voir les tarifs",
+            "subscriptions": "Recharges programmées",
+            "subscriptions_subtitle": "Rechargement automatique et récurrent de votre Wallet",
+            "no_active_plan": "Aucune recharge programmée",
+            "premium_unlock": "Programmez un rechargement automatique de votre Wallet, pratique pour une activité régulière.",
+            "view_pricing": "Voir les packs disponibles",
             "renew": "Renouveler",
-            "expires_on": "Expire le :",
+            "expires_on": "Prochaine recharge le :",
             "details": "Détails",
             "danger_zone": "Zone de danger",
             "danger_subtitle": "Actions irréversibles et suspension",
@@ -1373,8 +1327,7 @@
                 "annonces": "Annonces",
                 "logistics": "Logistique",
                 "gas_delivery": "Recharge de gaz",
-                "garage": "Garages auto",
-                "easy_delivery": "Livraison rapide"
+                "garage": "Garages auto"
             },
             "descriptions": {
                 "get_services": "Récupérer la liste de vos services.",
@@ -1392,8 +1345,7 @@
                 "get_gas_provider": "Récupérer votre profil de prestataire de gaz.",
                 "get_gas_bottles": "Récupérer la liste de vos bouteilles de gaz.",
                 "get_garages": "Récupérer la liste de vos garages.",
-                "get_garage_pieces": "Récupérer le catalogue de pièces d'un de vos garages (paramètre garageId requis).",
-                "get_easy_delivery": "Récupérer votre profil de livreur (livraison rapide)."
+                "get_garage_pieces": "Récupérer le catalogue de pièces d'un de vos garages (paramètre garageId requis)."
             }
         }
     }

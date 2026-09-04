@@ -10,7 +10,6 @@ import { Modal } from "@/components/ui/MotionModal";
 import TrackingCard from "@/components/logistics/cards/TrackingCard";
 import DeliveryAssignmentModal from "@/components/logistics/modals/DeliveryAssignmentModal";
 import DocumentPreviewModal from "@/components/logistics/modals/DocumentPreviewModal";
-import { useSubscriptionCheck } from "@/hooks/useSubscriptionCheck";
 import OnBack from "@/components/shared/OnBack";
 
 interface DeliveriesListProps {
@@ -41,7 +40,6 @@ export default function DeliveriesList({ role, onBack }: DeliveriesListProps) {
     const [loadingDocId, setLoadingDocId] = useState<string | null>(null);
 
     const { addNotification } = useNotification();
-    const { checkEligibility, loading: checkLoading } = useSubscriptionCheck();
 
 
     const fetchDeliveries = async () => {
@@ -135,11 +133,8 @@ export default function DeliveriesList({ role, onBack }: DeliveriesListProps) {
 
                             <div className="flex items-center gap-2 md:gap-3 pl-0 md:pl-6 md:border-l border-border/50">
                                 {/* les bouton d'action  */}
-                                <Button className="rounded-xl h-10 bg-primary hover:bg-secondary text-white font-black text-xs gap-2 px-3 md:px-6 shadow-lg shadow-primary/20 transition-all active:scale-95 disabled:opacity-50" disabled={checkLoading} onClick={async () => {
-                                    const canAction = await checkEligibility('LogisticService');
-                                    if (canAction) { setSelectedDelivery(delivery); setIsTrackingModalOpen(true); }
-                                }}>
-                                    {checkLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:map-point-wave-bold-duotone" className="w-4 h-4" />}
+                                <Button className="rounded-xl h-10 bg-primary hover:bg-secondary text-white font-black text-xs gap-2 px-3 md:px-6 shadow-lg shadow-primary/20 transition-all active:scale-95 disabled:opacity-50" onClick={() => { setSelectedDelivery(delivery); setIsTrackingModalOpen(true); }}>
+                                    <Icon icon="solar:map-point-wave-bold-duotone" className="w-4 h-4" />
                                     <span className="hidden md:inline">SUIVRE</span>
                                 </Button>
 
@@ -162,12 +157,9 @@ export default function DeliveriesList({ role, onBack }: DeliveriesListProps) {
                                 </button>
 
                                 {role === "ENTREPRISE" && (
-                                    <button disabled={checkLoading} onClick={async () => {
-                                        const canAction = await checkEligibility('LogisticService'); // Or 'Delivery' depending on your config mapping
-                                        if (canAction) { setSelectedDelivery(delivery); setIsAssignModalOpen(true); }
-                                    }}
+                                    <button onClick={() => { setSelectedDelivery(delivery); setIsAssignModalOpen(true); }}
                                         className="w-10 h-10 rounded-xl bg-primary/5 hover:bg-primary/10 text-primary flex items-center justify-center transition-all shadow-sm shrink-0 disabled:opacity-50" title="Affectations (Chauffeurs & Flotte)">
-                                        {checkLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-5 h-5" /> : <Icon icon="solar:user-speak-bold-duotone" className="w-5 h-5" />}
+                                        <Icon icon="solar:user-speak-bold-duotone" className="w-5 h-5" />
                                     </button>
                                 )}
 

@@ -19,11 +19,7 @@ const partners = [
 const faqs = [
   {
     q: "Qu'est-ce que Djamko exactement ?",
-    a: "Djamko est un écosystème digital tout-en-un qui réunit les services à la demande, la marketplace, la logistique export, EasyDelivery et les annonces immobilières sur une seule plateforme.",
-  },
-  {
-    q: "Qu'est-ce qu'EasyDelivery ?",
-    a: "EasyDelivery est le module de livraison locale de Djamko. Il connecte les vendeurs et particuliers à des coursiers vérifiés pour des livraisons rapides et suivies en temps réel dans votre ville.",
+    a: "Djamko est un écosystème digital tout-en-un qui réunit les services à la demande, la marketplace, la logistique export et les annonces immobilières sur une seule plateforme.",
   },
   {
     q: "Comment fonctionne la mise en relation par IA ?",
@@ -31,7 +27,7 @@ const faqs = [
   },
   {
     q: "Djamko est-il disponible dans ma ville ?",
-    a: "Djamko est actif à Abidjan et continue son expansion rapide. Les services à la demande, la marketplace et EasyDelivery sont disponibles dès maintenant.",
+    a: "Djamko est actif à Abidjan et continue son expansion rapide. Les services à la demande et la marketplace sont disponibles dès maintenant.",
   },
   {
     q: "Puis-je publier des annonces immobilières ?",
@@ -315,39 +311,6 @@ export default function SolutionsPage() {
               utility="Filtres avancés, localisation précise et alertes personnalisées pour être le premier informé des nouvelles annonces."
               icon="solar:filter-bold-duotone"
               iconColor="text-emerald-500"
-              delay={0.1}
-            />
-          </div>
-        </div>
-      </SectionBlock>
-
-      {/* ── EASY DELIVERY ── */}
-      <SectionBlock
-        id="easy-delivery"
-        title="EasyDelivery"
-        subtitle="Module Additif"
-        reversed
-        illustration={<IconIllustration icon="solar:scooter-bold-duotone" size={110} className="text-primary" />}
-      >
-        <div className="space-y-6">
-          <p className="text-sm md:text-base text-muted-foreground leading-relaxed text-center lg:text-left">
-            Envoyez et recevez vos colis en ville en quelques minutes.
-            EasyDelivery connecte vendeurs, acheteurs et coursiers vérifiés sur une interface unifiée.
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <FeatureCard
-              title="Coursiers Vérifiés"
-              description="Fiabilité à chaque livraison."
-              utility="Chaque coursier est vérifié, noté et géolocalisé. Recevez des notifications à chaque étape de votre livraison."
-              icon="solar:user-check-rounded-bold-duotone"
-              iconColor="text-primary"
-            />
-            <FeatureCard
-              title="Suivi Temps Réel"
-              description="Votre colis sous les yeux."
-              utility="Suivez votre livraison sur la carte en temps réel, de l'enlèvement jusqu'à la remise en main propre."
-              icon="solar:routing-bold-duotone"
-              iconColor="text-primary"
               delay={0.1}
             />
           </div>

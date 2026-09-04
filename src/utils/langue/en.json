@@ -188,10 +188,9 @@
             "products": "Products",
             "services": "Services",
             "annonces": "Ads",
-            "subscriptions": "Subscriptions",
+            "subscriptions": "Recharge Packs",
             "videos": "Videos",
             "sliders": "Sliders",
-            "easy_delivery": "Easy-Delivery",
             "logistics": "Logistics",
             "settings": "Settings",
             "location_logs": "Location logs",
@@ -400,83 +399,42 @@
             "status_update_success": "Administrative status updated",
             "active_update_success": "Frontend activation updated"
         },
-        "easy_delivery": {
-            "title": "Easy-Delivery Management",
-            "subtitle": "Manage all delivery profiles on the platform",
-            "search_placeholder": "Search by name, company, email...",
-            "total_profiles": "{count} Profiles in total",
-            "delivery_man": "Delivery Man",
-            "type_engin": "Type / Vehicle",
-            "pricing": "Pricing",
-            "base_price": "Base + {price} / km",
-            "collective": "Collective",
-            "individual": "Individual",
-            "independent": "Independent",
-            "success_update": "Profile updated by administrator",
-            "success_delete": "Profile successfully deleted",
-            "error_load": "Error loading profiles",
-            "confirm_delete": "Are you sure you want to delete this delivery profile?",
-            "engines": {
-                "VELO": "Bicycle",
-                "VOITURE": "Car",
-                "MOTO": "Motorcycle",
-                "CAMION": "Truck"
-            }
-        },
         "subscriptions": {
-            "title": "Subscriptions",
-            "subtitle": "Revenue management, pricing plans and system limitations.",
+            "title": "Recharge Packs",
+            "subtitle": "Manage scheduled recurring Wallet top-up packs.",
             "error_load": "Error loading data",
             "tabs": {
                 "overview": "Overview",
-                "plans": "Plans",
-                "entities": "Entities",
-                "users": "Subscriptions"
+                "plans": "Packs",
+                "users": "Recharges"
             },
             "system": {
-                "title": "Restriction System",
-                "desc": "Once activated, quotas defined in plans are automatically applied.",
+                "title": "Wallet Billing",
+                "desc": "Global switch for Wallet billing (top-ups, debits) across the whole platform — same setting as \"Billing\" in settings.",
                 "active": "Active",
                 "inactive": "Inactive",
-                "success_toggle": "Subscription system {status}"
+                "success_toggle": "Wallet billing {status}"
             },
             "stats": {
-                "active_plans": "Active Plans",
-                "entities": "Entities",
-                "subscribers": "Subscribers",
+                "active_plans": "Active Packs",
+                "subscribers": "Scheduled Recharges",
                 "revenue": "Revenue"
             },
             "plans": {
-                "new": "New Plan",
-                "edit": "Edit Plan",
-                "success_create": "Plan created",
-                "success_update": "Plan updated",
-                "success_delete": "Plan deleted",
-                "confirm_delete": "Delete this plan?",
+                "new": "New Pack",
+                "edit": "Edit Pack",
+                "success_create": "Pack created",
+                "success_update": "Pack updated",
+                "success_delete": "Pack deleted",
+                "confirm_delete": "Delete this pack?",
                 "active": "Active",
                 "inactive": "Inactive",
-                "unlimited": "UNLIMITED",
-                "limit_desc": "Limit: {count} units",
                 "period": "{days}d",
-                "desc": "Service quota configuration."
-            },
-            "entities": {
-                "title": "Restricted Models",
-                "subtitle": "Configure Prisma tables subject to quotas.",
-                "new": "New Entity",
-                "edit": "Edit Entity",
-                "success_create": "Entity created",
-                "success_update": "Entity updated",
-                "success_delete": "Entity deleted",
-                "confirm_delete": "Delete this entity? This could impact existing plans.",
-                "linked_plans": "{count} Linked Plans",
-                "model_id": "Model identifier",
-                "model_desc": "Technical name of the model (e.g. Service, Annonce).",
-                "placeholder": "e.g. Service"
+                "desc": "Amount credited to the Wallet and automatic recharge frequency."
             },
             "users": {
-                "title": "Customers & Subscriptions",
-                "subtitle": "User subscription history and status.",
+                "title": "Scheduled Recharges",
+                "subtitle": "History and status of pack-based scheduled recharges.",
                 "assign_manual": "Manual Assignment",
                 "success_assign": "Plan successfully assigned",
                 "success_validate": "Payment validated",
@@ -497,10 +455,10 @@
                 },
                 "modal": {
                     "title": "Manual Assignment",
-                    "desc": "Force a user's subscription to a specific plan.",
+                    "desc": "Manually assign a recharge pack to a user.",
                     "user_id": "User UUID",
-                    "plan_select": "Plan Selection",
-                    "plan_placeholder": "Choose a plan..."
+                    "plan_select": "Pack Selection",
+                    "plan_placeholder": "Choose a pack..."
                 }
             }
         },
@@ -694,7 +652,6 @@
             "role_particular": "Individual",
             "role_professional": "Professional",
             "role_logistician": "Logistician",
-            "role_deliverer": "Deliverer",
             "role_gas_provider": "Gas Provider",
             "role_garagiste": "Garage Owner",
             "role_modal": {
@@ -703,7 +660,6 @@
                 "desc_particular": "Buy and book services easily.",
                 "desc_professional": "Offer your services and sell your products.",
                 "desc_logistician": "Manage freight transport and logistics.",
-                "desc_deliverer": "Make deliveries for your clients.",
                 "desc_gas_provider": "Sell and deliver gas bottles.",
                 "desc_garagiste": "List your garage and its auto parts catalogue."
             },
@@ -755,7 +711,6 @@
             "pricing": "Pricing",
             "api_doc": "API Documentation",
             "settings": "Settings",
-            "deliverer_space": "My Deliverer Space",
             "gas_refill": "Gas Refill",
             "my_gas_bottles": "My Gas Space",
             "my_garages": "My Garage",
@@ -771,7 +726,6 @@
                 "prestataire": "Provider",
                 "entreprise": "Logistics Company",
                 "chauffeur": "Driver",
-                "livreur": "EasyDelivery Deliverer",
                 "gazier": "Gas Provider",
                 "garagiste": "Garage Owner",
                 "client": "Client"
@@ -849,13 +803,13 @@
             "legal_consent": "Legal Consent",
             "legal_desc": "Mandatory to use services",
             "privacy_info": "In accordance with Law No. 2013-450 on data protection in Ivory Coast, your data is protected.",
-            "subscriptions": "My Subscriptions",
-            "subscriptions_subtitle": "Manage your plans and renewals",
-            "no_active_plan": "No active plan",
-            "premium_unlock": "Go premium to unlock all features.",
-            "view_pricing": "View Pricing",
+            "subscriptions": "Scheduled Recharges",
+            "subscriptions_subtitle": "Automatic recurring Wallet top-ups",
+            "no_active_plan": "No scheduled recharge",
+            "premium_unlock": "Set up an automatic Wallet top-up, handy for regular activity.",
+            "view_pricing": "View available packs",
             "renew": "Renew",
-            "expires_on": "Expires on:",
+            "expires_on": "Next recharge on:",
             "details": "Details",
             "danger_zone": "Danger Zone",
             "danger_subtitle": "Irreversible actions and suspension",
@@ -1373,8 +1327,7 @@
                 "annonces": "Ads",
                 "logistics": "Logistics",
                 "gas_delivery": "Gas Delivery",
-                "garage": "Auto Garages",
-                "easy_delivery": "Express Delivery"
+                "garage": "Auto Garages"
             },
             "descriptions": {
                 "get_services": "Get your services list.",
@@ -1392,7 +1345,6 @@
                 "get_gas_bottles": "Get your gas bottles list.",
                 "get_garages": "Get your garages list.",
                 "get_garage_pieces": "Get one of your garages' parts catalogue (requires garageId parameter).",
-                "get_easy_delivery": "Get your driver profile (express delivery).",
                 "track_delivery": "Track a specific delivery."
             }
         }

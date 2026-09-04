@@ -78,7 +78,7 @@ export default function BookingsPage({
     const total = propTotal ?? (bookings.length > 0 ? totalPages * limit : 0);
 
     // ── Changement de statut (hook partagé avec BookingDetail) ─────
-    const { confirmState, isConfirming, subscriptionLoading, requestAction, closeConfirm, execute } = useBookingStatusAction({
+    const { confirmState, isConfirming, requestAction, closeConfirm, execute } = useBookingStatusAction({
         onChanged: () => {
             if (propData) onSuccess?.();
             fetchBookings();
@@ -258,27 +258,27 @@ export default function BookingsPage({
                                                 </div>
                                             )}
 
-                                            {/* Provider Actions — subscription check required */}
+                                            {/* Provider Actions */}
                                             {isBookingProvider && (
                                                 <div className="flex items-center gap-2">
                                                     {booking.status === BookingStatus.PENDING && (
-                                                        <Button size="sm" disabled={subscriptionLoading} className="h-8 px-3 text-[10px] font-black bg-blue-600 hover:bg-blue-700 flex items-center gap-1.5"
+                                                        <Button size="sm" disabled={isConfirming} className="h-8 px-3 text-[10px] font-black bg-blue-600 hover:bg-blue-700 flex items-center gap-1.5"
                                                             onClick={(e) => { e.stopPropagation(); requestAction(booking.id, 'validate'); }}>
-                                                            {subscriptionLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:check-circle-bold" className="w-4 h-4" />}
+                                                            {isConfirming ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:check-circle-bold" className="w-4 h-4" />}
                                                             <span className="hidden sm:inline">{t("akwaba.bookings.actions.accept")}</span>
                                                         </Button>
                                                     )}
                                                     {booking.status === BookingStatus.ACCEPTED && (
-                                                        <Button size="sm" disabled={subscriptionLoading} className="h-8 px-3 text-[10px] font-black bg-indigo-600 hover:bg-indigo-700 flex items-center gap-1.5"
+                                                        <Button size="sm" disabled={isConfirming} className="h-8 px-3 text-[10px] font-black bg-indigo-600 hover:bg-indigo-700 flex items-center gap-1.5"
                                                             onClick={(e) => { e.stopPropagation(); requestAction(booking.id, 'start'); }}>
-                                                            {subscriptionLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:play-bold" className="w-4 h-4" />}
+                                                            {isConfirming ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:play-bold" className="w-4 h-4" />}
                                                             <span className="hidden sm:inline">{t("akwaba.bookings.actions.start")}</span>
                                                         </Button>
                                                     )}
                                                     {booking.status === BookingStatus.IN_PROGRESS && (
-                                                        <Button size="sm" disabled={subscriptionLoading} className="h-8 px-3 text-[10px] font-black bg-green-600 hover:bg-green-700 flex items-center gap-1.5"
+                                                        <Button size="sm" disabled={isConfirming} className="h-8 px-3 text-[10px] font-black bg-green-600 hover:bg-green-700 flex items-center gap-1.5"
                                                             onClick={(e) => { e.stopPropagation(); requestAction(booking.id, 'finish'); }}>
-                                                            {subscriptionLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:check-read-bold" className="w-4 h-4" />}
+                                                            {isConfirming ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:check-read-bold" className="w-4 h-4" />}
                                                             <span className="hidden sm:inline">{t("akwaba.bookings.actions.finish")}</span>
                                                         </Button>
                                                     )}

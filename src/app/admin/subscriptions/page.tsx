@@ -8,17 +8,13 @@ import {
     deleteSubscriptionPlanAdmin,
     isSubscriptionSystemEnabled,
     setSystemSubscriptionStatus,
-    adminGetPlanEntities,
-    adminCreatePlanEntity,
-    adminUpdatePlanEntity,
-    adminDeletePlanEntity,
     adminGetAllSubscriptions,
     adminAssignPlan,
     adminValidatePayment
 } from '@/api/api';
 import {
     CreditCard, Plus, Trash2, Edit3, CheckCircle2,
-    ShieldCheck, Users, Settings2, Layout, Database,
+    ShieldCheck, Users, Settings2, Layout,
     Search, Calendar, Mail, Phone, ExternalLink, MoreVertical, Edit2
 } from 'lucide-react';
 import { useNotification } from '@/components/notifications/NotificationProvider';
@@ -26,7 +22,6 @@ import { Switch } from '@/components/ui/switch';
 import {
     SubscriptionPlan,
     AdminSubscriptionPlanDto,
-    PlanEntity,
     AdminUserSubscription
 } from '@/types/interface';
 import { Modal } from '@/components/ui/MotionModal';
@@ -39,13 +34,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { useTranslation } from "@/utils/langue/hooks"
 
-type TabType = 'overview' | 'plans' | 'entities' | 'users';
+type TabType = 'overview' | 'plans' | 'users';
 
 export default function AdminSubscriptionsPage() {
     const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState<TabType>('overview');
     const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
-    const [entities, setEntities] = useState<PlanEntity[]>([]);
     const [userSubscriptions, setUserSubscriptions] = useState<AdminUserSubscription[]>([]);
     const [isSystemEnabled, setIsSystemEnabled] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -56,13 +50,9 @@ export default function AdminSubscriptionsPage() {
     // Modal states
     const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
     const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
-    const [isEntityModalOpen, setIsEntityModalOpen] = useState(false);
     const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
-
-    // Entity Form state
-    const [entityForm, setEntityForm] = useState({ id: '', entityName: '' });
 
     // Assign Form state
     const [assignForm, setAssignForm] = useState({ userId: '', planId: '' });
@@ -82,15 +72,13 @@ export default function AdminSubscriptionsPage() {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const [plansRes, systemRes, entitiesRes] = await Promise.all([
+            const [plansRes, systemRes] = await Promise.all([
                 getSubscriptionPlansAdmin({}),
                 isSubscriptionSystemEnabled(),
-                adminGetPlanEntities(),
             ]);
 
             if (plansRes.statusCode === 200 && plansRes.data) setPlans(plansRes.data.data);
             if (systemRes.statusCode === 200) setIsSystemEnabled(!!systemRes.data);
-            if (entitiesRes.statusCode === 200 && entitiesRes.data) setEntities(entitiesRes.data);
 
             await fetchSubscriptions(subPage);
         } catch (error) {
@@ -178,55 +166,6 @@ export default function AdminSubscriptionsPage() {
             }
         } catch (error) {
             addNotification(t("common.error"), "error");
-        }
-    };
-
-    // --- Entity Handlers ---
-    const handleCreateEntity = () => {
-        setEntityForm({ id: '', entityName: '' });
-        setIsEditing(false);
-        setIsEntityModalOpen(true);
-    };
-
-    const handleEditEntity = (entity: PlanEntity) => {
-        setEntityForm({ id: entity.id, entityName: entity.entityName });
-        setIsEditing(true);
-        setIsEntityModalOpen(true);
-    };
-
-    const handleEntitySubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsSubmitting(true);
-        try {
-            let res;
-            if (isEditing) {
-                res = await adminUpdatePlanEntity(entityForm.id, { entityName: entityForm.entityName });
-            } else {
-                res = await adminCreatePlanEntity({ entityName: entityForm.entityName });
-            }
-
-            if (res.statusCode === 201 || res.statusCode === 200) {
-                addNotification(isEditing ? t("admin.subscriptions.entities.success_update") : t("admin.subscriptions.entities.success_create"), "success");
-                setIsEntityModalOpen(false);
-                fetchData();
-            }
-        } catch (error) {
-            addNotification(t("common.error"), "error");
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
-    const handleDeleteEntity = async (id: string) => {
-        if (!confirm(t("admin.subscriptions.entities.confirm_delete"))) return;
-        try {
-            const res = await adminDeletePlanEntity(id);
-            if (res.statusCode === 200) {
-                addNotification(t("admin.subscriptions.entities.success_delete"), "success");
-                fetchData();
-            }
-        } catch (error) {
-            addNotification("Impossible de supprimer l'entité car elle est liée à des plans", "error");
         }
     };
 
@@ -402,12 +341,6 @@ export default function AdminSubscriptionsPage() {
                             {t("admin.subscriptions.tabs.plans")}
                         </button>
                         <button
-                            onClick={() => setActiveTab('entities')}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${activeTab === 'entities' ? 'bg-card shadow-xs text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
-                        >
-                            {t("admin.subscriptions.tabs.entities")}
-                        </button>
-                        <button
                             onClick={() => setActiveTab('users')}
                             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${activeTab === 'users' ? 'bg-card shadow-xs text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
                         >
@@ -449,7 +382,6 @@ export default function AdminSubscriptionsPage() {
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                         {[
                             { label: t("admin.subscriptions.stats.active_plans"), val: plans.filter(p => p.isActive).length, icon: CreditCard, color: '#3B82F6' },
-                            { label: t("admin.subscriptions.stats.entities"), val: entities.length, icon: Database, color: '#F59E0B' },
                             { label: t("admin.subscriptions.stats.subscribers"), val: userSubscriptions.length, icon: Users, color: '#10B981' },
                             { label: t("admin.subscriptions.stats.revenue"), val: '0 CFA', icon: ShieldCheck, color: '#EF4444' },
                         ].map((stat, i) => (
@@ -504,18 +436,12 @@ export default function AdminSubscriptionsPage() {
                                 </CardHeader>
 
                                 <CardContent className="p-4 pt-3 flex-1">
-                                    <div className="space-y-2">
-                                        <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-                                            <ShieldCheck className="w-3.5 h-3.5 text-primary flex-shrink-0" />
-                                            <span>{plan.serviceLimit === 999999 ? t("admin.subscriptions.plans.unlimited") : t("admin.subscriptions.plans.limit_desc", { count: plan.serviceLimit })}</span>
-                                        </div>
-                                        <div className="flex flex-wrap gap-1.5 mt-2">
-                                            {plan.entities?.map((ent) => (
-                                                <Badge key={ent.id} variant="outline" className="text-[8px] font-semibold uppercase tracking-wider py-0 rounded-md bg-muted/50 border-border/50">
-                                                    {ent.entityName}
-                                                </Badge>
-                                            ))}
-                                        </div>
+                                    <div className="flex flex-wrap gap-1.5">
+                                        {plan.defaultFeatures?.map((f) => (
+                                            <Badge key={f.id ?? f.label} variant="outline" className="text-[8px] font-semibold uppercase tracking-wider py-0 rounded-md bg-muted/50 border-border/50">
+                                                {f.label}
+                                            </Badge>
+                                        ))}
                                     </div>
                                 </CardContent>
 
@@ -525,39 +451,6 @@ export default function AdminSubscriptionsPage() {
                                         {t("admin.subscriptions.stats.subscribers", { count: plan._count?.subscriptions || 0 })}
                                     </div>
                                 </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            {/* TAB: ENTITIES */}
-            {activeTab === 'entities' && (
-                <div className="space-y-4 md:space-y-5 animate-in cubic-bezier duration-500">
-                    <div className="flex justify-between items-center gap-3">
-                        <div className="min-w-0">
-                            <h2 className="text-base font-semibold">{t("admin.subscriptions.entities.title")}</h2>
-                            <p className="text-muted-foreground text-xs mt-0.5">{t("admin.subscriptions.entities.subtitle")}</p>
-                        </div>
-                        <Button onClick={handleCreateEntity} variant="outline" className="rounded-xl font-semibold gap-2 text-xs h-8 px-3 flex-shrink-0">
-                            <Plus className="w-3.5 h-3.5" /> {t("admin.subscriptions.entities.new")}
-                        </Button>
-                    </div>
-
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                        {entities.map((entity) => (
-                            <div key={entity.id} className="bg-white dark:bg-zinc-900 rounded-2xl p-3 sm:p-4 border border-border shadow-sm group hover:border-primary/30 transition-all">
-                                <div className="flex justify-between items-start mb-3">
-                                    <div className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center border border-border/50 flex-shrink-0">
-                                        <Database className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                                    </div>
-                                    <div className="flex gap-1 group-hover:opacity-100 opacity-0 transition-opacity">
-                                        <Button variant="ghost" size="icon" onClick={() => handleEditEntity(entity)} className="h-6 w-6 rounded-lg"><Edit3 className="w-3 h-3" /></Button>
-                                        <Button variant="ghost" size="icon" onClick={() => handleDeleteEntity(entity.id)} className="h-6 w-6 rounded-lg hover:text-rose-500"><Trash2 className="w-3 h-3" /></Button>
-                                    </div>
-                                </div>
-                                <h3 className="font-semibold text-sm truncate">{entity.entityName}</h3>
-                                <p className="text-muted-foreground text-[10px] font-medium uppercase tracking-wider mt-0.5">{t("admin.subscriptions.entities.linked_plans", { count: entity._count?.plans || 0 })}</p>
                             </div>
                         ))}
                     </div>
@@ -607,31 +500,6 @@ export default function AdminSubscriptionsPage() {
                         isEditing={isEditing}
                         onClose={() => setIsPlanModalOpen(false)}
                     />
-                </div>
-            </Modal>
-
-            <Modal isOpen={isEntityModalOpen} onClose={() => setIsEntityModalOpen(false)}>
-                <div className="p-6">
-                    <h2 className="text-xl font-black mb-1">{isEditing ? t("admin.subscriptions.entities.edit") : t("admin.subscriptions.entities.new")}</h2>
-                    <p className="text-muted-foreground mb-6 text-sm font-medium tracking-tight">{t("admin.subscriptions.entities.model_desc")}</p>
-                    <form onSubmit={handleEntitySubmit} className="space-y-5">
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1 block ml-1">{t("admin.subscriptions.entities.model_id")}</label>
-                            <input
-                                value={entityForm.entityName}
-                                onChange={(e) => setEntityForm({ ...entityForm, entityName: e.target.value })}
-                                placeholder={t("admin.subscriptions.entities.placeholder")}
-                                className="w-full bg-muted border-border/50 border rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none transition-all"
-                                required
-                            />
-                        </div>
-                        <div className="flex justify-end gap-2 pt-2">
-                            <Button variant="ghost" type="button" onClick={() => setIsEntityModalOpen(false)}>{t("common.cancel")}</Button>
-                            <Button type="submit" disabled={isSubmitting} className="font-bold rounded-xl px-8">
-                                {isSubmitting ? '...' : (isEditing ? t("common.save") : t("common.add"))}
-                            </Button>
-                        </div>
-                    </form>
                 </div>
             </Modal>
 

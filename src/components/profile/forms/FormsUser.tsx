@@ -30,7 +30,7 @@ interface FormsUserProps {
 
 // Traductions existantes pour les rôles déjà proposés avant la refonte RBAC —
 // repli sur le nom (français) renvoyé par le backend pour tout autre rôle
-// système (LIVREUR, GAZIER, MARKETING, GARAGISTE_VENTE_PIECE_AUTO, ...).
+// système (GAZIER, MARKETING, GARAGISTE_VENTE_PIECE_AUTO, ...).
 const ROLE_LABEL_KEYS: Record<string, TKey> = {
     CLIENT: "akwaba.forms.user.roles.client",
     PRESTATAIRE: "akwaba.forms.user.roles.provider",

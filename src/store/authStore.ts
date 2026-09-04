@@ -3,6 +3,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { getMyRoles, getMyAuthorizations } from '@/api/api';
+import { isAuthenticated } from '@/lib/auth';
 import { AuthorizationNode } from '@/types/interface';
 
 interface AuthState {
@@ -39,6 +40,9 @@ export const useAuthStore = create<AuthState>()(
             hydrate: async (force = false) => {
                 if (get().hydrating) return;
                 if (get().hydrated && !force) return;
+                // Pas de session : inutile d'appeler des routes protégées par JWT, elles
+                // échoueraient de toute façon (401, ou "Failed to fetch" hors ligne).
+                if (!isAuthenticated()) return;
 
                 set({ hydrating: true });
                 try {

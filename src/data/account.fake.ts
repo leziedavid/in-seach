@@ -31,7 +31,6 @@ export const fakeUser: UserProfile = {
             id: "p1",
             name: "Premium Pro",
             price: 15000,
-            serviceLimit: 50,
             durationDays: 30,
             isActive: true
         }

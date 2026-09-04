@@ -112,12 +112,6 @@ export default function ApiDocumentation({ onBack }: ApiDocumentationProps) {
         { method: 'GET', url: '/open-api/garage-pieces?garageId=XXX', description: t('api.endpoints.descriptions.get_garage_pieces'), noPagination: true },
       ],
     },
-    {
-      category: t('api.endpoints.categories.easy_delivery'),
-      endpoints: [
-        { method: 'GET', url: '/open-api/easy-delivery', description: t('api.endpoints.descriptions.get_easy_delivery'), noPagination: true },
-      ],
-    },
   ];
 
   const [activeTab, setActiveTab] = useState<'docs' | 'stats'>('docs');

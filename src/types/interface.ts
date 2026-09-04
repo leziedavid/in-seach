@@ -28,7 +28,6 @@ export enum Role {
     ADMIN = 'ADMIN',
     ENTREPRISE = 'ENTREPRISE',
     CHAUFFEUR = 'CHAUFFEUR',
-    LIVREUR = 'LIVREUR',
     GAZIER = 'GAZIER',
     MARKETING = 'MARKETING',
     GARAGISTE_VENTE_PIECE_AUTO = 'GARAGISTE_VENTE_PIECE_AUTO',
@@ -306,16 +305,16 @@ export interface LogisticStats {
 
 
 
+// "Pack de rechargement" — `price` est le montant crédité au Wallet à la souscription et à
+// chaque renouvellement automatique (voir subscription-cron.service.ts), pas un tarif d'accès.
 export interface SubscriptionPlan {
     id: string;
     name: string;
     price: number;
-    serviceLimit: number;
     durationDays: number;
     isActive: boolean;
     description?: string;
     defaultFeatures?: { id?: string; label: string }[];
-    entities?: PlanEntity[];
     _count?: {
         subscriptions: number;
     };
@@ -1038,20 +1037,9 @@ export interface AdminAnnonceUpdateDto {
 export interface AdminSubscriptionPlanDto {
     name: string;
     price: number;
-    serviceLimit: number;
     durationDays: number;
     isActive: boolean;
     defaultFeatures?: string[];
-    entityIds?: string[];
-}
-
-export interface PlanEntity {
-    id: string;
-    entityName: string;
-    createdAt: string;
-    _count?: {
-        plans: number;
-    };
 }
 
 export interface AdminUserSubscription extends Subscription {
@@ -1405,91 +1393,6 @@ export interface Video {
     updatedAt: string;
 }
 
-// ===============================
-// EASY DELIVERY
-// ===============================
-
-export enum EasyDeliveryStatus {
-    PENDING = 'PENDING',
-    ACCEPTED = 'ACCEPTED',
-    PICKED_UP = 'PICKED_UP',
-    IN_TRANSIT = 'IN_TRANSIT',
-    ARRIVED = 'ARRIVED',
-    DELIVERED = 'DELIVERED',
-    CANCELLED = 'CANCELLED',
-}
-
-export enum EasyDeliveryType {
-    PARTICULIER = 'PARTICULIER',
-    ENTREPRISE = 'ENTREPRISE',
-}
-
-export enum TypeEngin {
-    VELO = 'VELO',
-    VOITURE = 'VOITURE',
-    MOTO = 'MOTO',
-    CAMION = 'CAMION',
-}
-
-export interface EasyDelivery {
-    id: string;
-    userId: string;
-    user?: Partial<User>;
-    deliveryBasePrice?: number;
-    deliveryOvertPrice?: number;
-    companyName?: string;
-    type: EasyDeliveryType;
-    typeEngin?: TypeEngin;
-    deliveryLogo?: string;
-    isActive: boolean;
-    activeDeliveriesCount?: number;
-    historyDeliveries?: HistoryDelivery[];
-    createdAt: string;
-    updatedAt: string;
-}
-
-export interface HistoryDelivery {
-    id: string;
-    easyDeliveryId: string;
-    easyDelivery?: EasyDelivery;
-    orderId?: string;
-    currentLat?: number;
-    currentLng?: number;
-    lastLocationUpdateAt?: string;
-    pickupLat?: number;
-    pickupLng?: number;
-    dropoffLat?: number;
-    dropoffLng?: number;
-    routePolyline?: string;
-    status: EasyDeliveryStatus;
-    statusUpdatedAt?: string;
-    estimatedPickupTime?: string;
-    estimatedDeliveryTime?: string;
-    actualPickupTime?: string;
-    actualDeliveryTime?: string;
-    driverName?: string;
-    driverPhone?: string;
-    vehicleType?: string;
-    vehiclePlateNumber?: string;
-    deliveryNotes?: string;
-    recipientName?: string;
-    recipientPhone?: string;
-    deliveryPrice?: number;
-    paymentStatus?: PaymentStatus;
-    eta?: number | null;
-    createdAt: string;
-    updatedAt: string;
-}
-
-export interface DriverStats {
-    total: number;
-    delivered: number;
-    cancelled: number;
-    pending: number;
-    successRate: number;
-    totalEarnings: number;
-}
-
 export interface Slider {
     id: string;
     title: string;
@@ -1702,6 +1605,8 @@ export type WalletTransactionType =
     | 'SUBSCRIPTION_PAYMENT'
     | 'REFUND'
     | 'ADMIN_ADJUSTMENT'
+    | 'SERVICE_FEE'
+    | 'PLATFORM_FEE_INCOME'
     | 'OTHER';
 export type WalletTransactionDirection = 'CREDIT' | 'DEBIT';
 export type WalletTransactionStatus = 'PENDING' | 'WAITING_VALIDATION' | 'SUCCESS' | 'REJECTED';
@@ -1713,10 +1618,44 @@ export interface Wallet {
     pendingBalance: number;
     isSuspended: boolean;
     welcomeBonusVisible: boolean;
+    isPlatformWallet?: boolean;
     createdAt: string;
     updatedAt: string;
     user?: { id: string; fullName?: string; email?: string; phone?: string };
 }
+
+// ─────────────────────────────────────────
+// SERVICE FEES CONFIG (moteur de facturation Wallet)
+// ─────────────────────────────────────────
+
+export type FeeType = 'PERCENTAGE' | 'FIXED' | 'FREE';
+
+export interface ServiceFeeConfig {
+    id: string;
+    serviceName: string;
+    displayName: string;
+    feeType: FeeType;
+    feeValue: number;
+    minimumFee?: number | null;
+    maximumFee?: number | null;
+    currency: string;
+    isActive: boolean;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface CreateServiceFeeConfigDto {
+    serviceName: string;
+    displayName: string;
+    feeType: FeeType;
+    feeValue: number;
+    minimumFee?: number;
+    maximumFee?: number;
+    currency?: string;
+    isActive?: boolean;
+}
+
+export type UpdateServiceFeeConfigDto = Partial<CreateServiceFeeConfigDto>;
 
 export interface WalletTransaction {
     id: string;

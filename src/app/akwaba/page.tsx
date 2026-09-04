@@ -3,9 +3,8 @@
 import { useState, useMemo, useEffect } from 'react';
 
 import FloteManager from '@/components/logistics/sections/FloteManager';
-import EasyDeliveryPage from '@/components/delivery/sections/EasyDeliveryPage';
 import Sidebar, { TabType } from './Sidebar';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { getMySpace, upsertLocationLog, getMenusByType } from '@/api/api';
 import { queryKeys } from '@/lib/queryKeys';
@@ -46,6 +45,7 @@ import UnifiedHistory from '@/components/history/UnifiedHistory';
 import FournisseurBoutique from '@/components/fournisseur/sections/FournisseurBoutique';
 import FournisseurQuotesList from '@/components/fournisseur/sections/FournisseurQuotesList';
 import RestaurantManagement from '@/components/restaurant/sections/RestaurantManagement';
+import BillingGuide from '@/components/billing/BillingGuide';
 import { useTranslation } from '@/utils/langue/hooks';
 import { Icon } from '@iconify/react';
 import Overview from '@/components/profile/Overview';
@@ -54,6 +54,7 @@ import Overview from '@/components/profile/Overview';
 export default function Page() {
     const { t } = useTranslation();
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { getUserLocation } = useUserLocation();
 
     const [isMounted, setIsMounted] = useState(false);
@@ -125,11 +126,14 @@ export default function Page() {
         window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
     }, [activeTab]);
 
-    // Effect to set initial tab once role is known
+    // Effect to set initial tab once role is known — un lien externe (ex: /pricing) ou un
+    // favori vers /akwaba?tab=X doit ouvrir directement cet onglet plutôt que l'accueil par
+    // défaut du rôle, qui écraserait sinon systématiquement le paramètre d'URL au montage.
     useEffect(() => {
         if (userRole) {
-            if (userRole === Role.LIVREUR) {
-                setActiveTab('Livreur-dashboard');
+            const tabFromUrl = searchParams.get('tab') as TabType | null;
+            if (tabFromUrl) {
+                setActiveTab(tabFromUrl);
             } else if (userRole === Role.CHAUFFEUR) {
                 setActiveTab('Mes-livraisons');
             } else if (userRole === Role.GAZIER) {
@@ -144,12 +148,11 @@ export default function Page() {
                 setActiveTab('DashMenu');
             }
         }
-    }, [userRole]);
+    }, [userRole, searchParams]);
 
     // Onglet "accueil" par rôle — même mapping que l'effect ci-dessus, réutilisé pour calculer
     // la cible du bouton retour (OnBack) : jamais de flèche retour sur son propre accueil.
     const getHomeTab = (role: Role | null): TabType => {
-        if (role === Role.LIVREUR) return 'Livreur-dashboard';
         if (role === Role.CHAUFFEUR) return 'Mes-livraisons';
         if (role === Role.GAZIER) return 'Mes-bouteilles-gaz';
         if (role === Role.GARAGISTE_VENTE_PIECE_AUTO) return 'Mon-Garage';
@@ -376,12 +379,12 @@ export default function Page() {
                 return <FloteManager onBack={onBackToHome} />;
             case 'Paramètres':
                 return <AccountSettings onBack={onBackToHome} />;
+            case 'Facturation':
+                return <BillingGuide onBack={onBackToHome} />;
             case 'Documentation-API':
                 return <ApiDocumentation onBack={onBackToHome} />;
             case 'Mes-lives':
                 return <MyLivesList onBack={onBackToHome} />;
-            case 'Livreur-dashboard':
-                return <EasyDeliveryPage />;
             case 'Retours-SAV':
                 return <RetoursSAV onBack={onBackToHome} />;
             case 'Recharge-gaz':

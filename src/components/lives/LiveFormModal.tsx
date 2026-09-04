@@ -6,7 +6,6 @@ import { Modal } from "@/components/ui/MotionModal";
 import { createLive, updateLive } from "@/api/api";
 import { Live, LiveEntityType } from "@/types/interface";
 import { useNotification } from "@/components/notifications/NotificationProvider";
-import { useSubscriptionCheck } from "@/hooks/useSubscriptionCheck";
 import { Button } from "@/components/ui/button";
 import { Select2 } from "@/components/ui/Select2";
 
@@ -54,7 +53,6 @@ export default function LiveFormModal({
     entityLabel,
 }: LiveFormModalProps) {
     const { showNotification } = useNotification();
-    const { checkFeatureAccess, loading: subscriptionLoading } = useSubscriptionCheck();
 
     const [saving, setSaving] = useState(false);
     const [form, setForm] = useState({
@@ -83,12 +81,6 @@ export default function LiveFormModal({
     const handleSubmit = async () => {
         if (!form.title.trim()) { showNotification("Le titre est requis.", "error"); return; }
         if (!form.videoLink.trim()) { showNotification("Le lien vidéo est requis.", "error"); return; }
-
-        // Vérification abonnement pour la création
-        if (!isEditing) {
-            const canProceed = await checkFeatureAccess();
-            if (!canProceed) return;
-        }
 
         setSaving(true);
         try {
@@ -242,16 +234,16 @@ export default function LiveFormModal({
                         variant="outline"
                         className="flex-1 rounded-xl h-10"
                         onClick={onClose}
-                        disabled={saving || subscriptionLoading}
+                        disabled={saving}
                     >
                         Annuler
                     </Button>
                     <Button
                         className="flex-1 rounded-xl h-10 bg-primary hover:bg-primary/90 font-black"
                         onClick={handleSubmit}
-                        disabled={saving || subscriptionLoading}
+                        disabled={saving}
                     >
-                        {saving || subscriptionLoading ? (
+                        {saving ? (
                             <><Icon icon="line-md:loading-twotone-loop" className="w-4 h-4 mr-2" />
                                 {saving ? "Envoi..." : "Vérification..."}</>
                         ) : (

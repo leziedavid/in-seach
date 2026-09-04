@@ -10,7 +10,6 @@ import { AccordionSection } from "@/components/ui/AccordionSection"
 import { useNotification } from "@/components/notifications/NotificationProvider"
 import { Modal } from "@/components/ui/MotionModal"
 import FormsProduit from "@/components/products/forms/FormsProduit"
-import { useSubscriptionCheck } from "@/hooks/useSubscriptionCheck"
 import VoiceSearchModal from "@/components/services/sections/VoiceSearchModal"
 import { SectionHeader } from "@/components/shared/SectionHeader"
 
@@ -59,7 +58,6 @@ export default function FournisseurBoutique({ onNavigateToOrders }: FournisseurB
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false)
     const { addNotification } = useNotification()
-    const { checkEligibility, loading: checkLoading } = useSubscriptionCheck()
 
     // Live Modal State
     const [isLiveModalOpen, setIsLiveModalOpen] = useState(false)
@@ -236,13 +234,10 @@ export default function FournisseurBoutique({ onNavigateToOrders }: FournisseurB
         }
     }
 
-    const openCreateModal = async () => {
-        const canCreate = await checkEligibility('Product')
-        if (canCreate) {
-            setIsEditing(false)
-            setSelectedProduct(null)
-            setIsModalOpen(true)
-        }
+    const openCreateModal = () => {
+        setIsEditing(false)
+        setSelectedProduct(null)
+        setIsModalOpen(true)
     }
 
     const openLiveModal = (product?: Product) => {
@@ -368,7 +363,7 @@ export default function FournisseurBoutique({ onNavigateToOrders }: FournisseurB
             {/* ── Actions principales ── */}
             <div className="flex flex-col md:flex-row w-full max-w-4xl mx-auto px-2 md:px-4 gap-2 md:gap-4 mb-8">
                 <div className="w-full">
-                    <CreateButton label="Publier un produit" loading={checkLoading} onClick={openCreateModal} />
+                    <CreateButton label="Publier un produit" onClick={openCreateModal} />
                 </div>
                 <div className="w-full md:min-w-[200px] md:w-auto">
                     <CreateButton label="Créer un Live" icon="solar:play-circle-bold-duotone" onClick={() => openLiveModal()} />

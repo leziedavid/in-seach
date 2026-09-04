@@ -15,8 +15,6 @@ import { Button } from "@/components/ui/button";
 import { getUserId } from "@/lib/auth";
 import { useRealTimeUpdate } from "@/hooks/useRealTimeUpdate";
 import OnBack from "@/components/shared/OnBack";
-import DriverSelectorModal from "@/components/delivery/modals/DriverSelectorModal";
-import { useSubscriptionCheck } from "@/hooks/useSubscriptionCheck";
 import ConfirmAction, { ConfirmVariant } from "@/components/ui/ConfirmAction";
 
 interface CommandesProps {
@@ -53,21 +51,18 @@ export default function Commandes({ data: propData, page: propPage, limit: propL
     const [activeTab, setActiveTab] = useState<'recues' | 'passees'>('recues');
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const [open, setOpen] = useState(false);
-    const [driverModalOpen, setDriverModalOpen] = useState(false);
-    const [orderForDriver, setOrderForDriver] = useState<Order | null>(null);
     const [userRole, setUserRole] = useState<Role | null>(null);
     const { showNotification } = useNotification();
-    const { checkFeatureAccess, loading: subscriptionLoading } = useSubscriptionCheck();
     const [isConfirming, setIsConfirming] = useState(false);
 
     // ── Confirmation dialog state ─────────────────────────────────
-    const [confirmState, setConfirmState] = useState<{ isOpen: boolean; orderId: string; newStatus: string; requiresSubscription: boolean; targetType: 'order' | 'suborder'; title: string; message: string; confirmLabel: string; variant: ConfirmVariant; icon: string; }>({
-        isOpen: false, orderId: "", newStatus: "", requiresSubscription: false, targetType: 'order', title: "", message: "", confirmLabel: "Confirmer", variant: "info", icon: ""
+    const [confirmState, setConfirmState] = useState<{ isOpen: boolean; orderId: string; newStatus: string; targetType: 'order' | 'suborder'; title: string; message: string; confirmLabel: string; variant: ConfirmVariant; icon: string; }>({
+        isOpen: false, orderId: "", newStatus: "", targetType: 'order', title: "", message: "", confirmLabel: "Confirmer", variant: "info", icon: ""
     });
 
-    const openConfirm = (orderId: string, newStatus: string, requiresSubscription: boolean,
+    const openConfirm = (orderId: string, newStatus: string,
         cfg: { title: string; message: string; confirmLabel: string; variant: ConfirmVariant; icon: string }, targetType: 'order' | 'suborder' = 'order') =>
-        setConfirmState({ isOpen: true, orderId, newStatus, requiresSubscription, targetType, ...cfg });
+        setConfirmState({ isOpen: true, orderId, newStatus, targetType, ...cfg });
 
 
     const closeConfirm = () => setConfirmState(s => ({ ...s, isOpen: false }));
@@ -75,7 +70,7 @@ export default function Commandes({ data: propData, page: propPage, limit: propL
     const executeStatusChange = async () => {
         if (isConfirming || !confirmState.isOpen || !confirmState.orderId) return;
         setIsConfirming(true);
-        await handleStatusChange(confirmState.orderId, confirmState.newStatus, confirmState.requiresSubscription, confirmState.targetType);
+        await handleStatusChange(confirmState.orderId, confirmState.newStatus, confirmState.targetType);
         setIsConfirming(false);
         closeConfirm();
     };
@@ -119,12 +114,10 @@ export default function Commandes({ data: propData, page: propPage, limit: propL
         // client sans que l'utilisateur courant ait rafraîchi la page.
     }, [page, propData, activeTab]);
 
-    const handleStatusChange = async (orderId: string, newStatus: string, requiresSubscription = false, targetType: 'order' | 'suborder' = 'order') => {
-        if (requiresSubscription) {
-            const canProceed = await checkFeatureAccess();
-            if (!canProceed) return;
-        }
-
+    // Le solde Wallet du vendeur (frais `validate_product_order`/`validate_meal_order`) est
+    // vérifié et débité côté serveur au moment de la validation — un solde insuffisant renvoie
+    // une erreur ("Solde insuffisant") affichée ci-dessous, invitant à recharger le Wallet.
+    const handleStatusChange = async (orderId: string, newStatus: string, targetType: 'order' | 'suborder' = 'order') => {
         try {
             const response = targetType === 'suborder'
                 ? await updateSubOrderStatus(orderId, newStatus)
@@ -262,7 +255,7 @@ export default function Commandes({ data: propData, page: propPage, limit: propL
                                                 <div className="flex items-center gap-2">
                                                     {(order.status === OrderStatus.PENDING || order.status === OrderStatus.PROCESSING) && (
                                                         <Button size="sm" variant="destructive" className="h-8 px-3 text-[10px] font-black flex items-center gap-1.5"
-                                                            onClick={(e) => { e.stopPropagation(); openConfirm(order.id, OrderStatus.CANCELLED, false, { title: "Annuler la commande", message: "Êtes-vous sûr de vouloir annuler cette commande ? Cette action est irréversible.", confirmLabel: "Oui, annuler", variant: "danger", icon: "solar:close-circle-bold-duotone" }); }}>
+                                                            onClick={(e) => { e.stopPropagation(); openConfirm(order.id, OrderStatus.CANCELLED, { title: "Annuler la commande", message: "Êtes-vous sûr de vouloir annuler cette commande ? Cette action est irréversible.", confirmLabel: "Oui, annuler", variant: "danger", icon: "solar:close-circle-bold-duotone" }); }}>
                                                             <Icon icon="solar:close-circle-bold" className="w-4 h-4" />
                                                             <span className="hidden sm:inline">Annuler la commande</span>
                                                         </Button>
@@ -272,9 +265,9 @@ export default function Commandes({ data: propData, page: propPage, limit: propL
                                                     {/* <pre>{JSON.stringify(order.status, null, 2)}</pre>
                                                     {(order.status === OrderStatus.PROCESSING || order.status === OrderStatus.PAID) && (
                                                         <>
-                                                            <Button size="sm" disabled={subscriptionLoading} className="h-8 px-3 text-[10px] font-black bg-purple-600 hover:bg-purple-700 flex items-center gap-1.5"
-                                                                onClick={(e) => { e.stopPropagation(); openConfirm(order.id, OrderStatus.SHIPPED, true, { title: "Expédier la commande", message: "Confirmez-vous l'expédition de cette commande ? L'acheteur sera notifié.", confirmLabel: "Oui, expédier", variant: "indigo", icon: "solar:delivery-bold-duotone" }); }}>
-                                                                {subscriptionLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:delivery-bold" className="w-4 h-4" />}
+                                                            <Button size="sm" disabled={isConfirming} className="h-8 px-3 text-[10px] font-black bg-purple-600 hover:bg-purple-700 flex items-center gap-1.5"
+                                                                onClick={(e) => { e.stopPropagation(); openConfirm(order.id, OrderStatus.SHIPPED, { title: "Expédier la commande", message: "Confirmez-vous l'expédition de cette commande ? L'acheteur sera notifié.", confirmLabel: "Oui, expédier", variant: "indigo", icon: "solar:delivery-bold-duotone" }); }}>
+                                                                {isConfirming ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:delivery-bold" className="w-4 h-4" />}
                                                                 <span className="hidden sm:inline">Expédier la commande</span>
                                                             </Button>
                                                         </>
@@ -290,39 +283,39 @@ export default function Commandes({ data: propData, page: propPage, limit: propL
                                                 </div>
                                             )}
 
-                                            {/* 2. Provider Actions: Status transitions — subscription check required.
+                                            {/* 2. Provider Actions: Status transitions.
                                                 Commande moderne (mySubOrder) : agit sur la SubOrder du vendeur uniquement.
                                                 Commande legacy : comportement inchangé, agit sur l'Order globale. */}
                                             {ownsSomeProducts && (
                                                 <div className="flex items-center gap-2">
                                                     {vendorStatus === OrderStatus.PENDING && (
-                                                        <Button size="sm" disabled={subscriptionLoading} className="h-8 px-3 text-[10px] font-black bg-orange-600 hover:bg-orange-700 flex items-center gap-1.5"
-                                                            onClick={(e) => { e.stopPropagation(); openConfirm(vendorTargetId, OrderStatus.VALIDATED, true, { title: "Accepter la commande", message: "Confirmez-vous l'acceptation de cette commande ? L'acheteur sera notifié.", confirmLabel: "Oui, accepter", variant: "warning", icon: "solar:bag-check-bold-duotone" }, vendorTargetType); }}>
-                                                            {subscriptionLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:play-bold" className="w-4 h-4" />}
+                                                        <Button size="sm" disabled={isConfirming} className="h-8 px-3 text-[10px] font-black bg-orange-600 hover:bg-orange-700 flex items-center gap-1.5"
+                                                            onClick={(e) => { e.stopPropagation(); openConfirm(vendorTargetId, OrderStatus.VALIDATED, { title: "Accepter la commande", message: "Confirmez-vous l'acceptation de cette commande ? Les frais de validation seront débités de votre Wallet et l'acheteur sera notifié.", confirmLabel: "Oui, accepter", variant: "warning", icon: "solar:bag-check-bold-duotone" }, vendorTargetType); }}>
+                                                            {isConfirming ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:play-bold" className="w-4 h-4" />}
                                                             <span className="hidden sm:inline">Accepter la commande</span>
                                                         </Button>
                                                     )}
                                                     {vendorStatus === OrderStatus.VALIDATED && (
-                                                        <Button size="sm" disabled={subscriptionLoading} className="h-8 px-3 text-[10px] font-black bg-blue-600 hover:bg-blue-700 flex items-center gap-1.5"
-                                                            onClick={(e) => { e.stopPropagation(); openConfirm(vendorTargetId, OrderStatus.PROCESSING, true, { title: "Traiter la commande", message: "Confirmez-vous le début du traitement de cette commande ?", confirmLabel: "Oui, traiter", variant: "info", icon: "solar:settings-bold-duotone" }, vendorTargetType); }}>
-                                                            {subscriptionLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:check-read-bold" className="w-4 h-4" />}
+                                                        <Button size="sm" disabled={isConfirming} className="h-8 px-3 text-[10px] font-black bg-blue-600 hover:bg-blue-700 flex items-center gap-1.5"
+                                                            onClick={(e) => { e.stopPropagation(); openConfirm(vendorTargetId, OrderStatus.PROCESSING, { title: "Traiter la commande", message: "Confirmez-vous le début du traitement de cette commande ?", confirmLabel: "Oui, traiter", variant: "info", icon: "solar:settings-bold-duotone" }, vendorTargetType); }}>
+                                                            {isConfirming ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:check-read-bold" className="w-4 h-4" />}
                                                             <span className="hidden sm:inline"> Traiter la commande</span>
                                                         </Button>
                                                     )}
 
                                                     {(vendorStatus === OrderStatus.PROCESSING || vendorStatus === OrderStatus.PAID) && (
                                                         <>
-                                                            <Button size="sm" disabled={subscriptionLoading} className="h-8 px-3 text-[10px] font-black bg-purple-600 hover:bg-purple-700 flex items-center gap-1.5"
-                                                                onClick={(e) => { e.stopPropagation(); openConfirm(vendorTargetId, OrderStatus.SHIPPED, true, { title: "Expédier la commande", message: "Confirmez-vous l'expédition de cette commande ? L'acheteur sera notifié.", confirmLabel: "Oui, expédier", variant: "indigo", icon: "solar:delivery-bold-duotone" }, vendorTargetType); }}>
-                                                                {subscriptionLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:delivery-bold" className="w-4 h-4" />}
+                                                            <Button size="sm" disabled={isConfirming} className="h-8 px-3 text-[10px] font-black bg-purple-600 hover:bg-purple-700 flex items-center gap-1.5"
+                                                                onClick={(e) => { e.stopPropagation(); openConfirm(vendorTargetId, OrderStatus.SHIPPED, { title: "Expédier la commande", message: "Confirmez-vous l'expédition de cette commande ? L'acheteur sera notifié.", confirmLabel: "Oui, expédier", variant: "indigo", icon: "solar:delivery-bold-duotone" }, vendorTargetType); }}>
+                                                                {isConfirming ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:delivery-bold" className="w-4 h-4" />}
                                                                 <span className="hidden sm:inline">Expédier la commande</span>
                                                             </Button>
                                                         </>
                                                     )}
                                                     {vendorStatus === OrderStatus.SHIPPED && (
-                                                        <Button size="sm" disabled={subscriptionLoading} className="h-8 px-3 text-[10px] font-black bg-indigo-600 hover:bg-indigo-700 flex items-center gap-1.5"
-                                                            onClick={(e) => { e.stopPropagation(); openConfirm(vendorTargetId, OrderStatus.DELIVERED, true, { title: "Marquer comme livré", message: "Confirmez-vous que cette commande a bien été livrée au client ?", confirmLabel: "Oui, livré", variant: "success", icon: "solar:box-bold-duotone" }, vendorTargetType); }}>
-                                                            {subscriptionLoading ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:box-bold" className="w-4 h-4" />}
+                                                        <Button size="sm" disabled={isConfirming} className="h-8 px-3 text-[10px] font-black bg-indigo-600 hover:bg-indigo-700 flex items-center gap-1.5"
+                                                            onClick={(e) => { e.stopPropagation(); openConfirm(vendorTargetId, OrderStatus.DELIVERED, { title: "Marquer comme livré", message: "Confirmez-vous que cette commande a bien été livrée au client ?", confirmLabel: "Oui, livré", variant: "success", icon: "solar:box-bold-duotone" }, vendorTargetType); }}>
+                                                            {isConfirming ? <Icon icon="line-md:loading-twotone-loop" className="w-4 h-4" /> : <Icon icon="solar:box-bold" className="w-4 h-4" />}
                                                             <span className="hidden sm:inline">Commande livrée</span>
                                                         </Button>
                                                     )}
@@ -348,8 +341,6 @@ export default function Commandes({ data: propData, page: propPage, limit: propL
                         )}
 
                         <OrderDetailModal isOpen={open} onClose={() => { setOpen(false); setSelectedOrder(null); }} order={selectedOrder} onItemRemoved={() => { if (!propData) fetchOrders(); else onSuccess?.(); }} />
-                        {/* Driver Selector Modal */}
-                        <DriverSelectorModal isOpen={driverModalOpen} onClose={() => { setDriverModalOpen(false); setOrderForDriver(null); }} orderId={orderForDriver?.id} onSuccess={() => { setDriverModalOpen(false); setOrderForDriver(null); fetchOrders(); }} />
                     </>
                 )}
             </div>

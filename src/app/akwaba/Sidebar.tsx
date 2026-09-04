@@ -30,6 +30,7 @@ export type TabType =
     | "Commandes"
     | "Historique-commandes"
     | "Paramètres"
+    | "Facturation"
     | "Tarifs"
     | "Services-logistiques"
     | "Mes-devis"
@@ -40,7 +41,6 @@ export type TabType =
     | "Livraisons-chauffeur"
     | "Documentation-API"
     | "Ma-flotte"
-    | "Livreur-dashboard"
     | "Mes-lives"
     | "Retours-SAV"
     | "Recharge-gaz"
@@ -104,9 +104,8 @@ export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Side
     const roleLabel = userRole === Role.PRESTATAIRE ? t("akwaba.sidebar.roles.prestataire") :
         userRole === Role.ENTREPRISE ? t("akwaba.sidebar.roles.entreprise") :
             userRole === Role.CHAUFFEUR ? t("akwaba.sidebar.roles.chauffeur") :
-                userRole === Role.LIVREUR ? t("akwaba.sidebar.roles.livreur") :
-                    userRole === Role.GAZIER ? t("akwaba.sidebar.roles.gazier") :
-                        userRole === Role.GARAGISTE_VENTE_PIECE_AUTO ? t("akwaba.sidebar.roles.garagiste") : t("akwaba.sidebar.roles.client");
+                userRole === Role.GAZIER ? t("akwaba.sidebar.roles.gazier") :
+                    userRole === Role.GARAGISTE_VENTE_PIECE_AUTO ? t("akwaba.sidebar.roles.garagiste") : t("akwaba.sidebar.roles.client");
 
     // ── Assistance — ouvre WhatsApp avec un message prédéfini vers l'admin ──
     const handleOpenAssistance = () => {

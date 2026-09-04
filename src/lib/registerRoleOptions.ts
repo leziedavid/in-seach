@@ -23,7 +23,6 @@ export const ROLE_I18N_KEYS: Record<string, RoleI18nKeys> = {
     CLIENT: { labelKey: 'auth.register.role_particular', descKey: 'auth.register.role_modal.desc_particular' },
     PRESTATAIRE: { labelKey: 'auth.register.role_professional', descKey: 'auth.register.role_modal.desc_professional' },
     ENTREPRISE: { labelKey: 'auth.register.role_logistician', descKey: 'auth.register.role_modal.desc_logistician' },
-    LIVREUR: { labelKey: 'auth.register.role_deliverer', descKey: 'auth.register.role_modal.desc_deliverer' },
     GAZIER: { labelKey: 'auth.register.role_gas_provider', descKey: 'auth.register.role_modal.desc_gas_provider' },
     GARAGISTE_VENTE_PIECE_AUTO: { labelKey: 'auth.register.role_garagiste', descKey: 'auth.register.role_modal.desc_garagiste' },
 };
